@@ -1,0 +1,40 @@
+name: Assistant GM
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Run Assistant GM
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+          YAHOO_OAUTH_JSON: ${{ secrets.YAHOO_OAUTH_JSON }}
+          YAHOO_LEAGUE_KEY: ${{ secrets.YAHOO_LEAGUE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: python main.py
+
+      - name: Commit updated notification state
+        run: |
+          git config user.name "assistant-gm-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/last_run.json
+          git diff --cached --quiet || git commit -m "Update notification state"
+          git push
