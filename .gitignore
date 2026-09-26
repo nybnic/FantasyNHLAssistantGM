@@ -4,3 +4,12 @@ __pycache__/
 oauth2.json
 .venv/
 venv/
+data/cache/
+# Draft board build outputs (regenerate with: python -m scripts.build_draft_rankings)
+data/draft_board.json
+data/draft_board.html
+data/draft_board.artifact.html
+data/draft_rankings.csv
+# Yahoo's projection exports stay local (public repo); overrides are ours
+data/yahoo/*.csv
+!data/yahoo/overrides.csv

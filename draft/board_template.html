@@ -1,0 +1,616 @@
+<title>Not for Everyone War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #eef2f5;
+  --surface: #ffffff;
+  --surface-2: #f5f8fa;
+  --line: #d9e1e8;
+  --ink: #101a26;
+  --muted: #5a6b7c;
+  --accent: #2448c8;
+  --accent-soft: #e4eafc;
+  --red: #cf2e3a;
+  --red-soft: #fbe5e7;
+  --amber: #a86a12;
+  --amber-soft: #fbf0dc;
+  --green: #1d8757;
+  --green-soft: #e0f3ea;
+  --taken: #9aa8b5;
+  --bar: #b9c8f3;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b121a; --surface: #111b26; --surface-2: #16222f; --line: #243343;
+    --ink: #e5ecf3; --muted: #8b9cae; --accent: #86a0ff; --accent-soft: #1c2a52;
+    --red: #ff6f78; --red-soft: #3a1b20; --amber: #f0b454; --amber-soft: #36290f;
+    --green: #52c98f; --green-soft: #12301f; --taken: #4d5d6d; --bar: #2c3f78;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b121a; --surface: #111b26; --surface-2: #16222f; --line: #243343;
+  --ink: #e5ecf3; --muted: #8b9cae; --accent: #86a0ff; --accent-soft: #1c2a52;
+  --red: #ff6f78; --red-soft: #3a1b20; --amber: #f0b454; --amber-soft: #36290f;
+  --green: #52c98f; --green-soft: #12301f; --taken: #4d5d6d; --bar: #2c3f78;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body);
+  font-size: 14px; line-height: 1.4; padding: 0 16px 48px;
+  font-variant-numeric: tabular-nums;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Clock bar */
+.clock {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  margin: 0 -16px; padding: 10px 16px; background: var(--ink); color: var(--bg);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px;
+}
+.clock .brand { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: .02em; text-transform: uppercase; }
+.clock .cell { display: flex; flex-direction: column; }
+.clock .k { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; opacity: .7; }
+.clock .v { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1; }
+.clock .v.me { color: #ffd166; }
+.clock .spacer { flex: 1; }
+.clock label { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.clock select { background: transparent; border: 1px solid currentColor; border-radius: 4px; padding: 2px 4px; }
+.clock select option { color: #101a26; }
+.onclock { background: #ffd166; color: #101a26; font-family: var(--display); font-weight: 700; font-size: 16px; padding: 2px 10px; border-radius: 3px; letter-spacing: .04em; text-transform: uppercase; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; margin-top: 16px; align-items: start; }
+@media (max-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+#search {
+  flex: 1 1 240px; min-width: 0; padding: 10px 12px; border: 2px solid var(--accent);
+  border-radius: 6px; background: var(--surface); font-size: 16px;
+}
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 8px 10px; cursor: pointer; font-weight: 500; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.hint { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+kbd { font-family: var(--body); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; background: var(--surface); }
+
+/* Table */
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); white-space: nowrap; }
+td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th.num, td.num { text-align: right; }
+tr.tierbreak td { background: var(--surface-2); font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 3px 8px; }
+tr.nofit td:not(.act) { opacity: .45; }
+.rk { font-family: var(--display); font-weight: 600; font-size: 17px; }
+.pname { font-weight: 600; white-space: nowrap; }
+.meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.statline { font-size: 12px; color: var(--muted); }
+.srcline { font-size: 11px; color: var(--muted); opacity: .85; }
+.flag { font-size: 11px; color: var(--red); }
+.pos { font-weight: 600; }
+.elig { font-size: 11px; color: var(--muted); }
+.vorp { min-width: 92px; }
+.vbar { height: 4px; border-radius: 2px; background: var(--bar); margin-top: 3px; }
+.chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.chip.gone { background: var(--red-soft); color: var(--red); }
+.chip.maybe { background: var(--amber-soft); color: var(--amber); }
+.chip.back { background: var(--green-soft); color: var(--green); }
+td.act { white-space: nowrap; text-align: right; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 5px; padding: 4px 9px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.btn:hover { border-color: var(--muted); }
+.btn.mine { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn + .btn { margin-left: 4px; }
+@media (max-width: 640px) { .hide-sm { display: none; } }
+
+/* Side panel */
+.side { display: flex; flex-direction: column; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.panel h2 { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; margin: 0 0 8px; text-wrap: balance; }
+.suggest .who { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; }
+.suggest p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.bestpos { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 8px; font-size: 13px; align-items: baseline; }
+.bestpos .p { font-weight: 600; color: var(--muted); }
+.bestpos .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slots { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 3px 8px; font-size: 13px; }
+.slots .s { font-weight: 600; color: var(--muted); }
+.slots .empty { color: var(--taken); }
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; max-height: 280px; overflow-y: auto; }
+.log li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.log li.me .ln { color: var(--accent); font-weight: 600; }
+.log .pk { color: var(--muted); }
+.log .ln { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.x { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 4px; font-size: 15px; }
+.x:hover { color: var(--red); }
+.foot { font-size: 12px; color: var(--muted); }
+.foot p { margin: 4px 0; max-width: 65ch; }
+.rowline { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { tr { transition: opacity .15s; } }
+/* Draft-strategy additions */
+.score { font-family: var(--display); font-weight: 600; font-size: 17px; }
+.chip.fo { background: var(--accent-soft); color: var(--accent); }
+.chip.win { background: var(--amber-soft); color: var(--amber); }
+tr.blocked td:not(.act) { opacity: .45; }
+.why { font-size: 12px; color: var(--muted); }
+.alts { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.alts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.alts .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.posgrid { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 6px 8px; font-size: 13px; align-items: center; }
+.posgrid .p { font-weight: 600; color: var(--muted); }
+.posgrid .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.supply { font-size: 12px; white-space: nowrap; }
+.supply.tight { color: var(--red); font-weight: 600; }
+.reads { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.reads li.alert { color: var(--red); font-weight: 600; }
+.sortseg button { padding: 6px 9px; font-size: 13px; }
+</style>
+
+<header class="clock" aria-live="polite">
+  <span class="brand">War Room</span>
+  <div class="cell"><span class="k">Pick</span><span class="v" id="c-pick">1</span></div>
+  <div class="cell"><span class="k">Round</span><span class="v" id="c-round">1</span></div>
+  <div class="cell"><span class="k">Your next</span><span class="v me" id="c-next">8</span></div>
+  <div class="cell"><span class="k">Picks away</span><span class="v" id="c-away">7</span></div>
+  <span class="onclock" id="c-onclock" hidden>You're on the clock</span>
+  <span class="spacer"></span>
+  <label for="slot">Draft slot
+    <select id="slot"></select>
+  </label>
+</header>
+
+<div class="layout">
+  <main>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Type a name…" autocomplete="off" spellcheck="false" aria-label="Search players">
+      <div class="seg" role="group" aria-label="Position" id="posfilter"></div>
+      <div class="seg sortseg" role="group" aria-label="Sort" id="sortseg">
+        <button type="button" data-sort="score" aria-pressed="true">Pick score</button>
+        <button type="button" data-sort="rank" aria-pressed="false">Board rank</button>
+      </div>
+      <label class="toggle" for="showtaken"><input type="checkbox" id="showtaken"> Show drafted</label>
+    </div>
+    <p class="hint"><kbd>Enter</kbd> marks the top match as taken by another team. <kbd>Shift</kbd>+<kbd>Enter</kbd> marks him as your pick. <kbd>Esc</kbd> clears the search. Enter picks in draft order: the board works out which team made each pick.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rk</th>
+            <th>Player</th>
+            <th>Pos</th>
+            <th class="num" title="Value to your roster now, plus what you'd lose at his position by waiting until your next pick">Pick score</th>
+            <th class="num vorp hide-sm" title="Season points above a waiver-level player at his best eligible position">Value</th>
+            <th class="num hide-sm">Pts</th>
+            <th class="num hide-sm" title="Projected games played, or starts for goalies">GP</th>
+            <th class="num">Y! ADP</th>
+            <th title="Will he still be there at your next pick? Yahoo ADP, adjusted for how this league is actually drafting.">Next pick</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <aside class="side">
+    <section class="panel suggest" id="suggest"></section>
+    <section class="panel">
+      <h2>Positions</h2>
+      <div class="posgrid" id="posgrid"></div>
+    </section>
+    <section class="panel">
+      <h2>Market reads</h2>
+      <ul class="reads" id="reads"></ul>
+    </section>
+    <section class="panel">
+      <h2>My roster</h2>
+      <div class="slots" id="slots"></div>
+    </section>
+    <section class="panel">
+      <div class="rowline" style="justify-content: space-between; align-items: baseline;">
+        <h2>Pick log</h2>
+        <button class="btn" id="undo" type="button">Undo last</button>
+      </div>
+      <ol class="log" id="log"></ol>
+    </section>
+    <section class="panel foot" id="foot"></section>
+  </aside>
+</div>
+
+<script>
+const DATA = /*__BOARD_DATA__*/null;
+const TEAMS = 16, ROUNDS = 14, BENCH = 2;
+const STARTERS = { C: 2, LW: 2, RW: 2, D: 4, G: 2 };
+const POS = ["C", "LW", "RW", "D", "G"];
+const POSITIONS = ["All", ...POS];
+// Agreed goalie plan: 1 goalie by end of R3, a 2nd from R4, a 3rd from R8, never more than 3.
+const goalieCap = round => round <= 3 ? 1 : round <= 7 ? 2 : 3;
+const WAIT_WEIGHT = 1.0;            // tested in mock drafts: full weight on the wait cost did best
+const BENCH_SHARE = { G: 0.6, skater: 0.3 };
+// League-wide share of drafted players by position (rostered pool / 224 picks).
+const POOL = { C: 37, LW: 36, RW: 36, D: 70, G: 45 };
+const STORE_KEY = "nfe-war-room-v2";
+
+const players = DATA.players;
+const byId = new Map(players.map(p => [p.id, p]));
+const REPL = DATA.replacement;
+const maxVorp = Math.max(...players.map(p => p.vorp));
+const eligOf = p => p.elig.split("/");
+
+let state = { slot: 8, picks: [] };
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && Array.isArray(saved.picks)) state = saved;
+} catch (e) { /* storage unavailable: start fresh */ }
+let posFilter = "All";
+let sortBy = "score";
+
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+const fold = s => s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const median = xs => { const s = [...xs].sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+
+/* ---------- draft order ---------- */
+function myPicks() {
+  const out = [];
+  for (let r = 0; r < ROUNDS; r++) out.push(r * TEAMS + (r % 2 === 0 ? state.slot : TEAMS + 1 - state.slot));
+  return out;
+}
+function teamOf(n) {
+  const r = Math.floor((n - 1) / TEAMS), i = (n - 1) % TEAMS;
+  return r % 2 === 0 ? i + 1 : TEAMS - i;
+}
+function clock() {
+  const current = state.picks.length + 1;
+  const mine = myPicks();
+  const onClock = mine.includes(current);
+  const next = mine.find(n => n >= current);
+  const following = mine.find(n => n > current);
+  // The pick we're planning: now if on the clock, else your next turn.
+  const planPick = onClock ? current : next;
+  // The pick a player has to survive to if you pass on him now.
+  const horizon = onClock ? following : next;
+  const picksBefore = !horizon ? 0 : onClock ? horizon - current - 1 : horizon - current;
+  return { current, onClock, next, following, planPick, horizon, picksBefore,
+           round: Math.ceil(current / TEAMS), planRound: planPick ? Math.ceil(planPick / TEAMS) : ROUNDS };
+}
+
+/* ---------- rosters ---------- */
+function fillSlots(roster) {
+  const open = { ...STARTERS };
+  let bench = BENCH;
+  const slots = [];
+  // Least flexible players first, so a C/LW/RW doesn't block a pure C.
+  const order = [...roster].sort((a, b) => eligOf(a).length - eligOf(b).length || b.fpts - a.fpts);
+  const overflow = [];
+  for (const p of order) {
+    const e = eligOf(p).filter(x => open[x] > 0).sort((a, b) => open[b] - open[a])[0];
+    if (e) { open[e]--; slots.push({ pos: e, p }); }
+    else if (bench > 0) { bench--; slots.push({ pos: "BN", p }); }
+    else overflow.push(p);
+  }
+  return { open, bench, slots, overflow };
+}
+function rosters() {
+  const teams = new Map();
+  state.picks.forEach((x, i) => {
+    const t = x.mine ? "me" : teamOf(i + 1);
+    if (!teams.has(t)) teams.set(t, []);
+    teams.get(t).push(byId.get(x.id));
+  });
+  return teams;
+}
+
+/* ---------- market model ---------- */
+// How many picks earlier (-) or later (+) than ADP this league is taking each position.
+function marketDrift() {
+  const drift = {}, samples = {};
+  const recent = state.picks.map((x, i) => ({ ...x, n: i + 1 })).filter(x => !x.mine).slice(-48);
+  for (const pos of POS) {
+    const devs = recent.map(x => ({ x, p: byId.get(x.id) })).filter(o => o.p.pos === pos && o.p.market).map(o => o.x.n - o.p.market);
+    samples[pos] = devs.length;
+    drift[pos] = devs.length >= 4 ? median(devs) : 0;
+  }
+  return { drift, samples };
+}
+
+function analyse() {
+  const c = clock();
+  const takenIds = new Set(state.picks.map(x => x.id));
+  const teams = rosters();
+  const me = fillSlots(teams.get("me") || []);
+  const myGoalies = (teams.get("me") || []).filter(p => p.pos === "G").length;
+  const { drift, samples } = marketDrift();
+  const est = p => (p.market ?? 400) + (drift[p.pos] || 0);
+  const avail = players.filter(p => !takenIds.has(p.id));
+
+  // Who the market takes before your next turn, and the best left at each position after that.
+  const goneSoon = new Set([...avail].sort((a, b) => est(a) - est(b)).slice(0, c.picksBefore).map(p => p.id));
+  const nextBest = {};
+  for (const pos of POS) {
+    nextBest[pos] = avail.filter(p => !goneSoon.has(p.id) && eligOf(p).includes(pos))
+                         .sort((a, b) => b.fpts - a.fpts).slice(0, 2);
+  }
+  const bestAfter = (pos, exclude) => {
+    const q = nextBest[pos].find(p => p.id !== exclude);
+    return q ? q.fpts : REPL[pos];
+  };
+
+  const gCap = goalieCap(c.planRound);
+  function evaluate(p) {
+    const openStarter = eligOf(p).filter(e => me.open[e] > 0);
+    const fits = openStarter.length > 0 || me.bench > 0;
+    const blockedByWindow = p.pos === "G" && myGoalies >= gCap;
+    const rosterValue = openStarter.length ? p.vorp : p.vorp * (p.pos === "G" ? BENCH_SHARE.G : BENCH_SHARE.skater);
+    let waitCost = 0, waitPos = null;
+    if (goneSoon.has(p.id)) {
+      for (const e of (openStarter.length ? openStarter : eligOf(p))) {
+        const drop = p.fpts - bestAfter(e, p.id);
+        if (waitPos === null || drop < waitCost) { waitCost = drop; waitPos = e; }
+      }
+      waitCost = Math.max(0, waitCost);
+    }
+    return {
+      fits, blockedByWindow, openStarter, rosterValue, waitCost, waitPos,
+      score: rosterValue + WAIT_WEIGHT * waitCost,
+      usable: fits && !blockedByWindow,
+    };
+  }
+  const evals = new Map(avail.map(p => [p.id, evaluate(p)]));
+  return { c, takenIds, teams, me, myGoalies, gCap, drift, samples, est, avail, goneSoon, evals };
+}
+
+function availability(p, a) {
+  if (!a.c.horizon) return null;
+  const e = a.est(p);
+  if (a.goneSoon.has(p.id)) return { cls: e < a.c.horizon - 3 ? "gone" : "maybe", text: e < a.c.horizon - 3 ? `Gone by #${a.c.horizon}` : `Maybe at #${a.c.horizon}` };
+  return { cls: "back", text: `Likely at #${a.c.horizon}` };
+}
+
+/* ---------- rendering ---------- */
+function statline(p) {
+  const r = v => Math.round(v || 0);
+  if (p.pos === "G") return `${r(p.gs)} GS · ${r(p.w)} W · ${(p.sv_pct || 0).toFixed(3).replace(/^0/, "")} SV% · ${r(p.sv)} SV · ${r(p.so)} SO`;
+  const parts = [`${r(p.g)} G`, `${r(p.a)} A`, `${r(p.sog)} SOG`];
+  if ((p.fow || 0) >= 50) parts.push(`${r(p.fow)} FOW`);
+  parts.push(`${r(p.hit)} HIT`, `${r(p.blk)} BLK`);
+  return parts.join(" · ");
+}
+const isFaceoffWing = p => (p.fow || 0) >= 250 && eligOf(p).some(e => e === "LW" || e === "RW");
+
+function visiblePlayers(a) {
+  const q = fold(document.getElementById("search").value.trim());
+  const showTaken = document.getElementById("showtaken").checked;
+  let list = players.filter(p =>
+    (showTaken || !a.takenIds.has(p.id)) &&
+    (posFilter === "All" || eligOf(p).includes(posFilter)) &&
+    (!q || fold(p.name).includes(q) || fold(p.team) === q)
+  );
+  if (sortBy === "score") {
+    const s = p => { const e = a.evals.get(p.id); return e ? (e.usable ? e.score : e.score - 1e6) : -2e6; };
+    list = list.sort((x, y) => s(y) - s(x));
+  }
+  return list;
+}
+
+function render() {
+  const a = analyse();
+  const { c } = a;
+
+  document.getElementById("c-pick").textContent = c.current;
+  document.getElementById("c-round").textContent = Math.min(c.round, ROUNDS);
+  document.getElementById("c-next").textContent = c.next ? `#${c.next}` : "Done";
+  document.getElementById("c-away").textContent = c.next ? c.next - c.current : "–";
+  document.getElementById("c-onclock").hidden = !c.onClock;
+
+  // Table
+  const rows = [];
+  let lastTier = null;
+  const plain = !document.getElementById("search").value.trim() && sortBy === "rank";
+  for (const p of visiblePlayers(a).slice(0, 150)) {
+    if (plain && p.tier !== lastTier) {
+      rows.push(`<tr class="tierbreak"><td colspan="10">Tier ${p.tier}</td></tr>`);
+      lastTier = p.tier;
+    }
+    const taken = a.takenIds.has(p.id);
+    const ev = a.evals.get(p.id);
+    const av = taken ? null : availability(p, a);
+    const cls = taken ? "" : !ev.fits ? "nofit" : ev.blockedByWindow ? "blocked" : "";
+    const line = [p.team, p.line, p.pp].filter(Boolean).join(" · ");
+    const badges = [
+      isFaceoffWing(p) ? `<span class="chip fo" title="Wing-eligible and takes faceoffs">FO wing</span>` : "",
+      !taken && ev.blockedByWindow ? `<span class="chip win">${a.myGoalies >= 3 ? "3 G max" : `G window opens R${a.myGoalies === 1 ? 4 : 8}`}</span>` : "",
+    ].join(" ");
+    rows.push(`<tr class="${cls}" style="${taken ? "opacity:.4" : ""}">
+      <td class="rk">${p.rank}</td>
+      <td><div class="pname">${esc(p.name)} ${badges}</div>
+        <div class="meta">${esc(line)}${p.age ? ` · ${p.age}y` : ""}</div>
+        <div class="statline">${statline(p)}</div>
+        ${p.flags ? `<div class="flag">${esc(p.flags)}</div>` : ""}</td>
+      <td><div class="pos">${p.pos_rank}</div>${p.elig !== p.pos ? `<div class="elig">${p.elig}</div>` : ""}</td>
+      <td class="num score">${taken ? "" : Math.round(ev.score)}</td>
+      <td class="num vorp hide-sm">${p.vorp.toFixed(0)}<div class="vbar" style="width:${Math.max(4, 100 * Math.max(0, p.vorp) / maxVorp)}%"></div></td>
+      <td class="num hide-sm">${p.fpts.toFixed(0)}</td>
+      <td class="num hide-sm">${Math.round(p.games)}</td>
+      <td class="num">${p.yahoo_adp != null ? Math.round(p.yahoo_adp) : "–"}</td>
+      <td>${av ? `<span class="chip ${av.cls}">${av.text}</span>` : ""}</td>
+      <td class="act">${taken ? "" : `<button class="btn" type="button" data-take="${p.id}">Taken</button><button class="btn mine" type="button" data-mine="${p.id}">Mine</button>`}</td>
+    </tr>`);
+  }
+  if (!rows.length) rows.push(`<tr><td colspan="10" class="meta">No players match. Clear the search or switch the position filter.</td></tr>`);
+  document.getElementById("rows").innerHTML = rows.join("");
+
+  renderSuggestion(a);
+  renderPositions(a);
+  renderReads(a);
+  renderRoster(a);
+  renderLog();
+}
+
+function why(p, a) {
+  const ev = a.evals.get(p.id);
+  const parts = [];
+  parts.push(ev.openStarter.length ? `Fills your open ${ev.openStarter.join("/")} slot` : `Bench depth`);
+  if (ev.waitCost > 0) parts.push(`won't last to #${a.c.horizon}: waiting costs ~${Math.round(ev.waitCost)} pts at ${ev.waitPos}`);
+  else if (a.c.horizon) parts.push(`likely still there at #${a.c.horizon}`);
+  if (isFaceoffWing(p)) parts.push(`wing-eligible with ${Math.round(p.fow)} faceoff wins`);
+  return parts.join(" · ");
+}
+
+function renderSuggestion(a) {
+  const sug = document.getElementById("suggest");
+  const { c } = a;
+  if (!c.next) { sug.innerHTML = `<h2>Draft complete</h2><p>All ${ROUNDS} of your picks are in.</p>`; return; }
+  const ranked = a.avail.map(p => ({ p, ev: a.evals.get(p.id) })).filter(o => o.ev.usable).sort((x, y) => y.ev.score - x.ev.score);
+  if (!ranked.length) { sug.innerHTML = `<h2>Suggested pick</h2><p>No available player fits an open roster slot.</p>`; return; }
+  const [top, ...rest] = ranked;
+  const needG = a.myGoalies === 0 && c.planRound === 3;
+  sug.innerHTML = `<h2>${c.onClock ? "Take now" : `Plan for #${c.next}`}</h2>
+    <div class="who">${esc(top.p.name)}</div>
+    <div class="meta">${top.p.pos_rank} · ${top.p.elig} · ${top.p.team} · score ${Math.round(top.ev.score)} · ADP ${top.p.yahoo_adp != null ? Math.round(top.p.yahoo_adp) : "–"}</div>
+    <p>${esc(why(top.p, a))}</p>
+    ${needG ? `<p class="flag">Goalie plan: this is your last pick before the round-3 deadline for your first goalie.</p>` : ""}
+    <ul class="alts">${rest.slice(0, 3).map(o => `<li><span class="n">${esc(o.p.name)} <span class="meta">${o.p.pos_rank}</span></span><span class="meta">${Math.round(o.ev.score)}</span></li>`).join("")}</ul>`;
+}
+
+function renderPositions(a) {
+  // League demand: open starter slots on the other 15 teams. Supply: available players above waiver level.
+  const demand = Object.fromEntries(POS.map(p => [p, 0]));
+  for (let t = 1; t <= TEAMS; t++) {
+    if (t === state.slot) continue;
+    const f = fillSlots(a.teams.get(t) || []);
+    for (const pos of POS) demand[pos] += f.open[pos];
+  }
+  document.getElementById("posgrid").innerHTML = POS.map(pos => {
+    const best = a.avail.filter(p => eligOf(p).includes(pos)).sort((x, y) => y.fpts - x.fpts)[0];
+    const supply = a.avail.filter(p => eligOf(p).includes(pos) && p.fpts > REPL[pos]).length;
+    const tight = supply < demand[pos] * 1.2;
+    return `<span class="p">${pos}</span>
+      <span class="n">${best ? esc(best.name) : "–"} <span class="meta">${best ? Math.round(best.fpts - REPL[pos]) : ""}</span></span>
+      <span class="supply ${tight ? "tight" : ""}" title="Players left above waiver level / open starter slots on other teams">${supply} left · ${demand[pos]} open</span>`;
+  }).join("");
+}
+
+function renderReads(a) {
+  const items = [];
+  for (const pos of POS) {
+    const d = a.drift[pos];
+    if (a.samples[pos] >= 4 && Math.abs(d) >= 8) {
+      items.push(`<li class="${d < 0 ? "alert" : ""}">${pos}: going ${Math.abs(Math.round(d))} picks ${d < 0 ? "earlier" : "later"} than ADP (${a.samples[pos]} recent picks)</li>`);
+    }
+  }
+  // Runs: last 16 picks vs the normal share of each position.
+  const last = state.picks.slice(-16).map(x => byId.get(x.id).pos);
+  if (last.length >= 8) {
+    for (const pos of POS) {
+      const n = last.filter(x => x === pos).length;
+      const expected = POOL[pos] / 224 * last.length;
+      if (n >= expected + 3) items.push(`<li class="alert">Run on ${pos}: ${n} of the last ${last.length} picks (normal ≈ ${expected.toFixed(0)})</li>`);
+    }
+  }
+  if (!items.length) items.push(`<li class="meta">${state.picks.length < 8 ? "Reads appear once picks start coming in." : "The league is drafting close to ADP."}</li>`);
+  document.getElementById("reads").innerHTML = items.join("");
+}
+
+function renderRoster(a) {
+  const { slots, overflow } = a.me;
+  const order = [...POS, "BN"];
+  const filled = [];
+  for (const pos of order) {
+    const n = pos === "BN" ? BENCH : STARTERS[pos];
+    const here = slots.filter(s => s.pos === pos);
+    for (let i = 0; i < n; i++) filled.push({ pos, p: here[i]?.p });
+  }
+  const nextWindow = a.myGoalies === 0 ? "take one by end of R3" : a.myGoalies === 1 ? "2nd from R4" : a.myGoalies === 2 ? "3rd from R8" : "done";
+  document.getElementById("slots").innerHTML =
+    filled.map(s => `<span class="s">${s.pos}</span>${s.p ? `<span>${esc(s.p.name)} <span class="meta">${s.p.team}</span></span>` : `<span class="empty">open</span>`}`).join("") +
+    overflow.map(p => `<span class="s">+</span><span class="flag">${esc(p.name)}: no open slot</span>`).join("") +
+    `<span class="s">G</span><span class="meta">${a.myGoalies} of 3 goalies · ${nextWindow}</span>`;
+}
+
+function renderLog() {
+  document.getElementById("log").innerHTML = state.picks.map((x, i) => ({ ...x, n: i + 1 })).reverse().map(x => {
+    const p = byId.get(x.id);
+    const who = x.mine ? "You" : `T${teamOf(x.n)}`;
+    return `<li class="${x.mine ? "me" : ""}"><span class="pk">#${x.n}</span><span class="ln">${esc(p.name)} <span class="meta">${p.pos} · ${who}</span></span><button class="x" type="button" data-remove="${x.n - 1}" aria-label="Remove ${esc(p.name)} from the log">×</button></li>`;
+  }).join("") || `<li class="meta">No picks yet.</li>`;
+  document.getElementById("undo").disabled = !state.picks.length;
+}
+
+function mark(id, mine) {
+  if (state.picks.some(x => x.id === id)) return;
+  state.picks.push({ id, mine });
+  save();
+  render();
+}
+
+/* ---------- controls ---------- */
+const slotSel = document.getElementById("slot");
+for (let i = 1; i <= TEAMS; i++) slotSel.insertAdjacentHTML("beforeend", `<option value="${i}">${i}</option>`);
+slotSel.value = state.slot;
+slotSel.addEventListener("change", () => { state.slot = +slotSel.value; save(); render(); });
+
+const seg = document.getElementById("posfilter");
+seg.innerHTML = POSITIONS.map(p => `<button type="button" data-pos="${p}" aria-pressed="${p === posFilter}">${p}</button>`).join("");
+seg.addEventListener("click", e => {
+  const b = e.target.closest("button[data-pos]");
+  if (!b) return;
+  posFilter = b.dataset.pos;
+  seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  render();
+});
+const sortSeg = document.getElementById("sortseg");
+sortSeg.addEventListener("click", e => {
+  const b = e.target.closest("button[data-sort]");
+  if (!b) return;
+  sortBy = b.dataset.sort;
+  sortSeg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  render();
+});
+
+const search = document.getElementById("search");
+search.addEventListener("input", render);
+search.addEventListener("keydown", e => {
+  if (e.key === "Escape") { search.value = ""; render(); }
+  if (e.key === "Enter") {
+    const a = analyse();
+    const first = visiblePlayers(a).find(p => !a.takenIds.has(p.id));
+    if (first) { mark(first.id, e.shiftKey); search.value = ""; render(); }
+  }
+});
+document.getElementById("showtaken").addEventListener("change", render);
+
+document.getElementById("rows").addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.take) mark(+t.dataset.take, false);
+  if (t.dataset.mine) mark(+t.dataset.mine, true);
+  search.focus();
+});
+document.getElementById("log").addEventListener("click", e => {
+  const t = e.target.closest("button[data-remove]");
+  if (!t) return;
+  state.picks.splice(+t.dataset.remove, 1);
+  save(); render();
+});
+document.getElementById("undo").addEventListener("click", () => { state.picks.pop(); save(); render(); });
+
+document.getElementById("foot").innerHTML = `
+  <p><strong>Pick score</strong> = value to your roster now (full value if he fills an open starting slot, a fraction if he'd sit on your bench) + what you'd lose at his position if you wait and the league takes him before your next turn.</p>
+  <p><strong>Value</strong> is Yahoo's projected points under this league's scoring, minus a waiver-level player at his best Yahoo-eligible position. Waiver levels: C ${Math.round(REPL.C)}, LW ${Math.round(REPL.LW)}, RW ${Math.round(REPL.RW)}, D ${Math.round(REPL.D)}, G ${Math.round(REPL.G)}.</p>
+  <p>Goalie plan: one by end of round 3, a second from round 4, a third from round 8. Goalies outside the window are dimmed.</p>
+  <p>Built ${esc(DATA.generated.replace("T", " "))} from Yahoo's projections. Timing uses FantasyPros' Yahoo ADP, adjusted as the league drafts.</p>`;
+
+render();
+search.focus();
+</script>
