@@ -24,7 +24,7 @@ from pathlib import Path
 from draft import consensus
 from draft import projections as pj
 from draft import sources
-from draft.value import assign_tiers, value_positions
+from draft.value import assign_tiers, value_positions, waiver_pool
 from draft.yahoo_projections import load_yahoo_projections
 
 OVERRIDES_FILE = Path("data/draft_overrides.csv")
@@ -378,6 +378,7 @@ def main() -> None:
     board_data = {
         "generated": dt.datetime.now().isoformat(timespec="minutes"),
         "replacement": {k: round(v, 1) for k, v in levels.items()},
+        "waiver_examples": {pos: [p.name for p in pool[:3]] for pos, pool in waiver_pool(projs).items()},
         "players": rows,
         "unprojected_adp": [a for a in unmatched_adp if a["yahoo"] and a["yahoo"] <= 250],
     }

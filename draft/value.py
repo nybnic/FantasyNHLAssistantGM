@@ -95,22 +95,29 @@ def league_rosters(projections: Sequence[Projection], candidates: int = 500) -> 
     return assigned
 
 
+def waiver_pool(projections: Sequence[Projection]) -> dict[str, list[Projection]]:
+    """The best REPLACEMENT_WINDOW players at each position who don't make
+    the optimal league-wide rosters - what is really left on waivers."""
+    rostered = league_rosters(projections)
+    return {
+        pos: sorted(
+            (p for p in projections if p.player_id not in rostered and pos in (p.elig or {p.pos})),
+            key=lambda p: p.fpts, reverse=True,
+        )[:REPLACEMENT_WINDOW]
+        for pos in STARTERS
+    }
+
+
 def value_positions(projections: Sequence[Projection]) -> tuple[dict[str, float], dict[int, str]]:
     """Replacement level per position and the position each player is valued at.
 
-    Replacement level = average of the best REPLACEMENT_WINDOW players eligible
-    at that position who don't make the optimal league-wide rosters - i.e.
-    what is really left on waivers there. Each player is valued at the
-    eligible position where he beats replacement by the most.
+    Replacement level = average points of the waiver pool at that position.
+    Each player is valued at the eligible position where he beats
+    replacement by the most.
     """
-    rostered = league_rosters(projections)
     levels = {}
-    for pos in STARTERS:
-        leftovers = sorted(
-            (p.fpts for p in projections if p.player_id not in rostered and pos in (p.elig or {p.pos})),
-            reverse=True,
-        )[:REPLACEMENT_WINDOW]
-        levels[pos] = sum(leftovers) / len(leftovers) if leftovers else 0.0
+    for pos, pool in waiver_pool(projections).items():
+        levels[pos] = sum(p.fpts for p in pool) / len(pool) if pool else 0.0
     value_pos = {
         p.player_id: max((p.elig or {p.pos}) & set(levels), key=lambda pos: p.fpts - levels[pos])
         for p in projections
