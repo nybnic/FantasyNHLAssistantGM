@@ -32,6 +32,16 @@ def test_keeps_current_slots_when_nothing_changes():
     assert optimize(cands, SLOTS) == {1: "LW", 2: "C"}
 
 
+def test_trivial_moves_are_not_suggested_alongside_real_ones():
+    cands = [
+        Candidate(1, ("C",), value=0.0, current_slot="C"),
+        Candidate(2, ("C",), value=4.7, current_slot="BN"),  # worth starting
+        Candidate(3, ("G",), value=0.27, current_slot="G"),  # neither goalie starts:
+        Candidate(4, ("G",), value=0.31, current_slot="BN"),  # a 0.04 swap isn't worth a move
+    ]
+    assert optimize(cands, SLOTS) == {1: "BN", 2: "C", 3: "G", 4: "BN"}
+
+
 def test_season_value_breaks_ties_when_lineup_is_unknown():
     cands = [
         Candidate(1, ("D",), value=0.0, season_value=2.0),
