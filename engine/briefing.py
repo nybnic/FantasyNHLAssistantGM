@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from zoneinfo import ZoneInfo
 
 from clients.dfo_lines import LineInfo
-from clients.dfo_projections import normalize_name
+from clients.names import normalize_name
 from clients.nhl_client import ScheduledGame
 from config.league import STARTERS, TIMEZONE
 from engine import availability, lineup

@@ -59,8 +59,8 @@ def test_parse_dedupes_and_unescapes():
 
 def test_match_breaks_ties_by_position_and_falls_back_to_last_name(monkeypatch):
     monkeypatch.setattr(
-        dfo_projections.nhl_client, "team_full_names",
-        lambda: {"VAN": "Vancouver Canucks", "NSH": "Nashville Predators"},
+        dfo_projections.dfo_lines, "teams",
+        lambda: [{"code": "VAN", "name": "Vancouver Canucks"}, {"code": "NSH", "name": "Nashville Predators"}],
     )
     registry = [
         {"id": 1, "name": "Elias Pettersson", "team": "VAN", "position": "C"},

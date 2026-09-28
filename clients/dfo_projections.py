@@ -19,11 +19,11 @@ from __future__ import annotations
 import html
 import json
 import re
-import unicodedata
 from pathlib import Path
 
-from clients import nhl_client
+from clients import dfo_lines
 from clients.cache import DAY, cached_json, get
+from clients.names import normalize_name
 
 URL = "https://5v5hockey.com/projections-embedded/"
 SNAPSHOT_DIR = Path("data/projections")
@@ -44,11 +44,6 @@ GOALIE_FIELDS = {"GS": "gs", "W": "w", "GA": "ga", "SV": "sv", "SO": "so"}
 
 def _unescape(text: str) -> str:
     return html.unescape(re.sub(r"\\(.)", r"\1", text))
-
-
-def normalize_name(name: str) -> str:
-    ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
-    return re.sub(r"[^a-z ]", "", ascii_name.lower().replace("-", " ")).strip()
 
 
 def parse(page: str) -> dict:
@@ -118,7 +113,7 @@ def match_to_nhl_ids(rows: list[dict], registry: list[dict]) -> dict[int, dict]:
     still match. Tries the full name, breaking ties by team and then position
     (Vancouver has two Elias Petterssons); then falls back to last name + team
     for first-name variants (Alex/Alexander). Ambiguous rows are skipped."""
-    team_names = nhl_client.team_full_names()
+    dfo_teams = dfo_lines.teams()
     by_name: dict[str, list[dict]] = {}
     by_last: dict[str, list[dict]] = {}
     seen_ids: set[int] = set()
@@ -131,7 +126,8 @@ def match_to_nhl_ids(rows: list[dict], registry: list[dict]) -> dict[int, dict]:
         by_last.setdefault(name.split(" ")[-1], []).append(p)
 
     def on_team(candidates: list[dict], nickname: str) -> list[dict]:
-        return [c for c in candidates if team_names.get(c["team"], "").lower().endswith(nickname.lower())]
+        codes = {t["code"] for t in dfo_teams if t["name"].lower().endswith(nickname.lower())}
+        return [c for c in candidates if c["team"] in codes]
 
     matched = {}
     for row in rows:

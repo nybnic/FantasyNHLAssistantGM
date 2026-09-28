@@ -19,9 +19,9 @@ import json
 import logging
 import re
 
-from clients import nhl_client
+from clients import dfo_lines
 from clients.cache import HOUR, cached_json, get
-from clients.dfo_projections import normalize_name
+from clients.names import normalize_name
 
 URL = "https://www.dailyfaceoff.com/starting-goalies/{date}"
 _NEXT_DATA_RE = re.compile(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', re.S)
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 def _team_codes() -> dict[str, str]:
-    """Normalized full name -> NHL code ('montreal canadiens' -> 'MTL')."""
-    return {normalize_name(full): code for code, full in nhl_client.team_full_names().items()}
+    """Normalized DFO team name -> NHL code ('utah mammoth' -> 'UTA')."""
+    return {normalize_name(t["name"]): t["code"] for t in dfo_lines.teams()}
 
 
 def parse_entries(entries: list[dict], team_codes: dict[str, str]) -> dict[str, dict]:

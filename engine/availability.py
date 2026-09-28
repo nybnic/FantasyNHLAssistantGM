@@ -15,7 +15,7 @@ import datetime as dt
 from dataclasses import dataclass
 
 from clients.dfo_lines import LineInfo
-from clients.dfo_projections import normalize_name
+from clients.names import normalize_name
 
 HEALTHY_PLAY = 0.97  # healthy scratches, late illness
 DOUBTFUL_PLAY = 0.6  # day-to-day or game-time decision

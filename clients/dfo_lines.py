@@ -6,8 +6,10 @@ group he's in: f1..f4, d1..d4, g (slot g1/g2), pp1/pp2, pk1/pk2, ir. Each
 has name, injuryStatus ("out", "dtd", "ir" or None) and gameTimeDecision.
 No NHL player ids: callers match by name within a team.
 
-Team `shortName` isn't always the NHL code (Montreal is "MON"), so teams are
-mapped by nickname ("Canadiens") against NHL full names.
+`teams()` is also how the other DailyFaceoff readers map team names to NHL
+codes. DFO's `shortName` is the NHL code except for the eight in
+DFO_TO_NHL. Matching on names instead is fragile: the NHL still calls Utah
+"Utah Hockey Club" while DFO says "Utah Mammoth".
 """
 from __future__ import annotations
 
@@ -15,12 +17,13 @@ import json
 import re
 from dataclasses import dataclass, field
 
-from clients import nhl_client
 from clients.cache import DAY, HOUR, cached_json, get
-from clients.dfo_projections import normalize_name
+from clients.names import normalize_name
 
 BASE_URL = "https://www.dailyfaceoff.com"
 _NEXT_DATA_RE = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
+# DFO short names that differ from NHL codes (all 32 teams checked Sep 2026).
+DFO_TO_NHL = {"LA": "LAK", "MON": "MTL", "NAS": "NSH", "NJ": "NJD", "SJ": "SJS", "TB": "TBL", "VEG": "VGK", "WAS": "WSH"}
 
 
 @dataclass
@@ -36,25 +39,26 @@ def _page_props(path: str) -> dict:
     return json.loads(_NEXT_DATA_RE.search(text).group(1))["props"]["pageProps"]
 
 
-def _team_slugs() -> dict[str, str]:
-    """NHL code -> DFO slug."""
+def teams() -> list[dict]:
+    """DFO's 32 teams: code (NHL), name ("Utah Mammoth"), mascot, slug."""
 
-    def fetch() -> dict[str, str]:
-        teams = _page_props("/teams/colorado-avalanche/line-combinations")["sortedTeams"]
-        full_names = nhl_client.team_full_names()
-        slugs = {}
-        for code, full in full_names.items():
-            for t in teams:
-                if full.lower().endswith(t["mascot"].lower()):
-                    slugs[code] = t["slug"]
-        return slugs
+    def fetch() -> list[dict]:
+        return [
+            {
+                "code": DFO_TO_NHL.get(t["shortName"], t["shortName"]),
+                "name": t["name"],
+                "mascot": t["mascot"],
+                "slug": t["slug"],
+            }
+            for t in _page_props("/teams/colorado-avalanche/line-combinations")["sortedTeams"]
+        ]
 
-    return cached_json("dfo_team_slugs", 30 * DAY, fetch)
+    return cached_json("dfo_teams", 30 * DAY, fetch)
 
 
 def team_lines(team: str) -> dict[str, LineInfo]:
     """Normalized player name -> LineInfo for one NHL team code."""
-    slug = _team_slugs().get(team)
+    slug = next((t["slug"] for t in teams() if t["code"] == team), None)
     if not slug:
         return {}
 

@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 from clients import nhl_client, nhl_stats
-from clients.dfo_projections import normalize_name
+from clients.names import normalize_name
 from config.league import BENCH_SLOTS, IR_SLOT_STATUSES, STARTERS
 from league import roster as roster_mod
 from model.context import current_season_id

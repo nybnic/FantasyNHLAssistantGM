@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from clients.cache import DAY, HOUR, cached_json, get
 
 BASE_URL = "https://api-web.nhle.com/v1"
-STATS_URL = "https://api.nhle.com/stats/rest/en"
 
 
 def current_teams() -> list[str]:
@@ -23,18 +22,6 @@ def current_teams() -> list[str]:
         return sorted(t["teamAbbrev"]["default"] for t in get(f"{BASE_URL}/standings/now").json()["standings"])
 
     return cached_json("current_teams", 7 * DAY, fetch)
-
-
-def team_full_names() -> dict[str, str]:
-    """Current team code -> full name, e.g. 'VGK' -> 'Vegas Golden Knights'.
-    (The stats API also lists defunct franchises that reuse names, like the
-    old Winnipeg Jets 'WIN' and Ottawa Senators 'SEN'; those are dropped.)"""
-
-    def fetch() -> dict[str, str]:
-        return {t["triCode"]: t["fullName"] for t in get(f"{STATS_URL}/team").json()["data"]}
-
-    current = set(current_teams())
-    return {code: name for code, name in cached_json("team_full_names", 30 * DAY, fetch).items() if code in current}
 
 
 def current_rosters() -> list[dict]:
