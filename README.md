@@ -1,114 +1,79 @@
 # Fantasy NHL Assistant GM
 
-A free, background Assistant GM for a 16-team, category-based Yahoo NHL fantasy
-league. It watches your roster, the real NHL schedule, and confirmed starting
-goalies, and sends a Telegram message only when there's something worth acting
-on. It never touches your Yahoo roster itself - notify-only.
+A free background assistant for a 16-team Yahoo H2H points league ("Not for
+everyone!"). It does the daily analysis and messages you on Telegram only
+when there's something worth doing, so you don't have to check your roster
+every day. It never touches Yahoo itself: you make the moves.
 
-Runs on a schedule via GitHub Actions (free tier), so it works even when your
-PC is off.
+## How it decides
 
-## Status: Phase 1
+Every decision is scored in one currency: **expected fantasy points (xFP)**.
 
-This repo is being built in two phases:
+- **Skaters:** projected stats per game = skill (per-minute rates for every
+  scoring stat, blending past seasons, DailyFaceoff's preseason projections
+  and this season) x role (ice time, weighted toward recent games, so line
+  and power-play changes show up within days). Backtested on 2025-26: lower
+  error than season-to-date or "last 10 games" (`python -m scripts.backtest`).
+- **Goalies:** getting the start is worth ~10x more than the matchup, so
+  start odds come first (DailyFaceoff confirmations, else recent start
+  share with back-to-back logic), then a matchup model (team strength,
+  opponent, home ice).
+- **Tonight's lineup:** an exact optimizer over Yahoo position eligibility,
+  counting only players who play tonight, discounted for injuries and
+  game-time decisions (DailyFaceoff line charts).
 
-- **Phase 1 (this code)**: all the infrastructure, plus every check that
-  doesn't depend on the league's final scoring rules - injury/IR slot
-  mismatches, empty active lineup slots, and starting-goalie alerts.
-- **Phase 2 (later)**: once the league's categories/roster rules are
-  confirmed, a category-based z-score value model gets layered on top for
-  durable waiver-wire suggestions, value-based lineup swaps, and a
-  streaming engine (short-term free-agent adds driven by favorable
-  schedule swings - heavy game weeks and confirmed-starting free-agent
-  goalies). See the design in the project's plan file for details -
-  nothing in Phase 1 needs to change for it.
+## What you get
 
-## How it decides what to tell you
+- **Evening briefing** at 21:00 Finland time, or an hour before the first
+  puck drop if earlier: the lineup changes worth making tonight, with the
+  expected point gain. Sent only if a change is worth at least 0.5 points.
+  At most one follow-up if new information (goalie confirmation, injury)
+  makes a clearly better lineup. Nothing is sent 23:00-08:00.
+- **Done / Skip buttons.** Tap Done after you've made the change in Yahoo -
+  that's how the assistant knows your lineup (no Yahoo API access).
+- `/roster` in the chat shows the roster it thinks you have.
+- If a run fails, you get one alert that day.
 
-- **Starting goalies**: cross-references your rostered goalies against the
-  real NHL schedule (official, free) and DailyFaceoff's public
-  starting-goalies page (unofficial best-effort, since no free official API
-  publishes confirmed starters ahead of game time). Only flags it when
-  there's a mismatch worth acting on: a benched goalie who's confirmed to
-  start, or an active goalie who's confirmed *not* to start.
-- **Injury/IR**: flags a rostered player tagged O/IR by Yahoo who isn't
-  sitting in one of your league's IR slots, when a slot is actually open.
-- **Empty lineup slots**: flags any active slot that's sitting empty.
+Coming next (see the plan): add/drop and streaming advice with a budget for
+your 36 season adds, the 3-goalie-game weekly minimum, IR management, and a
+Sunday report.
 
-## One-time setup
+## Setup
 
-### 1. Yahoo Developer app
+1. **Telegram bot:** message [@BotFather](https://t.me/BotFather), send
+   `/newbot`, and keep the token. Send your bot any message, then open
+   `https://api.telegram.org/bot<TOKEN>/getUpdates` to find your chat id.
+2. **GitHub secrets** (Settings -> Secrets and variables -> Actions):
+   `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+3. **Your roster:** list your players in a text file, one per line (see
+   `scripts/seed_roster.py` for the format), then:
+   ```bash
+   python -m scripts.seed_roster my_team.txt
+   ```
+   Commit `state/roster.json`. The first briefing lists a full lineup; tap
+   Done once it matches Yahoo, and from then on you only get changes.
+4. The workflow `.github/workflows/assistant_gm.yml` runs every 30 minutes
+   during the afternoon and evening, and commits its state back to the repo.
 
-1. Go to <https://developer.yahoo.com/apps/create/>.
-2. Create an app with **Fantasy Sports** API access, **Read** permission
-   only (this project never writes to Yahoo).
-3. Note the **Client ID** and **Client Secret**.
-
-### 2. Authorize once, locally
-
-```bash
-pip install -r requirements.txt
-export YAHOO_CLIENT_ID=xxx        # or `set` on Windows cmd, $env: on PowerShell
-export YAHOO_CLIENT_SECRET=xxx
-python scripts/setup_yahoo_oauth.py
-```
-
-A browser window opens asking you to approve access; paste the verifier
-code Yahoo shows you back into the terminal. The script then prints:
-
-- Your NHL league key(s) - copy the right one for `YAHOO_LEAGUE_KEY`.
-- The full token JSON - copy it for `YAHOO_OAUTH_JSON`.
-
-### 3. Telegram bot
-
-1. Message [@BotFather](https://t.me/BotFather) on Telegram, `/newbot`, and
-   note the bot token.
-2. Send your new bot any message, then visit
-   `https://api.telegram.org/bot<TOKEN>/getUpdates` in a browser to find
-   your numeric `chat.id`.
-
-### 4. GitHub repo secrets
-
-In this repo's Settings -> Secrets and variables -> Actions, add:
-
-| Secret | Value |
-|---|---|
-| `YAHOO_CLIENT_ID` | from step 1 |
-| `YAHOO_CLIENT_SECRET` | from step 1 |
-| `YAHOO_OAUTH_JSON` | printed by `setup_yahoo_oauth.py` |
-| `YAHOO_LEAGUE_KEY` | printed by `setup_yahoo_oauth.py`, e.g. `453.l.12345` |
-| `TELEGRAM_BOT_TOKEN` | from step 3 |
-| `TELEGRAM_CHAT_ID` | from step 3 |
-| `GH_PAT` | a fine-grained PAT, scoped to this repo only, with **Secrets: write** permission - needed so a scheduled run can persist a rotated Yahoo refresh token |
-
-### 5. Enable the schedule
-
-The workflow at `.github/workflows/assistant_gm.yml` runs every 4 hours by
-default (`workflow_dispatch` also lets you trigger it manually from the
-Actions tab). Adjust the cron once you know your league's actual waiver
-day / lineup lock times.
-
-## Local development
+## Local use
 
 ```bash
 pip install -r requirements.txt
-python -m pytest              # unit tests, no credentials needed
-DRY_RUN=1 python main.py       # prints recommendations instead of sending Telegram
+python -m pytest
+python main.py --dry-run --force                                   # tonight's plan, sends nothing
+python main.py --dry-run --force --now 2026-01-17T18:00:00+02:00    # replay a past night
+python -m scripts.xfp_table                                       # current xFP for every skater
 ```
 
-`DRY_RUN=1` requires the same env vars as production (Yahoo + Telegram
-creds) except it never calls Telegram and never writes `state/last_run.json`,
-so you can re-run it freely while checking that things look sane.
+## Data sources (all free)
 
-## Notes / known rough edges
+- NHL APIs: schedule, rosters, game-level stats.
+- DailyFaceoff: starting goalies, line charts and injuries, and the
+  customizable projections (powered by 5v5hockey). These are unofficial
+  pages; each fails soft, so a change on their side degrades one signal
+  instead of breaking a run.
 
-- **DailyFaceoff scraping** (`clients/goalie_client.py`): DailyFaceoff has no
-  official API. This was built and tested against its real page structure,
-  but during the 2026 preseason lull the feed was empty, so the exact field
-  names for a live goalie entry are a best-effort guess - check the logs on
-  your first few real runs and adjust `_parse_entry` if it logs a schema
-  warning. It fails soft either way (skips the DailyFaceoff signal, doesn't
-  crash the run).
-- **Yahoo player status codes**: `engine/roster_checks.py` treats
-  `IR`/`IR-LT`/`IR-NR`/`O` as IR-eligible. Confirm this matches what your
-  league actually uses once you have real injured players on your roster.
+No Yahoo API: Yahoo's Fantasy Sports API now needs manual approval, so the
+assistant never reads or writes Yahoo. It learns your roster from
+`scripts/seed_roster.py` and your Done taps (`league/roster.py` is the one
+place that would change if API access were ever added).

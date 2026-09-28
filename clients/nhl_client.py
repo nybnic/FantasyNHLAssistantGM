@@ -1,34 +1,101 @@
 """Thin wrapper over the public NHL API (api-web.nhle.com).
 
-Endpoint and field names verified against a live response during
-development (GET /v1/schedule/{date} returns a week's worth of games, each
-tagged with awayTeam.abbrev / homeTeam.abbrev - the official 3-letter
-triCode also used by Yahoo's editorial_team_abbr and DailyFaceoff).
+Endpoint and field names verified against live responses: GET
+/v1/schedule/{date} returns a week of games, each with id, gameType
+(2 = regular season), startTimeUTC and awayTeam/homeTeam.abbrev (the
+official 3-letter code).
 """
 from __future__ import annotations
 
 import datetime as dt
+from dataclasses import dataclass
 
-import requests
+from clients.cache import DAY, HOUR, cached_json, get
 
 BASE_URL = "https://api-web.nhle.com/v1"
+STATS_URL = "https://api.nhle.com/stats/rest/en"
 
 
-def get_schedule(date: dt.date) -> dict:
-    """Raw schedule response for the week containing `date`."""
-    resp = requests.get(f"{BASE_URL}/schedule/{date.isoformat()}", timeout=15)
-    resp.raise_for_status()
-    return resp.json()
+def current_teams() -> list[str]:
+    """The 32 current team codes."""
+
+    def fetch() -> list[str]:
+        return sorted(t["teamAbbrev"]["default"] for t in get(f"{BASE_URL}/standings/now").json()["standings"])
+
+    return cached_json("current_teams", 7 * DAY, fetch)
 
 
-def teams_playing_on(date: dt.date) -> set[str]:
-    """NHL team triCodes (e.g. 'TOR', 'BOS') with a game on `date`."""
-    schedule = get_schedule(date)
-    for day in schedule.get("gameWeek", []):
-        if day.get("date") == date.isoformat():
-            teams: set[str] = set()
-            for game in day.get("games", []):
-                teams.add(game["awayTeam"]["abbrev"])
-                teams.add(game["homeTeam"]["abbrev"])
-            return teams
-    return set()
+def team_full_names() -> dict[str, str]:
+    """Current team code -> full name, e.g. 'VGK' -> 'Vegas Golden Knights'.
+    (The stats API also lists defunct franchises that reuse names, like the
+    old Winnipeg Jets 'WIN' and Ottawa Senators 'SEN'; those are dropped.)"""
+
+    def fetch() -> dict[str, str]:
+        return {t["triCode"]: t["fullName"] for t in get(f"{STATS_URL}/team").json()["data"]}
+
+    current = set(current_teams())
+    return {code: name for code, name in cached_json("team_full_names", 30 * DAY, fetch).items() if code in current}
+
+
+def current_rosters() -> list[dict]:
+    """Every player on a current NHL roster: id, name, team, position."""
+
+    def fetch() -> list[dict]:
+        players = []
+        for team in current_teams():
+            roster = get(f"{BASE_URL}/roster/{team}/current").json()
+            for group in ("forwards", "defensemen", "goalies"):
+                for p in roster.get(group, []):
+                    players.append({
+                        "id": p["id"],
+                        "name": f"{p['firstName']['default']} {p['lastName']['default']}",
+                        "team": team,
+                        "position": p["positionCode"],
+                    })
+        return players
+
+    return cached_json("rosters_current", DAY, fetch)
+
+
+REGULAR_SEASON = 2
+
+
+@dataclass
+class ScheduledGame:
+    game_id: int
+    start: dt.datetime  # UTC
+    home: str
+    away: str
+
+
+def games_on(date: dt.date) -> list[ScheduledGame]:
+    """Regular-season games on `date` (the NHL's own, Eastern-time date)."""
+
+    def fetch() -> list[dict]:
+        for day in get(f"{BASE_URL}/schedule/{date.isoformat()}").json().get("gameWeek", []):
+            if day.get("date") == date.isoformat():
+                return [
+                    {
+                        "id": g["id"],
+                        "start": g["startTimeUTC"],
+                        "home": g["homeTeam"]["abbrev"],
+                        "away": g["awayTeam"]["abbrev"],
+                    }
+                    for g in day.get("games", [])
+                    if g.get("gameType") == REGULAR_SEASON
+                ]
+        return []
+
+    rows = cached_json(f"schedule/{date.isoformat()}", 3 * HOUR, fetch)
+    return sorted(
+        (
+            ScheduledGame(
+                game_id=r["id"],
+                start=dt.datetime.fromisoformat(r["start"].replace("Z", "+00:00")),
+                home=r["home"],
+                away=r["away"],
+            )
+            for r in rows
+        ),
+        key=lambda g: g.start,
+    )

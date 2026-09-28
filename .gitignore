@@ -5,6 +5,9 @@ oauth2.json
 .venv/
 venv/
 data/cache/
+data/xfp.csv
+# Third-party projection snapshots stay local (public repo)
+data/projections/
 # Draft board build outputs (regenerate with: python -m scripts.build_draft_rankings)
 data/draft_board.json
 data/draft_board.html
