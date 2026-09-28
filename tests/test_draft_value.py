@@ -4,9 +4,9 @@ from draft.value import assign_tiers, value_positions
 
 
 def test_skater_points_uses_league_weights():
-    line = {"g": 30, "a": 45, "sog": 250, "fow": 900, "hit": 50, "blk": 40}
-    # 135 + 135 + 125 + 180 + 30 + 32
-    assert scoring.skater_points(line) == 637
+    line = {"g": 30, "a": 45, "sog": 250, "fow": 900, "hit": 50, "blk": 40, "shg": 2, "sha": 2}
+    # final scoring: 120 + 123.75 + 125 + 90 + 30 + 32 + 3.5 + 3
+    assert scoring.skater_points(line) == 527.25
 
 
 def test_goalie_start_is_worth_about_ten_points():

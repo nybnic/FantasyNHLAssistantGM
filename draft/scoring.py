@@ -7,18 +7,19 @@ from __future__ import annotations
 
 from typing import Mapping
 
+# Final league settings (Sep 28 2026, draft day).
 SKATER_WEIGHTS: dict[str, float] = {
-    "g": 4.5,     # goals
-    "a": 3.0,     # assists
+    "g": 4.0,     # goals
+    "a": 2.75,    # assists
     "pm": 0.5,    # plus/minus
     "pim": 0.3,   # penalty minutes
     "ppg": 0.75,  # powerplay goals (on top of the goal itself)
     "ppa": 0.5,   # powerplay assists
-    "shg": 1.5,   # shorthanded goals
-    "sha": 1.25,  # shorthanded assists
+    "shg": 1.75,  # shorthanded goals
+    "sha": 1.5,   # shorthanded assists
     "gwg": 2.0,   # game-winning goals
     "sog": 0.5,   # shots on goal
-    "fow": 0.2,   # faceoffs won
+    "fow": 0.1,   # faceoffs won
     "hit": 0.6,   # hits
     "blk": 0.8,   # blocked shots
 }

@@ -23,16 +23,20 @@ SKATERS_FILE = Path("data/yahoo/skaters.csv")
 GOALIES_FILE = Path("data/yahoo/goalies.csv")
 
 _PLAYER_RE = re.compile(
-    r"^(.*?)(O|NA|IR-LT|IR|DTD|GTD|SUSP)?(?:No new player Notes|New Player Notes?|Player Notes?)"
+    r"^(.*?)(O|NA|IR-LT|IR-NR|IR|DTD|GTD|SUSP)?(?:No new player Notes|New Player Notes?|Player Notes?)"
     r"([A-Z]{2,3}) - (.+)$"
 )
 SKATER_COLUMNS = {
     "G": "g", "A": "a", "#ERROR!": "pm", "+/-": "pm", "PIM": "pim", "PPG": "ppg", "PPA": "ppa",
     "SHG": "shg", "SHA": "sha", "GWG": "gwg", "SOG": "sog", "FW": "fow", "HIT": "hit", "BLK": "blk",
 }
+# Scoring in force when data/yahoo/skaters.csv was exported (Sep 27 2026): its
+# Fan Pts column still has faceoffs at 0.2 (final league setting: 0.1).
+EXPORT_SKATER_WEIGHTS = {**scoring.SKATER_WEIGHTS, "fow": 0.2}
 GOALIE_COLUMNS = {"GS": "gs", "W": "w", "GA": "ga", "SV": "sv", "SHO": "so"}
 STATUS_LABELS = {
     "O": "Yahoo: Out", "NA": "Yahoo: Not active", "IR": "Yahoo: IR", "IR-LT": "Yahoo: IR long-term",
+    "IR-NR": "Yahoo: IR non-roster",
     "DTD": "Yahoo: Day-to-day", "GTD": "Yahoo: Game-time decision", "SUSP": "Yahoo: Suspended",
 }
 
@@ -50,12 +54,17 @@ def _read(path: Path, columns: dict[str, str], is_goalie: bool) -> list[Projecti
     # Yahoo's sort-arrow icons come through as private-use characters ("Pre-Season").
     header = [re.sub(r"[-]", "", h).strip() for h in rows[0]]
     out = []
+    seen: set[tuple[str, str]] = set()
     for i, row in enumerate(rows[1:], start=1):
         cell = dict(zip(header, row))
         m = _PLAYER_RE.match(row[2])
         if not m:
             raise ValueError(f"{path}: can't parse player cell {row[2]!r}")
         name, status, team, positions = m.groups()
+        # Yahoo's export can list a player twice (Tavares, Sep 27); keep the first row.
+        if (name.strip(), team) in seen:
+            continue
+        seen.add((name.strip(), team))
         stats = {key: _num(cell.get(col, "-")) for col, key in columns.items() if col in cell}
         if any(v is None for v in stats.values()):
             continue  # Yahoo doesn't project him
@@ -67,8 +76,15 @@ def _read(path: Path, columns: dict[str, str], is_goalie: bool) -> list[Projecti
             games = stats["gs"] or games
         else:
             fpts = scoring.skater_points(stats)
+        # Points always come from the stat line under the current league
+        # scoring. Yahoo's own Fan Pts only checks the parsing: it must match
+        # either the current scoring or the one the export was made with.
         yahoo_fpts = _num(cell["Fan Pts"]) or 0.0
-        if abs(fpts - yahoo_fpts) > 0.6:
+        if not is_goalie:
+            candidates = (fpts, scoring.fantasy_points(stats, EXPORT_SKATER_WEIGHTS))
+        else:
+            candidates = (fpts,)
+        if min(abs(c - yahoo_fpts) for c in candidates) > 0.6:
             raise ValueError(f"{name}: computed {fpts:.2f} pts but Yahoo says {yahoo_fpts} - scoring changed?")
         flags = [STATUS_LABELS[status]] if status else []
         p = Projection(

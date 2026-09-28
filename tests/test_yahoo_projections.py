@@ -14,8 +14,10 @@ def test_player_cell_parsing():
 @pytest.mark.skipif(not (SKATERS_FILE.exists() and GOALIES_FILE.exists()),
                     reason="Yahoo projection exports are kept out of the repo")
 def test_export_loads_with_yahoo_points_and_eligibility():
-    # The loader itself raises if any player's points disagree with Yahoo's Fan Pts.
+    # The loader raises if a player's stat line doesn't reproduce Yahoo's Fan Pts
+    # under either the export-time or the current scoring.
     projs = {p.name: p for p in load_yahoo_projections()}
     assert projs["Leon Draisaitl"].elig == {"C", "LW"}
     assert projs["Andrei Vasilevskiy"].pos == "G"
-    assert round(projs["Connor McDavid"].fpts, 2) == 824.15
+    # McDavid: 454 FOW. Yahoo's export said 779.9 with faceoffs at 0.2; the league uses 0.1.
+    assert round(projs["Connor McDavid"].fpts, 2) == round(779.9 - 454 * 0.1, 2)

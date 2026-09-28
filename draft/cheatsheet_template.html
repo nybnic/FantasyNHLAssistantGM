@@ -1,0 +1,216 @@
+<title>Not for Everyone Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #eef2f5; --surface: #ffffff; --surface-2: #f5f8fa; --line: #d9e1e8;
+  --ink: #101a26; --muted: #5a6b7c; --accent: #2448c8; --accent-soft: #e4eafc;
+  --red: #cf2e3a; --red-soft: #fbe5e7; --amber: #a86a12; --amber-soft: #fbf0dc;
+  --green: #1d8757; --green-soft: #e0f3ea; --bar: #b9c8f3; --gold: #ffd166;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b121a; --surface: #111b26; --surface-2: #16222f; --line: #243343;
+    --ink: #e5ecf3; --muted: #8b9cae; --accent: #86a0ff; --accent-soft: #1c2a52;
+    --red: #ff6f78; --red-soft: #3a1b20; --amber: #f0b454; --amber-soft: #36290f;
+    --green: #52c98f; --green-soft: #12301f; --bar: #2c3f78;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b121a; --surface: #111b26; --surface-2: #16222f; --line: #243343;
+  --ink: #e5ecf3; --muted: #8b9cae; --accent: #86a0ff; --accent-soft: #1c2a52;
+  --red: #ff6f78; --red-soft: #3a1b20; --amber: #f0b454; --amber-soft: #36290f;
+  --green: #52c98f; --green-soft: #12301f; --bar: #2c3f78;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45;
+       padding: 0 16px 48px; font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: .02em; text-wrap: balance; margin: 0; }
+h2 { font-size: 22px; text-transform: uppercase; margin-bottom: 10px; }
+h3 { font-size: 18px; text-transform: uppercase; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.masthead { margin: 0 -16px; padding: 14px 16px; background: #101a26; color: #eef2f5; }
+.masthead .inner { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+.masthead h1 { font-size: 30px; text-transform: uppercase; }
+.masthead h1 span { color: var(--gold); }
+.facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.fact { font-size: 12px; border: 1px solid rgba(238,242,245,.35); border-radius: 12px; padding: 2px 9px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.lede { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1.1; margin: 0 0 12px; }
+.lede em { font-style: normal; color: var(--accent); }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.rule { background: var(--surface-2); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.rule .t { font-weight: 600; }
+.rule p { margin: 0; color: var(--muted); font-size: 13px; }
+.num { font-family: var(--display); font-weight: 700; color: var(--accent); margin-right: 6px; }
+/* goalie timeline: one cell per round */
+.timeline { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
+.timeline div { border-radius: 4px; text-align: center; font-size: 11px; padding: 4px 0 3px; line-height: 1.15; }
+.timeline b { display: block; font-family: var(--display); font-size: 13px; }
+.tl-no { background: var(--red-soft); color: var(--red); }
+.tl-g1 { background: var(--green-soft); color: var(--green); }
+.tl-g2 { background: var(--accent-soft); color: var(--accent); }
+.tl-g3 { background: var(--amber-soft); color: var(--amber); }
+.slots { display: flex; flex-wrap: wrap; gap: 4px; }
+.slot { font-family: var(--display); font-weight: 600; font-size: 14px; min-width: 34px; text-align: center; padding: 2px 6px;
+        border-radius: 4px; border: 1px solid var(--line); background: var(--surface); }
+.slot.g { border-color: var(--green); color: var(--green); }
+.slot.bn { border-style: dashed; color: var(--muted); }
+/* round checklist */
+.cl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.cl-head label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+select, button { font: inherit; color: inherit; }
+select { border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; background: var(--surface); }
+button.reset { border: 1px solid var(--line); background: var(--surface); border-radius: 5px; padding: 3px 9px; cursor: pointer; font-size: 12px; }
+.rounds { display: flex; flex-direction: column; gap: 6px; }
+.round { display: grid; grid-template-columns: 74px minmax(0, 1fr) minmax(0, 220px); gap: 4px 14px; align-items: start;
+         padding: 9px 10px; border-radius: 8px; background: var(--surface-2); border-left: 4px solid var(--line); }
+.round.k-g1 { border-left-color: var(--green); }
+.round.k-g2 { border-left-color: var(--accent); }
+.round.k-g3 { border-left-color: var(--amber); }
+.round.k-no { border-left-color: var(--red); }
+.round .rn { font-family: var(--display); }
+.round .rn b { display: block; font-size: 22px; line-height: 1; }
+.round .rn span { font-size: 12px; color: var(--muted); }
+.round .pk { font-family: var(--display); font-weight: 700; font-size: 16px; color: var(--accent); }
+.focus { font-weight: 600; margin-bottom: 4px; }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.checks label { display: flex; gap: 7px; align-items: flex-start; cursor: pointer; font-size: 13px; }
+.checks input { margin-top: 3px; accent-color: var(--accent); }
+.checks input:checked + span { color: var(--muted); text-decoration: line-through; }
+.target { font-size: 12px; color: var(--muted); }
+.target .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
+.chip.need { background: var(--red-soft); color: var(--red); }
+.chip.ok { background: var(--green-soft); color: var(--green); }
+.chip.info { background: var(--accent-soft); color: var(--accent); }
+.chip.warn { background: var(--amber-soft); color: var(--amber); }
+@media (max-width: 720px) {
+  .round { grid-template-columns: 58px minmax(0, 1fr); }
+  .round .target { grid-column: 2; }
+}
+/* lists */
+.twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.namechips { display: flex; flex-wrap: wrap; gap: 6px; }
+.namechip { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font-size: 13px; }
+.namechip small { color: var(--muted); display: block; font-size: 11px; }
+/* tiers */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: start; }
+.pos { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.pos header { padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; }
+.pos header small { color: var(--muted); font-size: 12px; }
+.tierlabel { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+             color: var(--muted); background: var(--surface-2); padding: 2px 12px; }
+.p { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; padding: 4px 12px; border-bottom: 1px solid var(--line); }
+.p:last-child { border-bottom: 0; }
+.p .n { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p .m { font-size: 11px; color: var(--muted); }
+.p .adp { font-size: 12px; color: var(--muted); text-align: right; }
+.p .bar { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--bar); margin-top: 2px; }
+.tag { font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: 8px; margin-left: 4px; vertical-align: 1px; }
+.tag.fo { background: var(--accent-soft); color: var(--accent); }
+.tag.st { background: var(--red-soft); color: var(--red); }
+.foot { font-size: 12px; color: var(--muted); max-width: 75ch; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="masthead"><div class="inner">
+  <h1>Draft day · <span>Not for everyone!</span></h1>
+  <div class="facts">
+    <span class="fact">16 teams · snake</span><span class="fact">14 rounds</span><span class="fact">45 s per pick</span>
+    <span class="fact">H2H points</span><span class="fact">Mon Sep 28 · 2:00 pm EDT</span>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <section class="panel">
+    <p class="lede">Take the <em>top available name on your list</em>, unless one of these applies:</p>
+    <div class="rules">
+      <div class="rule">
+        <div class="t"><span class="num">1</span>Goalie windows</div>
+        <div class="timeline" aria-label="Goalie window by round">__TIMELINE__</div>
+        <p>None in round 1 · the first by end of round 3 · a second in rounds 4–8 · a third from round 8 · never more than 3. Between windows, skip goalies even when they top your list.</p>
+      </div>
+      <div class="rule">
+        <div class="t"><span class="num">2</span>Roster fit</div>
+        <div class="slots">
+          <span class="slot">C</span><span class="slot">C</span><span class="slot">LW</span><span class="slot">LW</span>
+          <span class="slot">RW</span><span class="slot">RW</span><span class="slot">D</span><span class="slot">D</span>
+          <span class="slot">D</span><span class="slot">D</span><span class="slot g">G</span><span class="slot g">G</span>
+          <span class="slot bn">BN</span><span class="slot bn">BN</span>
+        </div>
+        <p>Don't take a position you've already filled while other slots are open. C/W players fill either; the best bench use is a 3rd goalie plus one C/W forward.</p>
+      </div>
+      <div class="rule">
+        <div class="t"><span class="num">3</span>Tie-breaker</div>
+        <p>Two names close together on your list? Take the one with the <strong>earlier ADP</strong>; the other is likelier to still be there at your next pick.</p>
+        <p>Players tagged <span class="tag st">O</span> <span class="tag st">IR</span> can go to your IR / IR+ slot after the draft, freeing a roster spot.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="cl-head">
+      <h2 style="margin:0">Round checklist</h2>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <label for="slot">Your draft slot <select id="slot"></select></label>
+        <button class="reset" id="reset" type="button">Clear ticks</button>
+      </div>
+    </div>
+    <div class="rounds" id="rounds">__ROUNDS__</div>
+  </section>
+
+  <section class="twocol">
+    <div class="panel">
+      <h3>Let them go at their ADP</h3>
+      <p class="foot" style="margin:4px 0 10px">Other managers draft them far earlier than they're worth under this scoring.</p>
+      <div class="namechips">__AVOID__</div>
+    </div>
+    <div class="panel">
+      <h3>Third goalie only</h3>
+      <p class="foot" style="margin:4px 0 10px">Yahoo gives them a starter's workload they may not get. Never your G1 or G2.</p>
+      <div class="namechips">__G3ONLY__</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Position tiers</h2>
+    <p class="foot" style="margin:-4px 0 12px">Bar = value above the best player left on waivers at that position. A new tier starts after a clear drop: when a tier is nearly gone, the next player there is a step down. Dual-eligible players sit under the position where they're worth most. <span class="tag fo">FO</span> = wing-eligible and takes faceoffs.</p>
+    <div class="tiers">__TIERS__</div>
+  </section>
+
+  <p class="foot">Built __GENERATED__ from Yahoo's projections under this league's scoring. Your list order and these tiers come from the same data (scripts/export_draft_sheets.py).</p>
+</div>
+
+<script>
+const PICKS_PER_ROUND = 16;
+const slotSel = document.getElementById("slot");
+const KEY = "nfe-cheatsheet-v1";
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const store = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} };
+
+for (let i = 0; i <= 16; i++) slotSel.insertAdjacentHTML("beforeend", `<option value="${i}">${i === 0 ? "–" : i}</option>`);
+slotSel.value = saved.slot || 0;
+function showPicks() {
+  const s = +slotSel.value;
+  document.querySelectorAll("[data-round]").forEach(el => {
+    const r = +el.dataset.round;
+    el.textContent = s ? `#${(r - 1) * PICKS_PER_ROUND + (r % 2 ? s : PICKS_PER_ROUND + 1 - s)}` : "";
+  });
+}
+slotSel.addEventListener("change", () => { saved.slot = +slotSel.value; store(); showPicks(); });
+showPicks();
+
+const boxes = [...document.querySelectorAll(".checks input")];
+boxes.forEach(b => {
+  b.checked = !!(saved.ticks || {})[b.id];
+  b.addEventListener("change", () => { saved.ticks = { ...(saved.ticks || {}), [b.id]: b.checked }; store(); });
+});
+document.getElementById("reset").addEventListener("click", () => { boxes.forEach(b => b.checked = false); saved.ticks = {}; store(); });
+</script>
