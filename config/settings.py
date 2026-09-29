@@ -23,9 +23,14 @@ class Settings:
     dry_run: bool
 
 
+def _env(name: str) -> str | None:
+    # Pasted secrets often carry a stray space or newline.
+    return (os.environ.get(name) or "").strip() or None
+
+
 def load_settings() -> Settings:
     return Settings(
-        telegram_bot_token=os.environ.get("TELEGRAM_BOT_TOKEN"),
-        telegram_chat_id=os.environ.get("TELEGRAM_CHAT_ID"),
+        telegram_bot_token=_env("TELEGRAM_BOT_TOKEN"),
+        telegram_chat_id=_env("TELEGRAM_CHAT_ID"),
         dry_run=os.environ.get("DRY_RUN", "0") == "1",
     )

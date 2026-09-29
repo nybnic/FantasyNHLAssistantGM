@@ -50,6 +50,23 @@ def test_taps_from_other_chats_are_ignored(monkeypatch, tmp_path):
     assert "lineup-2026-11-10-2100" in state["pending"]
 
 
+def test_chat_id_secret_is_whitespace_tolerant(monkeypatch, tmp_path):
+    message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/start"}}
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", " 42\n")
+    settings = load_settings()
+    main.process_updates(settings, state, players, main.Outbox(settings))
+    assert sent == [main.HELP]
+
+
+def test_messages_from_other_chats_are_logged(monkeypatch, tmp_path, caplog):
+    message = {"update_id": 9, "message": {"chat": {"id": 999}, "text": "/start"}}
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
+    main.process_updates(settings, state, players, main.Outbox(settings))
+    assert sent == []
+    assert "chat ...999: TELEGRAM_CHAT_ID is ...42" in caplog.text
+
+
 def test_roster_command_replies_with_the_roster(monkeypatch, tmp_path):
     message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/roster"}}
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])

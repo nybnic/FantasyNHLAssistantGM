@@ -78,12 +78,21 @@ def process_updates(settings: Settings, state: dict, players: list, outbox: Outb
         elif "message" in update:
             message = update["message"]
             if str(message["chat"]["id"]) != chat_id:
+                _warn_other_chat(str(message["chat"]["id"]), chat_id, token)
                 continue
             command = message.get("text", "").strip().split(" ")[0].lower()
             if command == "/roster":
                 outbox.send(roster_mod.describe(players) or "No roster yet - run scripts/seed_roster.py.")
             elif command in ("/help", "/start"):
                 outbox.send(HELP)
+
+
+def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:
+    """Say why a message went unanswered. Actions logs are public, so only the
+    last digits of each ID are shown."""
+    hint = " - that's the bot's own ID, not yours" if chat_id == token.split(":")[0] else ""
+    logger.warning("Ignored a message from chat ...%s: TELEGRAM_CHAT_ID is ...%s%s",
+                   sender[-3:], chat_id[-3:], hint)
 
 
 def sync_teams(players: list) -> None:
