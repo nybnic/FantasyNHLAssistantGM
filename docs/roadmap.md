@@ -27,7 +27,7 @@ Move finished items to the log at the bottom, with the commit.
 ## Later
 - Streaming-goalie advice in light-schedule weeks (only if the 3-goalie policy changes).
 - Yahoo projected GP as a durability input (needs Nico's OK to commit Yahoo data, or a paste command).
-- Verify the week-19 dates in Yahoo (a calendar assumption).
+- Verify the week-19 dates in Yahoo, and fill in the "Not recorded yet" rules in `docs/league-rules.md` (tiebreakers, playoff seeding, whether add limits cover the playoffs).
 - Calibrate `MODEL_SD_SHARE` and the add threshold once 4-6 weeks of real results exist.
 - Next year's draft: restore the tooling from tag `draft-2026`.
 
@@ -36,4 +36,6 @@ Move finished items to the log at the bottom, with the commit.
 |---|---|---|
 | 2026-09-29 | Weekly matchup plan, league data, /opp /taken /week, age curve | 812f9e6 |
 | 2026-09-29 | Duplicate-tap race fix, token-safe errors | ec1ceda |
-| 2026-09-29 | CLAUDE.md docs, explain_week, compare_yahoo | (this commit) |
+| 2026-09-29 | CLAUDE.md docs, explain_week, compare_yahoo | 75f63ec |
+| 2026-09-29 | Draft tooling removed (tag `draft-2026`) | 5b5df12 |
+| 2026-09-29 | League rules doc + test keeping it in sync with config | (this commit) |

@@ -22,6 +22,7 @@ move in Yahoo, and the bot learns about them from Done taps and pasted Yahoo pag
 | `state/` | Bot-owned JSON, committed by every run (roster, league, gm_state) |
 | `scripts/` | One-off tools: seeding, backtest, explain_week, compare_yahoo, xfp_table |
 | `relay/` | Cloudflare Worker for instant Telegram replies |
+| `docs/league-rules.md` | Full scoring and league rules, worked examples, where the points come from |
 | `docs/operations.md` | Runtime, secrets, state ownership, past incidents |
 | `docs/roadmap.md` | Prioritized backlog. Start a session here |
 
@@ -62,8 +63,9 @@ Live runs need network. First runs fill `data/cache/` and take a few minutes.
 4. The work is committed with a message that says why, and pushed.
 
 ## League facts worth knowing without reading code
-- Scoring favors peripherals: faceoffs 0.1, hits 0.6, blocks 0.8, SOG 0.5. A faceoff
-  center or a hit/block defenseman is worth ~4-5 pts/game.
+Full rules: `docs/league-rules.md` (kept in sync with `config/league.py` by a test).
+- Peripherals are about half of skater scoring: shots 0.5, hits 0.6, blocks 0.8,
+  faceoffs 0.1. Blocks are the biggest single source for defensemen (27%).
 - 12 starters (C2 LW2 RW2 D4 G2) + 2 bench + IR + IR+. Max 2 adds/week, 36/season.
 - A goalie minimum of 3 games/week, or **all goalie points that week are zeroed**.
 - Weeks run Mon-Sun (NHL dates). Week 1 was Sep 29 - Oct 4 2026. Week 19 is
