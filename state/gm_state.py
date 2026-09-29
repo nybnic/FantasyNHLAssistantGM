@@ -9,6 +9,7 @@
 - opponents: playoff opponents you've named with /opp (weeks 24-26)
 - awaiting: the team whose Yahoo page you're about to paste after /opp
 - week_requested: /week was sent; plan the week on this run
+- trade_request: the text after /trade, judged on this run
 """
 from __future__ import annotations
 
@@ -33,6 +34,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("opponents", {})
     state.setdefault("awaiting", None)
     state.setdefault("week_requested", False)
+    state.setdefault("trade_request", None)
     return state
 
 

@@ -30,6 +30,7 @@ move in Yahoo, and the bot learns about them from Done taps and pasted Yahoo pag
 ```bash
 python -m pytest                                  # all tests (fast, offline)
 python main.py --dry-run --force                  # tonight's lineup + this week's plan, sends nothing
+python main.py --dry-run --trade "Knight for Bouchard"   # what /trade would reply
 python -m scripts.explain_week                    # every add/drop the plan weighed, with verdicts
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
 python -m scripts.backtest                        # model accuracy on 2025-26

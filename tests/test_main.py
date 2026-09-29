@@ -203,3 +203,14 @@ def test_weekly_plan_waits_for_noon_on_the_weeks_first_day(monkeypatch, tmp_path
     main.weekly_step(state, players, {"teams": {}, "taken": []}, morning, False, main.Outbox(settings),
                      build_context=lambda d: 1 / 0)
     assert state["weeks"] == {} and sent == []
+
+
+def test_trade_command_is_judged_later_in_the_run(monkeypatch, tmp_path):
+    message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/trade B for Nobody"}}
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert state["trade_request"] == "B for Nobody"
+    main.trade_step(state, players, league, NOW, main.Outbox(settings))
+    assert sent == ["No rostered player called 'Nobody'."]
+    assert state["trade_request"] is None

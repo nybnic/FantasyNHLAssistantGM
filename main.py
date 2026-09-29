@@ -3,7 +3,7 @@ after each Telegram message when the webhook relay (relay/) is set up.
 
 Each run:
 1. reads your Telegram taps and commands - Done/Skip on recommendations,
-   /roster, /week, /opp (paste a team's Yahoo page), /taken, /help;
+   /roster, /week, /opp (paste a team's Yahoo page), /taken, /trade, /help;
 2. on the first day of each fantasy week (and on /week), sends the matchup
    plan: expected score and win odds vs this week's opponent, the goalie
    minimum, and the add/drops worth making;
@@ -30,9 +30,9 @@ from zoneinfo import ZoneInfo
 
 from clients import dfo_lines, goalie_client, nhl_client
 from clients.names import normalize_name
-from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE
+from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, TRADE_DEADLINE
 from config.settings import Settings, load_settings
-from engine import briefing, matchup
+from engine import briefing, matchup, trade
 from league import parse, teams, weeks
 from league import roster as roster_mod
 from model import context
@@ -50,6 +50,8 @@ HELP = (
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
+    "/trade Knight for Bouchard - what a trade does to you and to them "
+    "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
 )
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
@@ -150,6 +152,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 state["week_requested"] = True
             elif command == "/opp":
                 opp_command(rest.strip(), body, state, league, outbox)
+            elif command == "/trade":
+                state["trade_request"] = (rest + "\n" + body).strip()
             elif command == "/taken":
                 taken_command(rest + "\n" + body, league, outbox)
             elif state["awaiting"] and not text.startswith("/"):
@@ -286,6 +290,37 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
     state["pending"][rec_id] = {"type": "lineup", "date": key, "assignment": result.optimal, "message_id": message_id}
 
 
+def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
+               build_context=context.build) -> None:
+    """Answer /trade: both teams' points per week before and after."""
+    request, state["trade_request"] = state["trade_request"], None
+    if request is None:
+        return
+    date = now.astimezone(NHL_TIME).date()
+    if date > TRADE_DEADLINE:
+        outbox.send(f"The trade deadline was {TRADE_DEADLINE:%d %b}.")
+        return
+    rosters = {MY_TEAM: players, **{t: teams.players(league, t) for t in league["teams"]}}
+    parsed = trade.resolve(request, MY_TEAM, rosters)
+    if isinstance(parsed, str):
+        outbox.send(parsed)
+        return
+    give, get, partner = parsed
+    schedule = {d: nhl_client.games_on(d) for d in trade.horizon(date) if weeks.week_of(d)}
+    if not schedule:
+        outbox.send("No regular-season games left to judge a trade on.")
+        return
+    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
+    result = trade.evaluate(players, rosters[partner], partner, give, get, free_agents(players, league),
+                            build_context(date), schedule, lines, starters={})
+    note = ""
+    updated = teams.updated(league, partner)
+    if updated and (date - dt.date.fromisoformat(updated)).days >= 1:
+        note = (f"\n{partner}'s roster is from {dt.date.fromisoformat(updated):%d %b}: "
+                f"send /opp {partner} with their Yahoo page if it has changed.")
+    outbox.send(trade.text(result) + note)
+
+
 def free_agents(players: list, league: dict) -> list:
     taken = teams.rostered_ids(league) | {p.id for p in players}
     return [
@@ -379,6 +414,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="print messages; send and save nothing")
     parser.add_argument("--force", action="store_true", help="plan tonight's lineup regardless of the time")
     parser.add_argument("--now", help="pretend it's this ISO time (with offset), e.g. for replays")
+    parser.add_argument("--trade", help='judge a trade, as /trade does: "Knight for Bouchard"')
     args = parser.parse_args()
 
     settings = load_settings()
@@ -393,6 +429,8 @@ def main() -> None:
     players = roster_mod.load()
     league = teams.load()
     build_context = functools.lru_cache(maxsize=None)(context.build)
+    if args.trade:
+        state["trade_request"] = args.trade
 
     try:
         if not settings.dry_run:
@@ -401,6 +439,7 @@ def main() -> None:
             report_relay(webhook_problem or relay_problem, state, outbox, now)
         if players:
             sync_teams(players)
+        trade_step(state, players, league, now, outbox, build_context)
         weekly_step(state, players, league, now, args.force, outbox, build_context)
         briefing_step(state, players, now, args.force, outbox, build_context)
     except Exception as exc:

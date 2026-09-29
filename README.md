@@ -46,6 +46,9 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
 - `/opp`, then paste your opponent's Yahoo team page (any copy works), to
   refresh their roster. Other teams start from the draft results.
   `/taken Name` tells the bot that a suggested free agent has been taken.
+- `/trade Knight for Bouchard` (or `Knight, Tuch for Makar`) judges a trade:
+  points per week for you and for them over the two weeks after it clears,
+  with open spots filled from free agents and your three goalies kept.
 - `/roster` in the chat shows the roster it thinks you have.
 - If a run fails, you get one alert that day.
 
