@@ -31,7 +31,7 @@
 | 2026-09-29 | Long run is judged by a whole-lineup projection, not per-player value | The per-player shortcut dropped D into a thin D group and chased injury-prone forwards |
 | 2026-09-29 | Upgrades that cost > 1 pt this week wait | They can be made next week at no cost |
 | 2026-09-29 | Long-run edges must show within 2 weeks | Tiny edges multiplied over a season are noise (e.g. goalie-for-goalie swaps) |
-| 2026-09-29 | Keep 6 adds for playoff weeks 24-26 | Playoffs decide the title. The regular-season pace is 30 adds / 23 weeks |
+| 2026-09-29 | Keep 6 adds for playoff weeks 24-26 | Playoffs decide the title, and Yahoo's 36 covers the entire season incl. playoffs (settings page). The regular-season pace is 30 adds / 23 weeks |
 | 2026-09-29 | Post-draft waivers: adds count from Sep 30 | Every undrafted player showed "W (Sep 30)" |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 

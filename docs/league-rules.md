@@ -5,7 +5,8 @@ Our team: **Nico's Groovy Team**. The code's copy of these rules is
 `config/league.py`. When the commissioner changes anything, update both in the
 same commit (`tests/test_league_rules.py` checks that the scoring tables match).
 
-Final settings as of the draft, Sep 28 2026.
+Final settings as of the draft, Sep 28 2026. The full Yahoo settings page is
+transcribed at the end.
 
 ## Scoring
 
@@ -99,21 +100,27 @@ What this means:
 - **Lineups are daily** ("Daily - Today"): changes apply the same day, and each
   player locks at his own game's start, so late games stay editable.
 - Only players in starting slots score. Bench and IR players score nothing.
+- "Lock Benched Players: No": a benched player isn't locked when his game
+  starts. (The practical effect in Yahoo's UI is unverified; the bot doesn't rely on it.)
 
 ## Goalie minimum
-**At least 3 goalie games per week** in active G slots, or **all goalie points
-that week are zeroed**. Relief appearances count toward the 3, but only while
-the goalie is in a G slot. Missing it almost certainly loses the matchup, which
+**At least 3 goalie appearances per week** in active G slots, or **all goalie
+points that week are zeroed**. Yahoo counts *appearances*, so relief
+appearances count toward the 3, but only while the goalie is in a G slot. Missing it almost certainly loses the matchup, which
 is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
 
 ## Transactions
-- **Adds:** max **2 per week**, **36 per season**.
+- **Adds:** max **2 per week**, **36 for the entire season**, playoffs included,
+  so the bot keeps 6 for weeks 24-26.
 - **Waivers:** a continual rolling list. Dropped players sit on waivers for 1 day;
   a successful claim moves you to the back of the priority order. Free agents
   not on waivers can be added instantly.
 - After the draft, every undrafted player was on waivers until **Sep 30 2026**.
 - An injured player can be added straight to an IR slot.
-- **Trade deadline:** Mar 3 2027.
+- **Trades:** no limit on the number. Trades are reviewed by the commissioner
+  (2-day reject window), draft-pick trades are allowed, and the trade deadline is
+  **Mar 3 2027**.
+- No "can't cut" list: any player can be dropped.
 
 ## Season calendar
 - Fantasy weeks run **Monday-Sunday on NHL (Eastern) dates**.
@@ -121,7 +128,11 @@ is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
 - 26 weeks ending **Sun Apr 4 2027** (the NHL season runs to Apr 10; its last
   week doesn't count). That requires one two-week week, *assumed* to be
   **week 19 = Feb 1-14 2027**, spanning the early-February break. **Verify in Yahoo.**
-- **Regular season:** weeks 1-23. **Playoffs:** weeks 24-26, 8 teams.
+- **Regular season:** weeks 1-23, one standings table (no divisions).
+- **Playoffs:** 8 teams, weeks 24, 25 and 26 (ends Sun Apr 4): quarterfinal,
+  semifinal, final, with no byes. **Reseeded** after each round. **A tied
+  playoff week goes to the higher seed**, so regular-season seeding is worth
+  something even after qualifying. Eliminated teams are locked.
 
 ## Our regular-season schedule
 | Wk | Opponent | Wk | Opponent | Wk | Opponent |
@@ -135,9 +146,36 @@ is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
 | 7 | HAN-NES | 15 | Vantaa | 23 | Bottom three |
 | 8 | Bottom three | 16 | Bahelin Boys | | |
 
-## Not recorded yet (check League -> Settings in Yahoo)
-- Tiebreakers for a tied week and for standings.
-- Playoff seeding, reseeding and byes; whether there's a consolation bracket.
-- Whether the 36-add limit covers the playoffs (the bot assumes yes and keeps 6 for them).
-- Trade review (commissioner or league vote) and any veto period.
-- Whether the draft shared picks or used keepers (not relevant in-season).
+## Yahoo settings page (as of Sep 29 2026)
+| Setting | Value |
+|---|---|
+| League ID / name | 66759 / Not for everyone! |
+| Scoring type | Head-to-Head - Points |
+| Max teams | 16 (no divisions) |
+| Draft | Live Standard Draft, Mon Sep 28 2:26pm EDT, 45 s per pick |
+| Cash league | No |
+| Auto-renew | Yes |
+| Roster positions | C, C, LW, LW, RW, RW, D, D, D, D, G, G, BN, BN, IR, IR+ |
+| Start scoring on | Week 1 |
+| Weekly deadline | Daily - Today |
+| Lock benched players | No |
+| Min goalie appearances per team per week | 3 |
+| Max acquisitions per week / entire season | 2 / 36 |
+| Waiver time / type / mode | 1 day / Continual rolling list / Standard |
+| Post-draft players | Follow waiver rules |
+| Injured players from waivers/FA straight to injury slot | Yes |
+| Can't Cut list provider | None |
+| Max trades for entire season | No maximum |
+| Trade end date | March 3, 2027 |
+| Allow draft pick trades | Yes |
+| Trade review / reject time | Commissioner / 2 days |
+| Playoffs | 8 teams - weeks 24, 25 and 26 (ends Sunday, Apr 4) |
+| Playoff tie-breaker | Higher seed wins |
+| Playoff reseeding | Yes |
+| Lock eliminated teams | Yes |
+| Publicly viewable / invites | No / Commissioner only |
+
+## Not recorded yet
+- How a tied **regular-season** week counts (a tie in the standings?), and the
+  standings tiebreakers used for playoff seeding.
+- Whether there's a consolation bracket for non-playoff teams.

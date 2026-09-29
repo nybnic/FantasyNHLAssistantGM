@@ -68,7 +68,7 @@ IR_SLOT_STATUSES: dict[str, set[str]] = {
 PER_GAME_LOCK = True
 
 MAX_ADDS_PER_WEEK = 2
-MAX_ADDS_PER_SEASON = 36
+MAX_ADDS_PER_SEASON = 36  # "for entire season": playoffs included
 # Continual rolling list: dropped (and post-draft) players sit on waivers for
 # 1 day; a successful claim sends you to the back of the priority list.
 # Free agents off waivers can be added instantly.
@@ -77,13 +77,14 @@ WAIVER_DAYS = 1
 POST_DRAFT_WAIVERS_CLEAR = dt.date(2026, 9, 30)
 INJURED_ADD_DIRECT_TO_IR = True
 
-# Missing this minimum zeroes ALL goalie points for the week. Relief
-# appearances count, but only while the goalie is in an active G slot.
+# "Min goalie appearances per team per week". Missing it zeroes ALL goalie
+# points for the week. Relief appearances count, but only while the goalie is
+# in an active G slot.
 MIN_GOALIE_GAMES_PER_WEEK = 3
 
 REGULAR_SEASON_WEEKS = 23
 PLAYOFF_WEEKS = (24, 25, 26)
-PLAYOFF_TEAMS = 8
+PLAYOFF_TEAMS = 8  # reseeded each round; a tied playoff week goes to the higher seed
 SEASON_END = dt.date(2027, 4, 4)
 TRADE_DEADLINE = dt.date(2027, 3, 3)
 
