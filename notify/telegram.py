@@ -11,9 +11,19 @@ import requests
 API_URL = "https://api.telegram.org/bot{token}/{method}"
 
 
+class TelegramError(requests.HTTPError):
+    """A rejected Bot API call. The message carries Telegram's reason but not
+    the URL, which contains the bot token."""
+
+
 def _call(token: str, method: str, **payload) -> dict:
     resp = requests.post(API_URL.format(token=token, method=method), json=payload, timeout=30)
-    resp.raise_for_status()
+    if not resp.ok:
+        try:
+            reason = resp.json().get("description", "")
+        except ValueError:
+            reason = resp.text[:200]
+        raise TelegramError(f"Telegram {method} failed ({resp.status_code}): {reason}", response=resp)
     return resp.json()["result"]
 
 
@@ -56,9 +66,13 @@ def delete_webhook(token: str) -> None:
 
 
 def mark_handled(token: str, chat_id: str, message_id: int, label: str) -> None:
-    """Replace a message's buttons with a single inert label, e.g. "Recorded: Done"."""
-    _call(token, "editMessageReplyMarkup", chat_id=chat_id, message_id=message_id,
-          reply_markup=_keyboard([(label, "noop")]))
+    """Replace a message's buttons with a single inert label, e.g. "Recorded: Done".
+    Cosmetic, so a refusal (already labeled, message too old) is ignored."""
+    try:
+        _call(token, "editMessageReplyMarkup", chat_id=chat_id, message_id=message_id,
+              reply_markup=_keyboard([(label, "noop")]))
+    except TelegramError:
+        pass
 
 
 def answer_callback(token: str, callback_id: str, text: str) -> None:

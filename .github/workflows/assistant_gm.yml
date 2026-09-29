@@ -28,7 +28,12 @@ jobs:
       RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
     steps:
+      # The latest main, not the commit this run was queued on: runs started
+      # seconds apart (e.g. by two quick Telegram messages) must each see the
+      # state the previous run pushed, or they handle the same taps twice.
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:

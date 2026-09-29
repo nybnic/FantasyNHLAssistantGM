@@ -375,7 +375,8 @@ def main() -> None:
         today = now.date().isoformat()
         if not settings.dry_run and state["last_error"] != today:
             state["last_error"] = today
-            _safe(outbox.send, f"Assistant GM run failed: {type(exc).__name__}: {exc}")
+            detail = str(exc).replace(settings.telegram_bot_token, "<token>") if settings.telegram_bot_token else exc
+            _safe(outbox.send, f"Assistant GM run failed: {type(exc).__name__}: {detail}")
         raise
     finally:
         if not settings.dry_run:
