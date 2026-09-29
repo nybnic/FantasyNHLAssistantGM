@@ -71,3 +71,59 @@ def test_a_better_player_shows_as_a_gain_for_me_and_a_loss_for_them():
     assert result.me.per_week > 0 > result.them.per_week
     assert result.win_even > 0.5
     assert trade.text(result).startswith("Worth proposing")
+
+
+def test_short_counts_starting_slots_a_roster_cant_fill_itself():
+    # Three centers can fill C twice but no wing slot: 4 forward slots short, plus D and G.
+    roster = [RosterPlayer(i, f"C{i}", "BOS", ["C"]) for i in range(3)] + [
+        RosterPlayer(10 + i, f"D{i}", "BOS", ["D"]) for i in range(3)] + [RosterPlayer(20, "G", "BOS", ["G"])]
+    assert sorted(trade.short(roster)) == ["D", "F", "F", "F", "F", "G"]
+    assert trade.balance(roster) == "3F 3D 1G"
+    assert trade.short(_full("BOS", 100, 2)[:0] + [
+        RosterPlayer(i, "W", "BOS", ["C", "LW", "RW"]) for i in range(6)] + [
+        RosterPlayer(10 + i, "D", "BOS", ["D"]) for i in range(4)] + [
+        RosterPlayer(20 + i, "G", "BOS", ["G"]) for i in range(2)]) == []
+
+
+def test_a_trade_that_leaves_them_short_of_starters_is_flagged():
+    mine = _full("BOS", 100, 3)
+    theirs = [RosterPlayer(300 + i, f"F{i}", "NYR", ["C", "LW", "RW"]) for i in range(8)] + [
+        RosterPlayer(400 + i, f"D{i}", "NYR", ["D"]) for i in range(4)] + [
+        RosterPlayer(500 + i, f"G{i}", "NYR", ["G"]) for i in range(2)]
+    schedule = {MON: [_game(MON, "BOS", "NYR")]}
+    result = trade.evaluate(mine, theirs, "Them", [mine[0]], [theirs[8]], [], FakeContext(), schedule, {}, {})
+    assert result.them.short == ["D"]
+    assert result.them.balance == ("8F 4D 2G", "9F 3D 2G")
+    assert "short of starters (1 D)" in trade.text(result)
+
+
+def test_screen_keeps_trades_they_would_not_see_as_a_loss():
+    mine = [RosterPlayer(1, "My Star", "BOS", ["C"]), RosterPlayer(2, "My Depth", "BOS", ["C"])]
+    theirs = {"Them": [RosterPlayer(11, "Their Star", "NYR", ["C"]), RosterPlayer(12, "Their Depth", "NYR", ["C"])]}
+    value = {1: 5.0, 2: 3.0, 11: 6.0, 12: 2.0}
+    # Their star went in round 1: my round-5 depth for him (a gain for me) doesn't
+    # "feel" like enough to them; my own first-rounder does.
+    rounds = {"my star": 1, "my depth": 5, "their star": 1, "their depth": 9}
+    found = trade.screen(mine, theirs, [], value, rounds)
+    assert [([p.id for p in give], get.id) for _, _, give, get in found] == [([1], 11)]
+    assert found[0][0] == pytest.approx(1.0)
+    assert [([p.id for p in give], get.id) for _, _, give, get in trade.screen(mine, theirs, [], value, {})] == [
+        ([2], 11), ([1], 11)]  # without draft data every trade "feels" even
+
+
+def test_screen_skips_trades_that_leave_them_short_of_starters():
+    mine = [RosterPlayer(1, "My C", "BOS", ["C"])]
+    their_d = [RosterPlayer(10 + i, f"D{i}", "NYR", ["D"]) for i in range(4)]
+    value = {1: 3.0, **{p.id: 6.0 for p in their_d}}
+    assert trade.screen(mine, {"Them": their_d}, [], value, {}) == []
+
+
+def test_suggestions_text_without_any():
+    assert "No trade" in trade.suggestions_text([])
+
+
+def test_balance_counts_the_injured():
+    from clients.dfo_lines import LineInfo
+    roster = [RosterPlayer(1, "Hurt Guy", "BOS", ["C"]), RosterPlayer(2, "Fine Guy", "BOS", ["D"])]
+    lines = {"BOS": {"hurt guy": LineInfo(groups={"ir"}, injury="ir"), "fine guy": LineInfo(groups={"d1"})}}
+    assert trade.balance(roster, lines) == "1F 1D 0G (1 hurt)"

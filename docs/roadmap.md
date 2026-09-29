@@ -41,4 +41,5 @@ Move finished items to the log at the bottom, with the commit.
 | 2026-09-29 | Draft tooling removed (tag `draft-2026`) | 5b5df12 |
 | 2026-09-29 | League rules doc + test keeping it in sync with config | fe22d39 |
 | 2026-09-29 | Yahoo settings page transcribed into the rules doc | e331164 |
-| 2026-09-29 | `/trade` command (and `main.py --dry-run --trade "A for B"`) | (this commit) |
+| 2026-09-29 | `/trade` command (and `main.py --dry-run --trade "A for B"`) | 74fa6db |
+| 2026-09-29 | `/trade` suggestions, roster balance and short-of-starters check | (this commit) |

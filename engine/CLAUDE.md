@@ -6,7 +6,7 @@
 | `availability.py` | Who plays: skater injury/lineup status, goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
 | `briefing.py` | The evening lineup message: timing (21:00 local or 1h before first puck), quiet hours, when an update is worth sending |
 | `matchup.py` | The weekly plan: both teams' week, P(win), the goalie minimum, add/drops, the add budget |
-| `trade.py` | `/trade`: both teams' points per week before and after, over the 2 weeks after the review. Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Nearly zero-sum by construction: whether they accept depends on how they value players, not on this model |
+| `trade.py` | `/trade`: both teams' points per week before and after, over the 2 weeks after the review. Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Shows F/D/G counts (and injured) and flags a trade that leaves them unable to fill their starters. `/trade` alone: screen all 1-for-1 and 2-for-1 with a quick per-player value, keep those they wouldn't see as a loss by this league's draft rounds (`league/draft.py`) and that don't leave them short, judge the top 12 in full (~1 min), reply with the best per team |
 
 ## How the weekly plan works (`matchup.py`)
 - **A team's week** = the best lineup on each remaining game day (the opponent is
@@ -38,4 +38,4 @@
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `BASE_ADD_SCORE` 3,
-`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `trade.MIN_GAIN_PER_WEEK` 1.0. Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.

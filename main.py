@@ -33,7 +33,7 @@ from clients.names import normalize_name
 from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, TRADE_DEADLINE
 from config.settings import Settings, load_settings
 from engine import briefing, matchup, trade
-from league import parse, teams, weeks
+from league import draft, parse, teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import telegram
@@ -50,7 +50,7 @@ HELP = (
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
-    "/trade Knight for Bouchard - what a trade does to you and to them "
+    "/trade - trades worth proposing. /trade Knight for Bouchard - what one trade does to you and to them "
     "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
 )
@@ -292,7 +292,8 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
 
 def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
                build_context=context.build) -> None:
-    """Answer /trade: both teams' points per week before and after."""
+    """Answer /trade: both teams' points per week before and after, or with
+    no players named, the trades worth proposing."""
     request, state["trade_request"] = state["trade_request"], None
     if request is None:
         return
@@ -300,19 +301,22 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     if date > TRADE_DEADLINE:
         outbox.send(f"The trade deadline was {TRADE_DEADLINE:%d %b}.")
         return
-    rosters = {MY_TEAM: players, **{t: teams.players(league, t) for t in league["teams"]}}
-    parsed = trade.resolve(request, MY_TEAM, rosters)
+    others = {t: teams.players(league, t) for t in league["teams"]}
+    parsed = trade.resolve(request, MY_TEAM, {MY_TEAM: players, **others}) if request else None
     if isinstance(parsed, str):
         outbox.send(parsed)
         return
-    give, get, partner = parsed
     schedule = {d: nhl_client.games_on(d) for d in trade.horizon(date) if weeks.week_of(d)}
     if not schedule:
         outbox.send("No regular-season games left to judge a trade on.")
         return
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
-    result = trade.evaluate(players, rosters[partner], partner, give, get, free_agents(players, league),
-                            build_context(date), schedule, lines, starters={})
+    pool, ctx, rounds = free_agents(players, league), build_context(date), draft.rounds()
+    if parsed is None:
+        outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds)))
+        return
+    give, get, partner = parsed
+    result = trade.evaluate(players, others[partner], partner, give, get, pool, ctx, schedule, lines, {}, rounds)
     note = ""
     updated = teams.updated(league, partner)
     if updated and (date - dt.date.fromisoformat(updated)).days >= 1:
@@ -414,7 +418,8 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="print messages; send and save nothing")
     parser.add_argument("--force", action="store_true", help="plan tonight's lineup regardless of the time")
     parser.add_argument("--now", help="pretend it's this ISO time (with offset), e.g. for replays")
-    parser.add_argument("--trade", help='judge a trade, as /trade does: "Knight for Bouchard"')
+    parser.add_argument("--trade", nargs="?", const="",
+                        help='as /trade does: "Knight for Bouchard", or nothing for suggestions')
     args = parser.parse_args()
 
     settings = load_settings()
@@ -429,7 +434,7 @@ def main() -> None:
     players = roster_mod.load()
     league = teams.load()
     build_context = functools.lru_cache(maxsize=None)(context.build)
-    if args.trade:
+    if args.trade is not None:
         state["trade_request"] = args.trade
 
     try:
