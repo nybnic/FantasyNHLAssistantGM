@@ -196,7 +196,7 @@ try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
 const store = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} };
 
 for (let i = 0; i <= 16; i++) slotSel.insertAdjacentHTML("beforeend", `<option value="${i}">${i === 0 ? "–" : i}</option>`);
-slotSel.value = saved.slot || 0;
+slotSel.value = saved.slot || 12;
 function showPicks() {
   const s = +slotSel.value;
   document.querySelectorAll("[data-round]").forEach(el => {

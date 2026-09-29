@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 
 from draft import cheatsheet
@@ -25,9 +26,16 @@ LIST_OUT = Path("data/draft_list.txt")
 CSV_OUT = Path("data/draft_list.csv")
 SHEET_OUT = Path("data/draft_cheatsheet.md")
 LIST_SIZE = LEAGUE_TEAMS * DRAFT_ROUNDS  # one name per pick in the draft
-# Rankings importers only know players with a Yahoo ADP or top-~275 Yahoo rank;
-# 27 of our top 224 fell outside that, so the CSV runs deeper to still fill every pick.
-CSV_SIZE = 300
+# Yahoo's pre-draft rankings only take players in its rankable pool: roughly
+# those with a Yahoo ADP or a top-~277 preseason rank (the 300-row import on
+# Sep 28 2026 rejected 60, all low-rostered depth players). Nobody else sees
+# them ranked either. The CSV carries the whole board so the imported list
+# still runs well past the last pick; the brief flags the rest as "search".
+POOL_PRESEASON_RANK = 277
+# Paste Yahoo's import message ("60 lines didn't match a player: Line 114: ...")
+# here to replace the pool estimate with the exact rejected rows.
+UNMATCHED_FILE = Path("data/yahoo/import_unmatched.txt")
+UNMATCHED_RE = re.compile(r"Line \d+: \d+,([^,;]+),([A-Z]{2,3}),")
 YAHOO_TEAM = {"LAK": "LA", "NJD": "NJ", "SJS": "SJ", "TBL": "TB"}
 SHEET_DEPTH = {"C": 30, "LW": 24, "RW": 24, "D": 48, "G": 32}
 
@@ -42,6 +50,16 @@ def adp(p: dict) -> str:
 
 def status(p: dict) -> str:
     return f" [{p['status']}]" if p.get("status") else ""
+
+
+def off_yahoo_ids(players: list[dict]) -> set[int]:
+    """Players Yahoo's pre-draft rankings can't hold: the rows its import
+    rejected if UNMATCHED_FILE has them, else the pool estimate."""
+    if UNMATCHED_FILE.exists():
+        rejected = set(UNMATCHED_RE.findall(UNMATCHED_FILE.read_text(encoding="utf-8")))
+        return {p["id"] for p in players if (p["name"], team(p)) in rejected}
+    return {p["id"] for p in players
+            if not p.get("yahoo_adp") and (p.get("yahoo_rank") or 9999) > POOL_PRESEASON_RANK}
 
 
 # Optionally never list a player more than this many spots before his raw
@@ -66,16 +84,18 @@ def draft_order(players: list[dict]) -> list[dict]:
     return first_round + [p for p in ordered if p["id"] not in taken]
 
 
-def write_list(players: list[dict], generated: str) -> None:
+def write_list(players: list[dict], off_yahoo: set[int], generated: str) -> None:
     lines = [
         f"NOT FOR EVERYONE! - draft ranking ({len(players)} players, built {generated})",
         "Enter in this order into Yahoo: League > Edit Pre-Draft Rankings.",
         "Value order, with no goalie in the first 16 (goalie plan). After your first goalie,",
         "skip goalies until round 4 (cheat sheet rule 1).",
+        "{search} = not in Yahoo's rankings pool: won't show in the sorted list, find him by name.",
         "",
     ]
     for i, p in enumerate(players, start=1):
-        lines.append(f"{i:>3}. {p['name']} ({p['elig'].replace('/', ',')} - {team(p)}){status(p)}")
+        lines.append(f"{i:>3}. {p['name']} ({p['elig'].replace('/', ',')} - {team(p)}){status(p)}"
+                     + (" {search}" if p["id"] in off_yahoo else ""))
     LIST_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -140,7 +160,7 @@ def write_sheet(players: list[dict], replacement: dict, generated: str) -> None:
 BRIEF_OUT = Path("data/draft_brief.md")
 
 
-def write_brief(players: list[dict], ranked: list[dict], generated: str) -> None:
+def write_brief(players: list[dict], ranked: list[dict], off_yahoo: set[int], generated: str) -> None:
     """Everything a fresh Claude session needs to give fast pick advice from
     screenshots: instructions, rules, and the full list with tiers/ADP."""
     pos_tier: dict[int, int] = {}
@@ -164,7 +184,7 @@ def write_brief(players: list[dict], ranked: list[dict], generated: str) -> None
         "usually sorted by my own rankings, plus my roster) and the round, typically 2-3 picks before my turn.",
         "",
         "Reply FAST and SHORT, no preamble:",
-        "1. Three names in priority order, all visible as available in my screenshot.",
+        "1. Three names in priority order, all visible as available in my screenshot (exception: rule 10).",
         "2. One line of reason (which rule or tier decided it).",
         "3. Optionally one warning (e.g. goalie deadline, slots vs picks left, a run on a position).",
         "",
@@ -194,12 +214,16 @@ def write_brief(players: list[dict], ranked: list[dict], generated: str) -> None
         "8. Let them go at ADP (far below their market price here): "
         + ", ".join(f"{p['name']} (ADP {round(p['yahoo_adp'])})" for p in avoid) + ".",
         "9. Status O/IR players are fine if listed: after the draft they can move to IR/IR+.",
+        "10. Notes \"search\" = not in Yahoo's rankings pool, so he never shows in my sorted view (nor anyone",
+        "   else's; they rarely get drafted). Skip them until my last 2 picks. Then, if one is above every",
+        "   visible player who fits, name him with \"(search)\" as the 1st option and a visible one 2nd.",
+        "   Otherwise he's a waiver add after the draft.",
         "",
         "## My list",
         "",
         "`#` = my list order (value order; no goalie in the first 16). Value = projected season",
         "points above the best waiver player at his position. Tier = tier within his position (e.g. C3).",
-        "FOW shown for wing-eligible faceoff takers; GS = projected goalie starts.",
+        "FOW shown for wing-eligible faceoff takers; GS = projected goalie starts; search = rule 10.",
         "",
         "| # | Player | Elig | Team | Value | Tier | ADP | Notes |",
         "|---|---|---|---|---|---|---|---|",
@@ -214,6 +238,8 @@ def write_brief(players: list[dict], ranked: list[dict], generated: str) -> None
             notes.append(f"{round(p['fow'])} FOW")
         if p["name"] in cheatsheet.G3_ONLY:
             notes.append("G3 only")
+        if p["id"] in off_yahoo:
+            notes.append("search")
         out.append(f"| {i} | {p['name']} | {p['elig']} | {team(p)} | {round(p['vorp'])} | "
                    f"{p['pos']}{pos_tier.get(p['id'], '')} | {adp(p)} | {', '.join(notes)} |")
     BRIEF_OUT.write_text("\n".join(out) + "\n", encoding="utf-8")
@@ -224,15 +250,19 @@ def main() -> None:
     players = data["players"]
     generated = data["generated"].replace("T", " ")
     ranked = draft_order(players)
-    write_list(ranked[:LIST_SIZE], generated)
-    write_csv(ranked[:CSV_SIZE])
+    off_yahoo = off_yahoo_ids(players)
+    write_list(ranked[:LIST_SIZE], off_yahoo, generated)
+    write_csv(ranked)
     write_sheet(players, data["replacement"], generated)
     page = cheatsheet.render(players, ranked[:LIST_SIZE], data["replacement"], generated)
     HTML_ARTIFACT_OUT.write_text(page, encoding="utf-8")
     head = '<!doctype html>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
     HTML_OUT.write_text(head + page, encoding="utf-8")
-    write_brief(players, ranked[:CSV_SIZE], generated)
-    print(f"Wrote {LIST_OUT} ({LIST_SIZE} players), {CSV_OUT} ({CSV_SIZE}), {SHEET_OUT}, {HTML_OUT} and {BRIEF_OUT}")
+    write_brief(players, ranked, off_yahoo, generated)
+    top = {p["id"] for p in ranked[:LIST_SIZE]}
+    print(f"Wrote {LIST_OUT} ({LIST_SIZE} players), {CSV_OUT} ({len(ranked)}), {SHEET_OUT}, {HTML_OUT} and {BRIEF_OUT}")
+    print(f"Yahoo can rank {len(ranked) - len(off_yahoo)} of {len(ranked)}; {len(top & off_yahoo)} of the top "
+          f"{LIST_SIZE} are 'search' players ({'from ' + str(UNMATCHED_FILE) if UNMATCHED_FILE.exists() else 'estimated'})")
 
 
 if __name__ == "__main__":

@@ -274,7 +274,7 @@ const REPL = DATA.replacement;
 const maxVorp = Math.max(...players.map(p => p.vorp));
 const eligOf = p => p.elig.split("/");
 
-let state = { slot: 8, picks: [], ignored: [] };
+let state = { slot: 12, picks: [], ignored: [] };
 try {
   const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
   if (saved && Array.isArray(saved.picks)) state = saved;
