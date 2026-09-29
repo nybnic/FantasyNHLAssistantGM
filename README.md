@@ -69,7 +69,9 @@ so a failed or cancelled run loses nothing.
    `npx wrangler d1 execute assistant-gm-relay --remote --file schema.sql`.
 3. A GitHub fine-grained token for this repo only, with **Actions: Read and
    write** (github.com -> Settings -> Developer settings -> Fine-grained
-   tokens): `npx wrangler secret put GITHUB_TOKEN`.
+   tokens): `npx wrangler secret put GITHUB_TOKEN`. In Windows PowerShell,
+   where Ctrl+V may not paste, type `Get-Clipboard | npx wrangler secret put
+   GITHUB_TOKEN` first, then copy the token, then press Enter.
 4. Two random secrets, the same value in Cloudflare and GitHub:
    `WEBHOOK_SECRET` (GitHub name `TELEGRAM_WEBHOOK_SECRET`) and `RELAY_TOKEN`.
 5. `npx wrangler deploy`, and set the GitHub secret `RELAY_URL` to the
