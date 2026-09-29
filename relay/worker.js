@@ -60,7 +60,8 @@ async function startRun(env) {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+          // Secrets pasted in a terminal can carry a trailing newline.
+          Authorization: `Bearer ${env.GITHUB_TOKEN.trim()}`,
           Accept: "application/vnd.github+json",
           "User-Agent": "assistant-gm-relay",
           "X-GitHub-Api-Version": "2022-11-28",
@@ -68,13 +69,24 @@ async function startRun(env) {
         body: JSON.stringify({ ref: "main" }),
       },
     );
-    if (!resp.ok) error = `GitHub ${resp.status}: ${(await resp.text()).replace(/\s+/g, " ").slice(0, 200)}`;
+    if (!resp.ok) {
+      const detail = (await resp.text()).replace(/\s+/g, " ").slice(0, 200);
+      error = `GitHub ${resp.status}: ${detail} [token: ${tokenShape(env.GITHUB_TOKEN)}]`;
+    }
   } catch (e) {
     error = `GitHub unreachable: ${e}`;
   }
   await env.DB.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('dispatch_error', ?)")
     .bind(error)
     .run();
+}
+
+/** What's wrong with a token, without revealing it: "github_pat_..., 93 chars". */
+function tokenShape(token) {
+  const t = token.trim();
+  const odd = [...t].filter((c) => !/[A-Za-z0-9_]/.test(c)).map((c) => `U+${c.codePointAt(0).toString(16)}`);
+  const prefix = (t.match(/^(github_pat_|ghp_|gho_)/) || ["unknown prefix "])[0];
+  return `${prefix}..., ${t.length} chars${odd.length ? `, unexpected ${[...new Set(odd)].join(" ")}` : ""}`;
 }
 
 function matches(given, expected) {
