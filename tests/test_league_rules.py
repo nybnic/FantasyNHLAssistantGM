@@ -21,6 +21,6 @@ def test_documented_worked_examples_add_up():
 
 
 def test_documented_schedule_matches_the_config():
-    text = DOC.read_text(encoding="utf-8")
-    pairs = re.findall(r"\|\s*(\d+)\s*\|\s*([^|]+?)\s*(?=\|)", text.split("## Our regular-season schedule")[1])
+    section = DOC.read_text(encoding="utf-8").split("## Our regular-season schedule")[1].split("\n## ")[0]
+    pairs = re.findall(r"\|\s*(\d+)\s*\|\s*([^|\n]+?)\s*(?=\|)", section)
     assert {int(week): team for week, team in pairs} == dict(enumerate(SCHEDULE, start=1))
