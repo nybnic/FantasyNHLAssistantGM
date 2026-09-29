@@ -244,6 +244,108 @@ def add_threshold(adds_left: int, week: int) -> float | None:
     return BASE_ADD_SCORE / min(max(pace, 0.5), 2.0)
 
 
+def _team_games(schedule: dict[dt.date, list[ScheduledGame]], today: dt.date) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for d in (d for d in schedule if d >= today):
+        for team in _game_of(schedule[d]):
+            counts[team] = counts.get(team, 0) + 1
+    return counts
+
+
+def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
+              lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict],
+              available_from: dt.date | None = None) -> list[RosterPlayer]:
+    """The free agents worth a full evaluation: the best per position by this
+    week's games, plus a few by long-run value."""
+    remaining = [d for d in sorted(schedule) if d >= ctx.today and not (available_from and d < available_from)]
+    team_games = _team_games(schedule, ctx.today)
+
+    def week_alone(p: RosterPlayer) -> float:
+        total = 0.0
+        for d in remaining:
+            game = _game_of(schedule[d]).get(p.team)
+            if game:
+                yesterday = _game_of(schedule.get(d - dt.timedelta(days=1), []))
+                total += _player_day(p, ctx, d, game, p.team in yesterday, lines, starters)[0]
+        return total
+
+    picked: dict[int, RosterPlayer] = {}
+    for position in STARTERS:
+        group = [p for p in pool if position in p.positions]
+        playing = [p for p in group if team_games.get(p.team)]
+        for p in sorted(playing, key=week_alone, reverse=True)[:POOL_PER_POSITION]:
+            picked[p.id] = p
+        for p in sorted(group, key=lambda p: season_value(p, ctx, lines), reverse=True)[:POOL_LONG_TERM_PER_POSITION]:
+            picked[p.id] = p
+    return list(picked.values())
+
+
+def candidate_moves(
+    roster: list[RosterPlayer],
+    opponent: TeamWeek,
+    candidates: list[RosterPlayer],
+    ctx,
+    schedule: dict[dt.date, list[ScheduledGame]],
+    lines: dict[str, dict[str, LineInfo]],
+    starters: dict[str, dict],
+    future: dict[dt.date, list[ScheduledGame]],
+    weeks_after: int,
+    available_from: dt.date | None = None,
+) -> list[Move]:
+    """Every add/drop worth considering, best first. Left out: dropping below
+    MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
+    `future` is the schedule of the days after this week used to judge the
+    long run (two weeks is plenty); `weeks_after` is how many weeks are left.
+    `available_from` is the first day an added player can play (waivers)."""
+    future_weeks = len(future) / 7 or 1.0
+    team_games = _team_games(schedule, ctx.today)
+    mine = active(roster)
+    current = project("me", roster, ctx, schedule, lines, starters)
+    current_future = project("me", roster, ctx, future, lines, starters, True).expected if future else 0.0
+    before = win_prob(current, opponent)
+    # An open roster spot comes first: on a tie, keep everyone.
+    drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
+    drops += sorted(mine, key=lambda p: season_value(p, ctx, lines))[:DROP_CANDIDATES]
+    moves = []
+    for add in candidates:
+        joins = {add.id: available_from} if available_from else None
+        for drop in drops:
+            if drop and drop.is_goalie and not add.is_goalie and sum(p.is_goalie for p in mine) <= MIN_GOALIES:
+                continue
+            trial = _swap(roster, add, drop)
+            week = project("me", trial, ctx, schedule, lines, starters, joins=joins)
+            if week.expected - current.expected < -MAX_WEEK_COST:
+                continue
+            later = (project("me", trial, ctx, future, lines, starters, True).expected - current_future
+                     if future else 0.0)
+            moves.append(Move(
+                add=add, drop=drop,
+                week_gain=week.expected - current.expected,
+                long_term=LONG_RUN_DISCOUNT * later / future_weeks * weeks_after,
+                next_weeks=later,
+                games=team_games.get(add.team, 0),
+                win_before=before, win_after=win_prob(week, opponent),
+            ))
+    # Stable sort: on equal scores the earlier (open spot first) wins.
+    return sorted(moves, key=lambda m: m.score, reverse=True)
+
+
+def rejection(move: Move, threshold: float) -> str | None:
+    """Why a move isn't worth an add, or None if it is. It must be worth
+    `threshold` points and either lift this week's win odds or pay off visibly
+    soon: a long-run edge too small to show in two weeks is noise."""
+    if move.score < threshold:
+        return f"worth {move.score:.1f} pts, under the {threshold:.1f} an add costs"
+    if move.win_after - move.win_before < MIN_WIN_GAIN and move.next_weeks < 2 * threshold:
+        return "neither lifts this week's win odds nor pays off within two weeks"
+    return None
+
+
+def _swap(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None) -> list[RosterPlayer]:
+    return [p for p in roster if drop is None or p.id != drop.id] + [
+        RosterPlayer(add.id, add.name, add.team, add.positions, BENCH)]
+
+
 def best_moves(
     roster: list[RosterPlayer],
     opponent: TeamWeek,
@@ -258,82 +360,19 @@ def best_moves(
     threshold: float,
     available_from: dt.date | None = None,
 ) -> list[Move]:
-    """Up to `max_moves` add/drops, best first, each worth `threshold` points
-    and (unless it helps beyond this week) at least MIN_WIN_GAIN of P(win).
-    `future` is the schedule of the days after this week used to judge the
-    long run (two weeks is plenty); `weeks_after` is how many weeks are left.
-    `available_from` is the first day an added player can play (waivers)."""
-    future_weeks = len(future) / 7 or 1.0
-    remaining = [d for d in sorted(schedule) if d >= ctx.today]
-    team_games = {}
-    for d in remaining:
-        for team in _game_of(schedule[d]):
-            team_games[team] = team_games.get(team, 0) + 1
-
-    def week_alone(p: RosterPlayer) -> float:
-        total = 0.0
-        for d in remaining:
-            if available_from and d < available_from:
-                continue
-            game = _game_of(schedule[d]).get(p.team)
-            if game:
-                yesterday = _game_of(schedule.get(d - dt.timedelta(days=1), []))
-                total += _player_day(p, ctx, d, game, p.team in yesterday, lines, starters)[0]
-        return total
-
-    shortlist: dict[int, RosterPlayer] = {}
-    for position in STARTERS:
-        group = [p for p in pool if position in p.positions]
-        playing = [p for p in group if team_games.get(p.team)]
-        for p in sorted(playing, key=week_alone, reverse=True)[:POOL_PER_POSITION]:
-            shortlist[p.id] = p
-        by_season = sorted(group, key=lambda p: season_value(p, ctx, lines), reverse=True)
-        for p in by_season[:POOL_LONG_TERM_PER_POSITION]:
-            shortlist[p.id] = p
-
+    """Up to `max_moves` add/drops worth making, best first; each one is
+    judged with the previous ones already made."""
+    candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
     moves: list[Move] = []
-    roster = list(roster)
     for _ in range(max_moves):
-        mine = active(roster)
-        current = project("me", roster, ctx, schedule, lines, starters)
-        current_future = project("me", roster, ctx, future, lines, starters, True).expected if future else 0.0
-        before = win_prob(current, opponent)
-        # An open roster spot comes first: on a tie, keep everyone.
-        drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
-        drops += sorted(mine, key=lambda p: season_value(p, ctx, lines))[:DROP_CANDIDATES]
-        best = None
-        for add in shortlist.values():
-            joins = {add.id: available_from} if available_from else None
-            for drop in drops:
-                if (drop and drop.is_goalie and not add.is_goalie
-                        and sum(p.is_goalie for p in mine) <= MIN_GOALIES):
-                    continue
-                trial = [p for p in roster if drop is None or p.id != drop.id] + [RosterPlayer(
-                    add.id, add.name, add.team, add.positions, BENCH)]
-                week = project("me", trial, ctx, schedule, lines, starters, joins=joins)
-                if week.expected - current.expected < -MAX_WEEK_COST:
-                    continue
-                later = (project("me", trial, ctx, future, lines, starters, True).expected - current_future
-                         if future else 0.0)
-                move = Move(
-                    add=add, drop=drop,
-                    week_gain=week.expected - current.expected,
-                    long_term=LONG_RUN_DISCOUNT * later / future_weeks * weeks_after,
-                    next_weeks=later,
-                    games=team_games.get(add.team, 0),
-                    win_before=before, win_after=win_prob(week, opponent),
-                )
-                if best is None or move.score > best.score:
-                    best = move
-        # Worth the add, and either lifts this week's win odds or pays off
-        # visibly soon: a long-run edge too small to show in two weeks is noise.
-        if (best is None or best.score < threshold
-                or (best.win_after - best.win_before < MIN_WIN_GAIN and best.next_weeks < 2 * threshold)):
+        ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
+                                 weeks_after, available_from)
+        if not ranked or rejection(ranked[0], threshold):
             break
+        best = ranked[0]
         moves.append(best)
-        shortlist.pop(best.add.id)
-        roster = [p for p in roster if best.drop is None or p.id != best.drop.id] + [RosterPlayer(
-            best.add.id, best.add.name, best.add.team, best.add.positions, BENCH)]
+        candidates = [p for p in candidates if p.id != best.add.id]
+        roster = _swap(roster, best.add, best.drop)
     return moves
 
 

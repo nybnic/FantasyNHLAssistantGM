@@ -25,7 +25,7 @@ import argparse
 import datetime as dt
 import functools
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from zoneinfo import ZoneInfo
 
 from clients import dfo_lines, goalie_client, nhl_client
@@ -294,6 +294,50 @@ def free_agents(players: list, league: dict) -> list:
     ]
 
 
+@dataclass
+class WeekInputs:
+    """Everything the weekly plan is computed from (also used by
+    scripts/explain_week.py)."""
+    ctx: object
+    days: list[dt.date]
+    schedule: dict
+    future: dict  # the two weeks after this one, for long-run value
+    lines: dict
+    starters: dict
+    me: matchup.TeamWeek
+    them: matchup.TeamWeek
+    pool: list
+    season_used: int
+    week_used: int
+    max_moves: int
+    threshold: float | None
+    weeks_after: int
+    available_from: dt.date | None
+
+
+def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
+                build_context, opponent: str) -> WeekInputs:
+    ctx = build_context(date)
+    days = weeks.days(week)
+    schedule = {d: nhl_client.games_on(d) for d in days}
+    future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 15)]
+    future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
+    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
+    starters = _safe(goalie_client.get_starters, date, default={})
+    season_used, week_used = matchup.adds_used(state["decisions"], days)
+    return WeekInputs(
+        ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
+        me=matchup.project(MY_TEAM, players, ctx, schedule, lines, starters),
+        them=matchup.project(opponent, teams.players(league, opponent), ctx, schedule, lines, starters),
+        pool=free_agents(players, league),
+        season_used=season_used, week_used=week_used,
+        max_moves=matchup.max_moves(season_used, week_used),
+        threshold=matchup.add_threshold(MAX_ADDS_PER_SEASON - season_used, week),
+        weeks_after=weeks.LAST_WEEK - week,
+        available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None,
+    )
+
+
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
                 build_context=context.build) -> None:
     """The matchup plan, once per fantasy week (the first run from noon
@@ -315,25 +359,13 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
         return
 
-    ctx = build_context(date)
-    days = weeks.days(week)
-    schedule = {d: nhl_client.games_on(d) for d in days}
-    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
-    starters = _safe(goalie_client.get_starters, date, default={})
-    me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters)
-    them = matchup.project(opponent, teams.players(league, opponent), ctx, schedule, lines, starters)
-    season_used, week_used = matchup.adds_used(state["decisions"], days)
-    n = matchup.max_moves(season_used, week_used)
-    threshold = matchup.add_threshold(MAX_ADDS_PER_SEASON - season_used, week)
+    wk = week_inputs(date, week, players, league, state, build_context, opponent)
     moves = []
-    if n and threshold is not None:
-        future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 15)]
-        future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
-        moves = matchup.best_moves(players, them, free_agents(players, league), ctx, schedule, lines, starters,
-                                   future, weeks.LAST_WEEK - week, n, threshold,
-                                   available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None)
-
-    outbox.send(matchup.text(week, days, me, them, teams.updated(league, opponent), season_used, week_used, date)
+    if wk.max_moves and wk.threshold is not None:
+        moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
+                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from)
+    outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
+                             wk.week_used, date)
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"

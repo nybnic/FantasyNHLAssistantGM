@@ -113,6 +113,8 @@ python -m pytest
 python main.py --dry-run --force                                   # tonight's plan, sends nothing
 python main.py --dry-run --force --now 2026-01-17T18:00:00+02:00    # replay a past night
 python -m scripts.xfp_table                                       # current xFP for every skater
+python -m scripts.explain_week                                    # every add/drop this week's plan weighed
+python -m scripts.compare_yahoo paste.txt                         # a copied Yahoo player list vs our projections
 ```
 
 ## Data sources (all free)

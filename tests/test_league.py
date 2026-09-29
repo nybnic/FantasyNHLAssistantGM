@@ -67,3 +67,14 @@ def test_draft_file_has_every_team(path):
 
     names = set(sections(open(path, encoding="utf-8").read()))
     assert len(names) == LEAGUE_TEAMS and names == set(SCHEDULE) | {MY_TEAM}
+
+
+def test_compare_yahoo_reads_a_pasted_projection_row():
+    from scripts.compare_yahoo import parse_row
+
+    line = ("Esa LindellPlayer NoteDAL - D\t8:00 pm @ BOS\tW (Sep 30)\t84\t313.24\t503\t163\t18%\t"
+            "5.7\t22.9\t31.4\t16.8\t0.9\t0.9\t0\t1.9\t1\t85.7\t0\t36.5\t170")
+    row = parse_row(line)
+    assert row["gp"] == 84 and row["fpts"] == 313.24
+    assert row["per_game"]["blk"] == pytest.approx(170 / 84)
+    assert parse_row("Forwards/Defensemen\tOpp\tRoster Status") is None
