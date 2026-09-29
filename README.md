@@ -55,6 +55,32 @@ Sunday report.
 4. The workflow `.github/workflows/assistant_gm.yml` runs every 30 minutes
    during the afternoon and evening, and commits its state back to the repo.
 
+### Instant replies (optional)
+
+Without this, the bot reads your messages at the next half-hourly run. With
+it, a free Cloudflare Worker (`relay/`) receives each message as Telegram's
+webhook, queues it, and starts the workflow at once: replies in about half a
+minute, any time of day. Messages wait in the queue until a run has read them,
+so a failed or cancelled run loses nothing.
+
+1. `cd relay && npm install && npx wrangler login` (free Cloudflare account).
+2. `npx wrangler d1 create assistant-gm-relay`, put the printed
+   `database_id` in `relay/wrangler.toml`, then
+   `npx wrangler d1 execute assistant-gm-relay --remote --file schema.sql`.
+3. A GitHub fine-grained token for this repo only, with **Actions: Read and
+   write** (github.com -> Settings -> Developer settings -> Fine-grained
+   tokens): `npx wrangler secret put GITHUB_TOKEN`.
+4. Two random secrets, the same value in Cloudflare and GitHub:
+   `WEBHOOK_SECRET` (GitHub name `TELEGRAM_WEBHOOK_SECRET`) and `RELAY_TOKEN`.
+5. `npx wrangler deploy`, and set the GitHub secret `RELAY_URL` to the
+   printed `https://assistant-gm-relay.<you>.workers.dev`.
+
+The next run points Telegram's webhook at the relay. If instant replies stop
+working (e.g. the GitHub token expired: renew it and repeat step 3), you get
+one alert a day and messages are still read at the half-hourly runs. To go
+back to polling, delete the `RELAY_URL` secret: the next run removes the
+webhook.
+
 ## Local use
 
 ```bash

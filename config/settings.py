@@ -21,6 +21,10 @@ class Settings:
     telegram_bot_token: str | None
     telegram_chat_id: str | None
     dry_run: bool
+    # Webhook relay (relay/): set all three for instant replies, none to poll.
+    relay_url: str | None = None
+    relay_token: str | None = None
+    webhook_secret: str | None = None
 
 
 def _env(name: str) -> str | None:
@@ -33,4 +37,7 @@ def load_settings() -> Settings:
         telegram_bot_token=_env("TELEGRAM_BOT_TOKEN"),
         telegram_chat_id=_env("TELEGRAM_CHAT_ID"),
         dry_run=os.environ.get("DRY_RUN", "0") == "1",
+        relay_url=(_env("RELAY_URL") or "").rstrip("/") or None,
+        relay_token=_env("RELAY_TOKEN"),
+        webhook_secret=_env("TELEGRAM_WEBHOOK_SECRET"),
     )

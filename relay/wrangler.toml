@@ -1,0 +1,14 @@
+# Webhook relay for the Assistant GM bot - see worker.js and the README.
+# Secrets (npx wrangler secret put <NAME>): WEBHOOK_SECRET, RELAY_TOKEN, GITHUB_TOKEN.
+name = "assistant-gm-relay"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+GITHUB_REPO = "nybnic/FantasyNHLAssistantGM"
+GITHUB_WORKFLOW = "assistant_gm.yml"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "assistant-gm-relay"
+database_id = "6c978078-17a5-46ef-b4e3-bac6a0b36dc9"

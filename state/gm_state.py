@@ -4,6 +4,7 @@
 - pending: recommendations awaiting a Done/Skip tap
 - decisions: every tap, kept for the weekly report
 - last_error: date of the last failure alert (one alert per day)
+- relay_alert: date of the last "instant replies are down" alert
 """
 from __future__ import annotations
 
@@ -23,6 +24,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("pending", {})
     state.setdefault("decisions", [])
     state.setdefault("last_error", None)
+    state.setdefault("relay_alert", None)
     return state
 
 

@@ -22,6 +22,11 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # Optional webhook relay (relay/): the relay also starts this workflow
+      # right after each Telegram message, for replies in about half a minute.
+      RELAY_URL: ${{ secrets.RELAY_URL }}
+      RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
     steps:
       - uses: actions/checkout@v4
 

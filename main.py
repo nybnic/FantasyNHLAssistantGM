@@ -1,4 +1,5 @@
-"""Assistant GM entrypoint, run every 30 minutes by GitHub Actions.
+"""Assistant GM entrypoint, run every 30 minutes by GitHub Actions, and right
+after each Telegram message when the webhook relay (relay/) is set up.
 
 Each run:
 1. reads your Telegram taps - Done/Skip on recommendations, /roster, /help;
@@ -53,9 +54,50 @@ class Outbox:
         return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons)
 
 
-def process_updates(settings: Settings, state: dict, players: list, outbox: Outbox) -> None:
+def sync_webhook(settings: Settings, now: dt.datetime) -> str | None:
+    """Point Telegram's webhook at the relay when one is configured, else remove
+    it so getUpdates works. Returns a problem if Telegram can't deliver to it."""
+    token = settings.telegram_bot_token
+    want = f"{settings.relay_url}/telegram" if settings.relay_url else ""
+    info = telegram.webhook_info(token)
+    if info.get("url", "") != want:
+        if want:
+            telegram.set_webhook(token, want, settings.webhook_secret)
+        else:
+            telegram.delete_webhook(token)
+        logger.info("Telegram webhook %s", "pointed at the relay" if want else "removed; polling instead")
+        return None
+    recent_error = now.timestamp() - info.get("last_error_date", 0) < 3600
+    if want and info.get("pending_update_count") and recent_error:
+        return (f"Telegram can't reach the relay ({info.get('last_error_message')}); "
+                "your messages will arrive once it's back.")
+    return None
+
+
+def report_relay(problem: str | None, state: dict, outbox: Outbox, now: dt.datetime) -> None:
+    """Warn, once a day, when instant replies aren't working."""
+    if not problem:
+        return
+    logger.warning(problem)
+    today = now.date().isoformat()
+    if state["relay_alert"] != today:
+        state["relay_alert"] = today
+        outbox.send(f"Instant replies are down: {problem}")
+
+
+def process_updates(settings: Settings, state: dict, players: list, outbox: Outbox) -> str | None:
+    """Handle new messages and taps. Returns the relay's problem starting runs, if any."""
     token, chat_id = settings.telegram_bot_token, settings.telegram_chat_id
-    for update in telegram.get_updates(token, state["telegram_offset"]):
+    problem = None
+    if settings.relay_url:
+        updates, dispatch_error = telegram.get_relayed_updates(
+            settings.relay_url, settings.relay_token, state["telegram_offset"])
+        if dispatch_error:
+            problem = (f"the relay can't start runs ({dispatch_error}), so replies wait for the "
+                       "half-hourly runs. A 401 means its GitHub token needs renewing (see README).")
+    else:
+        updates = telegram.get_updates(token, state["telegram_offset"])
+    for update in updates:
         state["telegram_offset"] = update["update_id"] + 1
         if "callback_query" in update:
             query = update["callback_query"]
@@ -85,6 +127,7 @@ def process_updates(settings: Settings, state: dict, players: list, outbox: Outb
                 outbox.send(roster_mod.describe(players) or "No roster yet - run scripts/seed_roster.py.")
             elif command in ("/help", "/start"):
                 outbox.send(HELP)
+    return problem
 
 
 def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:
@@ -159,6 +202,8 @@ def main() -> None:
     settings.dry_run = settings.dry_run or args.dry_run
     if not settings.dry_run and not (settings.telegram_bot_token and settings.telegram_chat_id):
         raise SystemExit("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID (or use --dry-run).")
+    if settings.relay_url and not (settings.relay_token and settings.webhook_secret):
+        raise SystemExit("RELAY_URL needs RELAY_TOKEN and TELEGRAM_WEBHOOK_SECRET too.")
     now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
     outbox = Outbox(settings)
     state = gm_state.load()
@@ -166,7 +211,9 @@ def main() -> None:
 
     try:
         if not settings.dry_run:
-            process_updates(settings, state, players, outbox)
+            webhook_problem = sync_webhook(settings, now)
+            relay_problem = process_updates(settings, state, players, outbox)
+            report_relay(webhook_problem or relay_problem, state, outbox, now)
         if players:
             sync_teams(players)
         briefing_step(state, players, now, args.force, outbox)
