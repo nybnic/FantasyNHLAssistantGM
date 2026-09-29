@@ -11,6 +11,23 @@ from typing import Mapping
 TIMEZONE = "Europe/Helsinki"
 LEAGUE_ID = 66759
 LEAGUE_TEAMS = 16
+MY_TEAM = "Nico's Groovy Team"
+
+# Your regular-season opponents, week 1 first (Yahoo: My Team > Schedule).
+# Playoff opponents (weeks 24-26) aren't known until then.
+SCHEDULE: tuple[str, ...] = (
+    "Bahelin Boys", "Retrot Chicken Wings", "Löllöt Höntsääjät", "Jättiläisentie Giants",
+    "Viktorios", "HC Bulju", "HAN-NES", "Bottom three", "Bellova", "Lazy Lew", "Pastasauce",
+    "Gwp", "Randy", "Vanilla Thunder", "Vantaa", "Bahelin Boys", "Retrot Chicken Wings",
+    "Löllöt Höntsääjät", "Jättiläisentie Giants", "Viktorios", "HC Bulju", "HAN-NES", "Bottom three",
+)
+
+# Fantasy weeks run Monday-Sunday on NHL (Eastern) dates. Week 1 is short:
+# Tue Sep 29 - Sun Oct 4 (confirmed in Yahoo). 26 weeks ending Apr 4 then
+# need one two-week week; assumed to be the early-February break (week 19 =
+# Feb 1-14, 2027) - check Yahoo's dates before then.
+SEASON_START = dt.date(2026, 9, 29)
+DOUBLE_WEEK = 19
 
 # Fantasy points per stat. PPG/PPA/SHG/SHA are bonuses on top of the goal or
 # assist itself, so a PP goal is worth g + ppg = 4.75.
@@ -56,6 +73,8 @@ MAX_ADDS_PER_SEASON = 36
 # 1 day; a successful claim sends you to the back of the priority list.
 # Free agents off waivers can be added instantly.
 WAIVER_DAYS = 1
+# Every undrafted player sits on waivers until this date (Yahoo shows "W (Sep 30)").
+POST_DRAFT_WAIVERS_CLEAR = dt.date(2026, 9, 30)
 INJURED_ADD_DIRECT_TO_IR = True
 
 # Missing this minimum zeroes ALL goalie points for the week. Relief

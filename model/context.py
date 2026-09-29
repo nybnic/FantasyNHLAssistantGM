@@ -14,6 +14,7 @@ from model import games as games_model
 from model.projections import SkaterPrior, SkaterProjection, project_skater, season_skater_priors
 
 GAMES_PER_SEASON = 82
+HEALTHY_SHARE = 0.97  # a healthy regular still misses a game or two
 
 
 def current_season_id(today: dt.date) -> int:
@@ -34,6 +35,7 @@ class ModelContext:
     team_ratings: dict[str, games_model.TeamRating]
     league: games_model.League
     projected_starts: dict[int, float] = field(default_factory=dict)  # DFO season GS
+    projected_gp: dict[int, float] = field(default_factory=dict)  # DFO season GP, skaters
 
     def skater(self, player_id: int, position: str) -> SkaterProjection:
         group = "D" if position == "D" else "F"
@@ -45,9 +47,27 @@ class ModelContext:
         sv = games_model.save_pct(self.goalie_history.get(player_id, []), past, self.league.save_pct)
         return games_model.goalie_start(team, opponent, home, sv, self.team_ratings, self.league)
 
+    def durability(self, player_id: int) -> float:
+        """Share of a healthy player's games he's projected to play (injury
+        history, age); 1 when there's no projection."""
+        gp = self.projected_gp.get(player_id)
+        return 1.0 if gp is None else min(gp / (GAMES_PER_SEASON * HEALTHY_SHARE), 1.0)
+
     def prior_start_share(self, player_id: int) -> float | None:
         gs = self.projected_starts.get(player_id)
         return None if gs is None else min(gs / GAMES_PER_SEASON, 0.85)
+
+
+def skater_ages(registry: list[dict], past_ids: list[int], season: int) -> dict[int, float]:
+    """Age on Oct 1 of `season`, for everyone with a known birth date."""
+    born: dict[int, dt.date] = {}
+    for season_id in past_ids:
+        born.update(nhl_stats.skater_birth_dates(season_id))
+    for p in registry:
+        if p.get("birth_date"):
+            born.setdefault(p["id"], dt.date.fromisoformat(p["birth_date"]))
+    start = dt.date(season // 10_000, 10, 1)
+    return {pid: (start - day).days / 365.25 for pid, day in born.items()}
 
 
 def build(today: dt.date) -> ModelContext:
@@ -60,7 +80,7 @@ def build(today: dt.date) -> ModelContext:
     ]
     dfo = dfo_projections.fetch()
     skater_rows = dfo_projections.match_to_nhl_ids(dfo["skaters"], registry)
-    priors, fallback = season_skater_priors(past_skaters, skater_rows)
+    priors, fallback = season_skater_priors(past_skaters, skater_rows, ages=skater_ages(registry, past_ids, season))
 
     skater_games: dict[int, list[SkaterGame]] = defaultdict(list)
     for g in nhl_stats.skater_games(season, today=today):
@@ -101,4 +121,5 @@ def build(today: dt.date) -> ModelContext:
         team_ratings=team_ratings,
         league=league,
         projected_starts={pid: row["gs"] for pid, row in goalie_rows.items()},
+        projected_gp={pid: row["gp"] for pid, row in skater_rows.items()},
     )

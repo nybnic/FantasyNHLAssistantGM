@@ -25,7 +25,7 @@ def current_teams() -> list[str]:
 
 
 def current_rosters() -> list[dict]:
-    """Every player on a current NHL roster: id, name, team, position."""
+    """Every player on a current NHL roster: id, name, team, position, birth_date."""
 
     def fetch() -> list[dict]:
         players = []
@@ -38,10 +38,11 @@ def current_rosters() -> list[dict]:
                         "name": f"{p['firstName']['default']} {p['lastName']['default']}",
                         "team": team,
                         "position": p["positionCode"],
+                        "birth_date": p.get("birthDate"),
                     })
         return players
 
-    return cached_json("rosters_current", DAY, fetch)
+    return cached_json("rosters_current_v2", DAY, fetch)
 
 
 REGULAR_SEASON = 2

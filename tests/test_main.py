@@ -32,7 +32,7 @@ def _tap(data, chat_id=42, update_id=5):
 
 def test_done_applies_the_recommended_lineup(monkeypatch, tmp_path):
     settings, state, players, _, handled = _setup(monkeypatch, tmp_path, [_tap("done:lineup-2026-11-10-2100")])
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert [p.slot for p in players] == ["BN", "C"]
     assert state["pending"] == {}
     assert state["decisions"][0]["decision"] == "done"
@@ -42,14 +42,14 @@ def test_done_applies_the_recommended_lineup(monkeypatch, tmp_path):
 
 def test_skip_leaves_the_roster_alone(monkeypatch, tmp_path):
     settings, state, players, _, handled = _setup(monkeypatch, tmp_path, [_tap("skip:lineup-2026-11-10-2100")])
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert [p.slot for p in players] == ["C", "BN"]
     assert handled == ["Recorded: Skipped"]
 
 
 def test_taps_from_other_chats_are_ignored(monkeypatch, tmp_path):
     settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("done:lineup-2026-11-10-2100", chat_id=999)])
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert [p.slot for p in players] == ["C", "BN"]
     assert "lineup-2026-11-10-2100" in state["pending"]
 
@@ -59,14 +59,14 @@ def test_chat_id_secret_is_whitespace_tolerant(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
     monkeypatch.setenv("TELEGRAM_CHAT_ID", " 42\n")
     settings = load_settings()
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert sent == [main.HELP]
 
 
 def test_messages_from_other_chats_are_logged(monkeypatch, tmp_path, caplog):
     message = {"update_id": 9, "message": {"chat": {"id": 999}, "text": "/start"}}
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert sent == []
     assert "chat ...999: TELEGRAM_CHAT_ID is ...42" in caplog.text
 
@@ -74,7 +74,7 @@ def test_messages_from_other_chats_are_logged(monkeypatch, tmp_path, caplog):
 def test_roster_command_replies_with_the_roster(monkeypatch, tmp_path):
     message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/roster"}}
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
-    main.process_updates(settings, state, players, main.Outbox(settings))
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert "A (BOS, C)" in sent[0]
 
 
@@ -96,7 +96,7 @@ def test_relay_replaces_polling_when_configured(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
     calls = _relay(monkeypatch, [message])
     settings = load_settings()
-    assert main.process_updates(settings, state, players, main.Outbox(settings)) is None
+    assert main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings)) is None
     assert calls == [("https://relay.example", "r", 0)]
     assert sent == [main.HELP]
     assert state["telegram_offset"] == 10
@@ -108,7 +108,7 @@ def test_relay_dispatch_errors_alert_once_a_day(monkeypatch, tmp_path):
     settings = load_settings()
     outbox = main.Outbox(settings)
     for _ in range(2):
-        problem = main.process_updates(settings, state, players, outbox)
+        problem = main.process_updates(settings, state, players, {"teams": {}, "taken": []}, outbox)
         main.report_relay(problem, state, outbox, NOW)
     assert len(sent) == 1 and "GitHub 401" in sent[0]
 
@@ -146,3 +146,60 @@ def test_webhook_backlog_with_a_recent_error_is_a_problem(monkeypatch, tmp_path)
 
     info["last_error_date"] -= 7200  # an old error with a fresh message in flight is fine
     assert main.sync_webhook(load_settings(), NOW) is None
+
+
+REGISTRY = [{"id": 10, "name": "Nick Suzuki", "team": "MTL", "position": "C"},
+            {"id": 11, "name": "Joey Daccord", "team": "SEA", "position": "G"}]
+
+
+def _message(text, update_id=9):
+    return {"update_id": update_id, "message": {"chat": {"id": 42}, "text": text}}
+
+
+def test_opp_then_paste_updates_this_weeks_opponent(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(
+        monkeypatch, tmp_path, [_message("/opp", 9), _message("Nick SuzukiPlayer NoteMTL - C", 10)])
+    monkeypatch.setattr(main.parse, "registry", lambda: REGISTRY)
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2026, 10, 1))
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert [p["name"] for p in league["teams"]["Bahelin Boys"]["players"]] == ["Nick Suzuki"]
+    assert state["awaiting"] is None
+    assert "Bahelin Boys: 1 players saved" in sent[1]
+
+
+def test_opp_with_a_team_name_in_the_playoffs_records_the_opponent(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(
+        monkeypatch, tmp_path, [_message("/opp vantaa\nNick Suzuki (MTL - C)")])
+    monkeypatch.setattr(main.parse, "registry", lambda: REGISTRY)
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2027, 3, 16))
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert state["opponents"] == {"24": "Vantaa"}
+    assert "Vantaa" in league["teams"]
+
+
+def test_taken_removes_a_player_from_the_free_agents(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/taken Joey Daccord")])
+    monkeypatch.setattr(main.parse, "registry", lambda: REGISTRY)
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert league["taken"] == [11]
+
+
+def test_done_on_an_add_swaps_the_players(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("done:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "drop": 2, "message_id": 7,
+                                 "add": {"id": 11, "name": "Joey Daccord", "team": "SEA", "positions": ["G"],
+                                         "slot": None}}
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert [(p.id, p.slot) for p in players] == [(1, "C"), (11, "BN")]
+    assert state["decisions"][0]["type"] == "add"
+
+
+def test_weekly_plan_waits_for_noon_on_the_weeks_first_day(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    morning = dt.datetime(2026, 10, 5, 7, tzinfo=dt.timezone.utc)  # 10:00 Helsinki
+    main.weekly_step(state, players, {"teams": {}, "taken": []}, morning, False, main.Outbox(settings),
+                     build_context=lambda d: 1 / 0)
+    assert state["weeks"] == {} and sent == []

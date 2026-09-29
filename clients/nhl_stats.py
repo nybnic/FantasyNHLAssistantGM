@@ -93,6 +93,18 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
     return cached_json(name, None if settled else 6 * HOUR, fetch)
 
 
+def skater_birth_dates(season_id: int) -> dict[int, dt.date]:
+    """Birth date of every skater who played in a season (skater/bios)."""
+
+    def fetch() -> list[dict]:
+        params = {"isAggregate": "false", "isGame": "false", "limit": -1, "cayenneExp": f"seasonId={season_id}"}
+        return [{"id": r["playerId"], "born": r["birthDate"]}
+                for r in get(f"{STATS_URL}/skater/bios", params).json()["data"] if r.get("birthDate")]
+
+    return {r["id"]: dt.date.fromisoformat(r["born"])
+            for r in cached_json(f"nhl_stats/skater_bios_{season_id}", None, fetch)}
+
+
 def _span(season_id: int, start: dt.date | None, end: dt.date | None, today: dt.date):
     season_start, season_end = season_window(season_id)
     start = max(start or season_start, season_start)

@@ -17,7 +17,9 @@ Relief appearances are left out: they can't be planned for.
 
 Priors come from past seasons (`skater_priors` / `goalie_priors`), weighted
 toward the most recent, and regressed toward the position average so small
-samples don't produce extreme rates.
+samples don't produce extreme rates. Skater priors are then aged
+(`age_factor`): history describes a player as he was, but young players
+improve and veterans decline.
 """
 from __future__ import annotations
 
@@ -41,6 +43,16 @@ SKATER_K: dict[str, float] = {
 }
 GOALIE_K: dict[str, float] = {"w": 30, "ga": 20, "sv": 15, "so": 60}
 PRIOR_REGRESSION_GAMES = 20  # pulls thin histories toward the position average
+
+# Aging, per position group: (peak age, change per year younger than the
+# peak, change per year older), scaling every scoring rate. Age is on Oct 1
+# of the projected season. Fit on 2024-25 + 2025-26 (history-only projection
+# vs actual points per game, 20+ GP). Out of sample - fit on 2024-25, checked
+# on 2025-26 - it cut per-game error 0.628 -> 0.580 and removed most of the
+# bias (history had overrated D over 30 by ~0.4 pts/game, underrated F under
+# 22 by ~0.65).
+AGE_CURVES: dict[str, tuple[float, float, float]] = {"F": (26.0, 0.032, 0.009), "D": (23.5, 0.019, 0.0114)}
+AGE_FACTOR_RANGE = (0.8, 1.25)
 PRIOR_REGRESSION_STARTS = 15
 
 
@@ -159,6 +171,20 @@ def skater_priors(past_seasons: list[list[SkaterGame]]) -> tuple[dict[int, Skate
     return priors, fallback
 
 
+def age_factor(position: str, age: float) -> float:
+    peak, younger, older = AGE_CURVES[_position_group(position)]
+    factor = 1 + younger * max(peak - age, 0.0) - older * max(age - peak, 0.0)
+    return min(max(factor, AGE_FACTOR_RANGE[0]), AGE_FACTOR_RANGE[1])
+
+
+def aged(prior: SkaterPrior, age: float | None) -> SkaterPrior:
+    """The prior with its scoring rates scaled for age (ice time unchanged)."""
+    if age is None:
+        return prior
+    f = age_factor(prior.position, age)
+    return SkaterPrior(prior.position, prior.toi, prior.pp_toi, {s: r * f for s, r in prior.per_toi.items()})
+
+
 def with_projection(prior: SkaterPrior, row: dict, weight: float) -> SkaterPrior:
     """Blend an outside full-season projection into a prior, per game.
 
@@ -185,10 +211,15 @@ PROJECTION_WEIGHT = 0.5
 
 
 def season_skater_priors(
-    past_seasons: list[list[SkaterGame]], projections: dict[int, dict], weight: float = PROJECTION_WEIGHT
+    past_seasons: list[list[SkaterGame]], projections: dict[int, dict], weight: float = PROJECTION_WEIGHT,
+    ages: dict[int, float] | None = None,
 ) -> tuple[dict[int, SkaterPrior], dict[str, SkaterPrior]]:
-    """History priors with outside projections (NHL id -> row) blended in."""
+    """History priors, aged (`ages`: NHL id -> age at the season's start),
+    with outside projections (NHL id -> row) blended in. Only the history
+    part is aged: that's the part the age curve was fit and checked on."""
     priors, fallback = skater_priors(past_seasons)
+    ages = ages or {}
+    priors = {pid: aged(p, ages.get(pid)) for pid, p in priors.items()}
     for pid, row in projections.items():
         if row["position"] == "G":
             continue

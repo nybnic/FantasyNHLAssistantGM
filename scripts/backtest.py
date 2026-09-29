@@ -31,6 +31,7 @@ from model import games as games_model
 from model.projections import (
     SKATER_STATS,
     Params,
+    aged,
     goalie_priors,
     project_goalie,
     project_skater,
@@ -107,6 +108,11 @@ def backtest_skaters() -> None:
     history = [nhl_stats.skater_games(s) for s in HISTORY]
     priors, fallback = skater_priors(history)
     games = nhl_stats.skater_games(TARGET)
+    born = {}
+    for season_id in (TARGET, *HISTORY):
+        born.update(nhl_stats.skater_birth_dates(season_id))
+    start = dt.date(TARGET // 10_000, 10, 1)
+    ages = {pid: (start - day).days / 365.25 for pid, day in born.items()}
 
     by_player: dict[int, list] = defaultdict(list)
     for g in games:
@@ -146,11 +152,14 @@ def backtest_skaters() -> None:
             }
             for name, params in variants.items():
                 record[name] = project_skater(prior, past, params).xfp
+            record["model aged"] = project_skater(aged(prior, ages.get(pid)), past).xfp
+            record["prior only aged"] = project_skater(aged(prior, ages.get(pid)), []).xfp
             records.append(record)
 
     print(f"\nSKATERS: {len(records)} player-weeks, {len(relevant)} relevant players, "
           f"priors for {sum(p in priors for p in relevant)}")
-    evaluate(records, ["prior only", "season to date", "last 10", "per-game blend", *variants], "group")
+    evaluate(records, ["prior only", "prior only aged", "season to date", "last 10", "per-game blend", *variants,
+                       "model aged"], "group")
 
 
 def backtest_goalie_starts() -> None:

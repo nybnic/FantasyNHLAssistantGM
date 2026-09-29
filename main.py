@@ -2,12 +2,16 @@
 after each Telegram message when the webhook relay (relay/) is set up.
 
 Each run:
-1. reads your Telegram taps - Done/Skip on recommendations, /roster, /help;
-2. once tonight's briefing is due, plans tonight's lineup and sends it if a
+1. reads your Telegram taps and commands - Done/Skip on recommendations,
+   /roster, /week, /opp (paste a team's Yahoo page), /taken, /help;
+2. on the first day of each fantasy week (and on /week), sends the matchup
+   plan: expected score and win odds vs this week's opponent, the goalie
+   minimum, and the add/drops worth making;
+3. once tonight's briefing is due, plans tonight's lineup and sends it if a
    change is worth >= 0.5 expected points (or the full lineup until one has
    been confirmed). Later runs send at most one update, if new information
    (goalie confirmations, injuries) makes a clearly better lineup;
-3. on a failure, alerts you once a day.
+4. on a failure, alerts you once a day.
 
 Notify-only: it never touches Yahoo.
 
@@ -19,12 +23,17 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import functools
 import logging
+from dataclasses import asdict
 from zoneinfo import ZoneInfo
 
 from clients import dfo_lines, goalie_client, nhl_client
+from clients.names import normalize_name
+from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE
 from config.settings import Settings, load_settings
-from engine import briefing
+from engine import briefing, matchup
+from league import parse, teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import telegram
@@ -37,8 +46,13 @@ NHL_TIME = ZoneInfo("America/New_York")
 HELP = (
     "Assistant GM commands:\n"
     "/roster - the roster I think you have (tell me if it's wrong)\n"
+    "/week - this week's matchup: expected score, win odds, adds worth making\n"
+    "/opp - then paste your opponent's Yahoo team page, to update their roster "
+    "(/opp Team Name for another team or a playoff opponent)\n"
+    "/taken Name - a free agent I suggested is on someone's roster\n"
     "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
 )
+WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
 
 class Outbox:
@@ -85,7 +99,7 @@ def report_relay(problem: str | None, state: dict, outbox: Outbox, now: dt.datet
         outbox.send(f"Instant replies are down: {problem}")
 
 
-def process_updates(settings: Settings, state: dict, players: list, outbox: Outbox) -> str | None:
+def process_updates(settings: Settings, state: dict, players: list, league: dict, outbox: Outbox) -> str | None:
     """Handle new messages and taps. Returns the relay's problem starting runs, if any."""
     token, chat_id = settings.telegram_bot_token, settings.telegram_chat_id
     problem = None
@@ -110,6 +124,8 @@ def process_updates(settings: Settings, state: dict, players: list, outbox: Outb
                 continue
             if action == "done" and rec["type"] == "lineup":
                 roster_mod.apply_lineup(players, {int(pid): slot for pid, slot in rec["assignment"].items()})
+            if action == "done" and rec["type"] == "add":
+                apply_add(players, rec)
             state["decisions"].append({
                 "rec_id": rec_id, "type": rec["type"], "date": rec["date"], "decision": action,
                 "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
@@ -122,12 +138,90 @@ def process_updates(settings: Settings, state: dict, players: list, outbox: Outb
             if str(message["chat"]["id"]) != chat_id:
                 _warn_other_chat(str(message["chat"]["id"]), chat_id, token)
                 continue
-            command = message.get("text", "").strip().split(" ")[0].lower()
+            text = message.get("text", "").strip()
+            first_line, _, body = text.partition("\n")
+            command, _, rest = first_line.partition(" ")
+            command = command.lower().split("@")[0]
             if command == "/roster":
                 outbox.send(roster_mod.describe(players) or "No roster yet - run scripts/seed_roster.py.")
             elif command in ("/help", "/start"):
                 outbox.send(HELP)
+            elif command == "/week":
+                state["week_requested"] = True
+            elif command == "/opp":
+                opp_command(rest.strip(), body, state, league, outbox)
+            elif command == "/taken":
+                taken_command(rest + "\n" + body, league, outbox)
+            elif state["awaiting"] and not text.startswith("/"):
+                team, state["awaiting"] = state["awaiting"], None
+                update_team(team, text, league, outbox)
     return problem
+
+
+def apply_add(players: list, rec: dict) -> None:
+    """Done on an add/drop: your roster changes the same way."""
+    known = roster_mod.lineup_known(players)
+    if rec["drop"] is not None:
+        players[:] = [p for p in players if p.id != rec["drop"]]
+    if all(p.id != rec["add"]["id"] for p in players):
+        players.append(roster_mod.RosterPlayer(**{**rec["add"], "slot": roster_mod.BENCH if known else None}))
+
+
+def _nhl_today() -> dt.date:
+    return dt.datetime.now(NHL_TIME).date()
+
+
+def current_opponent(state: dict, week: int) -> str | None:
+    return weeks.opponent(week) or state["opponents"].get(str(week))
+
+
+def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Outbox) -> None:
+    """/opp [Team Name], with a team's Yahoo page pasted below it or in the
+    next message. Without a name it's this week's opponent; in the playoffs
+    the name also records who you're playing."""
+    today = _nhl_today()
+    week = weeks.week_of(today) or (1 if today < weeks.week_span(1)[0] else None)
+    names = {normalize_name(t): t for t in (*SCHEDULE, *league["teams"])}
+    if team_arg:
+        team = names.get(normalize_name(team_arg))
+        if not team:
+            outbox.send(f"No team called {team_arg!r}. Teams: {', '.join(sorted(names.values()))}")
+            return
+        if week and not weeks.opponent(week):
+            state["opponents"][str(week)] = team
+    else:
+        team = current_opponent(state, week) if week else None
+        if not team:
+            outbox.send("Which team? Send /opp Team Name, with their Yahoo team page pasted below it.")
+            return
+    if paste.strip():
+        update_team(team, paste, league, outbox)
+    else:
+        state["awaiting"] = team
+        outbox.send(f"OK - now paste {team}'s Yahoo team page (copy the whole page; any format works).")
+
+
+def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
+    found = parse.find_players(paste, parse.registry())
+    if not found.players:
+        outbox.send(f"I couldn't find any players in that. {team}'s roster is unchanged.")
+        return
+    teams.set_team(league, team, found.players, _nhl_today())
+    lines = [f"{team}: {len(found.players)} players saved."]
+    lines += [f"  {p.name} ({p.team}, {'/'.join(p.positions)})" for p in found.players]
+    if found.problems:
+        lines.append("Couldn't place: " + "; ".join(found.problems))
+    lines.append("Send /week for the updated forecast.")
+    outbox.send("\n".join(lines))
+
+
+def taken_command(text: str, league: dict, outbox: Outbox) -> None:
+    found = parse.find_players(text.replace(",", "\n"), parse.registry())
+    if not found.players:
+        outbox.send("Who? Send /taken followed by the player's name.")
+        return
+    teams.mark_taken(league, [p.id for p in found.players])
+    outbox.send("Noted, not a free agent: " + ", ".join(p.name for p in found.players))
 
 
 def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:
@@ -153,7 +247,8 @@ def _safe(fetch, *args, default=None):
         return default
 
 
-def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, outbox: Outbox) -> None:
+def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, outbox: Outbox,
+                  build_context=context.build) -> None:
     date = now.astimezone(NHL_TIME).date()
     games = nhl_client.games_on(date)
     if not games or not roster_mod.active(players):
@@ -166,7 +261,7 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
         if now >= games[-1].start or (record and record["updates"] >= 1):
             return
 
-    ctx = context.build(date)
+    ctx = build_context(date)
     team_lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in {p.team for p in players}}
     starters = _safe(goalie_client.get_starters, date, default={})
     result = briefing.plan(players, ctx, date, games, team_lines, starters, now)
@@ -191,6 +286,62 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
     state["pending"][rec_id] = {"type": "lineup", "date": key, "assignment": result.optimal, "message_id": message_id}
 
 
+def free_agents(players: list, league: dict) -> list:
+    taken = teams.rostered_ids(league) | {p.id for p in players}
+    return [
+        roster_mod.RosterPlayer(p["id"], p["name"], p["team"], [parse.NHL_TO_YAHOO_POS[p["position"]]])
+        for p in nhl_client.current_rosters() if p["id"] not in taken
+    ]
+
+
+def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
+                build_context=context.build) -> None:
+    """The matchup plan, once per fantasy week (the first run from noon
+    local on its first day) and whenever you send /week."""
+    date = now.astimezone(NHL_TIME).date()
+    week = weeks.week_of(date)
+    requested, state["week_requested"] = state["week_requested"], False
+    if week is None or not roster_mod.active(players):
+        if requested:
+            outbox.send("No roster yet." if not players else "No fantasy week in progress.")
+        return
+    key = str(week)
+    if not (force or requested):
+        if key in state["weeks"] or briefing.quiet(now) or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
+            return
+    state["weeks"][key] = {"sent": now.isoformat(timespec="minutes")}
+    opponent = current_opponent(state, week)
+    if not opponent:
+        outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
+        return
+
+    ctx = build_context(date)
+    days = weeks.days(week)
+    schedule = {d: nhl_client.games_on(d) for d in days}
+    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
+    starters = _safe(goalie_client.get_starters, date, default={})
+    me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters)
+    them = matchup.project(opponent, teams.players(league, opponent), ctx, schedule, lines, starters)
+    season_used, week_used = matchup.adds_used(state["decisions"], days)
+    n = matchup.max_moves(season_used, week_used)
+    threshold = matchup.add_threshold(MAX_ADDS_PER_SEASON - season_used, week)
+    moves = []
+    if n and threshold is not None:
+        future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 15)]
+        future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
+        moves = matchup.best_moves(players, them, free_agents(players, league), ctx, schedule, lines, starters,
+                                   future, weeks.LAST_WEEK - week, n, threshold,
+                                   available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None)
+
+    outbox.send(matchup.text(week, days, me, them, teams.updated(league, opponent), season_used, week_used, date)
+                + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
+    for i, move in enumerate(moves):
+        rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
+        message_id = outbox.send(matchup.move_text(move), [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")])
+        state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
+                                    "drop": move.drop.id if move.drop else None, "message_id": message_id}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="print messages; send and save nothing")
@@ -208,15 +359,18 @@ def main() -> None:
     outbox = Outbox(settings)
     state = gm_state.load()
     players = roster_mod.load()
+    league = teams.load()
+    build_context = functools.lru_cache(maxsize=None)(context.build)
 
     try:
         if not settings.dry_run:
             webhook_problem = sync_webhook(settings, now)
-            relay_problem = process_updates(settings, state, players, outbox)
+            relay_problem = process_updates(settings, state, players, league, outbox)
             report_relay(webhook_problem or relay_problem, state, outbox, now)
         if players:
             sync_teams(players)
-        briefing_step(state, players, now, args.force, outbox)
+        weekly_step(state, players, league, now, args.force, outbox, build_context)
+        briefing_step(state, players, now, args.force, outbox, build_context)
     except Exception as exc:
         today = now.date().isoformat()
         if not settings.dry_run and state["last_error"] != today:
@@ -226,6 +380,7 @@ def main() -> None:
     finally:
         if not settings.dry_run:
             roster_mod.save(players)
+            teams.save(league)
             gm_state.save(state, now.date())
 
 

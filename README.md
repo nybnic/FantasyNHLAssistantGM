@@ -12,7 +12,9 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
 - **Skaters:** projected stats per game = skill (per-minute rates for every
   scoring stat, blending past seasons, DailyFaceoff's preseason projections
   and this season) x role (ice time, weighted toward recent games, so line
-  and power-play changes show up within days). Backtested on 2025-26: lower
+  and power-play changes show up within days). Past seasons are aged:
+  young players improve and veterans decline (fit on 2024-25, checked on
+  2025-26). Backtested on 2025-26: lower
   error than season-to-date or "last 10 games" (`python -m scripts.backtest`).
 - **Goalies:** getting the start is worth ~10x more than the matchup, so
   start odds come first (DailyFaceoff confirmations, else recent start
@@ -31,12 +33,24 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   makes a clearly better lineup. Nothing is sent 23:00-08:00.
 - **Done / Skip buttons.** Tap Done after you've made the change in Yahoo -
   that's how the assistant knows your lineup (no Yahoo API access).
+- **Weekly matchup plan** at noon on each fantasy week's first day (or any
+  time with `/week`). It's built to win the week, not just score points:
+  - expected score vs this week's opponent and your chance of winning
+  - lineup games left for each side
+  - whether you'll make the 3-goalie-game minimum
+  - the add/drops worth making, each with Done/Skip buttons.
+
+  A streamer has to lift your chance of winning this week. A long-term
+  upgrade just has to be worth the add. Adds are paced across the season,
+  with 6 kept back for the playoffs.
+- `/opp`, then paste your opponent's Yahoo team page (any copy works), to
+  refresh their roster. Other teams start from the draft results.
+  `/taken Name` tells the bot that a suggested free agent has been taken.
 - `/roster` in the chat shows the roster it thinks you have.
 - If a run fails, you get one alert that day.
 
-Coming next (see the plan): add/drop and streaming advice with a budget for
-your 36 season adds, the 3-goalie-game weekly minimum, IR management, and a
-Sunday report.
+Coming next: mid-week risk advice (protect a lead, chase when behind), IR
+management, and a Sunday report.
 
 ## Setup
 
@@ -52,7 +66,15 @@ Sunday report.
    ```
    Commit `state/roster.json`. The first briefing lists a full lineup; tap
    Done once it matches Yahoo, and from then on you only get changes.
-4. The workflow `.github/workflows/assistant_gm.yml` runs every 30 minutes
+4. **The league:** every team's roster (Yahoo's draft results, one
+   `[Team name]` line before each team) and your schedule
+   (`SCHEDULE` in `config/league.py`):
+   ```bash
+   python -m scripts.seed_league data/league/draft_2026.txt
+   ```
+   Commit `state/league.json`. Free agents are everyone on an NHL roster
+   who isn't on one of these teams.
+5. The workflow `.github/workflows/assistant_gm.yml` runs every 30 minutes
    during the afternoon and evening, and commits its state back to the repo.
 
 ### Instant replies (optional)

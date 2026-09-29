@@ -5,6 +5,10 @@
 - decisions: every tap, kept for the weekly report
 - last_error: date of the last failure alert (one alert per day)
 - relay_alert: date of the last "instant replies are down" alert
+- weeks: per fantasy week, when its matchup plan was sent
+- opponents: playoff opponents you've named with /opp (weeks 24-26)
+- awaiting: the team whose Yahoo page you're about to paste after /opp
+- week_requested: /week was sent; plan the week on this run
 """
 from __future__ import annotations
 
@@ -25,6 +29,10 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("decisions", [])
     state.setdefault("last_error", None)
     state.setdefault("relay_alert", None)
+    state.setdefault("weeks", {})
+    state.setdefault("opponents", {})
+    state.setdefault("awaiting", None)
+    state.setdefault("week_requested", False)
     return state
 
 

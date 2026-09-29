@@ -82,15 +82,31 @@ def goalie(
         return Availability(1 - (CONFIRMED_START if confirmed else LIKELY_START),
                             f"{other} {'confirmed' if confirmed else 'likely'} to start")
 
-    if prior_share is None:
-        prior_share = DEPTH_SHARE.get(info.goalie_depth, UNKNOWN_SHARE) if info else UNKNOWN_SHARE
+    share = start_share(player_id, date, info, team_starts, prior_share)
     past = [(d, pid) for d, pid in team_starts if d < date]
-    recent = [pid for _, pid in past[-RECENT_STARTS:]]
-    share = (SHARE_PRIOR_GAMES * prior_share + recent.count(player_id)) / (SHARE_PRIOR_GAMES + len(recent))
-
     if past and past[-1][0] == date - dt.timedelta(days=1):
         if past[-1][1] == player_id:
             return Availability(share * BACK_TO_BACK_REPEAT, f"~{share * BACK_TO_BACK_REPEAT:.0%} to start (started last night)")
         p = 1 - (1 - share) * BACK_TO_BACK_REPEAT
         return Availability(p, f"~{p:.0%} to start (back-to-back, other goalie started last night)")
     return Availability(share, f"~{share:.0%} to start (not confirmed yet)")
+
+
+def start_share(
+    player_id: int,
+    date: dt.date,
+    info: LineInfo | None,
+    team_starts: list[tuple[dt.date, int]],
+    prior_share: float | None,
+) -> float:
+    """His share of his team's starts: the last 10 blended with a prior."""
+    if prior_share is None:
+        prior_share = DEPTH_SHARE.get(info.goalie_depth, UNKNOWN_SHARE) if info else UNKNOWN_SHARE
+    recent = [pid for d, pid in team_starts if d < date][-RECENT_STARTS:]
+    return (SHARE_PRIOR_GAMES * prior_share + recent.count(player_id)) / (SHARE_PRIOR_GAMES + len(recent))
+
+
+def second_of_back_to_back(share: float) -> float:
+    """Start odds for the second night of a back-to-back that's still days
+    away, when nobody knows yet who starts the first night."""
+    return share * share * BACK_TO_BACK_REPEAT + (1 - share) * (1 - (1 - share) * BACK_TO_BACK_REPEAT)
