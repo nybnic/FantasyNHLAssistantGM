@@ -222,3 +222,12 @@ def test_the_best_streamer_per_position_counts_only_points_that_reach_the_lineup
     found = matchup.streamers(roster, ranked, FakeContext(), schedule, {}, {}, {})
     assert {s["position"]: s["move"].add.id for s in found} == {"LW": 9, "D": 11}
     assert all(s["move"].drop is None for s in found)  # open roster spots first
+
+
+def test_drops_are_tried_per_group_so_a_weak_forward_is_considered():
+    ctx = FakeContext()
+    ctx.xfp = {1: 2.0, 2: 1.0, 3: 1.1, 4: 1.2, 5: 1.3, 6: 3.0}
+    mine = [RosterPlayer(1, "Weak F", "BOS", ["C"], "C"), RosterPlayer(6, "Good F", "BOS", ["C"], "C")] + [
+        RosterPlayer(i, f"D{i}", "BOS", ["D"], "D") for i in (2, 3, 4, 5)]
+    # The two weakest D, then both forwards: per group, so the forwards are tried at all.
+    assert [p.id for p in matchup.drop_candidates(mine, ctx, {})] == [2, 3, 1, 6]

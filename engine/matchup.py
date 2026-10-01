@@ -46,7 +46,10 @@ ACTIVE_SPOTS = sum(STARTERS.values()) + BENCH_SLOTS
 # Injuries, role changes and later adds make a long-run edge worth less
 # than it projects to (a judgment call, not fitted).
 LONG_RUN_DISCOUNT = 0.5
-DROP_CANDIDATES = 4  # your players with the lowest long-run value
+# Drops tried: your lowest long-run players per group (forwards, D, goalies).
+# Per group, because per-player value ranks D low (fewer points a game), so a
+# plain bottom 4 was mostly D and never tried a weak forward (Schenn, 2026-10-01).
+DROPS_PER_GROUP = 2
 # Keep three goalies: with two, one injury or a light schedule week risks
 # the goalie minimum, which zeroes every goalie point that week.
 MIN_GOALIES = 3
@@ -264,6 +267,20 @@ def stance(p_win: float) -> str:
     return decided(p_win) or ("chase" if p_win < 0.5 else "protect")
 
 
+def _group(p: RosterPlayer) -> str:
+    return "G" if p.is_goalie else "D" if p.positions == ["D"] else "F"
+
+
+def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:
+    """The players worth trying as a drop: the DROPS_PER_GROUP lowest long-run
+    value per group, lowest first."""
+    ranked = sorted(mine, key=lambda p: season_value(p, ctx, lines))
+    picked = []
+    for group in ("F", "D", "G"):
+        picked += [p for p in ranked if _group(p) == group][:DROPS_PER_GROUP]
+    return sorted(picked, key=lambda p: season_value(p, ctx, lines))
+
+
 def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
     """Expected points per team game over the long run (injuries ignored)."""
     if p.is_goalie:
@@ -376,7 +393,7 @@ def candidate_moves(
     before = win_prob(current, opponent)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
-    drops += sorted(mine, key=lambda p: season_value(p, ctx, lines))[:DROP_CANDIDATES]
+    drops += drop_candidates(mine, ctx, lines)
     moves = []
     for add in candidates:
         joins = {add.id: available_from} if available_from else None

@@ -15,8 +15,9 @@
   multiplied by P(reaching the 3-game minimum).
 - **P(win)** = normal approximation of the point difference (the variance
   constants come from `model/CLAUDE.md`).
-- **Candidate moves:** free agents shortlisted per position, times drops
-  (the open spot first, then my 4 lowest long-run players).
+- **Candidate moves:** free agents shortlisted per position (and by schedule fit),
+  times drops (the open spot first, then my 2 lowest long-run players per group:
+  forwards, D, goalies).
 - **Score** = this week's gain + long run. Long run = the whole-lineup
   projection over the next 2 weeks (with durability), per week, times the weeks
   left, x `LONG_RUN_DISCOUNT` 0.5.
