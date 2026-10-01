@@ -27,6 +27,7 @@ import datetime as dt
 import functools
 import logging
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
@@ -35,11 +36,11 @@ from clients import dfo_lines, goalie_client, nhl_client, screenshot
 from clients.names import normalize_name
 from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, TRADE_DEADLINE
 from config.settings import Settings, load_settings
-from engine import briefing, matchup, trade
+from engine import briefing, matchup, report, trade
 from league import draft, parse, teams, weeks
 from league import roster as roster_mod
 from model import context
-from notify import telegram
+from notify import charts, telegram
 from state import gm_state
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -63,6 +64,8 @@ HELP = (
 MYTEAM_HINT = "\n\nWrong? Send screenshots of your Yahoo team page, or /myteam and paste its text."
 # Judgment call: screenshots sent within this of the previous one are one team page.
 SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
+CHART_DIR = Path("data/charts")  # where a dry run saves the charts it would send
+CHART_WEEKS = 5  # an add's chart shows this many weeks after the current one
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
 
@@ -77,6 +80,18 @@ class Outbox:
             print(f"\n----- Telegram message{' [' + ' | '.join(b[0] for b in buttons) + ']' if buttons else ''}\n{text}")
             return None
         return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons)
+
+    def send_photo(self, png: bytes, caption: str | None = None,
+                   buttons: list[tuple[str, str]] | None = None) -> int | None:
+        if self.settings.dry_run:
+            CHART_DIR.mkdir(parents=True, exist_ok=True)
+            path = CHART_DIR / f"{len(list(CHART_DIR.glob('*.png'))):02d}.png"
+            path.write_bytes(png)
+            label = f" [{' | '.join(b[0] for b in buttons)}]" if buttons else ""
+            print(f"\n----- Telegram photo{label}: {path}" + (f"\n{caption}" if caption else ""))
+            return None
+        return telegram.send_photo(self.settings.telegram_bot_token, self.settings.telegram_chat_id, png,
+                                   caption, buttons)
 
 
 def sync_webhook(settings: Settings, now: dt.datetime) -> str | None:
@@ -613,6 +628,41 @@ def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt
     return total - goalie, goalie, goalie_games
 
 
+def _week_schedule(week: int) -> dict[dt.date, list]:
+    return {d: nhl_client.games_on(d) for d in weeks.days(week)}
+
+
+def _send_week_charts(state: dict, players: list, league: dict, week: int, wk: WeekInputs, ranked: list,
+                      moves: list, outbox: Outbox) -> None:
+    """The week chart (win odds with each add, the race) and the schedule grid
+    for this week and next. A chart that fails is logged and skipped."""
+    png = _safe(lambda: charts.week_chart(report.week_view(week, wk.me, wk.them, ranked, moves)))
+    if png:
+        outbox.send_photo(png)
+
+    def schedule() -> bytes:
+        spans = [(week, current_opponent(state, week), wk.me, wk.them)]
+        if week < weeks.LAST_WEEK:
+            nxt = week + 1
+            sched = _week_schedule(nxt)
+            opp = current_opponent(state, nxt)
+            mine = matchup.project(MY_TEAM, players, wk.ctx, sched, wk.lines, wk.starters, True)
+            theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, sched,
+                                     wk.lines, wk.starters, True)
+            spans.append((nxt, opp or "?", mine, theirs))
+        return charts.schedule_chart(report.schedule_view(players, spans))
+
+    png = _safe(schedule)
+    if png:
+        outbox.send_photo(png)
+
+
+def _add_chart(players: list, move, week: int, wk: WeekInputs, budget: dict) -> bytes:
+    later = {w: _week_schedule(w) for w in range(week + 1, min(week + CHART_WEEKS, weeks.LAST_WEEK) + 1)}
+    gains = report.weekly_gains(players, move, wk.ctx, later, wk.lines, wk.starters)
+    return charts.add_chart(report.add_view(move, week, gains, budget))
+
+
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
     """The plan goes out once at the start of a week and once from mid-week."""
     if record is None:
@@ -647,25 +697,33 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         return
 
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
+    candidates = matchup.shortlist(wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.available_from)
+    ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far)
     moves = []
     if wk.max_moves and wk.threshold is not None:
         moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far)
+                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far,
+                                   candidates, ranked)
     midweek = None
     if is_midweek or wk.so_far is not None:
         chase = next((m for m in moves if m.win_after - m.win_before >= matchup.MIN_WIN_GAIN), None)
         recommended = chase is not None
         if not chase and matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
-            chase = matchup.best_chase(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                       wk.future, wk.weeks_after, wk.available_from, wk.so_far)
+            chase = matchup.biggest_swing(ranked)
         midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.threshold if wk.max_moves else None, recommended)
     outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
+    _send_week_charts(state, players, league, week, wk, ranked, moves, outbox)
+    budget = report.budget_view(state["decisions"], week)
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
-        message_id = outbox.send(matchup.move_text(move), [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")])
+        buttons = [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")]
+        png = _safe(_add_chart, players, move, week, wk, budget)
+        message_id = (outbox.send_photo(png, matchup.move_text(move), buttons) if png
+                      else outbox.send(matchup.move_text(move), buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None, "message_id": message_id}
 

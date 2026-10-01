@@ -10,25 +10,17 @@ week's result, save them where they don't, and show that trade-off this week and
 over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
-1. **Telegram charts**: one view model (`engine/report.py`) feeds the charts and
-   the dashboard. This week: win odds now vs with each candidate add, and the
-   daily projected score race. Per add: extra points per week for the next 4-6
-   weeks (weeks 3+ display only, lower confidence) and the add-budget timeline
-   (used vs pace, the playoff reserve). Add texts list the slot-games filled and
-   1-2 backup free agents.
-   Done when: `/week` and each recommended add send their chart, and the
-   view-model numbers are tested.
-2. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
+1. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
    view model each run, linked from Telegram; pick a candidate add to see its
    impact. (Public, like `state/`; Nico decides whether to keep the URL unlisted.)
    Done when: each run publishes `site/data.json` and the page renders it.
-3. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+2. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night).
    Done when: a night with nothing to change gets one line or nothing.
-4. **IR management**: flag an IR-eligible player in an active slot, and a
+3. **IR management**: flag an IR-eligible player in an active slot, and a
    returning player who needs a spot.
    Done when: the weekly plan and the briefing include an IR line when relevant.
-5. **Sunday report**: the result vs projection, adds taken or skipped, the
+4. **Sunday report**: the result vs projection, adds taken or skipped, the
    budget, and the week chart.
    Done when: sent Sunday evening, with the same numbers `explain_week` shows.
 
@@ -64,4 +56,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | Roster and opponent screenshots via free OCR (`clients/screenshot.py`) | d9fe005 |
 | 2026-10-01 | Decided-week rule: no adds chasing a lost (<10%) or won (>90%) week; roadmap re-planned around the add decision | 9a2654c |
 | 2026-10-01 | Matchup screenshots: both rosters, slots and Yahoo's live score; fix: an added player's earlier games no longer count as gain | d9fe005 |
-| 2026-10-01 | Mid-week stance (chase / protect / concede) with the biggest-swing add; badge colours read at Telegram's photo size | (this commit) |
+| 2026-10-01 | Mid-week stance (chase / protect / concede) with the biggest-swing add; badge colours read at Telegram's photo size | 60752a3 |
+| 2026-10-01 | Telegram charts: win odds per add + score race, schedule grid (this week and next: starts, benched games, open slots by position), per-add weekly gain + add budget | (this commit) |

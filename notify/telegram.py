@@ -6,6 +6,8 @@ set up, from the relay's queue (the relay starts a run right away).
 """
 from __future__ import annotations
 
+import json
+
 import requests
 
 API_URL = "https://api.telegram.org/bot{token}/{method}"
@@ -38,6 +40,26 @@ def send_message(token: str, chat_id: str, text: str, buttons: list[tuple[str, s
     if buttons:
         payload["reply_markup"] = _keyboard(buttons)
     return _call(token, "sendMessage", **payload)["message_id"]
+
+
+def send_photo(token: str, chat_id: str, png: bytes, caption: str | None = None,
+               buttons: list[tuple[str, str]] | None = None) -> int:
+    """Send a PNG, with an optional caption (max 1024 characters) and buttons.
+    Returns the message id."""
+    data = {"chat_id": chat_id}
+    if caption:
+        data["caption"] = caption[:1024]
+    if buttons:
+        data["reply_markup"] = json.dumps(_keyboard(buttons))
+    resp = requests.post(API_URL.format(token=token, method="sendPhoto"), data=data,
+                         files={"photo": ("chart.png", png, "image/png")}, timeout=60)
+    if not resp.ok:
+        try:
+            reason = resp.json().get("description", "")
+        except ValueError:
+            reason = resp.text[:200]
+        raise TelegramError(f"Telegram sendPhoto failed ({resp.status_code}): {reason}", response=resp)
+    return resp.json()["result"]["message_id"]
 
 
 def get_updates(token: str, offset: int) -> list[dict]:

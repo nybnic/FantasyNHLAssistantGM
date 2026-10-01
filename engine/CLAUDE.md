@@ -6,6 +6,7 @@
 | `availability.py` | Who plays: skater injury/lineup status, goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
 | `briefing.py` | The evening lineup message: timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
 | `matchup.py` | The weekly plan: both teams' week, P(win), the goalie minimum, add/drops, the add budget, the mid-week stance |
+| `report.py` | What the charts show, as plain data (win odds per add, the score race, the schedule grid, an add's weekly gain, the add budget); `notify/charts.py` draws it |
 | `trade.py` | `/trade`: both teams' points per week before and after, over the 2 weeks after the review. Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Shows F/D/G counts (and injured) and flags a trade that leaves them unable to fill their starters. `/trade` alone: screen all 1-for-1 and 2-for-1 with a quick per-player value, keep those they wouldn't see as a loss by this league's draft rounds (`league/draft.py`) and that don't leave them short, judge the top 12 in full (~1 min), reply with the best per team |
 
 ## How the weekly plan works (`matchup.py`)

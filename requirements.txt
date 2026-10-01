@@ -1,5 +1,6 @@
 requests>=2.31
 rapidocr_onnxruntime==1.2.3  # free offline OCR for roster screenshots (clients/screenshot.py)
 python-dotenv>=1.0
+matplotlib>=3.8  # Telegram charts (notify/charts.py)
 tzdata>=2024.1
 pytest>=8.0

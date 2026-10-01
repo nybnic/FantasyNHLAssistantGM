@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from clients.dfo_lines import LineInfo
 from clients.names import normalize_name
@@ -76,6 +76,10 @@ class TeamWeek:
     goalie_games_so_far: int
     goalie_starts_left: float  # expected
     goalie_min_prob: float  # chance of reaching MIN_GOALIE_GAMES_PER_WEEK
+    # Each remaining day: expected points, and who plays in the best lineup
+    # (player id -> (slot or BN, start probability: 1 for skaters)).
+    by_day: dict[dt.date, float] = field(default_factory=dict)
+    lineups: dict[dt.date, dict[int, tuple[str, float]]] = field(default_factory=dict)
 
 
 @dataclass
@@ -184,6 +188,9 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
     skater_mean = skater_var = goalie_mean = goalie_var = 0.0
     start_probs: list[float] = []
     player_games = 0
+    day_skaters: dict[dt.date, float] = {}
+    day_goalies: dict[dt.date, float] = {}
+    lineups: dict[dt.date, dict[int, tuple[str, float]]] = {}
     for date in (d for d in days if d >= ctx.today):
         game_of = _game_of(schedule[date])
         yesterday = _game_of(schedule.get(date - dt.timedelta(days=1), []))
@@ -195,7 +202,10 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
                       for p in roster if p.id in values]
         by_id = {p.id: p for p in roster}
-        for pid, slot in lineup.optimize(candidates).items():
+        assignment = lineup.optimize(candidates)
+        lineups[date] = {pid: (slot, values[pid][2]) for pid, slot in assignment.items()}
+        day_skaters[date] = day_goalies[date] = 0.0
+        for pid, slot in assignment.items():
             if slot == BENCH:
                 continue
             mean, var, prob = values[pid]
@@ -203,10 +213,12 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
             if by_id[pid].is_goalie:
                 goalie_mean += mean
                 goalie_var += var
+                day_goalies[date] += mean
                 start_probs.append(prob)
             else:
                 skater_mean += mean
                 skater_var += var
+                day_skaters[date] += mean
 
     min_prob = _at_least(start_probs, goalie_games, MIN_GOALIE_GAMES_PER_WEEK)
     goalie_total = goalie_so_far + goalie_mean
@@ -222,6 +234,8 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
         goalie_games_so_far=goalie_games,
         goalie_starts_left=sum(start_probs),
         goalie_min_prob=min_prob,
+        by_day={d: day_skaters[d] + min_prob * day_goalies[d] for d in day_skaters},
+        lineups=lineups,
     )
 
 
@@ -390,15 +404,20 @@ def best_moves(
     threshold: float,
     available_from: dt.date | None = None,
     so_far: tuple[float, float, int] | None = None,
+    candidates: list[RosterPlayer] | None = None,
+    ranked: list[Move] | None = None,
 ) -> list[Move]:
     """Up to `max_moves` add/drops worth making, best first; each one is
-    judged with the previous ones already made."""
-    candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
+    judged with the previous ones already made. `candidates` and `ranked`
+    (their moves on the current roster) save recomputing them."""
+    if candidates is None:
+        candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
     so_far = so_far or _so_far(active(roster), ctx, sorted(schedule))  # banked before any move
     moves: list[Move] = []
-    for _ in range(max_moves):
-        ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
-                                 weeks_after, available_from, so_far)
+    for i in range(max_moves):
+        if not (i == 0 and ranked is not None):
+            ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
+                                     weeks_after, available_from, so_far)
         if not ranked or rejection(ranked[0], threshold):
             break
         best = ranked[0]
@@ -408,24 +427,9 @@ def best_moves(
     return moves
 
 
-def best_chase(
-    roster: list[RosterPlayer],
-    opponent: TeamWeek,
-    pool: list[RosterPlayer],
-    ctx,
-    schedule: dict[dt.date, list[ScheduledGame]],
-    lines: dict[str, dict[str, LineInfo]],
-    starters: dict[str, dict],
-    future: dict[dt.date, list[ScheduledGame]],
-    weeks_after: int,
-    available_from: dt.date | None = None,
-    so_far: tuple[float, float, int] | None = None,
-) -> Move | None:
+def biggest_swing(ranked: list[Move]) -> Move | None:
     """The add that lifts this week's win odds most, recommended or not, if
     it lifts them by MIN_WIN_GAIN: what chasing would cost, for Nico to weigh."""
-    candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
-    ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future, weeks_after,
-                             available_from, so_far)
     best = max(ranked, key=lambda m: m.win_after - m.win_before, default=None)
     return best if best and best.win_after - best.win_before >= MIN_WIN_GAIN else None
 
