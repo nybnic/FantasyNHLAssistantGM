@@ -163,3 +163,45 @@ def budget_view(adds: list[dict], week: int) -> dict:
             used.append(total)
     return {"week": week, "used": used, "pace": pace, "cap": MAX_ADDS_PER_SEASON,
             "reserve": matchup.PLAYOFF_RESERVE, "playoffs_from": REGULAR_SEASON_WEEKS + 1}
+
+
+def result_view(week: int, opponent: str, days: list[dt.date], mine: list[float], theirs: list[float],
+                goalie_min: list[bool], plan: dict | None, adds: list[dict], skipped: int, budget: dict,
+                finished: bool = True) -> dict:
+    """The finished week: each day's points for both teams (box scores, each
+    day's roster, goalie points zeroed if the minimum was missed), against
+    the week's first plan; the adds made and skipped; the budget."""
+    final = [sum(mine), sum(theirs)]
+    view = {"week": week, "opponent": opponent, "days": [d.isoformat() for d in days], "finished": finished,
+            "mine": mine, "theirs": theirs, "final": final, "goalie_min": goalie_min, "plan": plan,
+            "adds": len(adds), "added": [a["name"] for a in adds if a["name"]], "skipped": skipped,
+            "budget": budget}
+    if plan:
+        view["vs_plan"] = [final[i] - plan["expected"][i] for i in (0, 1)]
+        view["z"] = [(final[i] - plan["expected"][i]) / plan["sd"][i] if plan["sd"][i] else None for i in (0, 1)]
+    return view
+
+
+def result_text(view: dict) -> str:
+    """The week's result in a few lines, for a phone."""
+    me, them = view["final"]
+    outcome = "won" if me > them else "lost" if me < them else "tied"
+    result = f"you {outcome}" if view["finished"] else "so far"
+    lines = [f"Week {view['week']} vs {view['opponent']}: {result} {me:.0f} - {them:.0f} "
+             "(box scores with the best lineup each day; Yahoo's can differ by bench choices)."]
+    for name, made in zip(("You", "They"), view["goalie_min"]):
+        if not made:
+            lines.append(f"{name} missed the goalie minimum: goalie points count zero.")
+    plan = view["plan"]
+    if plan and view["finished"]:
+        when = dt.datetime.fromisoformat(plan["at"]).strftime("%a %d %b")
+        lines.append(f"The plan ({when}) said {plan['expected'][0]:.0f} - {plan['expected'][1]:.0f}, "
+                     f"{plan['win']:.0%} to win. Against it you scored {view['vs_plan'][0]:+.0f}, "
+                     f"they {view['vs_plan'][1]:+.0f}.")
+    b = view["budget"]
+    used = b["used"][-1] if b["used"] else 0
+    pace = b["pace"][view["week"] - 1]
+    made = f"{view['adds']} made" + (f" ({', '.join(view['added'])})" if view["added"] else "")
+    lines.append(f"Adds: {made}, {view['skipped']} suggestion{'' if view['skipped'] == 1 else 's'} skipped. "
+                 f"{b['cap'] - used} left; {used} used vs {pace:.1f} at an even pace.")
+    return "\n".join(lines)

@@ -11,17 +11,12 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **Weekly results log, then the Sunday report**: Monday's projection, P(win),
-   sigma, the final score and the adds per week in state (week 1 backfilled from
-   git history); then the report: result vs projection, adds taken or skipped,
-   the budget, the week chart. Done when: sent Sunday evening, with the same
-   numbers `explain_week` shows. Unblocks every calibration below.
-2. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
+1. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
    skipped adds scored vs the drop, over the hold. Done when: one line of it in
-   the Sunday report.
-3. **Data health**: say once a day when a source is down or stale (DFO lines,
+   Monday's result report.
+2. **Data health**: say once a day when a source is down or stale (DFO lines,
    starting goalies, projections). Done when: a broken DFO fetch shows in Telegram.
-4. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+3. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
    plus an alert when news makes an add clear the price between plans.
    Done when: a night with nothing to change gets one line or nothing.
@@ -91,3 +86,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Waivers per player: drops (Transactions, Done) put a player on waivers; his add is a claim that counts from the day it can play, and says so | (this commit) |
 | 2026-10-01 | Banked points by day: each day's rosters kept until its first puck; points so far scored with them, so mid-week adds and drops don't move them | (this commit) |
 | 2026-10-01 | IR management (`engine/ir.py`): move an injured starter to a free IR slot (the plan's adds then need no drop, Done makes the move), and a player back from IR needs a spot; in the weekly plan and once in the briefing | (this commit) |
+| 2026-10-01 | Results log (`state["results"]`: each week's first and latest plan, then its result; week 1 from git history) and the week's result report with a score-race chart: Monday noon, before the new plan (Sunday evening is too early: Sunday's games end after midnight Helsinki) | (this commit) |

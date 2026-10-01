@@ -73,3 +73,30 @@ def test_every_chart_draws_a_png():
     add = report.add_view(_move(2, "Arturs Silovs", 0.46), 1, [(2, -1.5)], report.budget_view([], 1))
     for png in (charts.decision_chart(decision), charts.schedule_chart(schedule), charts.add_chart(add)):
         assert png.startswith(b"\x89PNG")
+
+
+def _result(mine, theirs, goalie_min=(True, True), finished=True):
+    plan = {"at": "2026-11-09T10:00+00:00", "expected": [150.0, 140.0], "sd": [25.0, 25.0], "win": 0.61}
+    days = [dt.date(2026, 11, 9) + dt.timedelta(days=i) for i in range(len(mine))]
+    adds = [{"id": 5, "name": "Esa Lindell", "date": "2026-11-10"}, {"id": None, "name": None, "date": "2026-11-11"}]
+    return report.result_view(7, "Gwp", days, mine, theirs, list(goalie_min), plan, adds, 1,
+                              report.budget_view(adds, 7), finished)
+
+
+def test_the_weeks_result_against_its_first_plan():
+    view = _result([20.0, 30.0, 110.0], [40.0, 40.0, 75.0])
+    assert view["final"] == [160.0, 155.0] and view["vs_plan"] == [10.0, 15.0] and view["z"] == [0.4, 0.6]
+    text = report.result_text(view)
+    assert text.startswith("Week 7 vs Gwp: you won 160 - 155")
+    assert "The plan (Mon 09 Nov) said 150 - 140, 61% to win. Against it you scored +10, they +15." in text
+    assert "Adds: 2 made (Esa Lindell), 1 suggestion skipped. 34 left; 2 used vs 9.1 at an even pace." in text
+
+
+def test_a_result_says_who_missed_the_goalie_minimum_and_a_week_in_progress_is_so_far():
+    assert "You missed the goalie minimum" in report.result_text(_result([10.0], [20.0], (False, True)))
+    text = report.result_text(_result([10.0], [20.0], finished=False))
+    assert text.startswith("Week 7 vs Gwp: so far 10 - 20") and "The plan" not in text
+
+
+def test_the_result_chart_draws():
+    assert charts.result_chart(_result([20.0, 30.0], [40.0, 40.0])).startswith(b"\x89PNG")

@@ -38,8 +38,8 @@ import requests
 
 from clients import dfo_lines, goalie_client, nhl_client, screenshot
 from clients.names import normalize_name
-from config.league import (MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, SEASON_START,
-                           TRADE_DEADLINE)
+from config.league import (MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
+                           SCHEDULE, SEASON_END, SEASON_START, TRADE_DEADLINE)
 from config.settings import Settings, load_settings
 from engine import addprice, briefing, ir, matchup, report, trade
 from league import draft, parse, positions, teams, weeks
@@ -942,6 +942,61 @@ def rosters_by_day(state: dict, side: str, current: list, days: list[dt.date], t
     return out
 
 
+def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dict | None:
+    """The week's result as report.result_view has it, scored from box scores
+    with each day's roster (days before ctx.today only). None without an opponent."""
+    opponent = current_opponent(state, week)
+    if not opponent:
+        return None
+    days = [d for d in weeks.days(week) if d < ctx.today]
+    finished = days == weeks.days(week)  # else the goalie minimum isn't settled yet
+    added_on = {a["id"]: dt.date.fromisoformat(a["date"]) for a in state["adds"] if a["id"] is not None}
+
+    def daily(side: str, current: list, added: dict | None) -> tuple[list[float], bool]:
+        history = rosters_by_day(state, side, current, days, ctx.today, added)
+        rows = [matchup._so_far(current, ctx, [d], history) for d in days]
+        made = sum(r[2] for r in rows) >= MIN_GOALIE_GAMES_PER_WEEK or not finished
+        return [round(sk + (g if made else 0.0), 2) for sk, g, _ in rows], made
+
+    mine, my_min = daily("me", roster_mod.active(players), added_on)
+    theirs, their_min = daily(opponent, teams.players(league, opponent), None)
+    first, last = weeks.days(week)[0].isoformat(), weeks.days(week)[-1].isoformat()
+    adds = [a for a in state["adds"] if first <= a["date"] <= last]
+    skipped = sum(1 for d in state["decisions"]
+                  if d["type"] == "add" and d["decision"] == "skip" and first <= d["date"] <= last)
+    plan = state["results"].get(str(week), {}).get("first")
+    return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
+                              report.budget_view(state["adds"], week), finished)
+
+
+def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
+                build_context=context.build, week: int | None = None) -> None:
+    """Last week's result, from noon on the new week's first day (before its
+    plan): only then are all its games in the box scores. `week` reports that
+    week now (a dry run's --report), finished or not."""
+    date = now.astimezone(NHL_TIME).date()
+    if week is None:
+        this = weeks.week_of(date)
+        week = this - 1 if this else (weeks.LAST_WEEK if date > SEASON_END else None)
+        if not week or "final" in state["results"].get(str(week), {}) or not roster_mod.active(players):
+            return
+        if briefing.quiet(now) or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
+            return
+    view = week_result(state, week, players, league, build_context(date))
+    if view is None:
+        logger.info("No opponent known for week %s; no result to report", week)
+        return
+    outbox.send(report.result_text(view))
+    png = _safe(charts.result_chart, view)
+    if png:
+        outbox.send_photo(png)
+    if not view["finished"]:
+        return  # a dry run's look at a week still in progress
+    entry = state["results"].setdefault(str(week), {"opponent": view["opponent"]})
+    entry["final"] = {"score": [round(x, 2) for x in view["final"]], "goalie_min": view["goalie_min"],
+                      "at": now.isoformat(timespec="minutes"), "source": "box scores"}
+
+
 def _week_schedule(week: int) -> dict[dt.date, list]:
     return {d: nhl_client.games_on(d) for d in weeks.days(week)}
 
@@ -1054,6 +1109,20 @@ def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
     return date >= weeks.midweek(week) and "midweek" not in record
 
 
+def record_plan(state: dict, week: int, opponent: str, me: matchup.TeamWeek, them: matchup.TeamWeek,
+                now: dt.datetime) -> None:
+    """Log the plan's numbers for the week's result to be checked against:
+    the first plan of the week, and the latest."""
+    plan = {"at": now.isoformat(timespec="minutes"),
+            "expected": [round(me.expected, 2), round(them.expected, 2)],
+            "so_far": [round(me.so_far, 2), round(them.so_far, 2)],
+            "sd": [round(math.sqrt(me.variance), 2), round(math.sqrt(them.variance), 2)],
+            "win": round(matchup.win_prob(me, them), 4)}
+    entry = state["results"].setdefault(str(week), {"opponent": opponent})
+    entry.setdefault("first", plan)
+    entry["last"] = plan
+
+
 def _plan_sent(state: dict, key: str, now: dt.datetime, midweek: bool) -> None:
     stamp = now.isoformat(timespec="minutes")
     record = state["weeks"].setdefault(key, {"sent": stamp})
@@ -1121,6 +1190,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
+    record_plan(state, week, opponent, wk.me, wk.them, now)
     views = _safe(week_views, state, planned, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])
@@ -1179,6 +1249,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="print messages; send and save nothing")
     parser.add_argument("--force", action="store_true", help="plan tonight's lineup regardless of the time")
     parser.add_argument("--now", help="pretend it's this ISO time (with offset), e.g. for replays")
+    parser.add_argument("--report", type=int, help="report this week's result now, as Monday's report does")
     parser.add_argument("--trade", nargs="?", const="",
                         help='as /trade does: "Knight for Bouchard", or nothing for suggestions')
     args = parser.parse_args()
@@ -1208,6 +1279,7 @@ def main() -> None:
         ("NHL teams", lambda: sync_teams(players) if players else None),
         ("day rosters", lambda: snapshot_rosters(state, players, league, now)),
         ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),
+        ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
     ]

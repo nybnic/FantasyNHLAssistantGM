@@ -613,3 +613,59 @@ def test_the_briefing_mentions_each_ir_move_once(monkeypatch, tmp_path):
     assert main._new_ir_note(state, players, None, lines) == ""  # said already
     assert main._new_ir_note(state, players, None, {}) == "" and state["ir_noted"] == []  # healed: forgotten
     assert "move B to IR+" in main._new_ir_note(state, players, None, lines)  # out again: said again
+
+
+def test_a_weeks_plans_are_logged_first_and_latest(tmp_path):
+    from engine import matchup
+    state = gm_state.load(tmp_path / "none.json")
+    assert state["results"]["1"]["first"]["win"] == 0.476  # week 1, from before the log
+    me, them = matchup.TeamWeek("me", 10, 150, 400, 20, 1, 3, 1.0), matchup.TeamWeek("t", 5, 140, 500, 20, 1, 3, 1.0)
+    main.record_plan(state, 2, "Retrot Chicken Wings", me, them, NOW)
+    me.expected = 160
+    main.record_plan(state, 2, "Retrot Chicken Wings", me, them, NOW + dt.timedelta(days=2))
+    week = state["results"]["2"]
+    assert week["first"]["expected"] == [150, 140] and week["last"]["expected"] == [160, 140]
+    assert week["first"]["sd"] == [20.0, pytest.approx(22.36)] and week["opponent"] == "Retrot Chicken Wings"
+
+
+def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    view = {"week": 1, "opponent": "Bahelin Boys", "finished": True, "final": [170.0, 160.0],
+            "goalie_min": [True, True]}
+    monkeypatch.setattr(main, "week_result", lambda *a: view)
+    monkeypatch.setattr(main.report, "result_text", lambda v: "Week 1 result")
+    monkeypatch.setattr(main.charts, "result_chart", lambda v: None)
+    morning, noon = (dt.datetime(2026, 10, 5, h, tzinfo=dt.timezone.utc) for h in (7, 9))  # 10:00, 12:00 Helsinki
+    main.report_step(state, players, {"teams": {}, "taken": []}, morning, main.Outbox(settings), lambda d: None)
+    assert sent == []
+    main.report_step(state, players, {"teams": {}, "taken": []}, noon, main.Outbox(settings), lambda d: None)
+    main.report_step(state, players, {"teams": {}, "taken": []}, noon, main.Outbox(settings), lambda d: None)
+    assert sent == ["Week 1 result"] and state["results"]["1"]["final"]["score"] == [170.0, 160.0]
+
+
+def test_a_weeks_result_scores_each_day_with_that_days_roster(monkeypatch, tmp_path):
+    from dataclasses import dataclass
+
+    @dataclass
+    class Log:
+        date: dt.date
+        stats: dict
+        started: bool = True
+
+    class Ctx:
+        today = dt.date(2026, 10, 5)
+        skater_games = {1: [Log(dt.date(2026, 9, 30), {"g": 1})], 5: [Log(dt.date(2026, 9, 29), {"a": 1})],
+                        300: [Log(dt.date(2026, 10, 2), {"g": 2})]}
+        goalie_games = {}
+
+        def skater(self, pid, position):
+            return type("P", (), {"xfp": 2.0})()
+
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    state["day_rosters"] = {"2026-09-29": {"me": [{"id": 5, "name": "Dropped", "team": "BOS", "positions": ["C"],
+                                                   "slot": "C"}]}}
+    league = {"teams": {"Bahelin Boys": {"updated": "2026-09-29", "players": [
+        {"id": 300, "name": "Rick Aho", "team": "TOR", "positions": ["C"], "slot": None}]}}, "taken": []}
+    view = main.week_result(state, 1, players, league, Ctx())
+    assert view["final"] == [2.75 + 4.0, 8.0] and view["finished"]
+    assert view["goalie_min"] == [False, False]  # nobody's goalies played: goalie points (none) zeroed

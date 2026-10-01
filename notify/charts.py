@@ -239,3 +239,41 @@ def add_chart(view: dict) -> bytes:
     budget.legend(loc="upper left", frameon=False, fontsize=8.5)
     fig.subplots_adjust(left=0.1, right=0.97, top=0.93, bottom=0.09)
     return _png(fig)
+
+
+def result_chart(view: dict) -> bytes:
+    """The week's score race: both teams' running totals by day, and where
+    the week's first plan expected them to finish (dashed)."""
+    import datetime as dt
+    fig, ax = plt.subplots(figsize=(WIDTH_IN, 4.2))
+    me, them = view["final"]
+    ax.set_title(f"Week {view['week']} vs {view['opponent']}: {me:.0f} - {them:.0f}")
+    _clean(ax, "y")
+    labels = [dt.date.fromisoformat(d).strftime("%a\n%d") for d in view["days"]]
+    x = range(len(view["mine"]))
+
+    def running(points):
+        total, out = 0.0, []
+        for p in points:
+            total += p
+            out.append(total)
+        return out
+
+    for points, colour, name in ((view["mine"], BLUE, "You"), (view["theirs"], ORANGE, "Them")):
+        ys = running(points)
+        ax.plot(x, ys, color=colour, linewidth=2.2, marker="o", markersize=4, label=f"{name} {ys[-1]:.0f}" if ys else name)
+    top = max([*running(view["mine"]), *running(view["theirs"]), 1.0])
+    if view["plan"]:
+        expected = view["plan"]["expected"]
+        top = max(top, *expected)
+        for value, colour, name, va in zip(expected, (BLUE, ORANGE), ("your", "their"),
+                                           ("bottom", "top") if expected[0] >= expected[1] else ("top", "bottom")):
+            ax.axhline(value, color=colour, linewidth=1, linestyle="--", alpha=0.8)
+            ax.text(-0.15, value, f" plan: {name} {value:.0f}", fontsize=8, color=colour, va=va, ha="left")
+    ax.set_ylim(0, top * 1.12)
+    ax.set_xlim(-0.2, max(len(view["mine"]) - 1, 1) + 0.2)
+    ax.set_xticks(list(x), labels[:len(view["mine"])], fontsize=8.5)
+    ax.set_ylabel("Points")
+    ax.legend(loc="lower right", frameon=False, fontsize=9)
+    fig.subplots_adjust(left=0.1, right=0.97, top=0.88, bottom=0.16)
+    return _png(fig)

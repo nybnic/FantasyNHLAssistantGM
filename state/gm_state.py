@@ -30,6 +30,9 @@
   the week's banked points are scored with each day's players (the last 14 days)
 - ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
   "id:back"), so each is said once while it holds
+- results: per fantasy week, the plans sent ("first", "last": {at, expected,
+  so_far, sd per team, win}) and, once the week is over, the result ("final":
+  {score, goalie_min, at, source}); what calibrating the model is checked on
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -50,6 +53,18 @@ KEEP_POOL_WEEKS = 12
 # Judgment call: re-adding a player you dropped within a week is rare, while
 # learning of one add twice (Done, then a screenshot) is common.
 SAME_ADD_DAYS = 7
+
+
+# Week 1 predates the results log: its plans as the dashboard's data.json had
+# them in git history (84226cf, 801be98). Each team's sd is the margin's, backed
+# out of P(win), split evenly (the file kept no variances).
+WEEK_1 = {
+    "opponent": "Bahelin Boys",
+    "first": {"at": "2026-10-01T09:00+00:00", "expected": [152.9, 155.0], "so_far": [13.4, 51.5],
+              "sd": [25.3, 25.3], "win": 0.476},
+    "last": {"at": "2026-10-01T15:51+00:00", "expected": [162.88, 155.0], "so_far": [13.4, 51.5],
+             "sd": [25.7, 25.7], "win": 0.586},
+}
 
 
 def load(path: Path = STATE_FILE) -> dict:
@@ -77,6 +92,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("add_pools", {})
     state.setdefault("day_rosters", {})
     state.setdefault("ir_noted", [])
+    state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state
