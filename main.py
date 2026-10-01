@@ -26,6 +26,7 @@ import argparse
 import datetime as dt
 import functools
 import json
+import math
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -38,7 +39,7 @@ from clients.names import normalize_name
 from config.league import (MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, SEASON_START,
                            TRADE_DEADLINE)
 from config.settings import Settings, load_settings
-from engine import briefing, matchup, report, trade
+from engine import addprice, briefing, matchup, report, trade
 from league import draft, parse, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
@@ -70,6 +71,7 @@ SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
 CHART_DIR = Path("data/charts")  # where a dry run saves the charts it would send
 SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (written by each weekly plan)
 CHART_WEEKS = 5  # an add's chart shows this many weeks after the current one
+MIN_KNOWN_ROSTER = 10  # a league team's roster counts toward the matchup spread from this many players
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
 
@@ -719,12 +721,15 @@ class WeekInputs:
     season_used: int
     week_used: int
     max_moves: int
-    threshold: float | None
+    pace: float | None  # adds a week the budget allows; None when the regular season's share is spent
+    later_weight: float  # win probability per later point (addprice.later_weight)
+    tau: float  # spread of the league's matchup margins
     weeks_after: int
     available_from: dt.date | None
     so_far: tuple | None = None  # my banked points from a matchup screenshot (else box scores)
     hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
+    price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
 
 
 def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
@@ -744,20 +749,50 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days)
         theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days)
         projected = live["projected"] or None
+    me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine)
+    them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
+    remaining = sum(d >= date for d in days)
+    tau = league_tau(players, league, ctx, future, lines, starters)
+    sigma_week = math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1))
     return WeekInputs(
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
-        me=matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine),
-        them=matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs),
+        me=me, them=them, tau=tau, later_weight=addprice.later_weight(sigma_week, tau),
+        pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
         so_far=mine, yahoo_projected=projected,
         hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
                       - sum(d >= date for d in days)),
         pool=free_agents(players, league),
         season_used=season_used, week_used=week_used,
         max_moves=matchup.max_moves(season_used, week_used),
-        threshold=matchup.add_threshold(MAX_ADDS_PER_SEASON - season_used, week),
         weeks_after=weeks.LAST_WEEK - week,
         available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None,
     )
+
+
+def league_tau(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict) -> float:
+    """The spread of matchup margins: how far apart two of the league's teams
+    usually project in a week (each team's best lineup over the next full
+    week; the margin's spread is sqrt(2) times the teams')."""
+    week = {d: future[d] for d in sorted(future)[:7]}
+    rosters = [players] + [teams.players(league, t) for t in league["teams"]]
+    totals = [matchup.project("t", r, ctx, week, lines, starters, True).expected
+              for r in rosters if len(roster_mod.active(r)) >= MIN_KNOWN_ROSTER]
+    if len(totals) < 4 or len(week) < 7:
+        return addprice.DEFAULT_TAU
+    mean = sum(totals) / len(totals)
+    return math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
+
+
+def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
+    """The add's price this week, solved over this week's candidates and the
+    ones logged in earlier weeks (state["add_pools"])."""
+    if wk.pace is None:
+        return None
+    sigma_now = math.sqrt(wk.me.variance + wk.them.variance)
+    remaining = sum(d >= date for d in wk.days)
+    state["add_pools"][str(week)] = addprice.pool_entry(ranked, remaining, sigma_now, wk.tau)
+    lam = addprice.solve(list(state["add_pools"].values()), wk.pace, wk.later_weight)
+    return addprice.AddPrice(lam, wk.later_weight, wk.pace)
 
 
 def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date]) -> tuple[float, float, int]:
@@ -795,14 +830,14 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
                              open_days, wk.schedule | nxt.schedule)
 
 
-def streamer_text(view: dict, streams: list[dict], threshold: float | None, chosen: list = ()) -> str:
+def streamer_text(view: dict, streams: list[dict], price, chosen: list = ()) -> str:
     if not streams:
         return "No free agent adds points in your open slots this week or next."
     lines = ["Best streamer per position, this week + next:"]
     for row, st in zip(view["streamers"], streams):
         m = st["move"]
         verdict = ("recommended, see below" if row["recommended"]
-                   else f"not recommended: {matchup.why_not(m, threshold, chosen)}")
+                   else f"not recommended: {matchup.why_not(m, price, chosen)}")
         lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
                      + f": {row['slot_games']} games in open slots; net of the drop {m.week_gain:+.1f} pts this "
                      f"week, {st['next_gain']:+.1f} next ({verdict}).")
@@ -814,8 +849,8 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     """Every number the charts and the dashboard show, computed once: the
     decision map, the schedule grid with streamers, the add budget, and each
     shown add's week-by-week gain (keyed by report.move_key)."""
-    threshold = wk.threshold if wk.max_moves else None
-    decision = report.decision_view(week, ranked, moves, threshold)
+    price = wk.price if wk.max_moves else None
+    decision = report.decision_view(week, ranked, moves, price)
     spans = [(week, current_opponent(state, week), wk.me, wk.them)]
     if nxt.week:
         opp = current_opponent(state, nxt.week)
@@ -833,11 +868,11 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     adds = {}
     for key in dict.fromkeys(keys):
         m = by_key[key]
-        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, threshold, moves)
+        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, price, moves)
         gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
         adds[key] = report.add_view(m, week, gains, budget, verdict)
     return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
-            "streamer_text": streamer_text(schedule, streams, threshold, moves)}
+            "streamer_text": streamer_text(schedule, streams, price, moves)}
 
 
 def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
@@ -910,11 +945,13 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
     ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days)
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                     wk.later_weight)
+    wk.price = add_price(state, week, wk, ranked, date)
     moves = []
-    if wk.max_moves and wk.threshold is not None:
+    if wk.max_moves and wk.price is not None:
         moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far,
+                                   wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
                                    candidates, ranked, wk.hold_days)
     midweek = None
     if is_midweek or wk.so_far is not None:
@@ -922,13 +959,13 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         if matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
             chase = matchup.biggest_swing(ranked)
         recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
-        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.threshold if wk.max_moves else None, recommended,
+        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.price if wk.max_moves else None, recommended,
                                        moves)
     outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now.")
-                + _wait_text(matchup.can_wait(ranked, moves, wk.threshold if wk.max_moves else None)))
+                + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None)))
     views = _safe(week_views, state, players, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])

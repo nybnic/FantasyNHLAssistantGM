@@ -56,11 +56,11 @@ def _wrap(text: str, width: int = 62) -> str:
 
 
 def decision_chart(view: dict) -> bytes:
-    """Each add: this week's win-odds change against the next two weeks'
-    points. The add rule's bars split it into now / later / both / neither.
-    Dots are numbered (labels would collide in clusters); a key lists them."""
+    """Each add in win-points: this week's (x) and later (y). Above the
+    diagonal x + y = the add's price, a move is worth an add. Dots are
+    numbered (labels would collide in clusters); a key lists them."""
     pts = sorted(view["points"], key=lambda pt: (not pt["recommended"], -pt["x"]))
-    x_bar, y_bar = view["x_bar"], view["y_bar"]
+    bar = view["bar"]
     key_h = 0.22 * len(pts) + 0.3
     height = 6.2 + key_h
     fig = plt.figure(figsize=(WIDTH_IN, height))
@@ -71,38 +71,45 @@ def decision_chart(view: dict) -> bytes:
     _clean(ax)
     ax.spines["left"].set_visible(True)
     ax.spines["left"].set_color(GRID)
-    xs = [pt["x"] for pt in pts] + [0, x_bar]
-    ys = [pt["y"] for pt in pts] + [0] + ([y_bar] if y_bar is not None else [])
+    xs = [pt["x"] for pt in pts] + [0] + ([bar] if bar is not None else [])
+    ys = [pt["y"] for pt in pts] + [0] + ([bar] if bar is not None else [])
     x_pad = max(1.0, (max(xs) - min(xs)) * 0.12)
     y_pad = max(1.0, (max(ys) - min(ys)) * 0.12)
     ax.set_xlim(min(xs) - x_pad, max(xs) + x_pad)
     ax.set_ylim(min(ys) - y_pad, max(ys) + y_pad)
-    ax.axvline(x_bar, color=MUTED, linewidth=1, zorder=1)
-    ax.text(x_bar, ax.get_ylim()[0], f" +{x_bar:.0f} pts win odds", fontsize=7.5, color=MUTED, va="bottom", ha="left")
-    if y_bar is not None:
-        ax.axhline(y_bar, color=MUTED, linewidth=1, zorder=1)
-        ax.text(ax.get_xlim()[0], y_bar, f" +{y_bar:.1f} pts in 2 weeks", fontsize=7.5, color=MUTED, va="bottom")
+    ax.axvline(0, color=GRID, linewidth=1, zorder=0)
+    ax.axhline(0, color=GRID, linewidth=1, zorder=0)
+    if bar is not None:
+        (x0, x1) = ax.get_xlim()
+        ax.plot([x0, x1], [bar - x0, bar - x1], color=MUTED, linewidth=1, zorder=1)
+        ax.set_xlim(x0, x1)
+        ax.text(x1, bar - x1, f"an add costs {bar:.1f} win-pts ", fontsize=7.5, color=MUTED, ha="right", va="bottom")
     corner = {"fontsize": 8.5, "color": MUTED, "zorder": 1}
     ax.text(0.99, 0.98, "Helps now and later", transform=ax.transAxes, ha="right", va="top", **corner)
     ax.text(0.99, 0.02, "This week only (streamer)", transform=ax.transAxes, ha="right", va="bottom", **corner)
     ax.text(0.01, 0.98, "Later only (keeper)", transform=ax.transAxes, ha="left", va="top", **corner)
     ax.text(0.01, 0.06, "Neither", transform=ax.transAxes, ha="left", va="bottom", **corner)
-    spots: dict[tuple[float, float], list[int]] = {}  # adds on the same spot share one label: "7,8"
+    spots: dict[tuple[float, float], list[int]] = {}  # adds within ~3% of the axes share one label: "7,8"
+    near_x = 0.03 * (ax.get_xlim()[1] - ax.get_xlim()[0])
+    near_y = 0.03 * (ax.get_ylim()[1] - ax.get_ylim()[0])
     for i, pt in enumerate(pts, 1):
         colour = BLUE if pt["recommended"] else MUTED
         ax.scatter([pt["x"]], [pt["y"]], s=80 if pt["recommended"] else 55, color=colour, edgecolors=SURFACE,
                    linewidths=2, zorder=3)
-        spots.setdefault((round(pt["x"], 1), round(pt["y"], 1)), []).append(i)
+        spot = next((xy for xy in spots if abs(xy[0] - pt["x"]) < near_x and abs(xy[1] - pt["y"]) < near_y),
+                    (pt["x"], pt["y"]))
+        spots.setdefault(spot, []).append(i)
     for (x, y), numbers in spots.items():
         lead = pts[numbers[0] - 1]
         ax.annotate(",".join(map(str, numbers)), (x, y), xytext=(6, 5), textcoords="offset points", fontsize=8.5,
                     fontweight="bold", color=INK if lead["recommended"] else INK_2, zorder=4)
-    ax.set_xlabel("This week: change in win odds (percentage points)")
-    ax.set_ylabel("Next 2 weeks: points gained")
+    ax.set_xlabel("This week: change in win odds (win-pts)")
+    ax.set_ylabel("Later: worth in win-pts")
     for i, pt in enumerate(pts, 1):
         y = (key_h - 0.15 - 0.22 * i) / height
         fig.text(0.04, y, str(i), fontsize=8.5, fontweight="bold", color=INK if pt["recommended"] else INK_2)
-        fig.text(0.08, y, f"{pt['label']} ({pt['games']} gm): {pt['x']:+.0f} win odds, {pt['y']:+.1f} pts next 2 wks"
+        fig.text(0.08, y, f"{pt['label']} ({pt['games']} gm): {pt['x']:+.1f} now, {pt['y']:+.1f} later "
+                 f"({pt['later_pts']:+.0f} pts)"
                  + ("  - recommended" if pt["recommended"] else ""), fontsize=8.5,
                  color=INK if pt["recommended"] else INK_2)
     return _png(fig)

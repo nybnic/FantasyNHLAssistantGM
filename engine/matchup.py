@@ -35,6 +35,7 @@ from config.league import (PLAYOFF_WEEKS, BENCH_SLOTS, GOALIE_WEIGHTS, MAX_ADDS_
                            MIN_GOALIE_GAMES_PER_WEEK, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
                            fantasy_points)
 from engine import availability, lineup
+from engine.addprice import PLAYOFF_RESERVE, AddPrice
 from league.roster import BENCH, RosterPlayer, active
 
 SKATER_VARIANCE_PER_XFP = 2.5
@@ -78,19 +79,18 @@ POOL_LONG_TERM_PER_POSITION = 3
 POOL_FIT_PER_POSITION = 4
 STREAMER_POSITIONS = ("C", "LW", "RW", "D")  # no goalie streaming: three goalies kept (decision log)
 STREAMER_SHORTLIST = 4  # per position, judged on next week's lineup too
-MIN_WIN_GAIN = 0.02  # a this-week-only move must add 2 points of win probability
+# Display only: the smallest win-odds lift worth naming as "the biggest swing".
+# Whether a move is worth an add is engine/addprice.py's call.
+MIN_WIN_GAIN = 0.02
 # A long-run upgrade that costs points this week can wait for a week where it doesn't.
 MAX_WEEK_COST = 1.0
-BASE_ADD_SCORE = 3.0  # expected points a move must be worth at an even pace of adds
-PLAYOFF_RESERVE = 6  # adds kept for playoff weeks
 # A keeper that gains less than this this week can wait for next week's adds
 # (they reset Monday): this week's go to moves that pay this week. Same idea as
 # MAX_WEEK_COST; the risk is someone claiming him meanwhile (Nico, 2026-10-01).
 KEEPER_WAITS_BELOW = 1.0
 KEEPER_LONG_RUN = 5.0  # long-run points above which an add is called a keeper, not a streamer (wording only)
-# A week this lopsided is decided: points gained in it don't change the result,
-# so an add has to pay off later (adds are capped per season, so a skipped one
-# isn't lost). Judgment calls (Nico, 2026-10-01), calibrate with real weeks.
+# A week this lopsided is called decided in the messages ("save your adds").
+# The add price needs no cut-off: an add barely moves a decided week's odds.
 CONCEDE_BELOW = 0.10
 COAST_ABOVE = 0.90
 
@@ -116,16 +116,21 @@ class Move:
     add: RosterPlayer
     drop: RosterPlayer | None  # None when there's an open roster spot
     week_gain: float
-    long_term: float  # discounted rest-of-season value gained (negative for a pure streamer)
+    long_term: float  # later points: while held (a streaming spot) or the discounted long run
     next_weeks: float  # gain over the two weeks after this one, undiscounted
     games: int  # the added player's games left this week
     win_before: float
     win_after: float
-    week_counts: bool = True  # False when the week is already decided
+    later_weight: float = 0.0  # win probability per later point (addprice.later_weight)
 
     @property
-    def score(self) -> float:
-        return (self.week_gain if self.week_counts else 0.0) + self.long_term
+    def later_value(self) -> float:
+        return self.later_weight * self.long_term
+
+    @property
+    def value(self) -> float:
+        """The win probability the move buys: this week's, plus later points'."""
+        return self.win_after - self.win_before + self.later_value
 
 
 def _position(p: RosterPlayer) -> str:
@@ -340,19 +345,6 @@ def hold_weeks(adds_left: int, week: int) -> float:
     return (STREAMING_SPOTS + GOALIE_STREAMING_SPOTS) / rate
 
 
-def add_threshold(adds_left: int, week: int) -> float | None:
-    """Points a move must be worth, given how many adds are left; None when
-    the regular-season budget is spent (the rest are for the playoffs)."""
-    if week > REGULAR_SEASON_WEEKS:
-        return BASE_ADD_SCORE / 2
-    spare = adds_left - PLAYOFF_RESERVE
-    if spare <= 0:
-        return None
-    target_rate = (MAX_ADDS_PER_SEASON - PLAYOFF_RESERVE) / REGULAR_SEASON_WEEKS
-    pace = spare / (REGULAR_SEASON_WEEKS - week + 1) / target_rate
-    return BASE_ADD_SCORE / min(max(pace, 0.5), 2.0)
-
-
 def _team_games(schedule: dict[dt.date, list[ScheduledGame]], today: dt.date) -> dict[str, int]:
     counts: dict[str, int] = {}
     for d in (d for d in schedule if d >= today):
@@ -428,6 +420,7 @@ def candidate_moves(
     available_from: dt.date | None = None,
     so_far: tuple[float, float, int] | None = None,
     hold_days: int = 7 * STREAM_WEEKS,
+    later_weight: float = 0.0,
 ) -> list[Move]:
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
@@ -474,23 +467,17 @@ def candidate_moves(
                 next_weeks=soon_gain,
                 games=team_games.get(add.team, 0),
                 win_before=before, win_after=win_prob(week, opponent),
-                week_counts=decided(before) is None,
+                later_weight=later_weight,
             ))
-    # Stable sort: on equal scores the earlier (open spot first) wins.
-    return sorted(moves, key=lambda m: m.score, reverse=True)
+    # Stable sort: on equal values the earlier (open spot first) wins.
+    return sorted(moves, key=lambda m: m.value, reverse=True)
 
 
-def rejection(move: Move, threshold: float) -> str | None:
-    """Why a move isn't worth an add, or None if it is. It must be worth
-    `threshold` points and either lift this week's win odds or pay off visibly
-    soon: a long-run edge too small to show in two weeks is noise. In a
-    decided week (see `decided`) only the paying-off-soon route counts."""
-    if not move.week_counts and move.next_weeks < 2 * threshold:
-        return f"the week is {decided(move.win_before)} ({_pct(move.win_before)}) and it doesn't pay off within two weeks"
-    if move.score < threshold:
-        return f"worth {move.score:.1f} pts, under the {threshold:.1f} an add costs"
-    if move.win_after - move.win_before < MIN_WIN_GAIN and move.next_weeks < 2 * threshold:
-        return "neither lifts this week's win odds nor pays off within two weeks"
+def rejection(move: Move, price: AddPrice) -> str | None:
+    """Why a move isn't worth an add, or None if it is: it must buy at least
+    the add's price in win probability (engine/addprice.py)."""
+    if move.value < price.lam:
+        return f"worth {100 * move.value:.1f} win-pts, under the {100 * price.lam:.1f} an add costs"
     return None
 
 
@@ -510,7 +497,7 @@ def best_moves(
     future: dict[dt.date, list[ScheduledGame]],
     weeks_after: int,
     max_moves: int,
-    threshold: float,
+    price: AddPrice,
     available_from: dt.date | None = None,
     so_far: tuple[float, float, int] | None = None,
     candidates: list[RosterPlayer] | None = None,
@@ -527,8 +514,8 @@ def best_moves(
     for i in range(max_moves):
         if not (i == 0 and ranked is not None):
             ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
-                                     weeks_after, available_from, so_far, hold_days)
-        passing = [m for m in ranked if not rejection(m, threshold)]
+                                     weeks_after, available_from, so_far, hold_days, price.later_weight)
+        passing = [m for m in ranked if not rejection(m, price)]
         if not passing:
             break
         best = next((m for m in passing if not waits(m)), passing[0])
@@ -543,12 +530,12 @@ def waits(move: Move) -> bool:
     return move.week_gain < KEEPER_WAITS_BELOW and move.next_weeks > 0
 
 
-def can_wait(ranked: list[Move], moves: list[Move], threshold: float | None) -> Move | None:
+def can_wait(ranked: list[Move], moves: list[Move], price: AddPrice | None) -> Move | None:
     """The best keeper passed over for this week's adds, to make next week."""
-    if threshold is None:
+    if price is None:
         return None
     taken = {m.add.id for m in moves}
-    best = next((m for m in ranked if m.add.id not in taken and waits(m) and not rejection(m, threshold)), None)
+    best = next((m for m in ranked if m.add.id not in taken and waits(m) and not rejection(m, price)), None)
     return best if best and moves else None
 
 
@@ -597,20 +584,21 @@ def streamers(
     return out
 
 
-def why_not(move: Move, threshold: float | None, chosen: list[Move] = ()) -> str:
+def why_not(move: Move, price: AddPrice | None, chosen: list[Move] = ()) -> str:
     """Why a move isn't a recommended add, in words Nico can weigh."""
-    if threshold is None:
+    if price is None:
         return "no adds left"
-    reason = rejection(move, threshold)
+    reason = rejection(move, price)
     if reason is None:
         names = " and ".join(m.add.name for m in chosen)
         return f"worth an add, but this week's go to {names}" if names else "worth an add, but you have none left this week"
     if move.drop and move.long_term < 0 and reason.startswith("worth"):
-        return f"dropping {move.drop.name} costs about {-move.long_term:.0f} pts over the rest of the season"
+        return (f"dropping {move.drop.name} costs about {-move.long_term:.0f} pts later, more than this week's "
+                f"{100 * (move.win_after - move.win_before):+.0f} win-pts make up for")
     return reason
 
 
-def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: float | None,
+def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, price: AddPrice | None,
                  recommended: bool, chosen: list[Move] = ()) -> str | None:
     """The mid-week stance in a few lines; None in a decided week (text() covers it)."""
     p_win = win_prob(me, them)
@@ -631,7 +619,7 @@ def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: fl
     if recommended:
         lines.append(swing + " That's the add below.")
     else:
-        why = why_not(chase, threshold, chosen)
+        why = why_not(chase, price, chosen)
         lines.append(swing + f" Not a recommended add ({why}), so it's your call.")
     return "\n".join(lines)
 

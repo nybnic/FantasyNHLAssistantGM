@@ -47,11 +47,6 @@ def main_() -> None:
     for t in (wk.me, wk.them):
         print(f"  {t.name:24} so far {t.so_far:6.1f}  expected {t.expected:6.1f} +/- {t.variance ** 0.5:4.1f}  "
               f"lineup games {t.player_games:3}  goalie min {t.goalie_min_prob:.0%}")
-    print(f"  P(win) {matchup.win_prob(wk.me, wk.them):.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
-          f"{wk.max_moves} allowed now, threshold "
-          + (f"{wk.threshold:.1f} pts" if wk.threshold is not None else "none (budget spent)")
-          + (f", adds play from {wk.available_from}" if wk.available_from else ""))
-
     candidates = main.add_candidates(wk, main.next_week(week, players, wk))
     by_name = {normalize_name(p.name): p for p in wk.pool}
     for name in args.add:
@@ -64,14 +59,24 @@ def main_() -> None:
         candidates = [p for p in candidates if args.position.upper() in p.positions]
 
     ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days)
-    print(f"\n{len(ranked)} moves from {len(candidates)} free agents (score = this week + discounted long run):")
-    print(f"  {'add':22} {'pos':5} {'drop':18} {'wk gms':>6} {'week':>6} {'next2wk':>7} {'score':>6}  win     verdict")
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                     wk.later_weight)
+    price = main.add_price(state, week, wk, ranked, date)
+    print(f"  P(win) {matchup.win_prob(wk.me, wk.them):.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
+          f"{wk.max_moves} allowed now; matchup spread tau {wk.tau:.1f} pts, a later point = "
+          f"{100 * wk.later_weight:.2f} win-pts")
+    print("  add price: " + (f"{100 * price.lam:.1f} win-pts (pace {price.pace:.2f} adds a week, "
+                             f"{len(state['add_pools'])} week(s) of candidates logged)" if price else "none (budget spent)")
+          + (f", adds play from {wk.available_from}" if wk.available_from else ""))
+    print(f"\n{len(ranked)} moves from {len(candidates)} free agents (value = this week's win-pts + later win-pts):")
+    print(f"  {'add':22} {'pos':5} {'drop':18} {'wk gms':>6} {'week':>6} {'later':>6} {'now':>5} {'+later':>6} "
+          f"{'value':>6}  win     verdict")
     for m in ranked[:args.top]:
-        verdict = matchup.rejection(m, wk.threshold) if wk.threshold is not None else "no adds left"
+        verdict = matchup.rejection(m, price) if price else "no adds left"
         print(f"  {m.add.name[:22]:22} {'/'.join(m.add.positions):5} {(m.drop.name if m.drop else '(open spot)')[:18]:18} "
-              f"{m.games:6} {m.week_gain:+6.1f} {m.next_weeks:+7.1f} {m.score:+6.1f}  "
-              f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'RECOMMEND'}")
+              f"{m.games:6} {m.week_gain:+6.1f} {m.long_term:+6.1f} {100 * (m.win_after - m.win_before):+5.1f} "
+              f"{100 * m.later_value:+6.1f} {100 * m.value:+6.1f}  "
+              f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'WORTH AN ADD'}")
 
 
 if __name__ == "__main__":

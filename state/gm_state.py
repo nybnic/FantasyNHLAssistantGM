@@ -18,6 +18,9 @@
 - transaction_rows: transactions read from screenshots this run, not yet applied
 - transactions_seen: each applied transaction's key -> its time, so overlapping
   screenshots apply nothing twice (the newest 300 kept)
+- add_pools: per fantasy week, the candidate adds the plan weighed (full-week
+  gain, later points, add id, drop id) with sigma and tau: the add price is
+  solved over them (engine/addprice.py), the newest 12 weeks kept
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -31,6 +34,7 @@ STATE_FILE = Path("state/gm_state.json")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
 KEEP_TRANSACTIONS = 300
+KEEP_POOL_WEEKS = 12
 
 
 def load(path: Path = STATE_FILE) -> dict:
@@ -49,6 +53,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("live_score", None)
     state.setdefault("transaction_rows", [])
     state.setdefault("transactions_seen", {})
+    state.setdefault("add_pools", {})
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state
@@ -61,5 +66,7 @@ def save(state: dict, today: dt.date, path: Path = STATE_FILE) -> None:
     state["decisions"] = state["decisions"][-KEEP_DECISIONS:]
     seen = sorted(state["transactions_seen"].items(), key=lambda kv: kv[1])[-KEEP_TRANSACTIONS:]
     state["transactions_seen"] = dict(seen)
+    state["add_pools"] = {w: p for w, p in state["add_pools"].items()
+                          if int(w) > max(map(int, state["add_pools"]), default=0) - KEEP_POOL_WEEKS}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")

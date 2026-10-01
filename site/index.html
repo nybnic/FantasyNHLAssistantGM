@@ -170,8 +170,8 @@ function decisionMap() {
   const width = Math.max(280, Math.min(app.clientWidth - 30, 728));
   const height = 300, m = { l: 40, r: 14, t: 12, b: 38 };
   const pts = d.points;
-  const xs = pts.map(p => p.x).concat([0, d.x_bar]);
-  const ys = pts.map(p => p.y).concat([0]).concat(d.y_bar != null ? [d.y_bar] : []);
+  const xs = pts.map(p => p.x).concat([0]).concat(d.bar != null ? [d.bar] : []);
+  const ys = pts.map(p => p.y).concat([0]).concat(d.bar != null ? [d.bar] : []);
   const pad = (lo, hi) => Math.max(1, (hi - lo) * 0.12);
   const [x0, x1] = [Math.min(...xs), Math.max(...xs)], [y0, y1] = [Math.min(...ys), Math.max(...ys)];
   const xLo = x0 - pad(x0, x1), xHi = x1 + pad(x0, x1), yLo = y0 - pad(y0, y1), yHi = y1 + pad(y0, y1);
@@ -184,22 +184,22 @@ function decisionMap() {
     svg.append(svgEl("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, t));
   }
   for (const t of ticks(xLo, xHi)) svg.append(svgEl("text", { x: X(t), y: height - m.b + 16, "text-anchor": "middle" }, t));
-  svg.append(svgEl("line", { x1: X(d.x_bar), x2: X(d.x_bar), y1: m.t, y2: height - m.b, stroke: css("--muted") }));
-  svg.append(svgEl("text", { x: X(d.x_bar) + 4, y: height - m.b - 5 }, `+${d.x_bar.toFixed(0)} pts win odds`));
-  if (d.y_bar != null) {
-    svg.append(svgEl("line", { x1: m.l, x2: width - m.r, y1: Y(d.y_bar), y2: Y(d.y_bar), stroke: css("--muted") }));
-    svg.append(svgEl("text", { x: m.l + 4, y: Y(d.y_bar) - 5 }, `+${d.y_bar.toFixed(1)} pts in 2 weeks`));
+  svg.append(svgEl("line", { x1: X(0), x2: X(0), y1: m.t, y2: height - m.b, stroke: css("--grid") }));
+  if (d.bar != null) {
+    // Worth an add above this line: now + later >= the add's price.
+    svg.append(svgEl("line", { x1: X(xLo), y1: Y(d.bar - xLo), x2: X(xHi), y2: Y(d.bar - xHi), stroke: css("--muted") }));
+    svg.append(svgEl("text", { x: width - m.r - 2, y: Math.max(m.t + 10, Y(d.bar - xHi) - 5), "text-anchor": "end" }, `an add costs ${d.bar.toFixed(1)} win-pts`));
   }
-  svg.append(svgEl("text", { x: (m.l + width - m.r) / 2, y: height - 4, "text-anchor": "middle" }, "This week: change in win odds (pts)"));
+  svg.append(svgEl("text", { x: (m.l + width - m.r) / 2, y: height - 4, "text-anchor": "middle" }, "This week: change in win odds (win-pts)"));
   ordered(pts).forEach((p, i) => {
-    const g = svgEl("g", { tabindex: 0, role: "button", "aria-label": `${p.label}: ${signed(p.x, 0)} win odds, ${signed(p.y)} points next 2 weeks` });
+    const g = svgEl("g", { tabindex: 0, role: "button", "aria-label": `${p.label}: ${signed(p.x)} win-pts this week, ${signed(p.y)} later` });
     g.style.cursor = "pointer";
     const colour = p.recommended ? css("--blue") : css("--neutral");
     if (p.key === selected) g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 10, fill: "none", stroke: css("--blue"), "stroke-width": 2 }));
     g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: p.recommended ? 6 : 5, fill: colour, stroke: css("--card"), "stroke-width": 2 }));
     g.append(svgEl("text", { x: X(p.x) + 8, y: Y(p.y) - 6, "font-weight": 700, fill: p.recommended ? css("--text") : css("--text-2") }, i + 1));
     g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 14, fill: "transparent" }));
-    const lines = [`${p.label} (${p.games} gm)`, `${signed(p.x, 0)} pts win odds this week`, `${signed(p.y)} pts over the next 2 weeks`, p.recommended ? "Recommended" : "Tap for details"];
+    const lines = [`${p.label} (${p.games} gm)`, `${signed(p.x)} win-pts this week`, `${signed(p.y)} win-pts later (${signed(p.later_pts, 0)} pts)`, p.recommended ? "Recommended" : "Tap for details"];
     g.addEventListener("pointermove", e => showTip(e, lines));
     g.addEventListener("pointerleave", hideTip);
     g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); showTip({ clientX: r.right, clientY: r.top }, lines); });
@@ -209,7 +209,7 @@ function decisionMap() {
     svg.append(g);
   });
   card.append(svg);
-  card.append(el("div", { class: "note" }, "Right: helps this week. Up: helps over the next two weeks. Top right helps both; bottom right is a streamer; top left a keeper. The lines are the add rule: an add must clear one and be worth one of your adds. Tap a dot."));
+  card.append(el("div", { class: "note" }, "Win-pts: percentage points of a weekly win. Right: helps this week. Up: worth later (points converted at what a point does in a typical week). Above the diagonal a move is worth one of your adds: the price is set so spending at that bar uses your budget at the right pace. Tap a dot."));
   return card;
 }
 const ordered = pts => [...pts].sort((a, b) => (b.recommended - a.recommended) || (b.x - a.x));

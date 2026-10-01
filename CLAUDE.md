@@ -36,6 +36,7 @@ python main.py --dry-run --trade                  # /trade alone: suggested trad
 python -m scripts.explain_week                    # every add/drop the plan weighed, with verdicts
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
 python -m scripts.backtest                        # model accuracy on 2025-26
+python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
 ```
 Live runs need network. First runs fill `data/cache/` and take a few minutes.
 

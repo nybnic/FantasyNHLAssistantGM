@@ -26,8 +26,8 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
   (points-for matters for the decided-week rule), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
-- Calibrate `MODEL_SD_SHARE`, the add threshold and `CONCEDE_BELOW`/`COAST_ABOVE`
-  once 4-6 weeks of real results exist.
+- Calibrate `MODEL_SD_SHARE`, the streaming-spot counts and the add price once 4-6
+  weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
 - Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected
   GP as a durability input; next year's draft (restore from tag `draft-2026`).
 
@@ -59,4 +59,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | League > Transactions screenshots update every roster; Taken button on adds | d1bb801 |
 | 2026-10-01 | Coherent plan: this week's adds to moves that pay now (keepers wait for Monday), true biggest swing, verdicts that say why; Yahoo position eligibility learned from screenshots | 0fd4429 |
 | 2026-10-01 | Yahoo positions seeded for 559 skaters (`scripts/seed_positions.py`) | aeb0ec2 |
-| 2026-10-01 | Streaming-spot adds valued over the expected hold (~3 weeks), weakest goalie included | (this commit) |
+| 2026-10-01 | Streaming-spot adds valued over the expected hold (~3 weeks), weakest goalie included | ef5f857 |
+| 2026-10-01 | Add price in win probability: 0, 1 or 2 adds a week by closeness and the adds on offer; season sim vs the old rule | (this commit) |

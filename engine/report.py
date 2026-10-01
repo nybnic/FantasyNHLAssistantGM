@@ -35,15 +35,15 @@ def _move_label(m: matchup.Move) -> str:
 
 
 def decision_view(week: int, ranked: list[matchup.Move], recommended: list[matchup.Move],
-                  threshold: float | None, top: int = 4) -> dict:
-    """Every add as a point: this week's win-odds change (x, percentage points)
-    against the points it gains over the next two weeks (y). The add rule's two
-    bars split the map: an add needs one of them (and to be worth an add).
-    Each player once, with the drop the rule likes best; the `top` by each
-    axis plus every recommended add."""
+                  price, top: int = 4) -> dict:
+    """Every add as a point in win-points (percentage points of a weekly win):
+    this week's change in win odds (x) and its later points' worth (y). An add
+    is worth making when x + y reaches the add's price (`bar`, a diagonal).
+    Each player once, at his best drop; the `top` by each axis plus every
+    recommended add."""
     best: dict[int, matchup.Move] = {}
     for m in ranked:
-        if m.add.id not in best or m.score > best[m.add.id].score:
+        if m.add.id not in best or m.value > best[m.add.id].value:
             best[m.add.id] = m
     for m in recommended:
         best[m.add.id] = m
@@ -53,22 +53,23 @@ def decision_view(week: int, ranked: list[matchup.Move], recommended: list[match
         return (m.win_after - m.win_before) * 100
 
     moves = list(best.values())
-    shown = sorted(moves, key=lift, reverse=True)[:top] + sorted(moves, key=lambda m: m.next_weeks, reverse=True)[:top]
+    shown = sorted(moves, key=lift, reverse=True)[:top] + sorted(moves, key=lambda m: m.later_value, reverse=True)[:top]
     shown += [best[m.add.id] for m in recommended]
     shown = list({m.add.id: m for m in shown}.values())
-    points = [{"key": move_key(m), "label": _move_label(m), "x": lift(m), "y": m.next_weeks, "games": m.games,
+    points = [{"key": move_key(m), "label": _move_label(m), "x": lift(m), "y": 100 * m.later_value,
+               "later_pts": m.long_term, "games": m.games,
                "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen} for m in shown]
     if recommended:
         headline = "Recommended: " + ", ".join(_move_label(m) for m in recommended)
     else:
-        headline = "No add clears the bar right now"
+        headline = "No add is worth its price right now"
     biggest = max(points, key=lambda pt: pt["x"], default=None)
     detail = ""
     if biggest and biggest["x"] >= matchup.MIN_WIN_GAIN * 100 and not biggest["recommended"]:
-        detail = (f"Biggest lift this week: {biggest['label']}, +{biggest['x']:.0f} pts of win odds, "
-                  f"but {biggest['y']:+.0f} pts over the next 2 weeks")
+        detail = (f"Biggest lift this week: {biggest['label']}, +{biggest['x']:.0f} win-pts, "
+                  f"{biggest['y']:+.0f} later")
     return {"week": week, "points": points, "headline": headline, "detail": detail,
-            "x_bar": matchup.MIN_WIN_GAIN * 100, "y_bar": 2 * threshold if threshold is not None else None}
+            "bar": 100 * price.lam if price else None}
 
 
 def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchup.TeamWeek, matchup.TeamWeek]],

@@ -3,6 +3,7 @@ import datetime as dt
 import pytest
 
 from engine import matchup, report
+from engine.addprice import AddPrice
 from league.roster import RosterPlayer
 from notify import charts
 
@@ -21,19 +22,19 @@ def _move(pid, name, win_after, drop=None, games=3):
 def test_decision_map_shows_this_week_against_the_next_two_and_leads_with_the_call():
     murashov, lindell = RosterPlayer(5, "Sergei Murashov", "PIT", ["G"]), RosterPlayer(6, "Esa Lindell", "DAL", ["D"])
     streamer = _move(1, "Joonas Korpisalo", 0.55, murashov)
-    streamer.next_weeks, streamer.long_term = -9.0, -56.0
+    streamer.next_weeks, streamer.long_term, streamer.later_weight = -9.0, -9.0, 0.01
     weaker = _move(1, "Joonas Korpisalo", 0.50, lindell)
-    weaker.long_term = -80.0
+    weaker.long_term, weaker.later_weight = -80.0, 0.01
     keeper = _move(2, "Arturs Silovs", 0.46, murashov, games=1)
-    keeper.next_weeks = 9.0
-    view = report.decision_view(1, [streamer, weaker, keeper], [keeper], threshold=3.1, top=2)
+    keeper.next_weeks, keeper.long_term, keeper.later_weight = 9.0, 9.0, 0.01
+    view = report.decision_view(1, [streamer, weaker, keeper], [keeper], AddPrice(0.05, 0.01, 1.3), top=2)
     assert {(pt["label"], pt["recommended"]) for pt in view["points"]} == {
         ("Korpisalo for Murashov", False), ("Silovs for Murashov", True)}  # one point per player: the rule's drop
     korpisalo = next(pt for pt in view["points"] if pt["label"].startswith("Korpisalo"))
-    assert korpisalo["x"] == pytest.approx(9.0) and korpisalo["y"] == -9.0
+    assert korpisalo["x"] == pytest.approx(9.0) and korpisalo["y"] == pytest.approx(-9.0)  # -9 pts at 1 win-pt each
     assert view["headline"] == "Recommended: Silovs for Murashov"
-    assert view["detail"].startswith("Biggest lift this week: Korpisalo for Murashov, +9 pts of win odds, but -9")
-    assert view["x_bar"] == pytest.approx(2.0) and view["y_bar"] == pytest.approx(6.2)
+    assert view["detail"] == "Biggest lift this week: Korpisalo for Murashov, +9 win-pts, -9 later"
+    assert view["bar"] == pytest.approx(5.0)
 
 
 def test_schedule_view_marks_starts_benched_games_and_open_slots():
@@ -66,7 +67,7 @@ def test_add_view_marks_weeks_past_the_rule_horizon_as_less_certain():
 def test_every_chart_draws_a_png():
     roster = [RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G")]
     mine = _team(13.4, {THU: 5.0}, {THU: {3: ("BN", 0.4)}})
-    decision = report.decision_view(1, [_move(1, "Joonas Korpisalo", 0.55)], [], threshold=3.0)
+    decision = report.decision_view(1, [_move(1, "Joonas Korpisalo", 0.55)], [], AddPrice(0.03, 0.01, 1.3))
     stream = {"position": "C", "move": _move(1, "Joonas Korpisalo", 0.55), "next_gain": 2.0,
               "this_week": _team(0, {THU: 1.0}, {THU: {1: ("C", 1.0)}}), "next_week": None}
     schedule = report.schedule_view(roster, [(1, "Bahelin Boys", mine, mine)], [stream])

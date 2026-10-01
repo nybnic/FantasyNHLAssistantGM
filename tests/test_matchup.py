@@ -5,6 +5,7 @@ import pytest
 
 from clients.nhl_client import ScheduledGame
 from engine import matchup
+from engine.addprice import AddPrice
 from league.roster import RosterPlayer
 
 UTC = dt.timezone.utc
@@ -66,11 +67,8 @@ def test_project_uses_each_days_best_lineup_and_the_goalie_minimum():
     assert week.expected == pytest.approx(0.97 * 4.0)
 
 
-def test_add_threshold_paces_adds_and_keeps_a_playoff_reserve():
-    even = matchup.add_threshold(36, 1)
-    assert matchup.add_threshold(20, 1) > even > matchup.add_threshold(36, 20)
-    assert matchup.add_threshold(6, 10) is None
-    assert matchup.add_threshold(2, 24) == matchup.BASE_ADD_SCORE / 2
+def _price(lam, later_weight=0.0):
+    return AddPrice(lam=lam, later_weight=later_weight, pace=1.3)
 
 
 def test_best_move_fills_an_open_spot_with_the_free_agent_who_plays():
@@ -80,7 +78,7 @@ def test_best_move_fills_an_open_spot_with_the_free_agent_who_plays():
     later = {}
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future=later, weeks_after=0,
-                               max_moves=2, threshold=1.0)
+                               max_moves=2, price=_price(0.01))
     assert [(m.add.id, m.drop) for m in moves] == [(9, None)]
     assert moves[0].week_gain == pytest.approx(0.97 * 3.0)
     assert moves[0].win_after > moves[0].win_before
@@ -105,7 +103,7 @@ def test_an_empty_starting_slot_is_filled_before_adding_bench_depth():
     later = {WED: [_game(WED, "BOS", "NYR")]}  # everyone plays: the forward would sit
     opponent = matchup.TeamWeek("them", 0, 8.0, 10.0, 2, 3, 0, 1.0)
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future=later, weeks_after=10,
-                               max_moves=1, threshold=1.0)
+                               max_moves=1, price=_price(0.01))
     assert [m.add.id for m in moves] == [2]
 
 
@@ -118,7 +116,7 @@ def test_never_drops_below_three_goalies_for_a_skater():
     later = {}
     opponent = matchup.TeamWeek("them", 0, 1.0, 10.0, 2, 3, 0, 1.0)  # a close week, so a streamer is worth it
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future=later, weeks_after=0,
-                               max_moves=1, threshold=0.5)
+                               max_moves=1, price=_price(0.001))
     assert moves and not moves[0].drop.is_goalie
 
 
@@ -128,21 +126,19 @@ def test_a_waiver_claim_only_counts_from_the_day_it_clears():
     pool = [RosterPlayer(9, "Claim", "NYR", ["C"])]
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0,
-                               max_moves=1, threshold=0.5, available_from=TUE)
+                               max_moves=1, price=_price(0.001), available_from=TUE)
     assert moves[0].week_gain == pytest.approx(0.97 * 3.0)  # Tuesday's game only
 
 
-def _move(win_before, week_gain=5.0, next_weeks=0.0, long_term=0.0):
-    return matchup.Move(RosterPlayer(9, "FA", "NYR", ["C"]), None, week_gain, long_term, next_weeks, 3,
-                        win_before, win_before + 0.06, week_counts=matchup.decided(win_before) is None)
-
-
-def test_a_decided_week_saves_the_add_unless_it_pays_off_later():
-    assert matchup.rejection(_move(0.50), threshold=3.0) is None
-    assert "lost" in matchup.rejection(_move(0.05), threshold=3.0)
-    assert "won" in matchup.rejection(_move(0.95), threshold=3.0)
-    # A keeper is still worth it: the long run alone clears the bar.
-    assert matchup.rejection(_move(0.05, long_term=4.0, next_weeks=8.0), threshold=3.0) is None
+def test_a_move_is_worth_an_add_when_its_win_probability_now_and_later_beats_the_price():
+    fa = RosterPlayer(9, "FA", "NYR", ["C"])
+    close = matchup.Move(fa, None, 5.0, 0.0, 0.0, 3, 0.50, 0.56)  # +6 win-pts this week
+    lopsided = matchup.Move(fa, None, 5.0, 0.0, 0.0, 3, 0.05, 0.06)  # the same points in a lost week: +1
+    keeper = matchup.Move(fa, None, 0.0, 10.0, 8.0, 3, 0.05, 0.05, later_weight=0.008)  # +8 later
+    price = _price(0.04)
+    assert matchup.rejection(close, price) is None
+    assert matchup.rejection(lopsided, price) == "worth 1.0 win-pts, under the 4.0 an add costs"
+    assert matchup.rejection(keeper, price) is None
 
 
 def test_a_hopeless_week_gets_no_streamer_and_says_so():
@@ -151,7 +147,7 @@ def test_a_hopeless_week_gets_no_streamer_and_says_so():
     pool = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
     opponent = matchup.TeamWeek("them", 0, 60.0, 10.0, 20, 3, 0, 1.0)
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0,
-                               max_moves=2, threshold=1.0)
+                               max_moves=2, price=_price(0.02))
     assert moves == []
     me = matchup.project("me", roster, FakeContext(), schedule, {}, {})
     assert "looks lost" in matchup.text(1, [MON, TUE], me, opponent, None, 0, 0, MON)
@@ -189,12 +185,14 @@ def test_midweek_ahead_protects_the_lead():
 def test_midweek_close_behind_chases_and_names_the_biggest_swing():
     chase = matchup.Move(RosterPlayer(9, "Streamer", "NYR", ["C"]), RosterPlayer(2, "Depth", "NJD", ["C"]),
                          week_gain=2.0, long_term=-3.0, next_weeks=-1.0, games=3, win_before=0.42, win_after=0.47)
-    text = matchup.midweek_text(_team(150), _team(155), chase, 3.0, recommended=False)
+    text = matchup.midweek_text(_team(150), _team(155), chase, _price(0.08), recommended=False)
     assert "so chase: you trail by 5" in text
     assert "add Streamer (3 games left) for Depth, win 42% -> 47%" in text
-    assert "Not a recommended add (dropping Depth costs about 3 pts over the rest of the season)" in text
+    assert ("Not a recommended add (dropping Depth costs about 3 pts later, more than this week's +5 win-pts "
+            "make up for)") in text
     assert "your call" in text
-    assert "That's the add below" in matchup.midweek_text(_team(150), _team(155), chase, 3.0, recommended=True)
+    assert "That's the add below" in matchup.midweek_text(_team(150), _team(155), chase, _price(0.08),
+                                                          recommended=True)
 
 
 def test_midweek_hopeless_leaves_it_to_the_lost_week_line():
@@ -275,25 +273,28 @@ def test_dropping_a_streaming_spot_costs_only_the_next_two_weeks(monkeypatch):
 def test_this_weeks_last_add_goes_to_a_move_that_pays_now_and_the_keeper_waits():
     murashov, schenn = RosterPlayer(5, "Sergei Murashov", "PIT", ["G"]), RosterPlayer(6, "Brayden Schenn", "NYI", ["C"])
     keeper = matchup.Move(RosterPlayer(1, "Arturs Silovs", "PIT", ["G"]), murashov, week_gain=0.0, long_term=48.0,
-                          next_weeks=9.0, games=1, win_before=0.48, win_after=0.48)
+                          next_weeks=9.0, games=1, win_before=0.48, win_after=0.48, later_weight=0.003)
     streamer = matchup.Move(RosterPlayer(2, "Jack McBain", "UTA", ["C", "LW"]), schenn, week_gain=10.0,
-                            long_term=-4.0, next_weeks=-4.6, games=3, win_before=0.48, win_after=0.59)
-    ranked = [keeper, streamer]  # by score: the keeper first
-    moves = matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, threshold=3.0,
+                            long_term=-4.0, next_weeks=-4.6, games=3, win_before=0.48, win_after=0.59,
+                            later_weight=0.003)
+    ranked = [keeper, streamer]  # by value: the keeper first (14.4 win-pts against 9.8)
+    price = _price(0.05, 0.003)
+    moves = matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, price=price,
                                so_far=(0.0, 0.0, 0), candidates=[], ranked=ranked)
     assert moves == [streamer]
-    assert matchup.can_wait(ranked, moves, 3.0) is keeper
-    assert matchup.why_not(keeper, 3.0, moves) == "worth an add, but this week's go to Jack McBain"
+    assert matchup.can_wait(ranked, moves, price) is keeper
+    assert matchup.why_not(keeper, price, moves) == "worth an add, but this week's go to Jack McBain"
     # With nothing else passing, the keeper takes the add now: no reason to wait.
-    assert matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, threshold=3.0,
+    assert matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, price=price,
                               so_far=(0.0, 0.0, 0), candidates=[], ranked=[keeper]) == [keeper]
 
 
 def test_a_failing_move_is_explained_by_its_long_run_cost_only_when_that_is_why():
     schenn = RosterPlayer(6, "Brayden Schenn", "NYI", ["C"])
     costly = matchup.Move(RosterPlayer(2, "Jack McBain", "UTA", ["C"]), schenn, week_gain=2.0, long_term=-24.0,
-                          next_weeks=-4.0, games=3, win_before=0.48, win_after=0.52)
-    assert matchup.why_not(costly, 3.0) == "dropping Brayden Schenn costs about 24 pts over the rest of the season"
+                          next_weeks=-4.0, games=3, win_before=0.48, win_after=0.52, later_weight=0.003)
+    assert matchup.why_not(costly, _price(0.03)) == (
+        "dropping Brayden Schenn costs about 24 pts later, more than this week's +4 win-pts make up for")
 
 
 def test_the_add_card_names_a_keeper_or_a_streamer_by_the_long_run_that_ranked_it():
