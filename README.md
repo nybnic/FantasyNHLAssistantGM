@@ -26,8 +26,8 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
 
 ## What you get
 
-- **Evening briefing** at 21:00 Finland time, or an hour before the first
-  puck drop if earlier: the lineup changes worth making tonight, with the
+- **Evening briefing** between 19:30 and 20:30 Finland time (earlier only if
+  a game starts within the hour): the lineup changes worth making tonight, with the
   expected point gain. Sent only if a change is worth at least 0.5 points.
   At most one follow-up if new information (goalie confirmation, injury)
   makes a clearly better lineup. Nothing is sent 23:00-08:00.
@@ -51,7 +51,9 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   with open spots filled from free agents and your three goalies kept, plus
   both rosters' F/D/G balance. `/trade` alone suggests 3-4 trades the other
   manager could plausibly accept (takes about a minute).
-- `/roster` in the chat shows the roster it thinks you have.
+- `/roster` in the chat shows the roster it thinks you have. If it's wrong,
+  send `/myteam` and paste your Yahoo team page: it replaces your roster and
+  slots and replies with what changed.
 - If a run fails, you get one alert that day.
 
 Coming next: mid-week risk advice (protect a lead, chase when behind), IR

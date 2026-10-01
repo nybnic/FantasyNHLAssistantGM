@@ -2,7 +2,7 @@ import datetime as dt
 
 import pytest
 
-from league import parse, teams, weeks
+from league import parse, roster, teams, weeks
 from league.roster import RosterPlayer
 from scripts.seed_league import sections
 
@@ -78,3 +78,36 @@ def test_compare_yahoo_reads_a_pasted_projection_row():
     assert row["gp"] == 84 and row["fpts"] == 313.24
     assert row["per_game"]["blk"] == pytest.approx(170 / 84)
     assert parse_row("Forwards/Defensemen\tOpp\tRoster Status") is None
+
+
+def test_team_page_slots_come_from_the_row_start_or_the_line_above():
+    text = ("Pos\tForwards\tAction\n"
+            "C\nNathan MacKinnonPlayer NoteCOL - C\nDTD\n"
+            "BN\tTim StutzlePlayer NoteOTT - C,LW\tvs BOS\n"
+            "IR+\nKiefer SherwoodPlayer NoteSJ - LW,RW\nIR-LT\n"
+            "J.T. Miller")
+    found = parse.find_players(text, REGISTRY)
+    assert [(p.id, p.slot) for p in found.players] == [(1, "C"), (4, "BN"), (5, "IR+"), (6, None)]
+    assert found.tagged == {1, 4, 5}
+
+
+def test_pasted_roster_replaces_mine_and_says_what_changed():
+    players = [RosterPlayer(1, "Nathan MacKinnon", "COL", ["C"], "C"),
+               RosterPlayer(6, "J.T. Miller", "NYR", ["C", "RW"], "BN"),
+               RosterPlayer(9, "Gone Guy", "BOS", ["D"], "D")]
+    pasted = [RosterPlayer(1, "Nathan MacKinnon", "COL", ["C"], "BN"),
+              RosterPlayer(6, "J.T. Miller", "NYR", ["C"], None),  # no tag, no slot: keep both
+              RosterPlayer(5, "Kiefer Sherwood", "SJS", ["LW", "RW"], "LW")]
+    changes = roster.replace(players, pasted, tagged={1, 5})
+    assert [(p.id, p.positions, p.slot) for p in players] == [
+        (1, ["C"], "BN"), (6, ["C", "RW"], "BN"), (5, ["LW", "RW"], "LW")]
+    assert changes == ["Added: Kiefer Sherwood", "Dropped: Gone Guy", "Slots: Nathan MacKinnon C->BN"]
+
+
+def test_overfilled_slots_are_cleared_but_ir_kept():
+    players = []
+    pasted = [RosterPlayer(i, f"P{i}", "BOS", ["C"], "C") for i in range(3)]
+    pasted.append(RosterPlayer(9, "Hurt", "BOS", ["D"], "IR"))
+    changes = roster.replace(players, pasted, tagged=set())
+    assert [p.slot for p in players] == [None, None, None, "IR"]
+    assert "Too many players in C" in changes[-1]

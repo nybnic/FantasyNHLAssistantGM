@@ -20,7 +20,10 @@ from league.roster import BENCH, RosterPlayer, active, lineup_known
 from model.context import ModelContext
 
 LOCAL = ZoneInfo(TIMEZONE)
-BRIEFING_TIME = dt.time(21, 0)
+# Nico's window (2026-10-01): the briefing goes out 19:30-20:30 local, earlier
+# only if a game starts within the hour. Missed window = no briefing that day.
+BRIEFING_TIME = dt.time(19, 30)
+BRIEFING_CLOSES = dt.time(20, 30)
 EARLIEST_BRIEFING = dt.time(12, 0)
 LEAD_TIME = dt.timedelta(minutes=60)
 QUIET_START = dt.time(23, 0)
@@ -63,6 +66,11 @@ def briefing_due(date: dt.date, first_start: dt.datetime) -> dt.datetime:
     evening = dt.datetime.combine(date, BRIEFING_TIME, LOCAL)
     earliest = dt.datetime.combine(date, EARLIEST_BRIEFING, LOCAL)
     return max(min(evening, first_start - LEAD_TIME), earliest)
+
+
+def briefing_closed(now: dt.datetime, date: dt.date) -> bool:
+    """Too late for tonight's first briefing (later updates are still allowed)."""
+    return now >= dt.datetime.combine(date, BRIEFING_CLOSES, LOCAL)
 
 
 def quiet(now: dt.datetime) -> bool:

@@ -75,7 +75,7 @@ def test_roster_command_replies_with_the_roster(monkeypatch, tmp_path):
     message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/roster"}}
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
     main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
-    assert "A (BOS, C)" in sent[0]
+    assert "A (BOS, C)" in sent[0] and "/myteam" in sent[0]
 
 
 def _relay(monkeypatch, updates, dispatch_error=None):
@@ -214,3 +214,39 @@ def test_trade_command_is_judged_later_in_the_run(monkeypatch, tmp_path):
     main.trade_step(state, players, league, NOW, main.Outbox(settings))
     assert sent == ["No rostered player called 'Nobody'."]
     assert state["trade_request"] is None
+
+
+def _roster_paste(n):
+    return "\n".join(f"BN\tPlayer {NAMES[i]}" for i in range(n))
+
+
+NAMES = [f"{c}son" for c in "ABCDEFGHIJKLMNOPQ"]
+ROSTER_REGISTRY = [{"id": 100 + i, "name": f"Player {NAMES[i]}", "team": "BOS", "position": "C"} for i in range(17)]
+
+
+def test_myteam_then_paste_replaces_my_roster(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(
+        monkeypatch, tmp_path, [_message("/myteam", 9), _message(_roster_paste(12), 10)])
+    monkeypatch.setattr(main.parse, "registry", lambda: ROSTER_REGISTRY)
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert [p.id for p in players] == list(range(100, 112))
+    assert state["awaiting"] is None
+    assert sent[1].startswith("Roster saved: 12 players.\nAdded: Player Ason")
+    assert "Dropped: A, B" in sent[1]
+
+
+def test_myteam_rejects_a_partial_paste(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/myteam\n" + _roster_paste(3))])
+    monkeypatch.setattr(main.parse, "registry", lambda: ROSTER_REGISTRY)
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert [p.id for p in players] == [1, 2]
+    assert "Your roster is unchanged" in sent[0]
+
+
+def test_no_first_briefing_after_the_window_closes(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    game = main.nhl_client.ScheduledGame(1, dt.datetime(2026, 10, 1, 23, tzinfo=dt.timezone.utc), "TOR", "BOS")
+    monkeypatch.setattr(main.nhl_client, "games_on", lambda d: [game])
+    late = dt.datetime(2026, 10, 1, 17, 35, tzinfo=dt.timezone.utc)  # 20:35 Helsinki
+    main.briefing_step(state, players, late, False, main.Outbox(settings), build_context=lambda d: 1 / 0)
+    assert state["briefings"] == {} and sent == []

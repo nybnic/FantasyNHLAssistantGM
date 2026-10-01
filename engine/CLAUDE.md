@@ -4,7 +4,7 @@
 |---|---|
 | `lineup.py` | The best slot assignment for one day. Exact DP; a move must gain `KEEP_SLOT_BONUS` |
 | `availability.py` | Who plays: skater injury/lineup status, goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
-| `briefing.py` | The evening lineup message: timing (21:00 local or 1h before first puck), quiet hours, when an update is worth sending |
+| `briefing.py` | The evening lineup message: timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
 | `matchup.py` | The weekly plan: both teams' week, P(win), the goalie minimum, add/drops, the add budget |
 | `trade.py` | `/trade`: both teams' points per week before and after, over the 2 weeks after the review. Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Shows F/D/G counts (and injured) and flags a trade that leaves them unable to fill their starters. `/trade` alone: screen all 1-for-1 and 2-for-1 with a quick per-player value, keep those they wouldn't see as a loss by this league's draft rounds (`league/draft.py`) and that don't leave them short, judge the top 12 in full (~1 min), reply with the best per team |
 
@@ -34,6 +34,7 @@
 | 2026-09-29 | Long-run edges must show within 2 weeks | Tiny edges multiplied over a season are noise (e.g. goalie-for-goalie swaps) |
 | 2026-09-29 | Keep 6 adds for playoff weeks 24-26 | Playoffs decide the title, and Yahoo's 36 covers the entire season incl. playoffs (settings page). The regular-season pace is 30 adds / 23 weeks |
 | 2026-09-29 | Post-draft waivers: adds count from Sep 30 | Every undrafted player showed "W (Sep 30)" |
+| 2026-10-01 | Evening briefing window 19:30-20:30 Helsinki (Nico); no first briefing after it closes, updates until 23:00 | When Nico sets his lineup |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)

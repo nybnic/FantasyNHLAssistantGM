@@ -14,10 +14,15 @@ EVENING_GAME = ScheduledGame(1, dt.datetime(2026, 11, 11, 0, 0, tzinfo=UTC), hom
 MATINEE = ScheduledGame(2, dt.datetime(2026, 11, 10, 17, 0, tzinfo=UTC), home="NYR", away="PHI")  # 12:00 ET
 
 
-def test_briefing_at_21_local_unless_a_game_starts_earlier():
-    assert briefing.briefing_due(DATE, EVENING_GAME.start) == dt.datetime(2026, 11, 10, 21, 0, tzinfo=briefing.LOCAL)
+def test_briefing_at_1930_local_unless_a_game_starts_earlier():
+    assert briefing.briefing_due(DATE, EVENING_GAME.start) == dt.datetime(2026, 11, 10, 19, 30, tzinfo=briefing.LOCAL)
     # Matinee at 19:00 Helsinki -> briefing an hour before.
     assert briefing.briefing_due(DATE, MATINEE.start) == dt.datetime(2026, 11, 10, 18, 0, tzinfo=briefing.LOCAL)
+
+
+def test_briefing_window_closes_at_2030_local():
+    assert not briefing.briefing_closed(dt.datetime(2026, 11, 10, 20, 29, tzinfo=briefing.LOCAL), DATE)
+    assert briefing.briefing_closed(dt.datetime(2026, 11, 10, 20, 30, tzinfo=briefing.LOCAL), DATE)
 
 
 def test_quiet_hours():

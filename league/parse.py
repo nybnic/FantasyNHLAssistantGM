@@ -6,6 +6,10 @@ plain list of names: it looks for every known player's full name in each
 line, then reads Yahoo's "TEAM - POS,POS" next to it when there is one, to
 tell apart players with the same name (two Sebastian Ahos, two Elias
 Petterssons) and to take Yahoo's position eligibility.
+
+On a team page each row starts with the Yahoo slot (C, LW, RW, D, G, BN,
+IR, IR+), on the player's line ("BN  Nathan MacKinnon ...") or on a line of
+its own just above it; that becomes the player's `slot`.
 """
 from __future__ import annotations
 
@@ -22,6 +26,9 @@ NHL_TO_YAHOO_POS = {"C": "C", "L": "LW", "R": "RW", "D": "D", "G": "G"}
 YAHOO_TO_NHL_TEAM = {"LA": "LAK", "NJ": "NJD", "SJ": "SJS", "TB": "TBL"}
 # Browser copies glue it on: "Player NoteSJ - LW,RW".
 _TEAM_POS = re.compile(r"(?<![A-Z])([A-Z]{2,3})\s-\s((?:C|LW|RW|D|G)(?:,(?:C|LW|RW|D|G))*)")
+_SLOT = r"(BN|IR\+|IR|LW|RW|C|D|G)"
+_SLOT_LINE = re.compile(rf"^\s*{_SLOT}\s*$")
+_SLOT_LEAD = re.compile(rf"^\s*{_SLOT}\s")
 
 
 def registry() -> list[dict]:
@@ -41,6 +48,7 @@ def registry() -> list[dict]:
 class Found:
     players: list[RosterPlayer] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)  # lines that looked like a player but didn't resolve
+    tagged: set[int] = field(default_factory=set)  # ids whose positions came from Yahoo's "TEAM - POS"
 
 
 def _index(players: list[dict]) -> dict[str, dict[int, dict]]:
@@ -55,8 +63,12 @@ def find_players(text: str, players: list[dict]) -> Found:
     names = sorted(by_name, key=len, reverse=True)
     found = Found()
     seen: set[int] = set()
+    slot_above = None
     for line in text.splitlines():
-        norm = " " + normalize_name(line)
+        if _SLOT_LINE.match(line):
+            slot_above = _SLOT_LINE.match(line).group(1)
+            continue
+        norm = " " + normalize_name(re.sub(r"\s", " ", line))  # table copies are tab-separated
         hits = []
         for name in names:
             at = norm.find(" " + name)
@@ -67,7 +79,11 @@ def find_players(text: str, players: list[dict]) -> Found:
             tag = None  # can't tell whose it is
         if not hits and tag:
             found.problems.append(f"{line.strip()[:60]}: no player by that name")
-        for _, _, name in hits:
+        if not hits:
+            continue
+        lead = _SLOT_LEAD.match(line)
+        slot, slot_above = (lead.group(1) if lead else slot_above), None
+        for _, _, name in sorted(hits):
             candidates = list(by_name[name].values())
             positions: list[str] = []
             if tag:
@@ -86,8 +102,11 @@ def find_players(text: str, players: list[dict]) -> Found:
             if c["id"] in seen:
                 continue
             seen.add(c["id"])
+            if positions:
+                found.tagged.add(c["id"])
             found.players.append(RosterPlayer(
                 id=c["id"], name=c["name"], team=c["team"],
-                positions=positions or [NHL_TO_YAHOO_POS[c["position"]]],
+                positions=positions or [NHL_TO_YAHOO_POS[c["position"]]], slot=slot,
             ))
+            slot = None  # a slot belongs to the first player on its line
     return found

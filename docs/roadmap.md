@@ -4,23 +4,19 @@ Pick the top item unless Nico names another. Each item has a short "done when".
 Move finished items to the log at the bottom, with the commit.
 
 ## Next
-1. **`/myteam` paste**: paste my Yahoo team page to resync my roster *and slots*
-   (moves made outside the bot, IR changes).
-   Done when: slots are read from the paste (C/LW/RW/D/G/BN/IR/IR+), and a pasted
-   roster replaces `state/roster.json` with a diff reply ("added X, dropped Y").
-2. **Mid-week risk advice**: from Wednesday on, use points so far to advise
+1. **Mid-week risk advice**: from Wednesday on, use points so far to advise
    protecting a lead (steady players, safe goalie starts) or chasing when behind
    (volume, extra goalie starts).
    Done when: `/week` mid-week shows the live score and one clear risk
    recommendation, and a test covers ahead vs behind.
-3. **Keep all rosters fresh cheaply**: a paste of Yahoo's league Transactions
+2. **Keep all rosters fresh cheaply**: a paste of Yahoo's league Transactions
    page updates every team's adds and drops at once.
    Done when: pasting a transactions list moves players between teams and the
    pool in `state/league.json`, and the reply lists the changes.
-4. **IR management**: flag an IR-eligible injured player sitting in an active
+3. **IR management**: flag an IR-eligible injured player sitting in an active
    slot, and a returning player who needs a spot (who to drop).
    Done when: the weekly plan and the evening briefing include an IR line when relevant.
-5. **Sunday report**: the week's result vs projection, decisions taken or
+4. **Sunday report**: the week's result vs projection, decisions taken or
    skipped, and the add budget.
    Done when: sent Sunday evening, with the same numbers `explain_week` would show.
 
@@ -43,4 +39,5 @@ Move finished items to the log at the bottom, with the commit.
 | 2026-09-29 | Yahoo settings page transcribed into the rules doc | e331164 |
 | 2026-09-29 | `/trade` command (and `main.py --dry-run --trade "A for B"`) | 74fa6db |
 | 2026-09-29 | `/trade` suggestions, roster balance and short-of-starters check | (this commit) |
-| 2026-10-01 | Evening briefings missed: relay crons start the runs (needs `npx wrangler deploy`) | (this commit) |
+| 2026-10-01 | Evening briefings missed: relay crons start the runs | e3e1c8e |
+| 2026-10-01 | `/myteam` paste replaces my roster and slots; briefing window 19:30-20:30 | (this commit) |

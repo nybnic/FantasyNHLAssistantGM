@@ -3,7 +3,8 @@ after each Telegram message when the webhook relay (relay/) is set up.
 
 Each run:
 1. reads your Telegram taps and commands - Done/Skip on recommendations,
-   /roster, /week, /opp (paste a team's Yahoo page), /taken, /trade, /help;
+   /roster, /myteam (paste your Yahoo team page), /week, /opp (paste a team's
+   Yahoo page), /taken, /trade, /help;
 2. on the first day of each fantasy week (and on /week), sends the matchup
    plan: expected score and win odds vs this week's opponent, the goalie
    minimum, and the add/drops worth making;
@@ -45,7 +46,8 @@ logger = logging.getLogger(__name__)
 NHL_TIME = ZoneInfo("America/New_York")
 HELP = (
     "Assistant GM commands:\n"
-    "/roster - the roster I think you have (tell me if it's wrong)\n"
+    "/roster - the roster I think you have\n"
+    "/myteam - then paste your Yahoo team page, to correct your roster and slots\n"
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
@@ -54,6 +56,7 @@ HELP = (
     "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
 )
+MYTEAM_HINT = "\n\nWrong? Send /myteam and paste your Yahoo team page."
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
 
@@ -145,7 +148,9 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             command, _, rest = first_line.partition(" ")
             command = command.lower().split("@")[0]
             if command == "/roster":
-                outbox.send(roster_mod.describe(players) or "No roster yet - run scripts/seed_roster.py.")
+                outbox.send((roster_mod.describe(players) or "No roster yet.") + MYTEAM_HINT)
+            elif command == "/myteam":
+                myteam_command((rest + "\n" + body).strip(), state, players, outbox)
             elif command in ("/help", "/start"):
                 outbox.send(HELP)
             elif command == "/week":
@@ -158,7 +163,10 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 taken_command(rest + "\n" + body, league, outbox)
             elif state["awaiting"] and not text.startswith("/"):
                 team, state["awaiting"] = state["awaiting"], None
-                update_team(team, text, league, outbox)
+                if team == MY_TEAM:
+                    update_my_roster(text, players, outbox)
+                else:
+                    update_team(team, text, league, outbox)
     return problem
 
 
@@ -205,11 +213,38 @@ def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Ou
         outbox.send(f"OK - now paste {team}'s Yahoo team page (copy the whole page; any format works).")
 
 
+def myteam_command(paste: str, state: dict, players: list, outbox: Outbox) -> None:
+    """/myteam, with your Yahoo team page pasted below it or in the next message."""
+    if paste:
+        update_my_roster(paste, players, outbox)
+    else:
+        state["awaiting"] = MY_TEAM
+        outbox.send("OK - now paste your Yahoo team page (My Team, copy the whole page). "
+                    "Or one player per line with the slot first: \"BN Nathan MacKinnon\".")
+
+
+def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
+    found = parse.find_players(paste, parse.registry())
+    n = len(found.players)
+    if not roster_mod.MIN_PASTED <= n <= roster_mod.MAX_PLAYERS:
+        problems = "\nCouldn't place: " + "; ".join(found.problems) if found.problems else ""
+        outbox.send(f"I found {n} players, but a roster has {roster_mod.MIN_PASTED}-{roster_mod.MAX_PLAYERS}. "
+                    f"Your roster is unchanged: paste the whole team page.{problems}")
+        return
+    changes = roster_mod.replace(players, found.players, found.tagged)
+    lines = [f"Roster saved: {n} players."] + (changes or ["Same as I had."])
+    if found.problems:
+        lines.append("Couldn't place: " + "; ".join(found.problems))
+    outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
+
+
 def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
     found = parse.find_players(paste, parse.registry())
     if not found.players:
         outbox.send(f"I couldn't find any players in that. {team}'s roster is unchanged.")
         return
+    for p in found.players:
+        p.slot = None  # other teams are assumed to set their best lineup
     teams.set_team(league, team, found.players, _nhl_today())
     lines = [f"{team}: {len(found.players)} players saved."]
     lines += [f"  {p.name} ({p.team}, {'/'.join(p.positions)})" for p in found.players]
@@ -263,6 +298,9 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
         if now < briefing.briefing_due(date, games[0].start) or briefing.quiet(now):
             return
         if now >= games[-1].start or (record and record["updates"] >= 1):
+            return
+        if record is None and briefing.briefing_closed(now, date):
+            logger.info("Briefing window for %s closed before any run reached it", key)
             return
 
     ctx = build_context(date)

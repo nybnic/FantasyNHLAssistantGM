@@ -1,5 +1,6 @@
 """The relay's crons start the runs that send the evening briefing (GitHub's
-own schedule proved too unreliable), so they must land inside its window."""
+own schedule proved too unreliable), so they must land inside its window,
+19:30-20:30 Helsinki."""
 import datetime as dt
 import tomllib
 from pathlib import Path
@@ -35,5 +36,5 @@ def test_relay_crons_fire_inside_the_briefing_window(date, first_puck):
     start = dt.datetime.combine(date, first_puck, NHL_TIME)
     due = briefing.briefing_due(date, start)
     fires = sorted({t for cron in relay_crons() for t in cron_times(cron, date)})
-    in_window = [t for t in fires if t >= due and not briefing.quiet(t) and t < start]
+    in_window = [t for t in fires if due <= t < start and not briefing.quiet(t) and not briefing.briefing_closed(t, date)]
     assert len(in_window) >= 2, f"briefing due {due}, crons fire at {fires}"
