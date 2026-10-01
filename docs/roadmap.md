@@ -26,6 +26,9 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
   (points-for matters for the add price, which values only wins), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
+- Projections run high and overstate differences (`scripts/check_sigma.py`: margins
+  realize at 0.87, teams 0.46 sigma under projection): find the cause (mid-week
+  injuries, scratches, goalie shares?) before shrinking add gains.
 - Calibrate `MODEL_SD_SHARE`, the streaming-spot counts and the add price once 4-6
   weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
 - Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected

@@ -25,6 +25,7 @@ matchup, so start odds live in `engine/availability.py`.
 | Age curve | Fit on 2024-25, checked on 2025-26: season-level MAE 0.628 -> 0.580, age bias mostly gone. In-season backtest 1.599 -> 1.595 (partly in-sample) |
 | A goalie's track record barely predicts his points per start | Backtest pairwise 51% (a coin flip), so the game model dominates |
 | Per-game variance: skater ~2.5 x xFP, goalie start ~21 | 2025-26 game logs (used by `engine/matchup.py`). They set P(win)'s spread, so also what a point is worth in win odds and the add price (`engine/addprice.py`); `MODEL_SD_SHARE` 0.08 on top is a guess |
+| P(win) spread (`scripts/check_sigma.py`, 2026-10-01) | 2025-26, 20 simulated leagues, 3520 matchups projected as the bot does: error / sigma has SD 1.01 per team-week, actual margin spread 42.9 vs model 44.7 pts, calibration within ~3 pts except 80-100% (88% predicted, 83% won). Sigma is right. But a projected margin point shows up as 0.87 in results, and teams score 0.46 sigma below projection (overprojection; it cancels between two teams) |
 | Our model vs Yahoo | 711-skater preseason export: Spearman 0.95. Free-agent D after the age fix: veterans within ~0.1-0.3 pts/game |
 
 ## Judgment calls (untested, labeled in code)
