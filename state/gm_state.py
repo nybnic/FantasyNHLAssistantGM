@@ -41,6 +41,7 @@
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
 - health_alerts: per data source, the day its trouble was last reported
+- repairs_done: the one-time repairs already applied (state/repairs.py)
 - seen_mine: player id -> the last NHL date he was on my roster (a player back
   on it within 30 days is a correction, not an add)
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran

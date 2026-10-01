@@ -793,7 +793,7 @@ def test_screenshots_that_miss_a_player_keep_him(monkeypatch, tmp_path):
     shots = {"top": _matchup_shot([_row(i) for i in range(11)])}  # Lson's row wasn't reached
     state, players, league, sent = _matchup(monkeypatch, tmp_path, shots)
     assert 211 in {p.id for p in players} and len(players) == 12
-    assert "Not in these screenshots, so kept: Paul Lson." in sent[0]
+    assert "Not in these screenshots, so kept: Paul Lson. If you dropped him, send League > Transactions" in sent[0]
 
 
 def test_a_player_mine_lately_coming_back_is_a_correction_not_an_add(tmp_path):
@@ -814,7 +814,10 @@ def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
                      {"id": 8475170, "name": "Brayden Schenn", "date": "2026-10-01", "source": "roster"}]
     players = [RosterPlayer(8480855, "Jack McBain", "UTA", ["C", "LW"], "C"),
                RosterPlayer(8475170, "Brayden Schenn", "NYI", ["C", "LW"], None)]
-    repairs.apply(state, players)
-    repairs.apply(state, players)  # idempotent
+    league = {"teams": {}, "taken": []}
+    repairs.apply(state, players, league)
+    players.append(RosterPlayer(8483703, "Sergei Murashov", "PIT", ["G"], "BN"))  # re-added later: stays
+    repairs.apply(state, players, league)  # each repair runs once
     assert [a["id"] for a in state["adds"]] == [None]
     assert [(p.name, p.slot) for p in players] == [("Jack McBain", "C"), ("Sergei Murashov", "BN")]
+    assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == 2

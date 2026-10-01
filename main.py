@@ -93,7 +93,7 @@ def main() -> None:
     state = gm_state.load()
     players = roster_mod.load()
     league = teams.load()
-    repairs.apply(state, players)
+    repairs.apply(state, players, league)
     build_context = functools.lru_cache(maxsize=None)(context.build)
     if args.trade is not None:
         state["trade_request"] = args.trade

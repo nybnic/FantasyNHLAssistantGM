@@ -60,6 +60,11 @@ def remember_mine(state: dict, players: list, date: dt.date) -> None:
         state["seen_mine"][str(p.id)] = date.isoformat()
 
 
+def forget_mine(state: dict, player_id: int) -> None:
+    """I dropped him: a later re-add of him is an add, not a correction."""
+    state["seen_mine"].pop(str(player_id), None)
+
+
 def current_opponent(state: dict, week: int) -> str | None:
     return weeks.opponent(week) or state["opponents"].get(str(week))
 

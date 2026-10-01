@@ -122,6 +122,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 gm_state.record_add(state, rec["add"]["id"], rec["add"].get("name"), common.nhl_today(), "done")
                 if rec["drop"] is not None:
                     teams.put_on_waivers(league, rec["drop"], common.nhl_today())
+                    common.forget_mine(state, rec["drop"])
             if action == "taken" and rec["type"] == "add":
                 teams.mark_taken(league, [rec["add"]["id"]])
                 state["week_requested"] = True  # the next best add, right away
@@ -199,6 +200,7 @@ def other_drop(rec_id: str, text: str, state: dict, players: list, league: dict,
         return
     players[:] = [p for p in players if p.id != dropped.id]
     teams.put_on_waivers(league, dropped.id, common.nhl_today())
+    common.forget_mine(state, dropped.id)
     for d in reversed(state["decisions"]):
         if d["rec_id"] == rec_id:
             d.update(drop=dropped.id, drop_name=mine[dropped.id].name)
@@ -332,6 +334,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
         """`when` (the row's time) for a drop, which puts him on waivers; None for a trade."""
         if team == MY_TEAM:
             players[:] = [q for q in players if q.id != p.id]
+            common.forget_mine(state, p.id)
         teams.remove_player(league, team, p.id)
         if when:
             teams.put_on_waivers(league, p.id, _tx_nhl_date(when))
@@ -447,7 +450,8 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     changes = roster_mod.replace(players, shown, found.tagged)
     lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
     if kept:
-        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}.")
+        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}. If you dropped "
+                     f"{'him' if len(kept) == 1 else 'them'}, send League > Transactions screenshots.")
     lines += count_new_players(state, league, before, players, date)
     if opponent and theirs:
         before = {p.id: p.name for p in teams.players(league, opponent)}
@@ -560,7 +564,8 @@ def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict
     changes = roster_mod.replace(players, shown, found.tagged)
     lines = [f"Roster saved: {len(shown)} players."] + (changes or ["Same as I had."])
     if kept:
-        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}.")
+        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}. If you dropped "
+                     f"{'him' if len(kept) == 1 else 'them'}, send League > Transactions screenshots.")
     lines += count_new_players(state, league, before, players, common.nhl_today())
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
