@@ -23,7 +23,7 @@ import math
 
 import numpy as np
 
-import main
+from bot import common, weekly
 from engine import addprice, matchup
 from league import roster as roster_mod, teams, weeks
 from model import context
@@ -40,11 +40,11 @@ def _phi(x: float) -> float:
 
 
 def current_pool() -> dict:
-    date = dt.datetime.now(main.NHL_TIME).date()
+    date = dt.datetime.now(common.NHL_TIME).date()
     week = weeks.week_of(date)
     state, players, league = gm_state.load(), roster_mod.load(), teams.load()
-    wk = main.week_inputs(date, week, players, league, state, context.build, main.current_opponent(state, week))
-    ranked = matchup.candidate_moves(players, wk.them, main.add_candidates(wk, main.next_week(week, players, wk)),
+    wk = weekly.week_inputs(date, week, players, league, state, context.build, common.current_opponent(state, week))
+    ranked = matchup.candidate_moves(players, wk.them, weekly.add_candidates(wk, weekly.next_week(week, players, wk)),
                                      wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future, wk.weeks_after,
                                      wk.available_from, wk.so_far, wk.hold_days, wk.later_weight)
     remaining = sum(d >= date for d in wk.days)

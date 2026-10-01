@@ -34,7 +34,7 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
   Yahoo's score vs the box scores' best lineup in `results[week]["live"]`). Once 3-4 weeks
   show an effect, shade opponents' projections (inactive managers, heavy streamers).
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
-- Split `main.py` (commands, ingest, weekly) and the message text out of `engine/matchup.py`.
+- Move the message text out of `engine/matchup.py` (as bot/ did for main.py).
 - Speed: the move search spends most of its time in the lineup solver (2,100 distinct
   days a plan, ~6 ms each); a faster solver must keep its tie-breaks (open slots).
 - Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected
@@ -86,3 +86,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | "Other drop" button on adds (records the add, asks who was dropped); naming a playoff opponent with /opp sends that week's plan | (this commit) |
 | 2026-10-01 | Opponent profiles logged: other teams' adds (Transactions) and Yahoo's score vs the best-lineup box score on each screenshot day | (this commit) |
 | 2026-10-01 | Requirements pinned to CI's minor versions (numpy now explicit); the lineup solver's results cached (move search 24 -> 21 s, same output; profiled: the solver, not the projections, is the cost) | (this commit) |
+| 2026-10-01 | main.py split into bot/ (ingest, weekly, daily, common); tests and scripts import from there and run offline (checked with sockets blocked) | (this commit) |

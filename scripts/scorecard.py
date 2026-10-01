@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 
-import main
+from bot import common
 from engine import scorecard
 from model import context
 from state import gm_state
@@ -22,7 +22,7 @@ def main_() -> None:
     parser.add_argument("--now", help="ISO time with offset (default: now)")
     args = parser.parse_args()
     now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
-    today = now.astimezone(main.NHL_TIME).date()
+    today = now.astimezone(common.NHL_TIME).date()
     state = gm_state.load()
     scored = scorecard.score(state["decisions"], context.build(today), today)
     waiting = sum(1 for d in state["decisions"] if d["type"] == "add" and d.get("add") is not None) - len(scored)

@@ -25,7 +25,7 @@
 - **Data check**: a data source that fails or is served from an old cached copy
   (DailyFaceoff lines, starting goalies, projections; NHL schedule, rosters, stats)
   gets one Telegram line a day, with what it means for the advice
-  (`clients/health.py`, `main.alert_health`). The run itself stays green.
+  (`clients/health.py`, `bot/daily.alert_health`). The run itself stays green.
 
 ## Secrets
 | Where | Name | Used for |
@@ -39,7 +39,7 @@ masked: `notify/telegram.TelegramError` and the failure alert strip the token.
 
 ## Dashboard (GitHub Pages)
 `site/index.html` is ours; `site/data.json` is written by every weekly plan
-(`main.write_dashboard`, from the same `engine/report.py` views as the charts)
+(`bot/weekly.write_dashboard`, from the same `engine/report.py` views as the charts)
 and committed with the state. The workflow's `deploy-dashboard` job publishes
 `site/` when `data.json` changed. One-time setup: repo Settings > Pages >
 Source: GitHub Actions. The page is public (like `state/`) and marked
@@ -68,12 +68,12 @@ roster names one of them.
   suggest, IR changes), `/myteam` + paste my Yahoo team page.
 - Opponent: `/opp` + paste their Yahoo team page, ideally each Monday.
 - Both at once, plus the live score: screenshots of the Yahoo app's Matchup tab
-  (`clients/screenshot.read`, `main.finish_matchup`). The score is used as
+  (`clients/screenshot.read`, `bot/ingest.finish_matchup`). The score is used as
   points so far only on the day it was taken, and only if it was taken before
   that day's first puck (later, today's points can't be told apart).
 - Free agents: everyone on an NHL roster minus all known rosters minus `taken`.
   Other teams' pickups are unknown until a League > Transactions screenshot
-  (`main.finish_transactions`: applied oldest first, each once, with a warning
+  (`bot/ingest.finish_transactions`: applied oldest first, each once, with a warning
   when new screenshots don't reach back to the last ones seen), the Taken
   button on an add, or `/taken`.
 - Waivers: every drop the bot learns of (a Transactions row, a Done tap's drop)

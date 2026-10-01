@@ -2,7 +2,8 @@ import datetime as dt
 import os
 import time
 
-import main
+from bot import common, daily
+from notify import telegram
 from clients import cache, health
 from config.settings import load_settings
 from state import gm_state
@@ -14,8 +15,8 @@ def _outbox(monkeypatch):
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
     monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
     sent = []
-    monkeypatch.setattr(main.telegram, "send_message", lambda *a, **k: sent.append(a[2]) or 1)
-    return main.Outbox(load_settings()), sent
+    monkeypatch.setattr(telegram, "send_message", lambda *a, **k: sent.append(a[2]) or 1)
+    return common.Outbox(load_settings()), sent
 
 
 def test_a_broken_dailyfaceoff_fetch_shows_in_telegram_once_a_day(monkeypatch, tmp_path):
@@ -26,10 +27,10 @@ def test_a_broken_dailyfaceoff_fetch_shows_in_telegram_once_a_day(monkeypatch, t
     def team_lines(team):
         raise ConnectionError("DFO down")
     for team in ("BOS", "TOR"):
-        assert main._safe(team_lines, team, default={}) == {}
-    main._safe(lambda: 1 / 0)  # not data: a chart, say
-    main.alert_health(state, outbox, NOW)
-    main.alert_health(state, outbox, NOW)  # same day: once
+        assert common._safe(team_lines, team, default={}) == {}
+    common._safe(lambda: 1 / 0)  # not data: a chart, say
+    daily.alert_health(state, outbox, NOW)
+    daily.alert_health(state, outbox, NOW)  # same day: once
     assert sent == ["Data check:\nDailyFaceoff line charts: failed (ConnectionError) (2x). "
                     "Meanwhile injuries and scratches unknown, so those players count as healthy."]
     health.clear()

@@ -16,7 +16,7 @@
 - **A team's week** = the best lineup on each remaining game day (the opponent is
   assumed optimal too), plus points so far: Yahoo's score from a matchup screenshot
   taken today, else box scores, each day scored with that day's roster
-  (`main.rosters_by_day`: the day's snapshot, kept until its first puck, plus
+  (`bot/weekly.rosters_by_day`: the day's snapshot, kept until its first puck, plus
   today's players less my later adds). Goalie points are
   multiplied by P(reaching the 3-game minimum).
 - **P(win)** = normal approximation of the point difference (the variance

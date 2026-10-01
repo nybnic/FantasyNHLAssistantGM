@@ -15,7 +15,8 @@ screenshots (team pages, matchups, League > Transactions) or pasted pages.
 ## Map
 | Path | What lives there |
 |---|---|
-| `main.py` | Entry point: Telegram commands and taps, the weekly plan step, the evening lineup step |
+| `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan, news check, results, Monday's report), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule, calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` |
 | `engine/` | Decisions: daily lineup, availability, weekly matchup and add/drops. See `engine/CLAUDE.md` |
