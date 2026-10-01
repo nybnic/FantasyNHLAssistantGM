@@ -787,7 +787,8 @@ class WeekInputs:
     tau: float  # spread of the league's matchup margins
     weeks_after: int
     available_from: dict  # player id -> first day he can play for me: waivers
-    so_far: tuple | None = None  # my banked points from a matchup screenshot (else box scores)
+    so_far: tuple | None = None  # my banked points: a matchup screenshot's, else box scores by day's roster
+    live: bool = False  # so_far comes from a matchup screenshot taken today
     hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
@@ -804,12 +805,20 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     starters = _safe(goalie_client.get_starters, date, default={})
     season_used, week_used = matchup.adds_used(state["adds"], days)
     them_roster = teams.players(league, opponent)
-    mine = theirs = projected = None
+    added_on = {a["id"]: dt.date.fromisoformat(a["date"]) for a in state["adds"] if a["id"] is not None}
+    my_days = rosters_by_day(state, "me", roster_mod.active(players), days, date, added_on)
+    their_days = rosters_by_day(state, opponent, them_roster, days, date)
+    projected = None
     live = state["live_score"]
-    if live and live["week"] == week and live["opponent"] == opponent and live["through"] == date.isoformat():
-        mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days)
-        theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days)
+    is_live = bool(live and live["week"] == week and live["opponent"] == opponent
+                   and live["through"] == date.isoformat())
+    if is_live:
+        mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days, my_days)
+        theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days, their_days)
         projected = live["projected"] or None
+    else:
+        mine = matchup._so_far(roster_mod.active(players), ctx, days, my_days)
+        theirs = matchup._so_far(them_roster, ctx, days, their_days)
     me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine)
     them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
     remaining = sum(d >= date for d in days)
@@ -820,7 +829,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
         me=me, them=them, tau=tau, later_weight=addprice.later_weight(sigma_week, tau),
         pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
-        so_far=mine, yahoo_projected=projected,
+        so_far=mine, live=is_live, yahoo_projected=projected,
         hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
                       - sum(d >= date for d in days)),
         pool=pool,
@@ -857,12 +866,54 @@ def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.dat
     return addprice.AddPrice(lam, wk.later_weight, wk.pace)
 
 
-def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date]) -> tuple[float, float, int]:
+def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date],
+            history: dict | None = None) -> tuple[float, float, int]:
     """(skater points, goalie points, goalie games) so far: Yahoo's score,
     split by the G-slot rows (else by box scores); goalie games from box scores."""
-    skater_bs, goalie_bs, goalie_games = matchup._so_far(roster_mod.active(roster), ctx, days)
+    skater_bs, goalie_bs, goalie_games = matchup._so_far(roster_mod.active(roster), ctx, days, history)
     goalie = goalie_bs if goalie is None else goalie
     return total - goalie, goalie, goalie_games
+
+
+def snapshot_rosters(state: dict, players: list, league: dict, now: dt.datetime) -> None:
+    """Keep today's rosters, mine and my opponent's, as they are until the
+    day's first puck: points banked later this week are scored with the
+    players each team had that day, so a mid-week add or drop doesn't move them."""
+    date = now.astimezone(NHL_TIME).date()
+    week = weeks.week_of(date)
+    if week is None or not players:
+        return
+    games = nhl_client.games_on(date)
+    if games and now >= games[0].start:
+        return  # lineups are locking: today's snapshot stays as it was
+    opponent = current_opponent(state, week)
+    state["day_rosters"][date.isoformat()] = {
+        "me": [asdict(p) for p in roster_mod.active(players)],
+        "them": {"team": opponent, "players": [asdict(p) for p in teams.players(league, opponent)]}
+        if opponent else None,
+    }
+
+
+def rosters_by_day(state: dict, side: str, current: list, days: list[dt.date], today: dt.date,
+                   added_on: dict[int, dt.date] | None = None) -> dict[dt.date, list]:
+    """Each finished day's roster for `side` ("me" or the opponent's name):
+    that day's snapshot plus today's players (a correction since may have
+    shown someone the snapshot missed), less anyone added after that day
+    (`added_on`: my adds ledger; the opponent's adds are unknown)."""
+    out = {}
+    for d in (d for d in days if d < today):
+        snap = state["day_rosters"].get(d.isoformat()) or {}
+        if side == "me":
+            saved = snap.get("me") or []
+        else:
+            them = snap.get("them") or {}
+            saved = them.get("players", []) if them.get("team") == side else []
+        players = {p["id"]: roster_mod.RosterPlayer(**p) for p in saved}
+        for p in current:
+            if not (added_on and added_on.get(p.id, d) > d):
+                players.setdefault(p.id, p)
+        out[d] = list(players.values())
+    return out
 
 
 def _week_schedule(week: int) -> dict[dt.date, list]:
@@ -1023,7 +1074,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                                    wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
                                    candidates, ranked, wk.hold_days)
     midweek = None
-    if is_midweek or wk.so_far is not None:
+    if is_midweek or wk.live:
         chase = None
         if matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
             chase = matchup.biggest_swing(ranked)
@@ -1119,6 +1170,7 @@ def main() -> None:
     steps = [("updates", read_updates)] if not settings.dry_run else []
     steps += [
         ("NHL teams", lambda: sync_teams(players) if players else None),
+        ("day rosters", lambda: snapshot_rosters(state, players, league, now)),
         ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),

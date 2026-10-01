@@ -25,6 +25,9 @@
 - add_pools: per fantasy week, the candidate adds the plan weighed (full-week
   gain, later points, add id, drop id) with sigma and tau: the add price is
   solved over them (engine/addprice.py), the newest 12 weeks kept
+- day_rosters: per NHL date, my active roster and my opponent's as they were
+  before that day's first puck ({"me": [...], "them": {"team", "players"}}):
+  the week's banked points are scored with each day's players (the last 14 days)
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -70,6 +73,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("transaction_rows", [])
     state.setdefault("transactions_seen", {})
     state.setdefault("add_pools", {})
+    state.setdefault("day_rosters", {})
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state
@@ -99,6 +103,7 @@ def record_add(state: dict, player_id: int, name: str | None, date: dt.date, sou
 def save(state: dict, today: dt.date, path: Path = STATE_FILE) -> None:
     cutoff = (today - dt.timedelta(days=KEEP_DAYS)).isoformat()
     state["briefings"] = {d: b for d, b in state["briefings"].items() if d >= cutoff}
+    state["day_rosters"] = {d: r for d, r in state["day_rosters"].items() if d >= cutoff}
     state["pending"] = {k: v for k, v in state["pending"].items() if v["date"] >= cutoff}
     state["decisions"] = state["decisions"][-KEEP_DECISIONS:]
     seen = sorted(state["transactions_seen"].items(), key=lambda kv: kv[1])[-KEEP_TRANSACTIONS:]

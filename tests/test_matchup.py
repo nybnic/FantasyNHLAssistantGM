@@ -350,3 +350,13 @@ def test_a_player_out_tonight_is_not_free_to_drop_in_the_long_run():
     without = matchup.project("me", roster[1:], FakeContext(), future, lines, {}, long_run=True)
     # Out tonight used to mean zero for all six weeks, so dropping him cost nothing later.
     assert with_him.expected - without.expected > 0.5 * 4.0 * len(future)
+
+
+def test_banked_points_come_from_each_days_roster():
+    ctx = FakeContext()
+    ctx.today = WED
+    ctx.skater_games = {5: [_Log(MON, {"g": 1})], 9: [_Log(MON, {"g": 3}), _Log(TUE, {"a": 1})]}
+    now = [RosterPlayer(9, "Added Tue", "NYR", ["C"], "C")]  # and 5 was dropped Tuesday
+    history = {MON: [RosterPlayer(5, "Dropped", "BOS", ["C"], "C")], TUE: now}
+    skaters, _, _ = matchup._so_far(now, ctx, [MON, TUE, WED], history)
+    assert skaters == pytest.approx(4.0 + 2.75)  # his Monday goal, then the new player's Tuesday assist

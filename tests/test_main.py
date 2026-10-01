@@ -366,7 +366,7 @@ def test_someone_elses_matchup_changes_no_roster(monkeypatch, tmp_path):
 
 
 def test_yahoos_score_is_split_by_the_goalie_rows_else_by_box_scores(monkeypatch):
-    monkeypatch.setattr(main.matchup, "_so_far", lambda roster, ctx, days: (5.0, 3.0, 1))
+    monkeypatch.setattr(main.matchup, "_so_far", lambda roster, ctx, days, history=None: (5.0, 3.0, 1))
     assert main._banked(13.4, 8.2, [], None, []) == (pytest.approx(5.2), 8.2, 1)
     assert main._banked(13.4, None, [], None, []) == (pytest.approx(10.4), 3.0, 1)
 
@@ -565,3 +565,31 @@ def test_my_drop_on_done_goes_on_waivers(monkeypatch, tmp_path):
     league = {"teams": {}, "taken": []}
     main.process_updates(settings, state, players, league, main.Outbox(settings))
     assert league["waivers"] == {"2": "2026-10-03"}
+
+
+def test_todays_rosters_are_kept_until_the_first_puck(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    first_puck = dt.datetime(2026, 10, 1, 23, tzinfo=dt.timezone.utc)
+    monkeypatch.setattr(main.nhl_client, "games_on", lambda d: [main.nhl_client.ScheduledGame(1, first_puck, "BOS", "TOR")])
+    league = {"teams": {"Bahelin Boys": {"updated": "2026-09-29", "players": [
+        {"id": 300, "name": "Rick Aho", "team": "TOR", "positions": ["C"], "slot": None}]}}, "taken": []}
+    main.snapshot_rosters(state, players, league, NOW)
+    saved = state["day_rosters"]["2026-10-01"]
+    assert [p["id"] for p in saved["me"]] == [1, 2] and saved["them"]["team"] == "Bahelin Boys"
+    players.append(RosterPlayer(9, "Late Add", "NYR", ["C"], "BN"))
+    main.snapshot_rosters(state, players, league, first_puck)  # games have started: no change
+    assert [p["id"] for p in state["day_rosters"]["2026-10-01"]["me"]] == [1, 2]
+
+
+def test_each_days_roster_keeps_dropped_players_and_leaves_out_later_adds():
+    state = gm_state.load(path=main.Path("no-such-file.json"))
+    state["day_rosters"] = {"2026-09-30": {"me": [
+        {"id": 1, "name": "A", "team": "BOS", "positions": ["C"], "slot": "C"},
+        {"id": 5, "name": "Dropped Thu", "team": "BOS", "positions": ["D"], "slot": "D"}]}}
+    current = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(9, "Added Thu", "NYR", ["C"], "BN"),
+               RosterPlayer(7, "Missed by the snapshot", "TOR", ["LW"], "LW")]
+    days = [dt.date(2026, 9, 29), dt.date(2026, 9, 30), dt.date(2026, 10, 1)]
+    by_day = main.rosters_by_day(state, "me", current, days, dt.date(2026, 10, 1), {9: dt.date(2026, 10, 1)})
+    assert sorted(p.id for p in by_day[dt.date(2026, 9, 30)]) == [1, 5, 7]
+    assert sorted(p.id for p in by_day[dt.date(2026, 9, 29)]) == [1, 7]  # no snapshot: today's, less the add
+    assert dt.date(2026, 10, 1) not in by_day  # today isn't banked yet

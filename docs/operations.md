@@ -47,7 +47,7 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
 | `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, matchup screenshots, `scripts/seed_roster.py` |
 | `state/positions.json` | Yahoo position eligibility per player (free agents use it) | Every Yahoo screenshot or paste; seeded once by `scripts/seed_positions.py` |
 | `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
-| `state/gm_state.json` | Telegram offset, pending recs, decisions, the adds ledger (`adds`: what the add budget counts), sent briefings/plans, the latest matchup score, transactions applied, and each week's add candidates (`add_pools`, which the add price is solved over) | Every run |
+| `state/gm_state.json` | Telegram offset, pending recs, decisions, the adds ledger (`adds`: what the add budget counts), each day's rosters before its first puck (`day_rosters`: banked points), sent briefings/plans, the latest matchup score, transactions applied, and each week's add candidates (`add_pools`, which the add price is solved over) | Every run |
 
 ## The add budget (`state["adds"]`)
 Every add counts once, however the bot learns of it: a Done tap (dated the

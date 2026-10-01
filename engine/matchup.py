@@ -186,13 +186,14 @@ def _at_least(probs: list[float], so_far: int, need: int) -> float:
     return sum(q for k, q in enumerate(dist) if so_far + k >= need)
 
 
-def _so_far(roster, ctx, days) -> tuple[float, float, int]:
-    """(skater points, goalie points, goalie games) in finished games this week."""
+def _so_far(roster, ctx, days, history: dict[dt.date, list[RosterPlayer]] | None = None) -> tuple[float, float, int]:
+    """(skater points, goalie points, goalie games) in finished games this
+    week, scoring each day with that day's roster from `history` (else today's)."""
     skater_pts = goalie_pts = 0.0
     goalie_games = 0
     for date in (d for d in days if d < ctx.today):
         played = {}
-        for p in roster:
+        for p in (history or {}).get(date, roster):
             logs = ctx.goalie_games if p.is_goalie else ctx.skater_games
             game = next((g for g in logs.get(p.id, []) if g.date == date), None)
             if game:
