@@ -45,8 +45,43 @@
     }
   ],
   "last_error": null,
+  "live_score": {
+    "at": "2026-10-01T07:15:18+00:00",
+    "goalies": [
+      null,
+      null
+    ],
+    "opponent": "Bahelin Boys",
+    "projected": [
+      159.79,
+      164.52
+    ],
+    "score": [
+      13.4,
+      51.5
+    ],
+    "through": "2026-10-01",
+    "week": 1
+  },
+  "matchup_shots": null,
   "opponents": {},
-  "pending": {},
+  "pending": {
+    "add-2026-10-01-0715-0": {
+      "add": {
+        "id": 8481668,
+        "name": "Arturs Silovs",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PIT"
+      },
+      "date": "2026-10-01",
+      "drop": 8483703,
+      "message_id": 72,
+      "type": "add"
+    }
+  },
   "relay_alert": "2026-09-29",
   "screenshots": {
     "at": "2026-10-01T05:52:04+00:00",
@@ -178,12 +213,12 @@
     ],
     "team": "Nico's Groovy Team"
   },
-  "telegram_offset": 929784527,
+  "telegram_offset": 929784529,
   "trade_request": null,
   "week_requested": false,
   "weeks": {
     "1": {
-      "sent": "2026-09-30T02:46+00:00"
+      "sent": "2026-10-01T07:15+00:00"
     }
   }
 }
