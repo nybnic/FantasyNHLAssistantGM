@@ -459,3 +459,13 @@ def test_taken_marks_the_suggested_player_and_asks_for_the_next_best(monkeypatch
     main.process_updates(settings, state, players, league, main.Outbox(settings))
     assert league["taken"] == [900] and state["week_requested"]
     assert state["decisions"][-1]["decision"] == "taken" and handled == ["Taken: finding the next best"]
+
+
+def test_free_agents_take_yahoos_positions_once_a_screenshot_showed_them(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [])
+    monkeypatch.setattr(main.nhl_client, "current_rosters", lambda: [
+        {"id": 800, "name": "Jack McBain", "team": "UTA", "position": "C"},
+        {"id": 801, "name": "Nobody Seen", "team": "UTA", "position": "C"}])
+    main.learn_positions([RosterPlayer(800, "Jack McBain", "UTA", ["C", "LW"])])
+    pool = {p.id: p.positions for p in main.free_agents([], {"teams": {}, "taken": []})}
+    assert pool == {800: ["C", "LW"], 801: ["C"]}

@@ -267,3 +267,37 @@ def test_dropping_a_streaming_spot_costs_only_the_next_two_weeks(monkeypatch):
     core = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
                 if m.drop and m.drop.id == 2)
     assert core.long_term < 0
+
+
+def test_this_weeks_last_add_goes_to_a_move_that_pays_now_and_the_keeper_waits():
+    murashov, schenn = RosterPlayer(5, "Sergei Murashov", "PIT", ["G"]), RosterPlayer(6, "Brayden Schenn", "NYI", ["C"])
+    keeper = matchup.Move(RosterPlayer(1, "Arturs Silovs", "PIT", ["G"]), murashov, week_gain=0.0, long_term=48.0,
+                          next_weeks=9.0, games=1, win_before=0.48, win_after=0.48)
+    streamer = matchup.Move(RosterPlayer(2, "Jack McBain", "UTA", ["C", "LW"]), schenn, week_gain=10.0,
+                            long_term=-4.0, next_weeks=-4.6, games=3, win_before=0.48, win_after=0.59)
+    ranked = [keeper, streamer]  # by score: the keeper first
+    moves = matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, threshold=3.0,
+                               so_far=(0.0, 0.0, 0), candidates=[], ranked=ranked)
+    assert moves == [streamer]
+    assert matchup.can_wait(ranked, moves, 3.0) is keeper
+    assert matchup.why_not(keeper, 3.0, moves) == "worth an add, but this week's go to Jack McBain"
+    # With nothing else passing, the keeper takes the add now: no reason to wait.
+    assert matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, threshold=3.0,
+                              so_far=(0.0, 0.0, 0), candidates=[], ranked=[keeper]) == [keeper]
+
+
+def test_a_failing_move_is_explained_by_its_long_run_cost_only_when_that_is_why():
+    schenn = RosterPlayer(6, "Brayden Schenn", "NYI", ["C"])
+    costly = matchup.Move(RosterPlayer(2, "Jack McBain", "UTA", ["C"]), schenn, week_gain=2.0, long_term=-24.0,
+                          next_weeks=-4.0, games=3, win_before=0.48, win_after=0.52)
+    assert matchup.why_not(costly, 3.0) == "dropping Brayden Schenn costs about 24 pts over the rest of the season"
+
+
+def test_the_add_card_names_a_keeper_or_a_streamer_by_the_long_run_that_ranked_it():
+    schenn = RosterPlayer(6, "Brayden Schenn", "NYI", ["C"])
+    keeper = matchup.Move(RosterPlayer(2, "Vasily Podkolzin", "EDM", ["LW", "RW"]), schenn, week_gain=5.9,
+                          long_term=42.6, next_weeks=-2.4, games=2, win_before=0.48, win_after=0.54)
+    assert "a keeper: ahead of Brayden Schenn" in matchup.move_text(keeper) and "streamer" not in matchup.move_text(keeper)
+    streamer = matchup.Move(RosterPlayer(3, "Jack McBain", "UTA", ["C"]), schenn, week_gain=10.0,
+                            long_term=-4.0, next_weeks=-4.0, games=3, win_before=0.48, win_after=0.59)
+    assert "a streamer" in matchup.move_text(streamer)

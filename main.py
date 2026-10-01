@@ -39,7 +39,7 @@ from config.league import (MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEA
                            TRADE_DEADLINE)
 from config.settings import Settings, load_settings
 from engine import briefing, matchup, report, trade
-from league import draft, parse, teams, weeks
+from league import draft, parse, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import charts, telegram
@@ -312,6 +312,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
         if not found.players:
             problems.append(found.problems[0] if found.problems else shown["name"])
             return None
+        learn_positions(found.players, found.tagged)
         return found.players[0]
 
     def on_team(team: str) -> set[int]:
@@ -434,11 +435,13 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
                                         "the matchup screenshots, or /save to save just these."]))
         return
     state["matchup_shots"] = None
+    learn_positions(found.players, found.tagged)
     changes = roster_mod.replace(players, found.players, found.tagged)
     lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
     if opponent and theirs:
         before = {p.id: p.name for p in teams.players(league, opponent)}
         found_them = parse.match_shown_names(theirs, registry, set(before))
+        learn_positions(found_them.players, found_them.tagged)
         for p in found_them.players:
             p.slot = None  # other teams are assumed to set their best lineup
         teams.set_team(league, opponent, found_them.players, date)
@@ -542,6 +545,7 @@ def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
 
 
 def apply_my_roster(found: parse.Found, players: list, outbox: Outbox) -> None:
+    learn_positions(found.players, found.tagged)
     changes = roster_mod.replace(players, found.players, found.tagged)
     lines = [f"Roster saved: {len(found.players)} players."] + (changes or ["Same as I had."])
     if found.problems:
@@ -558,6 +562,7 @@ def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
 
 
 def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox) -> None:
+    learn_positions(found.players, found.tagged)
     for p in found.players:
         p.slot = None  # other teams are assumed to set their best lineup
     teams.set_team(league, team, found.players, _nhl_today())
@@ -679,11 +684,23 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
 
 
 def free_agents(players: list, league: dict) -> list:
+    """Everyone on an NHL roster nobody in the league has, with Yahoo's
+    position eligibility where a screenshot has shown it (league/positions.py)."""
     taken = teams.rostered_ids(league) | {p.id for p in players}
+    known = positions.load()
     return [
-        roster_mod.RosterPlayer(p["id"], p["name"], p["team"], [parse.NHL_TO_YAHOO_POS[p["position"]]])
+        roster_mod.RosterPlayer(p["id"], p["name"], p["team"],
+                                positions.eligible(known, p["id"], parse.NHL_TO_YAHOO_POS[p["position"]]))
         for p in nhl_client.current_rosters() if p["id"] not in taken
     ]
+
+
+def learn_positions(found_players: list, tagged: set[int] | None = None) -> None:
+    """Remember the positions Yahoo showed (all of them, or only `tagged` ids)."""
+    known = positions.load()
+    seen = {p.id: p.positions for p in found_players if tagged is None or p.id in tagged}
+    if positions.learn(known, seen):
+        positions.save(known)
 
 
 @dataclass
@@ -775,13 +792,14 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
                              open_days, wk.schedule | nxt.schedule)
 
 
-def streamer_text(view: dict, streams: list[dict], threshold: float | None) -> str:
+def streamer_text(view: dict, streams: list[dict], threshold: float | None, chosen: list = ()) -> str:
     if not streams:
         return "No free agent adds points in your open slots this week or next."
     lines = ["Best streamer per position, this week + next:"]
     for row, st in zip(view["streamers"], streams):
         m = st["move"]
-        verdict = "recommended, see below" if row["recommended"] else f"not recommended: {matchup.why_not(m, threshold)}"
+        verdict = ("recommended, see below" if row["recommended"]
+                   else f"not recommended: {matchup.why_not(m, threshold, chosen)}")
         lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
                      + f": {row['slot_games']} games in open slots; net of the drop {m.week_gain:+.1f} pts this "
                      f"week, {st['next_gain']:+.1f} next ({verdict}).")
@@ -812,11 +830,11 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     adds = {}
     for key in dict.fromkeys(keys):
         m = by_key[key]
-        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, threshold)
+        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, threshold, moves)
         gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
         adds[key] = report.add_view(m, week, gains, budget, verdict)
     return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
-            "streamer_text": streamer_text(schedule, streams, threshold)}
+            "streamer_text": streamer_text(schedule, streams, threshold, moves)}
 
 
 def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
@@ -842,6 +860,14 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
     path = folder / "data.json"
     path.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     return path
+
+
+def _wait_text(keeper) -> str:
+    if not keeper:
+        return ""
+    swap = f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop else keeper.add.name
+    return (f"\n\nCan wait until Monday, when your adds reset: {swap} ({keeper.week_gain:+.1f} pts this week, "
+            f"{keeper.next_weeks:+.1f} over the next two). The risk: someone claims him first.")
 
 
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
@@ -889,15 +915,17 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                                    candidates, ranked)
     midweek = None
     if is_midweek or wk.so_far is not None:
-        chase = next((m for m in moves if m.win_after - m.win_before >= matchup.MIN_WIN_GAIN), None)
-        recommended = chase is not None
-        if not chase and matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
+        chase = None
+        if matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
             chase = matchup.biggest_swing(ranked)
-        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.threshold if wk.max_moves else None, recommended)
+        recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
+        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.threshold if wk.max_moves else None, recommended,
+                                       moves)
     outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
-                + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
+                + ("" if moves else "\n\nNo free agent is worth one of your adds right now.")
+                + _wait_text(matchup.can_wait(ranked, moves, wk.threshold if wk.max_moves else None)))
     views = _safe(week_views, state, players, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])

@@ -80,6 +80,11 @@ MIN_WIN_GAIN = 0.02  # a this-week-only move must add 2 points of win probabilit
 MAX_WEEK_COST = 1.0
 BASE_ADD_SCORE = 3.0  # expected points a move must be worth at an even pace of adds
 PLAYOFF_RESERVE = 6  # adds kept for playoff weeks
+# A keeper that gains less than this this week can wait for next week's adds
+# (they reset Monday): this week's go to moves that pay this week. Same idea as
+# MAX_WEEK_COST; the risk is someone claiming him meanwhile (Nico, 2026-10-01).
+KEEPER_WAITS_BELOW = 1.0
+KEEPER_LONG_RUN = 5.0  # long-run points above which an add is called a keeper, not a streamer (wording only)
 # A week this lopsided is decided: points gained in it don't change the result,
 # so an add has to pay off later (adds are capped per season, so a skipped one
 # isn't lost). Judgment calls (Nico, 2026-10-01), calibrate with real weeks.
@@ -502,13 +507,28 @@ def best_moves(
         if not (i == 0 and ranked is not None):
             ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
                                      weeks_after, available_from, so_far)
-        if not ranked or rejection(ranked[0], threshold):
+        passing = [m for m in ranked if not rejection(m, threshold)]
+        if not passing:
             break
-        best = ranked[0]
+        best = next((m for m in passing if not waits(m)), passing[0])
         moves.append(best)
         candidates = [p for p in candidates if p.id != best.add.id]
         roster = _swap(roster, best.add, best.drop)
     return moves
+
+
+def waits(move: Move) -> bool:
+    """A keeper that does nothing this week: it can be made next week."""
+    return move.week_gain < KEEPER_WAITS_BELOW and move.next_weeks > 0
+
+
+def can_wait(ranked: list[Move], moves: list[Move], threshold: float | None) -> Move | None:
+    """The best keeper passed over for this week's adds, to make next week."""
+    if threshold is None:
+        return None
+    taken = {m.add.id for m in moves}
+    best = next((m for m in ranked if m.add.id not in taken and waits(m) and not rejection(m, threshold)), None)
+    return best if best and moves else None
 
 
 def biggest_swing(ranked: list[Move]) -> Move | None:
@@ -556,17 +576,21 @@ def streamers(
     return out
 
 
-def why_not(move: Move, threshold: float | None) -> str:
+def why_not(move: Move, threshold: float | None, chosen: list[Move] = ()) -> str:
     """Why a move isn't a recommended add, in words Nico can weigh."""
     if threshold is None:
         return "no adds left"
-    if move.drop and move.long_term < 0:
+    reason = rejection(move, threshold)
+    if reason is None:
+        names = " and ".join(m.add.name for m in chosen)
+        return f"worth an add, but this week's go to {names}" if names else "worth an add, but you have none left this week"
+    if move.drop and move.long_term < 0 and reason.startswith("worth"):
         return f"dropping {move.drop.name} costs about {-move.long_term:.0f} pts over the rest of the season"
-    return rejection(move, threshold) or "a better add is recommended"
+    return reason
 
 
 def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: float | None,
-                 recommended: bool) -> str | None:
+                 recommended: bool, chosen: list[Move] = ()) -> str | None:
     """The mid-week stance in a few lines; None in a decided week (text() covers it)."""
     p_win = win_prob(me, them)
     gap = me.expected - them.expected
@@ -586,7 +610,7 @@ def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: fl
     if recommended:
         lines.append(swing + " That's the add below.")
     else:
-        why = why_not(chase, threshold)
+        why = why_not(chase, threshold, chosen)
         lines.append(swing + f" Not a recommended add ({why}), so it's your call.")
     return "\n".join(lines)
 
@@ -644,10 +668,13 @@ def move_text(move: Move) -> str:
     p = move.add
     head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {_games(move.games)} left this week)"
     drop = f"drop {move.drop.name}" if move.drop else "into your open roster spot"
-    detail = [f"{move.week_gain:+.1f} pts this week, win {_pct(move.win_before)} -> {_pct(move.win_after)}"]
-    if move.next_weeks >= 1:
-        detail.append(f"{move.next_weeks:+.1f} over the next two weeks, so keep him")
-    elif move.next_weeks < -1:
+    detail = [f"{move.week_gain:+.1f} pts this week, win {_pct(move.win_before)} -> {_pct(move.win_after)}",
+              f"{move.next_weeks:+.1f} over the next two weeks"]
+    # The same long-run view that ranked the move, not just its next two weeks.
+    if move.long_term >= KEEPER_LONG_RUN:
+        detail.append(f"a keeper: ahead of {move.drop.name if move.drop else 'your roster'} over the coming weeks "
+                      f"(long run {move.long_term:+.0f})")
+    elif move.long_term < 0 or move.next_weeks < -1:
         detail.append("a streamer: drop him again when his games are done")
     return f"{head}, {drop}.\n" + "; ".join(detail) + (
         ".\nTap Done once it's made in Yahoo, or Taken if someone has him.")
