@@ -178,5 +178,6 @@ is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
 ## Not recorded yet
 - How a tied **regular-season** week counts (a tie in the standings?), and the
   standings tiebreakers used for playoff seeding. If points-for breaks ties,
-  the decided-week rule (`engine/CLAUDE.md`) undervalues lost weeks' points.
+  the add price (`engine/addprice.py`), which values only weekly wins,
+  undervalues points scored in lost weeks.
 - Whether there's a consolation bracket for non-playoff teams.

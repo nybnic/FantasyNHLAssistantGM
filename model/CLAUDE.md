@@ -24,7 +24,7 @@ matchup, so start odds live in `engine/availability.py`.
 | `SKATER_K` doubled | Backtest: flat optimum at 2-3x the original |
 | Age curve | Fit on 2024-25, checked on 2025-26: season-level MAE 0.628 -> 0.580, age bias mostly gone. In-season backtest 1.599 -> 1.595 (partly in-sample) |
 | A goalie's track record barely predicts his points per start | Backtest pairwise 51% (a coin flip), so the game model dominates |
-| Per-game variance: skater ~2.5 x xFP, goalie start ~21 | 2025-26 game logs (used by `engine/matchup.py`) |
+| Per-game variance: skater ~2.5 x xFP, goalie start ~21 | 2025-26 game logs (used by `engine/matchup.py`). They set P(win)'s spread, so also what a point is worth in win odds and the add price (`engine/addprice.py`); `MODEL_SD_SHARE` 0.08 on top is a guess |
 | Our model vs Yahoo | 711-skater preseason export: Spearman 0.95. Free-agent D after the age fix: veterans within ~0.1-0.3 pts/game |
 
 ## Judgment calls (untested, labeled in code)

@@ -38,11 +38,19 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   - expected score vs this week's opponent and your chance of winning
   - lineup games left for each side
   - whether you'll make the 3-goalie-game minimum
-  - the add/drops worth making, each with Done/Skip buttons.
+  - the add/drops worth making, each with Done, Taken and Skip buttons.
 
-  A streamer has to lift your chance of winning this week. A long-term
-  upgrade just has to be worth the add. Adds are paced across the season,
-  with 6 kept back for the playoffs.
+  Every add is valued in **win-pts** (percentage points of a weekly win): what
+  it does to this week's win odds, plus its later points at what a point is
+  worth in a typical week. It's made when that beats the **add price**, set so
+  that spending at that bar (at most 2 a week) uses the 36 adds at the right
+  pace, 6 kept for the playoffs. So a close week with good streamers gets 2
+  adds, a lopsided one none. This week's adds go to moves that pay this week;
+  a keeper that adds nothing now is flagged to make on Monday. Your streaming
+  spots (the 3 skaters nearest waiver level, plus your weakest goalie) are
+  valued only for the ~3 weeks a streamer stays, not the season.
+  `python -m scripts.explain_week` shows every candidate with its value and
+  verdict.
 - `/opp`, then paste your opponent's Yahoo team page (any copy works), to
   refresh their roster. Other teams start from the draft results.
   `/taken Name` tells the bot that a suggested free agent has been taken.
@@ -57,6 +65,9 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   replaces your roster and slots and replies with what changed. Screenshots
   are read with free offline OCR; if a set looks incomplete it asks for the
   rest, or `/save` keeps what it read. `/opp` takes screenshots too.
+- Free agents carry Yahoo's position eligibility (seeded from a Yahoo export,
+  then updated from every screenshot), so a streamer is slotted the way Yahoo
+  would let you.
 - **League > Transactions screenshots** keep every roster current: the bot
   applies each team's adds, drops and trades (each once, even when screenshots
   overlap), and warns if new ones don't reach back to the last it saw. An add
@@ -71,11 +82,12 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
 
 From Wednesday the plan comes again with a stance: chase when behind (with the
 add that would swing the odds most, and what it costs), protect when ahead, or
-save adds when the week is decided.
+"this week looks lost/won" when it's decided (an add then barely moves the odds,
+so it rarely beats the price).
 
-The plan comes with charts: a decision map (each candidate add's effect on this
-week's win odds against its points over the next two weeks, split by the add
-rule into now / later / both / neither); a schedule grid for this week and next
+The plan comes with charts: a decision map (each candidate add in win-pts, this
+week's against later, with the add price as a diagonal: above it, worth an
+add); a schedule grid for this week and next
 (who starts, games lost to a full lineup, open slots by position, and the best
 streamer per position drawn on the nights he'd fill); and for each recommended
 add, its points gain week by week and the add budget.

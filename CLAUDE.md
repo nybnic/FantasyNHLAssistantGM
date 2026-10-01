@@ -3,11 +3,14 @@
 A Telegram bot for one Yahoo H2H points league ("Not for everyone!", 16 teams).
 The owner, Nico, manages "Nico's Groovy Team". **The goal is winning weekly
 head-to-head matchups**, not maximizing season points. Every recommendation is
-judged by what it does to this week's win odds, plus long-run roster value.
+judged by what it does to this week's win odds, plus long-run roster value,
+both in win probability: an add is made when it beats the add price
+(`engine/addprice.py`), which paces the 36 adds.
 
 Runs on GitHub Actions every 30 min (plus on each Telegram message via the
 Cloudflare relay). Notify-only: there is no Yahoo API access, so Nico makes every
-move in Yahoo, and the bot learns about them from Done taps and pasted Yahoo pages.
+move in Yahoo, and the bot learns about them from Done/Taken taps and Yahoo app
+screenshots (team pages, matchups, League > Transactions) or pasted pages.
 
 ## Map
 | Path | What lives there |

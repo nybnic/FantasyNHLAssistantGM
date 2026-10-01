@@ -23,7 +23,7 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
 - Verify in Yahoo: week-19 dates, regular-season ties and standings tiebreakers
-  (points-for matters for the decided-week rule), the consolation bracket.
+  (points-for matters for the add price, which values only wins), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
 - Calibrate `MODEL_SD_SHARE`, the streaming-spot counts and the add price once 4-6
