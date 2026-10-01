@@ -22,6 +22,10 @@
   briefing) runs even if an earlier one failed; the run then goes red and
   Telegram gets one alert a day naming the step. A weekly plan counts as sent
   only once its message is out, so a failed one is retried by the next run.
+- **Data check**: a data source that fails or is served from an old cached copy
+  (DailyFaceoff lines, starting goalies, projections; NHL schedule, rosters, stats)
+  gets one Telegram line a day, with what it means for the advice
+  (`clients/health.py`, `main.alert_health`). The run itself stays green.
 
 ## Secrets
 | Where | Name | Used for |

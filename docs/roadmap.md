@@ -11,9 +11,7 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **Data health**: say once a day when a source is down or stale (DFO lines,
-   starting goalies, projections). Done when: a broken DFO fetch shows in Telegram.
-2. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+1. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
    plus an alert when news makes an add clear the price between plans.
    Done when: a night with nothing to change gets one line or nothing.
@@ -85,3 +83,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | IR management (`engine/ir.py`): move an injured starter to a free IR slot (the plan's adds then need no drop, Done makes the move), and a player back from IR needs a spot; in the weekly plan and once in the briefing | (this commit) |
 | 2026-10-01 | Results log (`state["results"]`: each week's first and latest plan, then its result; week 1 from git history) and the week's result report with a score-race chart: Monday noon, before the new plan (Sunday evening is too early: Sunday's games end after midnight Helsinki) | (this commit) |
 | 2026-10-01 | Suggestion scorecard (`engine/scorecard.py`, `scripts/scorecard.py`): each add's raw points vs its drop over 14 days, made or skipped; a line in Monday's result. Decisions now name their players (past ones from git history), and untapped suggestions are logged | (this commit) |
+| 2026-10-01 | Data check (`clients/health.py`): a failing or stale source (DFO, NHL) gets one Telegram line a day saying what it means for the advice | (this commit) |

@@ -35,6 +35,7 @@
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
   so_far, sd per team, win}) and, once the week is over, the result ("final":
   {score, goalie_min, at, source}); what calibrating the model is checked on
+- health_alerts: per data source, the day its trouble was last reported
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -115,6 +116,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("add_pools", {})
     state.setdefault("day_rosters", {})
     state.setdefault("ir_noted", [])
+    state.setdefault("health_alerts", {})
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)

@@ -9,6 +9,8 @@ from typing import Any, Callable
 
 import requests
 
+from clients import health
+
 CACHE_DIR = Path("data/cache/gm")
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -38,6 +40,7 @@ def cached_json(name: str, max_age: float | None, fetch: Callable[[], Any]) -> A
             raise
         logger.warning("Refetching %s failed; using the cached copy from %.1f h ago", name, age / HOUR,
                        exc_info=True)
+        health.report(name, f"down, using a copy {age / HOUR:.0f} h old")
         return json.loads(path.read_text(encoding="utf-8"))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")

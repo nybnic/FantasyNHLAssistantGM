@@ -19,7 +19,7 @@ import json
 import logging
 import re
 
-from clients import dfo_lines
+from clients import dfo_lines, health
 from clients.cache import HOUR, cached_json, get
 from clients.names import normalize_name
 
@@ -57,7 +57,9 @@ def get_starters(date: dt.date) -> dict[str, dict]:
         starters = parse_entries(entries, _team_codes())
     except Exception:
         logger.warning("DailyFaceoff starting goalies unavailable for %s", date, exc_info=True)
+        health.report("get_starters", "failed")
         return {}
     if entries and not starters and any(e.get("homeNewsStrengthName") for e in entries):
         logger.warning("DailyFaceoff listed %d games for %s but no starter parsed - check goalie_client", len(entries), date)
+        health.report("get_starters", "page read, but no starter in it (has its format changed?)")
     return starters

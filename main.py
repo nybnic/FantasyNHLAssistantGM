@@ -36,7 +36,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from clients import dfo_lines, goalie_client, nhl_client, screenshot
+from clients import dfo_lines, goalie_client, health, nhl_client, screenshot
 from clients.names import normalize_name
 from config.league import (MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SCHEDULE, SEASON_END, SEASON_START, TRADE_DEADLINE)
@@ -658,8 +658,10 @@ def sync_teams(players: list) -> None:
 def _safe(fetch, *args, default=None):
     try:
         return fetch(*args)
-    except Exception:
-        logger.warning("%s failed; continuing without it", getattr(fetch, "__name__", fetch), exc_info=True)
+    except Exception as exc:
+        name = getattr(fetch, "__name__", str(fetch))
+        logger.warning("%s failed; continuing without it", name, exc_info=True)
+        health.report(name, f"failed ({type(exc).__name__})")
         return default
 
 
@@ -1221,6 +1223,17 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                                     "ir": {str(opens.player.id): opens.slot} if opens else {}}
 
 
+def alert_health(state: dict, outbox: Outbox, now: dt.datetime) -> None:
+    """Say which data sources had trouble this run, once a day per source."""
+    today = now.date().isoformat()
+    new = {s: d for s, d in health.problems().items() if state["health_alerts"].get(s) != today}
+    if not new:
+        return
+    for source in new:
+        state["health_alerts"][source] = today
+    outbox.send("Data check:\n" + "\n".join(health.describe(s, d) for s, d in new.items()))
+
+
 def run_steps(steps: list[tuple[str, Callable[[], object]]]) -> list[tuple[str, Exception]]:
     """Run every step even when an earlier one fails (a /trade crash mustn't
     cost tonight's briefing). Returns the failures, (step name, error)."""
@@ -1285,7 +1298,9 @@ def main() -> None:
         ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
+        ("data check", lambda: alert_health(state, outbox, now)),
     ]
+    health.clear()
     try:
         failures = run_steps(steps)
         if failures:
