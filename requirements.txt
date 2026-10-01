@@ -1,6 +1,12 @@
-requests>=2.31
+# Pinned to the minor versions CI ran green with (2026-10-01): patch updates
+# only, so a new release can't redden every run. Bump on purpose, then run
+# the tests and a dry run.
+requests~=2.34.2
+numpy~=2.5.3  # the add price's simulations (engine/addprice.py), the OCR
 rapidocr_onnxruntime==1.2.3  # free offline OCR for roster screenshots (clients/screenshot.py)
-python-dotenv>=1.0
-matplotlib>=3.8  # Telegram charts (notify/charts.py)
-tzdata>=2024.1
-pytest>=8.0
+onnxruntime~=1.30.0  # the OCR's engine
+opencv-python~=5.0.0  # the OCR's image handling
+python-dotenv~=1.2.4
+matplotlib~=3.11.2  # Telegram charts (notify/charts.py)
+tzdata>=2026.4  # time zone data: newer is better
+pytest~=9.1.1

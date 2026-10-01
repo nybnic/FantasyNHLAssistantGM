@@ -48,3 +48,11 @@ def test_season_value_breaks_ties_when_lineup_is_unknown():
         Candidate(2, ("D",), value=0.0, season_value=6.0),
     ]
     assert optimize(cands, SLOTS) == {1: "BN", 2: "D"}
+
+
+def test_cached_solutions_cant_be_changed_by_a_caller():
+    from engine import lineup
+    cands = [lineup.Candidate(1, ("C",), 3.0), lineup.Candidate(2, ("C",), 2.0)]
+    first = lineup.optimize(cands, {"C": 1})
+    first[1] = "BN"  # the briefing does this to locked players
+    assert lineup.optimize(cands, {"C": 1}) == {1: "C", 2: "BN"}

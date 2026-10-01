@@ -31,6 +31,15 @@ class Candidate:
 
 def optimize(candidates: list[Candidate], slots: dict[str, int] = STARTERS) -> dict[int, str]:
     """player id -> slot (a starting slot or BN)."""
+    return dict(_optimize(tuple(candidates), tuple(slots.items())))
+
+
+# The weekly plan's move search re-solves the same days over and over: a trial
+# roster differs from mine only on the days the added or dropped player plays
+# (profiled 2026-10-01: 18 of 34 s in this solver before caching).
+@lru_cache(maxsize=50_000)
+def _optimize(candidates: tuple[Candidate, ...], slot_items: tuple[tuple[str, int], ...]) -> tuple:
+    slots = dict(slot_items)
     slot_types = tuple(slots)
 
     @lru_cache(maxsize=None)
@@ -49,4 +58,5 @@ def optimize(candidates: list[Candidate], slots: dict[str, int] = STARTERS) -> d
         return max(options, key=lambda o: o[0])
 
     _, assignment = best(0, tuple(slots[s] for s in slot_types))
-    return {c.player_id: slot for c, slot in zip(candidates, assignment)}
+    # A tuple, not a dict: callers change the dict optimize() hands them, which mustn't touch the cache.
+    return tuple((c.player_id, slot) for c, slot in zip(candidates, assignment))
