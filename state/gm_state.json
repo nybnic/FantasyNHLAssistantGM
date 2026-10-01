@@ -72,7 +72,23 @@
   },
   "matchup_shots": null,
   "opponents": {},
-  "pending": {},
+  "pending": {
+    "add-2026-10-01-0900-0": {
+      "add": {
+        "id": 8481668,
+        "name": "Arturs Silovs",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PIT"
+      },
+      "date": "2026-10-01",
+      "drop": 8483703,
+      "message_id": 79,
+      "type": "add"
+    }
+  },
   "relay_alert": "2026-09-29",
   "screenshots": {
     "at": "2026-10-01T05:52:04+00:00",
@@ -204,13 +220,27 @@
     ],
     "team": "Nico's Groovy Team"
   },
-  "telegram_offset": 929784531,
+  "telegram_offset": 929784533,
   "trade_request": null,
   "transaction_rows": [],
-  "transactions_seen": {},
+  "transactions_seen": {
+    "2026-09-30T10:49|add|viktorios|ecowan": "2026-09-30T10:49",
+    "2026-09-30T10:58|add|gwp|astolarz": "2026-09-30T10:58",
+    "2026-09-30T10:58|add|lollothontsaajat|jdrysdale": "2026-09-30T10:58",
+    "2026-09-30T10:59|add|nicosgroovyteam|elindell": "2026-09-30T10:59",
+    "2026-09-30T11:04|add|vantaa|jdaccord": "2026-09-30T11:04",
+    "2026-09-30T13:16|add|pastasauce|jfaulk": "2026-09-30T13:16",
+    "2026-09-30T14:03|add|pastasauce|jmccann": "2026-09-30T14:03",
+    "2026-09-30T14:04|trade|pastasauce,vanillathunder|dcozens,sjarvis,ksherwood,jtavares": "2026-09-30T14:04",
+    "2026-09-30T14:06|add|bahelinboys|oekmanlarsson": "2026-09-30T14:06",
+    "2026-09-30T15:38|add|vanillathunder|nehlers": "2026-09-30T15:38",
+    "2026-09-30T22:30|add|bottomthree|anikishin": "2026-09-30T22:30",
+    "2026-10-01T10:32|drop|gwp|astolarz": "2026-10-01T10:32"
+  },
   "week_requested": false,
   "weeks": {
     "1": {
+      "midweek": "2026-10-01T09:00+00:00",
       "sent": "2026-10-01T07:15+00:00"
     }
   }
