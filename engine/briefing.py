@@ -5,11 +5,18 @@ local time, earlier only if the day's first puck drop is within the hour
 (weekend matinees); a missed window means no briefing that day, but updates
 can follow until 23:00. Nothing is sent 23:00-08:00.
 Players whose game has already started are locked where they are.
+
+The briefing is a diff against Yahoo's Start Active Players, which Nico taps
+first: it starts everyone with a game tonight, as far as slots allow. What
+it can't know, the bot says: a goalie who isn't starting, a scratched or
+injured player, and on an overflow night (more players with games than
+slots) who should sit. Assumed: Start Active ignores injury tags and, on an
+overflow night, sits the lower-ranked player (modeled by season value).
 """
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
 from clients.dfo_lines import LineInfo
@@ -41,6 +48,7 @@ class PlayerTonight:
     value: float  # expected points tonight
     note: str
     locked: bool
+    season: float = 0.0  # expected points per game, the overflow tie-break
 
     @property
     def opponent_text(self) -> str:
@@ -58,6 +66,7 @@ class LineupPlan:
     optimal: dict[int, str]
     current: dict[int, str] | None  # None until a lineup has been confirmed
     gain: float  # optimal minus current, expected points tonight
+    start_active: dict[int, str] = field(default_factory=dict)  # what Yahoo's Start Active would set
 
     def value_of(self, assignment: dict[int, str]) -> float:
         return sum(p.value for p in self.players if assignment.get(p.player.id, BENCH) != BENCH)
@@ -93,6 +102,7 @@ def plan(
         game_of[g.home] = game_of[g.away] = g
     players = []
     candidates = []
+    active_candidates = []  # as Start Active sees them: a game or not
     capacity = dict(STARTERS)
     known = lineup_known(roster)
     for p in active(roster):
@@ -112,19 +122,21 @@ def plan(
             avail = availability.skater(info, bool(lines))
             val, season = (avail.prob * proj.xfp if game else 0.0), proj.xfp
         locked = known and game is not None and game.start <= now
-        players.append(PlayerTonight(p, game, val, avail.note if game else "", locked))
+        players.append(PlayerTonight(p, game, val, avail.note if game else "", locked, season))
         if locked:
             if p.slot in capacity:
                 capacity[p.slot] -= 1
             continue
         candidates.append(lineup.Candidate(p.id, tuple(p.positions), val, season, p.slot))
+        active_candidates.append(lineup.Candidate(p.id, tuple(p.positions), 1.0 if game else 0.0, season))
 
     optimal = lineup.optimize(candidates, capacity)
+    start_active = lineup.optimize(active_candidates, capacity)
     for pt in players:
         if pt.locked:
-            optimal[pt.player.id] = pt.player.slot
+            optimal[pt.player.id] = start_active[pt.player.id] = pt.player.slot
     current = {p.id: p.slot for p in active(roster)} if known else None
-    result = LineupPlan(date, games[0].start if games else None, players, optimal, current, 0.0)
+    result = LineupPlan(date, games[0].start if games else None, players, optimal, current, 0.0, start_active)
     result.gain = result.value_of(optimal) - (result.value_of(current) if current else 0.0)
     return result
 
@@ -133,6 +145,35 @@ def _row(pt: PlayerTonight, slot: str) -> str:
     extra = f", {pt.note}" if pt.note else ""
     points = f"{pt.value:.1f}" if pt.game else "-"
     return f"{slot:<3} {pt.player.name} {pt.opponent_text}{extra}  {points}"
+
+
+def start_active_text(result: LineupPlan) -> str:
+    """Tonight's briefing: one line when Start Active is fine, else the
+    overrides on top of it, each with its reason."""
+    day = result.date.strftime("%a %d %b")
+    gain = result.value_of(result.optimal) - result.value_of(result.start_active)
+    if gain < MIN_GAIN:
+        return f"Tonight ({day}): tap Start Active, nothing to change."
+    by_id = {pt.player.id: pt for pt in result.players}
+    starts, benches = [], []  # slot shuffles between starters change no points: Yahoo sorts those out
+    for pid, slot in result.optimal.items():
+        before = result.start_active.get(pid, BENCH)
+        if before == slot:
+            continue
+        pt = by_id[pid]
+        if before == BENCH:
+            note = f", {pt.note}" if pt.note else ""
+            starts.append(f"Start {pt.player.name} at {slot} ({pt.opponent_text}{note}): {pt.value:.1f} pts")
+        elif slot == BENCH:
+            why = pt.note or ("no game" if not pt.game else f"{pt.value:.1f} pts expected")
+            benches.append(f"Bench {pt.player.name} ({why})")
+    changes = benches + starts
+    lines = [f"Tonight ({day}): tap Start Active, then {len(changes)} change{'' if len(changes) == 1 else 's'} "
+             f"(+{gain:.1f} expected pts):"] + [f"- {c}" for c in changes]
+    if result.first_start:
+        lines.append(f"First puck {result.first_start.astimezone(LOCAL):%H:%M} your time. "
+                     "Tap Done once it's set in Yahoo.")
+    return "\n".join(lines)
 
 
 def text(result: LineupPlan, update_of: dict[int, str] | None = None) -> str:

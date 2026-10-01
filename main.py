@@ -689,9 +689,8 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
     ir_note = _new_ir_note(state, players, ctx, team_lines)
 
     if record is None:
-        worth_sending = result.current is None or result.gain >= briefing.MIN_GAIN
-        message_text = briefing.text(result) if worth_sending else None
-        state["briefings"][key] = {"sent": worth_sending, "recommended": result.optimal, "updates": 0}
+        message_text = briefing.start_active_text(result)  # one line when Start Active is fine
+        state["briefings"][key] = {"sent": True, "recommended": result.optimal, "updates": 0}
     else:
         baseline = {int(pid): slot for pid, slot in record["recommended"].items()}
         worth_sending = result.value_of(result.optimal) - result.value_of(baseline) >= briefing.UPDATE_GAIN
@@ -1160,23 +1159,9 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         _plan_sent(state, key, now, is_midweek)  # asked once; /opp then /week brings the plan
         return
 
-    wk = week_inputs(date, week, players, league, state, build_context, opponent)
-    ir_moves, back = ir.moves(players, wk.lines), ir.returning(players, wk.lines)
-    weakest = _weakest(players, wk.ctx, wk.lines)
-    ir_text = ir.text(ir_moves, back, weakest)
-    planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
-    open_spots = max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players)))
-    nxt = next_week(week, players, wk)
-    candidates = add_candidates(wk, nxt)
-    ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
-                                     wk.later_weight)
-    wk.price = add_price(state, week, wk, ranked, date)
-    moves = []
-    if wk.max_moves and wk.price is not None:
-        moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                   wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
-                                   candidates, ranked, wk.hold_days)
+    p = plan_moves(state, players, league, date, week, opponent, build_context)
+    wk, nxt, ranked, moves = p.wk, p.nxt, p.ranked, p.moves
+    ir_text = ir.text(p.ir_moves, ir.returning(players, wk.lines), _weakest(players, wk.ctx, wk.lines))
     midweek = None
     if is_midweek or wk.live:
         chase = None
@@ -1185,17 +1170,17 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
         midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.price if wk.max_moves else None, recommended,
                                        moves)
-    outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
-                             wk.week_used, date, wk.yahoo_projected)
+    outbox.send(_action_line(moves, ir_text, wk.max_moves) + "\n\n"
+                + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
+                               wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
-                + ("" if moves else "\n\nNo free agent is worth one of your adds right now.")
                 + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))
                 + (f"\n\n{ir_text}" if ir_text else ""))
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
     record_plan(state, week, opponent, wk.me, wk.them, now)
-    views = _safe(week_views, state, planned, league, week, wk, nxt, ranked, moves)
+    views = _safe(week_views, state, p.planned, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])
         if png:
@@ -1207,20 +1192,102 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         stance_text = midweek or (f"This week looks {decided}: save your adds for players worth keeping."
                                   if decided else None)
         _safe(write_dashboard, views, wk, week, opponent, stance_text, now, outbox.settings.dry_run)
+    send_adds(state, p, moves, views, date, now, outbox)
+
+
+@dataclass
+class PlanMoves:
+    """A week's add/drop search (the weekly plan's, and the evening's news check)."""
+    wk: WeekInputs
+    nxt: NextWeek
+    ranked: list  # every move weighed
+    moves: list  # the adds worth making now, best first
+    ir_moves: list  # IR moves the adds assume (each frees a spot)
+    planned: list  # the roster with them made
+    open_spots: int  # spots open before any IR move
+
+
+def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: int, opponent: str,
+               build_context) -> PlanMoves:
+    wk = week_inputs(date, week, players, league, state, build_context, opponent)
+    ir_moves = ir.moves(players, wk.lines)
+    planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
+    nxt = next_week(week, players, wk)
+    candidates = add_candidates(wk, nxt)
+    ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                     wk.later_weight)
+    wk.price = add_price(state, week, wk, ranked, date)
+    moves = []
+    if wk.max_moves and wk.price is not None:
+        moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
+                                   wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
+                                   candidates, ranked, wk.hold_days)
+    return PlanMoves(wk, nxt, ranked, moves, ir_moves, planned,
+                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))))
+
+
+def _action_line(moves: list, ir_text: str, adds_left: int = 1) -> str:
+    """The plan's first line: what to do now."""
+    if not moves:
+        head = ("No adds left this week (they reset Monday)." if not adds_left
+                else "No add is worth one of yours right now.")
+        return head + (" See the IR note below." if ir_text else "")
+    adds = "; ".join(f"add {m.add.name}" + (f" for {m.drop.name}" if m.drop else "")
+                     + f" (win {matchup._pct(m.win_before)} -> {matchup._pct(m.win_after)})" for m in moves)
+    return f"Do now: {adds}. Details below."
+
+
+def send_adds(state: dict, p: PlanMoves, moves: list, views: dict | None, date: dt.date, now: dt.datetime,
+              outbox: Outbox) -> None:
+    """Each add as its own message with Done / Taken / Skip, and its chart."""
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
         buttons = [("Done", f"done:{rec_id}"), ("Taken", f"taken:{rec_id}"), ("Skip", f"skip:{rec_id}")]
         view = views and views["adds"].get(report.move_key(move))
         png = _safe(charts.add_chart, view) if view else None
         # An add without a drop fills a spot already open, else the next IR move's.
-        k = sum(m.drop is None for m in moves[:i]) - open_spots
-        opens = ir_moves[k] if move.drop is None and 0 <= k < len(ir_moves) else None
+        k = sum(m.drop is None for m in moves[:i]) - p.open_spots
+        opens = p.ir_moves[k] if move.drop is None and 0 <= k < len(p.ir_moves) else None
         text = matchup.move_text(move, opens.player.name if opens else None)
         message_id = (outbox.send_photo(png, text, buttons) if png else outbox.send(text, buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None,
                                     "drop_name": move.drop.name if move.drop else None, "message_id": message_id,
                                     "ir": {str(opens.player.id): opens.slot} if opens else {}}
+
+
+def news_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
+              build_context=context.build) -> None:
+    """Between plans, once an evening: an add that now clears the price and
+    hasn't been suggested this week (an injury, a confirmed goalie, a hot
+    free agent since the plan). Not on a plan's day; only with adds left."""
+    date = now.astimezone(NHL_TIME).date()
+    week = weeks.week_of(date)
+    games = nhl_client.games_on(date) if week else []
+    if not games or not roster_mod.active(players) or state["news_checked"] == date.isoformat():
+        return
+    if now < briefing.briefing_due(date, games[0].start) or briefing.quiet(now) or now >= games[0].start:
+        return
+    record = state["weeks"].get(str(week), {})
+    if any(record.get(k, "")[:10] == now.date().isoformat() for k in ("sent", "midweek")):
+        return  # the plan went out today
+    days = weeks.days(week)
+    if not matchup.max_moves(*matchup.adds_used(state["adds"], days)) or not current_opponent(state, week):
+        return
+    state["news_checked"] = date.isoformat()
+    first, last = days[0].isoformat(), days[-1].isoformat()
+    offered = {(r["add"]["id"], r["drop"]) for r in state["pending"].values() if r["type"] == "add"}
+    offered |= {(d.get("add"), d.get("drop")) for d in state["decisions"]
+                if d["type"] == "add" and first <= d["date"] <= last}
+    p = plan_moves(state, players, league, date, week, current_opponent(state, week), build_context)
+    new = [m for m in p.moves if (m.add.id, m.drop.id if m.drop else None) not in offered]
+    if not new:
+        logger.info("News check %s: no new add clears the price", date)
+        return
+    outbox.send(f"News since the plan: {'an add now clears' if len(new) == 1 else f'{len(new)} adds now clear'} "
+                f"the price (you're at {matchup._pct(matchup.win_prob(p.wk.me, p.wk.them))} to win).")
+    send_adds(state, p, new, None, date, now, outbox)
 
 
 def alert_health(state: dict, outbox: Outbox, now: dt.datetime) -> None:
@@ -1298,6 +1365,7 @@ def main() -> None:
         ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
+        ("news", lambda: news_step(state, players, league, now, outbox, build_context)),
         ("data check", lambda: alert_health(state, outbox, now)),
     ]
     health.clear()

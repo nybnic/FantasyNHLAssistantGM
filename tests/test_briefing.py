@@ -98,3 +98,24 @@ def test_players_in_started_games_are_locked():
     # Bench Center (TOR) already playing on the bench: stays there.
     result = _plan(_roster(["C", "C", "BN", "G"]), now)
     assert result.optimal[3] == "BN"
+
+
+def test_a_night_start_active_gets_right_is_one_line():
+    now = dt.datetime(2026, 11, 10, 19, 30, tzinfo=briefing.LOCAL)
+    roster = _roster(["C", "C", "BN", "G"])
+    roster[1].team = "PHI"  # no game tonight: Start Active benches him for Bench Center, as the bot would
+    assert briefing.start_active_text(_plan(roster, now)) == "Tonight (Tue 10 Nov): tap Start Active, nothing to change."
+
+
+def test_start_active_overrides_say_who_and_why():
+    now = dt.datetime(2026, 11, 10, 19, 30, tzinfo=briefing.LOCAL)
+    roster = _roster(["C", "C", "BN", "G"])
+    roster[1].team = "TOR"  # three centers play, two slots: an overflow night
+    lines = {"BOS": {"top center": LineInfo(groups={"f1"}, injury="out")},
+             "TOR": {"bench center": LineInfo(groups={"f2"}), "depth center": LineInfo(groups={"f3"})}}
+    result = _plan(roster, now, lines)
+    # Start Active starts the two best by season value, Top Center (out) among them.
+    assert result.start_active[1] == "C" and result.optimal[1] == "BN"
+    text = briefing.start_active_text(result)
+    assert text.startswith("Tonight (Tue 10 Nov): tap Start Active, then 2 changes (+")
+    assert "- Bench Top Center (out)" in text and "- Start Depth Center at C (vs BOS): 2.9 pts" in text

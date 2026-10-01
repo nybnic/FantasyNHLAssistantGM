@@ -11,14 +11,12 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
-   or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
-   plus an alert when news makes an add clear the price between plans.
-   Done when: a night with nothing to change gets one line or nothing.
 
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
-- Verify in Yahoo: when a claim of a player dropped today can play (the bot assumes 2 days
+- Verify in Yahoo: what Start Active does with injured players and on an overflow night
+  (the briefing assumes it starts anyone with a game, the better season value first);
+  when a claim of a player dropped today can play (the bot assumes 2 days
   later: the "W (date)" next to him), the add limit and goalie minimum in the week-19 double week
   (dates confirmed 2026-10-01), regular-season ties and standings tiebreakers
   (points-for matters for the add price, which values only wins), the consolation bracket.
@@ -35,8 +33,7 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 - Opponent profiles: adds per week (Transactions) and lineup efficiency (Yahoo's
   final vs our projection). Log first; shade their projection once 3-4 weeks show an effect.
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
-- Weekly plan message: lead with the action, context after. "Done, other drop"
-  button. Naming a playoff opponent with /opp sends the plan.
+- "Done, other drop" button. Naming a playoff opponent with /opp sends the plan.
 - Pin requirements; memoize `ModelContext.skater`; split `main.py` (commands,
   ingest, weekly) and the message text out of `engine/matchup.py`.
 - Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected
@@ -84,3 +81,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Results log (`state["results"]`: each week's first and latest plan, then its result; week 1 from git history) and the week's result report with a score-race chart: Monday noon, before the new plan (Sunday evening is too early: Sunday's games end after midnight Helsinki) | (this commit) |
 | 2026-10-01 | Suggestion scorecard (`engine/scorecard.py`, `scripts/scorecard.py`): each add's raw points vs its drop over 14 days, made or skipped; a line in Monday's result. Decisions now name their players (past ones from git history), and untapped suggestions are logged | (this commit) |
 | 2026-10-01 | Data check (`clients/health.py`): a failing or stale source (DFO, NHL) gets one Telegram line a day saying what it means for the advice | (this commit) |
+| 2026-10-01 | Evening briefing as a Start Active diff (one line when it's fine, else the benches and starts that beat it, with why); an evening news check for adds that newly clear the price; the plan leads with the action | (this commit) |

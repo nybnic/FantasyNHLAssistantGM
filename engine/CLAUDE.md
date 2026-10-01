@@ -4,7 +4,7 @@
 |---|---|
 | `lineup.py` | The best slot assignment for one day. Exact DP; a move must gain `KEEP_SLOT_BONUS` |
 | `availability.py` | Who plays: skater injury/lineup status tonight, fading on later days along return curves fit from game logs (slower the more games missed), goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
-| `briefing.py` | The evening lineup message: timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
+| `briefing.py` | The evening lineup message, as a diff against Yahoo's Start Active (simulated: everyone with a game, overflow by season value): one line when it's fine, else the benches and starts that beat it, with why. Timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
 | `ir.py` | The IR and IR+ slots: an injured active player who fits an empty one (DFO status standing in for Yahoo's tag), and an IR'd player back in his team's lineup. The weekly plan's adds assume the IR moves are made, so an add can be drop-free; Done applies the IR move too |
 | `scorecard.py` | How the add suggestions turned out: the add's raw points vs the drop's over the 14 days after, made or not (a line in Monday's result; `scripts/scorecard.py` lists them) |
 | `addprice.py` | What an add buys and costs, in win probability: later points' worth, the budget's pace, the add price (solved by simulating weeks over logged candidates) |

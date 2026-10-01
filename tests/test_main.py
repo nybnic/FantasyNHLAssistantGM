@@ -679,3 +679,51 @@ def test_a_tap_on_an_add_records_its_players(monkeypatch, tmp_path):
     main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     d = state["decisions"][-1]
     assert (d["decision"], d["add"], d["add_name"], d["drop"], d["drop_name"]) == ("skip", 11, "Joey Daccord", 2, "B")
+
+
+def _news_setup(monkeypatch, tmp_path, moves):
+    from engine import matchup
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    first_puck = dt.datetime(2026, 10, 7, 23, tzinfo=dt.timezone.utc)  # Wed 7 Oct, week 2
+    monkeypatch.setattr(main.nhl_client, "games_on", lambda d: [main.nhl_client.ScheduledGame(1, first_puck, "BOS", "TOR")])
+    me = matchup.TeamWeek("me", 0, 150, 400, 20, 1, 3, 1.0)
+    plan = main.PlanMoves(type("Wk", (), {"me": me, "them": me})(), None, moves, moves, [], players, 0)
+    calls = []
+    monkeypatch.setattr(main, "plan_moves", lambda *a: calls.append(1) or plan)
+    state["opponents"] = {}
+    return settings, state, players, sent, calls
+
+
+def _move(add_id, name, drop=None):
+    from engine import matchup
+    return matchup.Move(RosterPlayer(add_id, name, "NYR", ["C"]), drop, 3.0, 0.0, 0.0, 3, 0.48, 0.55)
+
+
+def test_the_evening_news_check_sends_only_adds_not_offered_this_week(monkeypatch, tmp_path):
+    old, new = _move(9, "Offered Monday"), _move(10, "New Streamer")
+    settings, state, players, sent, calls = _news_setup(monkeypatch, tmp_path, [old, new])
+    state["decisions"].append({"rec_id": "r", "type": "add", "decision": "skip", "date": "2026-10-05", "add": 9,
+                               "drop": None})
+    evening = dt.datetime(2026, 10, 7, 16, 45, tzinfo=dt.timezone.utc)  # 19:45 Helsinki
+    main.news_step(state, players, {"teams": {}, "taken": []}, evening, main.Outbox(settings))
+    main.news_step(state, players, {"teams": {}, "taken": []}, evening, main.Outbox(settings))  # once an evening
+    assert calls == [1] and sent[0].startswith("News since the plan: an add now clears the price")
+    assert sent[1].startswith("Add New Streamer") and len(sent) == 2
+
+
+def test_no_news_check_on_a_plan_day_or_without_adds_left(monkeypatch, tmp_path):
+    settings, state, players, sent, calls = _news_setup(monkeypatch, tmp_path, [_move(10, "New")])
+    evening = dt.datetime(2026, 10, 7, 16, 45, tzinfo=dt.timezone.utc)
+    state["weeks"]["2"] = {"sent": "2026-10-05T09:00+00:00", "midweek": "2026-10-07T09:00+00:00"}
+    main.news_step(state, players, {"teams": {}, "taken": []}, evening, main.Outbox(settings))
+    state["weeks"]["2"] = {"sent": "2026-10-05T09:00+00:00"}
+    state["adds"] = [{"id": i, "name": None, "date": "2026-10-06", "source": "done"} for i in (1, 2)]
+    main.news_step(state, players, {"teams": {}, "taken": []}, evening, main.Outbox(settings))
+    assert calls == [] and sent == []
+
+
+def test_the_plan_leads_with_the_action():
+    assert main._action_line([_move(10, "Beniers", RosterPlayer(2, "Stamkos", "NSH", ["C"]))], "") == \
+        "Do now: add Beniers for Stamkos (win 48% -> 55%). Details below."
+    assert main._action_line([], "IR: ...") == "No add is worth one of yours right now. See the IR note below."
+    assert main._action_line([], "", adds_left=0) == "No adds left this week (they reset Monday)."
