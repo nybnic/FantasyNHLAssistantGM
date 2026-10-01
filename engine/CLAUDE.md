@@ -20,9 +20,11 @@
   forwards, D, goalies).
 - **Score** = this week's gain + long run. Long run = the whole-lineup
   projection over the next 6 weeks (`LONG_RUN_WEEKS`, with durability), per
-  week, times the weeks left, x `LONG_RUN_DISCOUNT` 0.5. Dropping one of my 3
-  streaming spots (skaters closest to waiver level at their position) is
-  credited the better of that and the next 2 weeks as scheduled.
+  week, times the weeks left, x `LONG_RUN_DISCOUNT` 0.5. Dropping one of my
+  streaming spots (the 3 skaters closest to waiver level at their position,
+  plus my weakest goalie) is credited only its scheduled gain while the
+  streamer would be held: spots / the affordable adds a week (`hold_weeks`,
+  ~3 weeks at 1.3 adds a week), counting the rest of this week.
 - **Decided week** (P(win) < 10% or > 90%): this week's gain counts zero, so only
   a move that pays off within two weeks gets an add.
 - **Accept** if score >= the add threshold (3 pts at an even pace, paced by adds
@@ -46,6 +48,7 @@
 | 2026-10-01 | Mid-week stance: chase below 50% win, protect above, concede/coast past 10%/90%; the plan goes out again from Wednesday noon (Nico) | Chase shows the add with the biggest win-odds swing even when it fails the add rule, with its cost, so Nico decides. Stances don't change the add rule itself |
 | 2026-10-01 | Free agents are also shortlisted by schedule fit: points on nights my lineup has their slot open, this week and next | The plain shortlist ranked by a player's own games and missed streamers whose games land on my empty nights. Only the search widens; the add rule is unchanged |
 | 2026-10-01 | Long run averaged over 6 weeks, not 2; streaming spots (3 skaters nearest waiver level) are judged on the next 2 weeks as scheduled (Nico) | Weekly gains swing 5-10 pts on the schedule alone: 2 weeks times the season made Tolvanen for Lindell "-55" (6-week view: -8). A bottom spot gets recycled every 2-3 weeks at ~1.3 adds a week, so its swap isn't a season-long loss. Replaces "long run = 2 weeks x season" |
+| 2026-10-01 | A streaming-spot swap is credited its scheduled gain over the hold (spots / affordable adds a week, ~3 weeks), never the season; the weakest goalie is a streaming spot too (Nico) | Nico streams his lowest-value players. Season credit made Podkolzin (+5.9 now, 48% -> 54%) beat McBain (+10, -> 59%) on a long run he'd never be held for, and Cooley for Murashov on schedule noise (-10.9, then +12.2). Replaces "the better of next 2 weeks and the long run" |
 | 2026-10-01 | This week's adds go to moves that pay this week; a keeper gaining < 1 pt this week waits for Monday's adds and is named as such (Nico) | Silovs (+0 this week) took the last weekly add while McBain (+10, win 48% -> 59%) was labelled "not recommended". Extends "upgrades that cost this week wait". Risk: the keeper gets claimed meanwhile |
 | 2026-10-01 | Free agents take Yahoo's position eligibility, seeded from Nico's export (positions only, Nico OK'd committing them) and learned from every Yahoo screenshot (`league/positions.py`) | NHL data gives one position; 37% of 560 skaters differ on Yahoo (Guentzel: NHL C, Yahoo LW/RW) |
 | 2026-10-01 | No goalie-minimum alerts beyond the weekly line (Nico) | Yahoo already warns; the model still counts the minimum in P(win) |
@@ -53,4 +56,4 @@
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `BASE_ADD_SCORE` 3,
-`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10, `COAST_ABOVE` 0.90, `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10, `COAST_ABOVE` 0.90, `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.

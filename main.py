@@ -723,6 +723,7 @@ class WeekInputs:
     weeks_after: int
     available_from: dt.date | None
     so_far: tuple | None = None  # my banked points from a matchup screenshot (else box scores)
+    hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
 
 
@@ -748,6 +749,8 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         me=matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine),
         them=matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs),
         so_far=mine, yahoo_projected=projected,
+        hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
+                      - sum(d >= date for d in days)),
         pool=free_agents(players, league),
         season_used=season_used, week_used=week_used,
         max_moves=matchup.max_moves(season_used, week_used),
@@ -907,12 +910,12 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
     ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far)
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days)
     moves = []
     if wk.max_moves and wk.threshold is not None:
         moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                    wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far,
-                                   candidates, ranked)
+                                   candidates, ranked, wk.hold_days)
     midweek = None
     if is_midweek or wk.so_far is not None:
         chase = None

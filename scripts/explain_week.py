@@ -64,7 +64,7 @@ def main_() -> None:
         candidates = [p for p in candidates if args.position.upper() in p.positions]
 
     ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far)
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days)
     print(f"\n{len(ranked)} moves from {len(candidates)} free agents (score = this week + discounted long run):")
     print(f"  {'add':22} {'pos':5} {'drop':18} {'wk gms':>6} {'week':>6} {'next2wk':>7} {'score':>6}  win     verdict")
     for m in ranked[:args.top]:

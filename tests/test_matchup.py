@@ -241,6 +241,9 @@ def test_streaming_spots_are_the_skaters_closest_to_waiver_level_at_their_positi
     free = [RosterPlayer(9, "FA C", "NYR", ["C"]), RosterPlayer(11, "FA D", "NYR", ["D"])]
     # The C scores most per game but sits only 0.4 above his waiver level; Mid D sits 0.7 above.
     assert matchup.streaming_spots(mine, free, ctx, {}) == {1, 2, 3}
+    goalies = [RosterPlayer(20, "G1", "BOS", ["G"]), RosterPlayer(21, "G2", "BOS", ["G"])]
+    ctx.prior_start_share = lambda pid: 0.3 if pid == 21 else 0.6
+    assert matchup.streaming_spots(mine + goalies, free, ctx, {}) == {1, 2, 3, 21}  # plus the weakest goalie
     matchup_spots = matchup.STREAMING_SPOTS
     try:
         matchup.STREAMING_SPOTS = 2
@@ -301,3 +304,27 @@ def test_the_add_card_names_a_keeper_or_a_streamer_by_the_long_run_that_ranked_i
     streamer = matchup.Move(RosterPlayer(3, "Jack McBain", "UTA", ["C"]), schenn, week_gain=10.0,
                             long_term=-4.0, next_weeks=-4.0, games=3, win_before=0.48, win_after=0.59)
     assert "a streamer" in matchup.move_text(streamer)
+
+
+def test_a_streamer_is_held_as_long_as_the_add_pace_takes_to_cycle_the_spots():
+    # 35 adds left in week 1: 29 for 23 regular weeks, ~1.26 a week, over 4 spots (3 skaters, a goalie).
+    assert matchup.hold_weeks(35, 1) == pytest.approx(4 / (29 / 23))
+    assert matchup.hold_weeks(13, 20) == pytest.approx(4 / 1.75)  # spending is due: shorter holds
+    assert matchup.hold_weeks(7, 20) == pytest.approx(4 / 0.5)  # nearly out: floor of 0.5 adds a week
+
+
+def test_a_streaming_spot_swap_is_credited_only_while_he_would_be_held(monkeypatch):
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "SEA", ["C"], "C")]
+    days = [WED + dt.timedelta(days=i) for i in range(42)]
+    future = {d: [_game(d, "NYR", "SEA")] for d in days}  # the streamer plays every day
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 1)
+    ctx = FakeContext()
+    ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
+
+    def credit(hold_days):
+        moves = matchup.candidate_moves(roster, opponent, [RosterPlayer(9, "Streamer", "NYR", ["C"])], ctx,
+                                        {MON: []}, {}, {}, future, weeks_after=20, hold_days=hold_days)
+        return next(m for m in moves if m.drop and m.drop.id == 2).long_term
+
+    assert credit(7) == pytest.approx(credit(14) / 2) and credit(7) > 0
