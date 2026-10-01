@@ -111,3 +111,34 @@ def test_overfilled_slots_are_cleared_but_ir_kept():
     changes = roster.replace(players, pasted, tagged=set())
     assert [p.slot for p in players] == [None, None, None, "IR"]
     assert "Too many players in C" in changes[-1]
+
+
+SHOWN = [
+    {"id": 20, "name": "Mark Scheifele", "team": "WPG", "position": "C"},
+    {"id": 21, "name": "Esa Lindell", "team": "DAL", "position": "D"},
+    {"id": 22, "name": "Adam Larsson", "team": "SEA", "position": "D"},
+    {"id": 23, "name": "Andreas Larsson", "team": "BOS", "position": "D"},
+    {"id": 20, "name": "Mark Scheifele", "team": "WPG", "position": "C"},  # current roster + last season
+]
+
+
+def _row(name, team="", positions=(), slot="BN"):
+    return {"slot": slot, "name": name, "team": team, "positions": list(positions)}
+
+
+def test_screenshot_names_match_on_initial_and_last_name():
+    found = parse.match_shown_names([_row("M. SCHEIFELE", "WPG", ["C"], "C"), _row("E. LINDELL")], SHOWN)
+    assert [(p.id, p.slot, p.positions) for p in found.players] == [(20, "C", ["C"]), (21, "BN", ["D"])]
+    assert found.tagged == {20}
+
+
+def test_screenshot_name_clashes_use_team_then_my_roster():
+    assert [p.id for p in parse.match_shown_names([_row("A. LARSSON", "SEA")], SHOWN).players] == [22]
+    assert [p.id for p in parse.match_shown_names([_row("A. LARSSON")], SHOWN, prefer={23}).players] == [23]
+    found = parse.match_shown_names([_row("A. LARSSON"), _row("Z. NOBODY")], SHOWN)
+    assert found.players == [] and len(found.problems) == 2
+
+
+def test_overlapping_screenshots_count_a_player_once():
+    rows = [_row("E. LINDELL", slot="D"), _row("E. LINDELL", slot="D")]
+    assert len(parse.match_shown_names(rows, SHOWN).players) == 1

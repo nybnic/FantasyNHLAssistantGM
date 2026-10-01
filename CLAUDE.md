@@ -17,7 +17,7 @@ move in Yahoo, and the bot learns about them from Done taps and pasted Yahoo pag
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` |
 | `engine/` | Decisions: daily lineup, availability, weekly matchup and add/drops. See `engine/CLAUDE.md` |
 | `league/` | Rosters: mine (`roster.py`), other teams (`teams.py`), Yahoo text parser, fantasy weeks |
-| `clients/` | Data: NHL APIs, DailyFaceoff (lines, goalies, projections), disk cache |
+| `clients/` | Data: NHL APIs, DailyFaceoff (lines, goalies, projections), disk cache, screenshot OCR |
 | `notify/telegram.py` | Bot API calls |
 | `state/` | Bot-owned JSON, committed by every run (roster, league, gm_state) |
 | `scripts/` | One-off tools: seeding, backtest, explain_week, compare_yahoo, xfp_table |

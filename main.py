@@ -29,7 +29,9 @@ import logging
 from dataclasses import asdict, dataclass
 from zoneinfo import ZoneInfo
 
-from clients import dfo_lines, goalie_client, nhl_client
+import requests
+
+from clients import dfo_lines, goalie_client, nhl_client, screenshot
 from clients.names import normalize_name
 from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, TRADE_DEADLINE
 from config.settings import Settings, load_settings
@@ -47,7 +49,7 @@ NHL_TIME = ZoneInfo("America/New_York")
 HELP = (
     "Assistant GM commands:\n"
     "/roster - the roster I think you have\n"
-    "/myteam - then paste your Yahoo team page, to correct your roster and slots\n"
+    "/myteam - then send screenshots of your Yahoo team page or paste its text, to correct your roster\n"
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
@@ -56,7 +58,9 @@ HELP = (
     "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
 )
-MYTEAM_HINT = "\n\nWrong? Send /myteam and paste your Yahoo team page."
+MYTEAM_HINT = "\n\nWrong? Send screenshots of your Yahoo team page, or /myteam and paste its text."
+# Judgment call: screenshots sent within this of the previous one are one team page.
+SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
 
@@ -116,6 +120,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                        "half-hourly runs. A 401 means its GitHub token needs renewing (see README).")
     else:
         updates = telegram.get_updates(token, state["telegram_offset"])
+    new_screenshots = False
     for update in updates:
         state["telegram_offset"] = update["update_id"] + 1
         if "callback_query" in update:
@@ -143,6 +148,9 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             if str(message["chat"]["id"]) != chat_id:
                 _warn_other_chat(str(message["chat"]["id"]), chat_id, token)
                 continue
+            if _image(message):
+                new_screenshots |= add_screenshot(message, settings, state, outbox)
+                continue
             text = message.get("text", "").strip()
             first_line, _, body = text.partition("\n")
             command, _, rest = first_line.partition(" ")
@@ -161,13 +169,78 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 state["trade_request"] = (rest + "\n" + body).strip()
             elif command == "/taken":
                 taken_command(rest + "\n" + body, league, outbox)
+            elif command == "/save":
+                if state["screenshots"]:
+                    finish_screenshots(state, players, league, outbox, save=True)
+                else:
+                    outbox.send("No screenshots to save.")
             elif state["awaiting"] and not text.startswith("/"):
                 team, state["awaiting"] = state["awaiting"], None
                 if team == MY_TEAM:
                     update_my_roster(text, players, outbox)
                 else:
                     update_team(team, text, league, outbox)
+    if new_screenshots:
+        finish_screenshots(state, players, league, outbox)
     return problem
+
+
+def _image(message: dict) -> str | None:
+    """File id of a photo, or of an image sent as a file."""
+    if message.get("photo"):
+        return message["photo"][-1]["file_id"]  # the largest size
+    doc = message.get("document") or {}
+    return doc["file_id"] if doc.get("mime_type", "").startswith("image/") else None
+
+
+def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbox) -> bool:
+    """Read a team-page screenshot into the draft roster. Screenshots within
+    SCREENSHOT_WINDOW of each other add up; the team is the one named by
+    /opp or /myteam, else the draft's, else mine."""
+    at = dt.datetime.fromtimestamp(message["date"], dt.timezone.utc)
+    draft = state["screenshots"]
+    fresh = draft and at - dt.datetime.fromisoformat(draft["at"]) < SCREENSHOT_WINDOW
+    team = state["awaiting"] or (draft["team"] if fresh else MY_TEAM)
+    state["awaiting"] = None
+    if not fresh or draft["team"] != team:
+        draft = {"team": team, "rows": []}
+    try:
+        rows = screenshot.read_roster(telegram.download_file(settings.telegram_bot_token, _image(message)))
+    except (screenshot.ScreenshotError, telegram.TelegramError) as e:
+        outbox.send(f"Couldn't read that screenshot: {e}")
+        return False
+    except requests.RequestException:  # its text can hold the download URL, which holds the token
+        outbox.send("Couldn't download that screenshot from Telegram; try again.")
+        return False
+    if not rows:
+        outbox.send("I couldn't find any players in that screenshot. Send the Team tab of the Yahoo app.")
+        return False
+    draft["rows"] += rows
+    draft["at"] = at.isoformat()
+    state["screenshots"] = draft
+    return True
+
+
+def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
+    """Save the screenshot draft once it looks like the whole roster (at most
+    one player short of what I had), or on /save."""
+    team = state["screenshots"]["team"]
+    current = players if team == MY_TEAM else teams.players(league, team)
+    found = parse.match_shown_names(state["screenshots"]["rows"], parse.registry(), {p.id for p in current})
+    n = len(found.players)
+    if n > roster_mod.MAX_PLAYERS:
+        state["screenshots"] = None
+        outbox.send(f"Those screenshots show {n} players, more than a roster holds; nothing saved. Send them again.")
+        return
+    if not save and n < max(roster_mod.MIN_PASTED, len(current) - 1):
+        problems = "\nCouldn't place: " + "; ".join(found.problems) if found.problems else ""
+        outbox.send(f"{team}: read {n} players so far ({', '.join(p.name for p in found.players)}). "
+                    f"Send the rest of the screenshots, or /save to save just these.{problems}")
+        return
+    if team == MY_TEAM:
+        apply_my_roster(found, players, outbox)
+    else:
+        save_team(team, found, league, outbox)
 
 
 def apply_add(players: list, rec: dict) -> None:
@@ -210,7 +283,7 @@ def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Ou
         update_team(team, paste, league, outbox)
     else:
         state["awaiting"] = team
-        outbox.send(f"OK - now paste {team}'s Yahoo team page (copy the whole page; any format works).")
+        outbox.send(f"OK - now send screenshots of {team}'s Yahoo team page, or paste its text.")
 
 
 def myteam_command(paste: str, state: dict, players: list, outbox: Outbox) -> None:
@@ -219,8 +292,8 @@ def myteam_command(paste: str, state: dict, players: list, outbox: Outbox) -> No
         update_my_roster(paste, players, outbox)
     else:
         state["awaiting"] = MY_TEAM
-        outbox.send("OK - now paste your Yahoo team page (My Team, copy the whole page). "
-                    "Or one player per line with the slot first: \"BN Nathan MacKinnon\".")
+        outbox.send("OK - now send screenshots of your Yahoo team page, or paste its text "
+                    "(or one player per line with the slot first: \"BN Nathan MacKinnon\").")
 
 
 def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
@@ -231,8 +304,12 @@ def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
         outbox.send(f"I found {n} players, but a roster has {roster_mod.MIN_PASTED}-{roster_mod.MAX_PLAYERS}. "
                     f"Your roster is unchanged: paste the whole team page.{problems}")
         return
+    apply_my_roster(found, players, outbox)
+
+
+def apply_my_roster(found: parse.Found, players: list, outbox: Outbox) -> None:
     changes = roster_mod.replace(players, found.players, found.tagged)
-    lines = [f"Roster saved: {n} players."] + (changes or ["Same as I had."])
+    lines = [f"Roster saved: {len(found.players)} players."] + (changes or ["Same as I had."])
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
@@ -243,6 +320,10 @@ def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
     if not found.players:
         outbox.send(f"I couldn't find any players in that. {team}'s roster is unchanged.")
         return
+    save_team(team, found, league, outbox)
+
+
+def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox) -> None:
     for p in found.players:
         p.slot = None  # other teams are assumed to set their best lineup
     teams.set_team(league, team, found.players, _nhl_today())

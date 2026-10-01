@@ -66,3 +66,9 @@ jobs:
             git pull --rebase
             git push
           fi
+
+      # Screenshots are rare, so the OCR is only loaded when one arrives. Load
+      # it here too (after the bot's work is done), so a broken install shows
+      # up as a red run rather than on the next screenshot.
+      - name: Check the screenshot OCR loads
+        run: python -c "from clients.screenshot import _ocr; _ocr()"

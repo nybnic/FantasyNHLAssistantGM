@@ -30,7 +30,7 @@ masked: `notify/telegram.TelegramError` and the failure alert strip the token.
 ## State files (bot-owned, committed every run)
 | File | Holds | Changed by |
 |---|---|---|
-| `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes, `scripts/seed_roster.py` |
+| `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, `scripts/seed_roster.py` |
 | `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, `/taken`, `scripts/seed_league.py` |
 | `state/gm_state.json` | Telegram offset, pending recs, decisions (the add budget counts Done adds), sent briefings/plans | Every run |
 

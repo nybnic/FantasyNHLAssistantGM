@@ -110,3 +110,43 @@ def find_players(text: str, players: list[dict]) -> Found:
             ))
             slot = None  # a slot belongs to the first player on its line
     return found
+
+
+def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = frozenset()) -> Found:
+    """Players from screenshot rows (clients/vision.py): {"slot", "name" as
+    shown, e.g. "M. SCHEIFELE", "team" or "", "positions" or []}. A name
+    matches on first initial and last name, then team and position narrow it
+    down; still ambiguous, the player already on the team (`prefer`) wins."""
+    unique = list({p["id"]: p for p in reversed(players)}.values())[::-1]  # first entry per id wins
+    found = Found()
+    for row in rows:
+        shown = normalize_name(row["name"]).split()
+        if not shown:
+            continue
+        initial = shown[0] if len(shown) > 1 and len(shown[0]) == 1 else None
+        last = " ".join(shown[1:] if initial else shown)
+        candidates = [p for p in unique if (" " + normalize_name(p["name"])).endswith(" " + last)
+                      and (initial is None or normalize_name(p["name"]).startswith(initial))]
+        positions = list(row.get("positions") or [])
+        team = YAHOO_TO_NHL_TEAM.get(row.get("team") or "", row.get("team") or "")
+        if len(candidates) > 1 and positions:
+            candidates = [c for c in candidates if NHL_TO_YAHOO_POS[c["position"]] in positions
+                          or (c["position"] in "CLR" and set(positions) & {"C", "LW", "RW"})] or candidates
+        if len(candidates) > 1 and team:
+            candidates = [c for c in candidates if c["team"] == team] or candidates
+        if len(candidates) > 1:
+            candidates = [c for c in candidates if c["id"] in prefer] or candidates
+        if len(candidates) != 1:
+            why = "which one?" if candidates else "no player by that name"
+            found.problems.append(f"{row['name']} ({team or '?'}): {why}")
+            continue
+        c = candidates[0]
+        if any(p.id == c["id"] for p in found.players):
+            continue  # the same row in two overlapping screenshots
+        if positions:
+            found.tagged.add(c["id"])
+        found.players.append(RosterPlayer(
+            id=c["id"], name=c["name"], team=c["team"],
+            positions=positions or [NHL_TO_YAHOO_POS[c["position"]]], slot=row.get("slot") or None,
+        ))
+    return found

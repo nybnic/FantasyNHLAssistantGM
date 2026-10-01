@@ -52,8 +52,11 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   both rosters' F/D/G balance. `/trade` alone suggests 3-4 trades the other
   manager could plausibly accept (takes about a minute).
 - `/roster` in the chat shows the roster it thinks you have. If it's wrong,
-  send `/myteam` and paste your Yahoo team page: it replaces your roster and
-  slots and replies with what changed.
+  send screenshots of the Yahoo app's Team tab (scroll so every player is in
+  one of them; overlap is fine), or `/myteam` and paste the page's text. It
+  replaces your roster and slots and replies with what changed. Screenshots
+  are read with free offline OCR; if a set looks incomplete it asks for the
+  rest, or `/save` keeps what it read. `/opp` takes screenshots too.
 - If a run fails, you get one alert that day.
 
 Coming next: mid-week risk advice (protect a lead, chase when behind), IR

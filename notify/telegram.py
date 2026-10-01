@@ -9,6 +9,7 @@ from __future__ import annotations
 import requests
 
 API_URL = "https://api.telegram.org/bot{token}/{method}"
+FILE_URL = "https://api.telegram.org/file/bot{token}/{path}"
 
 
 class TelegramError(requests.HTTPError):
@@ -81,3 +82,13 @@ def answer_callback(token: str, callback_id: str, text: str) -> None:
         _call(token, "answerCallbackQuery", callback_query_id=callback_id, text=text)
     except requests.HTTPError:
         pass
+
+
+def download_file(token: str, file_id: str) -> bytes:
+    """A file someone sent the bot (a screenshot). Errors leave out the
+    download URL, which contains the token."""
+    path = _call(token, "getFile", file_id=file_id)["file_path"]
+    resp = requests.get(FILE_URL.format(token=token, path=path), timeout=60)
+    if not resp.ok:
+        raise TelegramError(f"Telegram file download failed ({resp.status_code})", response=resp)
+    return resp.content

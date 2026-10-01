@@ -250,3 +250,50 @@ def test_no_first_briefing_after_the_window_closes(monkeypatch, tmp_path):
     late = dt.datetime(2026, 10, 1, 17, 35, tzinfo=dt.timezone.utc)  # 20:35 Helsinki
     main.briefing_step(state, players, late, False, main.Outbox(settings), build_context=lambda d: 1 / 0)
     assert state["briefings"] == {} and sent == []
+
+
+SHOT_NAMES = ["Ason", "Bson", "Cson", "Dson", "Eson", "Fson", "Gson", "Hson", "Ison", "Json", "Kson", "Lson"]
+SHOT_REGISTRY = [{"id": 200 + i, "name": f"Paul {n}", "team": "BOS", "position": "C"} for i, n in enumerate(SHOT_NAMES)]
+SHOTS = {"top": [{"slot": s, "name": f"P. {n.upper()}", "team": "BOS", "positions": ["C"]}
+                 for n, s in zip(SHOT_NAMES[:8], ["C", "C", "LW", "LW", "RW", "RW", "D", "D"])],
+         "bottom": [{"slot": s, "name": f"P. {n.upper()}", "team": "", "positions": []}  # overlaps "top" by one
+                    for n, s in zip(SHOT_NAMES[7:], ["D", "D", "G", "G", "BN"])]}
+
+
+def _photo(file_id, update_id, date=1_790_000_000):
+    return {"update_id": update_id, "message": {"chat": {"id": 42}, "date": date,
+                                                "photo": [{"file_id": "small"}, {"file_id": file_id}]}}
+
+
+def _screenshots(monkeypatch, tmp_path, updates):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, updates)
+    monkeypatch.setattr(main.parse, "registry", lambda: SHOT_REGISTRY)
+    monkeypatch.setattr(main.telegram, "download_file", lambda token, file_id: file_id.encode())
+    monkeypatch.setattr(main.screenshot, "read_roster", lambda image: SHOTS[image.decode()])
+    return settings, state, players, sent
+
+
+def test_two_screenshots_in_one_run_replace_my_roster(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9), _photo("bottom", 10)])
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert [(p.id, p.slot) for p in players][:1] == [(200, "C")] and len(players) == 12
+    assert players[-1].slot == "BN"
+    assert sent[0].startswith("Roster saved: 12 players.")
+
+
+def test_screenshots_across_runs_wait_for_the_rest(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9)])
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert [p.id for p in players] == [1, 2]
+    assert "read 8 players so far" in sent[0] and "/save" in sent[0]
+    monkeypatch.setattr(main.telegram, "get_updates", lambda token, offset: [_photo("bottom", 10, 1_790_000_060)])
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert len(players) == 12 and sent[1].startswith("Roster saved")
+
+
+def test_a_screenshot_without_players_says_so(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9)])
+    monkeypatch.setattr(main.screenshot, "read_roster", lambda image: [])
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert "couldn't find any players" in sent[0] and state["screenshots"] is None

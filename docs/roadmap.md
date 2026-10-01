@@ -41,3 +41,4 @@ Move finished items to the log at the bottom, with the commit.
 | 2026-09-29 | `/trade` suggestions, roster balance and short-of-starters check | (this commit) |
 | 2026-10-01 | Evening briefings missed: relay crons start the runs | e3e1c8e |
 | 2026-10-01 | `/myteam` paste replaces my roster and slots; briefing window 19:30-20:30 | (this commit) |
+| 2026-10-01 | Roster and opponent screenshots via free OCR (`clients/screenshot.py`) | (this commit) |
