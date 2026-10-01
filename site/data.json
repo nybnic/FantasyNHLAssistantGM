@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-01T12:56+00:00",
+ "generated": "2026-10-01T14:06+00:00",
  "week": 1,
  "opponent": "Bahelin Boys",
  "days": [
@@ -21,7 +21,7 @@
   ],
   "win": 0.47640424067795734,
   "stance": "chase",
-  "stance_text": "Mid-week: behind (48%) but close, so chase: you trail by 2 expected points.\nBiggest swing: add Jack McBain (3 games left) for Brayden Schenn, win 48% -> 59%. Not a recommended add (worth an add, but this week's go to Vasily Podkolzin), so it's your call.",
+  "stance_text": "Mid-week: behind (48%) but close, so chase: you trail by 2 expected points.\nBiggest swing: add Jack McBain (3 games left) for Brayden Schenn, win 48% -> 59%. That's the add below.",
   "adds_left": {
    "season": 35,
    "week": 1
@@ -34,15 +34,26 @@
     "key": "8480855:8475170",
     "label": "McBain for Schenn",
     "x": 10.921118491220511,
-    "y": 0.7670412477614406,
+    "y": 0.8768649038541974,
+    "later_pts": 1.150561871642143,
     "games": 3,
-    "recommended": false
+    "recommended": true
    },
    {
     "key": "8482665:8475170",
     "label": "Beniers for Schenn",
     "x": 10.27814908341423,
-    "y": -3.916526147457059,
+    "y": -9.74576255461609,
+    "later_pts": -12.787719928272427,
+    "games": 3,
+    "recommended": false
+   },
+   {
+    "key": "8480009:8475170",
+    "label": "Tolvanen for Schenn",
+    "x": 9.853429314526768,
+    "y": 0.18195677428224252,
+    "later_pts": 0.23875117575803273,
     "games": 3,
     "recommended": false
    },
@@ -50,15 +61,8 @@
     "key": "8474150:8475170",
     "label": "Backlund for Schenn",
     "x": 9.182602322812155,
-    "y": -4.944708003809519,
-    "games": 3,
-    "recommended": false
-   },
-   {
-    "key": "8480028:8475170",
-    "label": "Frost for Schenn",
-    "x": 9.1760045096067,
-    "y": -6.163445420942928,
+    "y": -10.52935934053109,
+    "later_pts": -13.815901784624888,
     "games": 3,
     "recommended": false
    },
@@ -66,7 +70,8 @@
     "key": "8481668:8483703",
     "label": "Silovs for Murashov",
     "x": 0.0,
-    "y": 8.990103512198655,
+    "y": 10.249861924465778,
+    "later_pts": 13.449164481382653,
     "games": 1,
     "recommended": false
    },
@@ -74,7 +79,8 @@
     "key": "8477964:8475170",
     "label": "Barbashev for Schenn",
     "x": 4.745172307176077,
-    "y": 4.001166315584037,
+    "y": 2.9169292235797806,
+    "later_pts": 3.827394085654568,
     "games": 2,
     "recommended": false
    },
@@ -82,7 +88,8 @@
     "key": "8477365:8476902",
     "label": "Clifton for Lindell",
     "x": 0.9278987676196282,
-    "y": 2.4955427918548683,
+    "y": 2.535866975579692,
+    "later_pts": 3.3273903891398238,
     "games": 2,
     "recommended": false
    },
@@ -90,23 +97,15 @@
     "key": "8476892:8476902",
     "label": "Parayko for Lindell",
     "x": 0.874704728078668,
-    "y": 2.3399905376514916,
+    "y": 2.3778012330491287,
+    "later_pts": 3.119987383535314,
     "games": 2,
     "recommended": false
-   },
-   {
-    "key": "8481617:8475170",
-    "label": "Podkolzin for Schenn",
-    "x": 6.512723376730384,
-    "y": -2.395598980135837,
-    "games": 2,
-    "recommended": true
    }
   ],
-  "headline": "Recommended: Podkolzin for Schenn",
-  "detail": "Biggest lift this week: McBain for Schenn, +11 pts of win odds, but +1 pts over the next 2 weeks",
-  "x_bar": 2.0,
-  "y_bar": 6.206896551724138
+  "headline": "Recommended: McBain for Schenn",
+  "detail": "",
+  "bar": 10.250498688964091
  },
  "schedule": {
   "days": [
@@ -624,7 +623,7 @@
      9.99812828115165,
      0.5752809358210698
     ],
-    "recommended": false
+    "recommended": true
    },
    {
     "key": "8480009:8475170",
@@ -906,8 +905,8 @@
     0.5856154255901624
    ],
    "next_two_weeks": 0.7670412477614406,
-   "season": 15.632837253027768,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
+   "season": 1.150561871642143,
+   "verdict": "Recommended",
    "budget": {
     "week": 1,
     "used": [
@@ -993,617 +992,8 @@
     0.5791857315120996
    ],
    "next_two_weeks": -3.916526147457059,
-   "season": -3.916526147457059,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8474150:8475170": {
-   "key": "8474150:8475170",
-   "label": "Add M. Backlund, drop B. Schenn",
-   "add": {
-    "name": "Mikael Backlund",
-    "team": "CGY",
-    "positions": "C"
-   },
-   "drop": "Brayden Schenn",
-   "games": 3,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 8.362082667413489,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": -4.775004299342271,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": -0.1697037044672811,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": -9.040897485282642,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 3.7567820725385275,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 8.192378962946208,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.5682302639060789
-   ],
-   "next_two_weeks": -4.944708003809519,
-   "season": -4.944708003809519,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8480028:8475170": {
-   "key": "8480028:8475170",
-   "label": "Add M. Frost, drop B. Schenn",
-   "add": {
-    "name": "Morgan Frost",
-    "team": "CGY",
-    "positions": "C"
-   },
-   "drop": "Brayden Schenn",
-   "games": 3,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 8.355917802235439,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": -5.587495910764545,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": -0.5759495101784182,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": -9.447143290993779,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 2.131798849693979,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 6.567395740101631,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.5681642857740243
-   ],
-   "next_two_weeks": -6.163445420942928,
-   "season": -6.163445420942928,
-   "verdict": "Not recommended: dropping Brayden Schenn costs about 6 pts over the rest of the season",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8481668:8483703": {
-   "key": "8481668:8483703",
-   "label": "Add A. Silovs, drop S. Murashov",
-   "add": {
-    "name": "Arturs Silovs",
-    "team": "PIT",
-    "positions": "G"
-   },
-   "drop": "Sergei Murashov",
-   "games": 1,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 0.0,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": 7.1900101016877045,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 2.67616521930222,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": 7.829267638341008,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 2.606804254031573,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 3.2837978470595885,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.47640424067795734
-   ],
-   "next_two_weeks": 8.990103512198655,
-   "season": 48.403070433271964,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8477964:8475170": {
-   "key": "8477964:8475170",
-   "label": "Add I. Barbashev, drop B. Schenn",
-   "add": {
-    "name": "Ivan Barbashev",
-    "team": "VGK",
-    "positions": "LW"
-   },
-   "drop": "Brayden Schenn",
-   "games": 2,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 4.277160164472235,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": -0.26065834489418194,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 4.261824660478254,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": -0.26065834489418194,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": -4.609369120337135,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 8.523649320956451,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.5238559637497181
-   ],
-   "next_two_weeks": 4.001166315584037,
-   "season": 15.404437138364338,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8477365:8476902": {
-   "key": "8477365:8476902",
-   "label": "Add C. Clifton, drop E. Lindell",
-   "add": {
-    "name": "Connor Clifton",
-    "team": "BOS",
-    "positions": "D"
-   },
-   "drop": "Esa Lindell",
-   "games": 2,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 0.8318475972849626,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": 1.2477713959274297,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 1.2477713959274297,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": 1.2477713959274297,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 1.2477713959274297,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 1.2477713959274297,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.4856832283541536
-   ],
-   "next_two_weeks": 2.4955427918548683,
-   "season": 7.012967240142132,
-   "verdict": "Not recommended: neither lifts this week's win odds nor pays off within two weeks",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8476892:8476902": {
-   "key": "8476892:8476902",
-   "label": "Add C. Parayko, drop E. Lindell",
-   "add": {
-    "name": "Colton Parayko",
-    "team": "STL",
-    "positions": "D"
-   },
-   "drop": "Esa Lindell",
-   "games": 2,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 0.7841170760469538,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": 1.169995268825744,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 1.169995268825744,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": 1.169995268825744,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 1.169995268825744,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 1.169995268825744,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.485151287958744
-   ],
-   "next_two_weeks": 2.3399905376514916,
-   "season": 14.624940860322985,
-   "verdict": "Not recommended: neither lifts this week's win odds nor pays off within two weeks",
-   "budget": {
-    "week": 1,
-    "used": [
-     1
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8481617:8475170": {
-   "key": "8481617:8475170",
-   "label": "Add V. Podkolzin, drop B. Schenn",
-   "add": {
-    "name": "Vasily Podkolzin",
-    "team": "EDM",
-    "positions": "LW/RW"
-   },
-   "drop": "Brayden Schenn",
-   "games": 2,
-   "weeks": [
-    {
-     "week": 1,
-     "gain": 5.891675222723478,
-     "confident": true
-    },
-    {
-     "week": 2,
-     "gain": -3.0755982835598275,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 0.6799993034239549,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": 2.039997910271836,
-     "confident": false
-    },
-    {
-     "week": 5,
-     "gain": 7.155594104103415,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 6.475594800679488,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.47640424067795734,
-    0.5415314744452612
-   ],
-   "next_two_weeks": -2.395598980135837,
-   "season": 42.564962372963564,
-   "verdict": "Recommended",
+   "season": -12.787719928272427,
+   "verdict": "Not recommended: dropping Brayden Schenn costs about 13 pts later, more than this week's +10 win-pts make up for",
    "budget": {
     "week": 1,
     "used": [
@@ -1689,8 +1079,443 @@
     0.574938533823225
    ],
    "next_two_weeks": 0.15916745050536107,
-   "season": 1.243495707074279,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
+   "season": 0.23875117575803273,
+   "verdict": "Not recommended: worth 10.0 win-pts, under the 10.3 an add costs",
+   "budget": {
+    "week": 1,
+    "used": [
+     1
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8474150:8475170": {
+   "key": "8474150:8475170",
+   "label": "Add M. Backlund, drop B. Schenn",
+   "add": {
+    "name": "Mikael Backlund",
+    "team": "CGY",
+    "positions": "C"
+   },
+   "drop": "Brayden Schenn",
+   "games": 3,
+   "weeks": [
+    {
+     "week": 1,
+     "gain": 8.362082667413489,
+     "confident": true
+    },
+    {
+     "week": 2,
+     "gain": -4.775004299342271,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": -0.1697037044672811,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": -9.040897485282642,
+     "confident": false
+    },
+    {
+     "week": 5,
+     "gain": 3.7567820725385275,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": 8.192378962946208,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.47640424067795734,
+    0.5682302639060789
+   ],
+   "next_two_weeks": -4.944708003809519,
+   "season": -13.815901784624888,
+   "verdict": "Not recommended: dropping Brayden Schenn costs about 14 pts later, more than this week's +9 win-pts make up for",
+   "budget": {
+    "week": 1,
+    "used": [
+     1
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8481668:8483703": {
+   "key": "8481668:8483703",
+   "label": "Add A. Silovs, drop S. Murashov",
+   "add": {
+    "name": "Arturs Silovs",
+    "team": "PIT",
+    "positions": "G"
+   },
+   "drop": "Sergei Murashov",
+   "games": 1,
+   "weeks": [
+    {
+     "week": 1,
+     "gain": 0.0,
+     "confident": true
+    },
+    {
+     "week": 2,
+     "gain": 7.1900101016877045,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 2.67616521930222,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": 7.829267638341008,
+     "confident": false
+    },
+    {
+     "week": 5,
+     "gain": 2.606804254031573,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": 3.2837978470595885,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.47640424067795734,
+    0.47640424067795734
+   ],
+   "next_two_weeks": 8.990103512198655,
+   "season": 13.449164481382653,
+   "verdict": "Not recommended: worth 10.2 win-pts, under the 10.3 an add costs",
+   "budget": {
+    "week": 1,
+    "used": [
+     1
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8477964:8475170": {
+   "key": "8477964:8475170",
+   "label": "Add I. Barbashev, drop B. Schenn",
+   "add": {
+    "name": "Ivan Barbashev",
+    "team": "VGK",
+    "positions": "LW"
+   },
+   "drop": "Brayden Schenn",
+   "games": 2,
+   "weeks": [
+    {
+     "week": 1,
+     "gain": 4.277160164472235,
+     "confident": true
+    },
+    {
+     "week": 2,
+     "gain": -0.26065834489418194,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 4.261824660478254,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": -0.26065834489418194,
+     "confident": false
+    },
+    {
+     "week": 5,
+     "gain": -4.609369120337135,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": 8.523649320956451,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.47640424067795734,
+    0.5238559637497181
+   ],
+   "next_two_weeks": 4.001166315584037,
+   "season": 3.827394085654568,
+   "verdict": "Not recommended: worth 7.7 win-pts, under the 10.3 an add costs",
+   "budget": {
+    "week": 1,
+    "used": [
+     1
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8477365:8476902": {
+   "key": "8477365:8476902",
+   "label": "Add C. Clifton, drop E. Lindell",
+   "add": {
+    "name": "Connor Clifton",
+    "team": "BOS",
+    "positions": "D"
+   },
+   "drop": "Esa Lindell",
+   "games": 2,
+   "weeks": [
+    {
+     "week": 1,
+     "gain": 0.8318475972849626,
+     "confident": true
+    },
+    {
+     "week": 2,
+     "gain": 1.2477713959274297,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 1.2477713959274297,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": 1.2477713959274297,
+     "confident": false
+    },
+    {
+     "week": 5,
+     "gain": 1.2477713959274297,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": 1.2477713959274297,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.47640424067795734,
+    0.4856832283541536
+   ],
+   "next_two_weeks": 2.4955427918548683,
+   "season": 3.3273903891398238,
+   "verdict": "Not recommended: worth 3.5 win-pts, under the 10.3 an add costs",
+   "budget": {
+    "week": 1,
+    "used": [
+     1
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8476892:8476902": {
+   "key": "8476892:8476902",
+   "label": "Add C. Parayko, drop E. Lindell",
+   "add": {
+    "name": "Colton Parayko",
+    "team": "STL",
+    "positions": "D"
+   },
+   "drop": "Esa Lindell",
+   "games": 2,
+   "weeks": [
+    {
+     "week": 1,
+     "gain": 0.7841170760469538,
+     "confident": true
+    },
+    {
+     "week": 2,
+     "gain": 1.169995268825744,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 1.169995268825744,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": 1.169995268825744,
+     "confident": false
+    },
+    {
+     "week": 5,
+     "gain": 1.169995268825744,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": 1.169995268825744,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.47640424067795734,
+    0.485151287958744
+   ],
+   "next_two_weeks": 2.3399905376514916,
+   "season": 3.119987383535314,
+   "verdict": "Not recommended: worth 3.3 win-pts, under the 10.3 an add costs",
    "budget": {
     "week": 1,
     "used": [
@@ -1776,8 +1601,8 @@
     0.548068779742377
    ],
    "next_two_weeks": -3.109621711915551,
-   "season": -3.109621711915551,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
+   "season": -11.980815492730919,
+   "verdict": "Not recommended: dropping Brayden Schenn costs about 12 pts later, more than this week's +7 win-pts make up for",
    "budget": {
     "week": 1,
     "used": [
@@ -1863,8 +1688,8 @@
     0.5511774209043391
    ],
    "next_two_weeks": -2.7229844759518578,
-   "season": -2.7229844759518578,
-   "verdict": "Not recommended: worth an add, but this week's go to Vasily Podkolzin",
+   "season": -4.118057027104747,
+   "verdict": "Not recommended: dropping Brayden Schenn costs about 4 pts later, more than this week's +7 win-pts make up for",
    "budget": {
     "week": 1,
     "used": [
