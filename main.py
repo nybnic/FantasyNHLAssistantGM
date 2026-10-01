@@ -41,7 +41,7 @@ from clients.names import normalize_name
 from config.league import (MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, SEASON_START,
                            TRADE_DEADLINE)
 from config.settings import Settings, load_settings
-from engine import addprice, briefing, matchup, report, trade
+from engine import addprice, briefing, ir, matchup, report, trade
 from league import draft, parse, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
@@ -505,8 +505,10 @@ def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox,
 
 
 def apply_add(players: list, rec: dict) -> None:
-    """Done on an add/drop: your roster changes the same way."""
+    """Done on an add/drop: your roster changes the same way, including the
+    IR move that opened its spot (rec["ir"]: player id -> IR slot)."""
     known = roster_mod.lineup_known(players)
+    roster_mod.apply_lineup(players, {int(pid): slot for pid, slot in rec.get("ir", {}).items()})
     if rec["drop"] is not None:
         players[:] = [p for p in players if p.id != rec["drop"]]
     if all(p.id != rec["add"]["id"] for p in players):
@@ -681,6 +683,7 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
     team_lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in {p.team for p in players}}
     starters = _safe(goalie_client.get_starters, date, default={})
     result = briefing.plan(players, ctx, date, games, team_lines, starters, now)
+    ir_note = _new_ir_note(state, players, ctx, team_lines)
 
     if record is None:
         worth_sending = result.current is None or result.gain >= briefing.MIN_GAIN
@@ -696,10 +699,33 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
 
     if not message_text:
         logger.info("Lineup for %s already optimal (gain %.2f); nothing sent", key, result.gain)
+        if ir_note:
+            outbox.send(ir_note)
         return
+    if ir_note:
+        message_text += "\n\n" + ir_note
     rec_id = f"lineup-{key}-{now:%H%M}"
     message_id = outbox.send(message_text, [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")])
     state["pending"][rec_id] = {"type": "lineup", "date": key, "assignment": result.optimal, "message_id": message_id}
+
+
+def _weakest(players: list, ctx, lines: dict):
+    """The skater to drop for a player back from IR: my lowest long-run value."""
+    return next((p for p in matchup.drop_candidates(roster_mod.active(players), ctx, lines) if not p.is_goalie), None)
+
+
+def _new_ir_note(state: dict, players: list, ctx, team_lines: dict) -> str:
+    """The IR lines the briefing hasn't said yet (each IR move or return once,
+    while it stays true; the weekly plan repeats them all)."""
+    ir_moves, back = ir.moves(players, team_lines), ir.returning(players, team_lines)
+    keys = {f"{m.player.id}:{m.slot}": m for m in ir_moves} | {f"{p.id}:back": p for p in back}
+    new = [k for k in keys if k not in state["ir_noted"]]
+    state["ir_noted"] = sorted(keys)
+    if not new:
+        return ""
+    weakest = _weakest(players, ctx, team_lines)
+    return ir.text([m for k, m in keys.items() if k in new and isinstance(m, ir.IrMove)],
+                   [p for k, p in keys.items() if k in new and not isinstance(p, ir.IrMove)], weakest)
 
 
 def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -1062,15 +1088,20 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         return
 
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
+    ir_moves, back = ir.moves(players, wk.lines), ir.returning(players, wk.lines)
+    weakest = _weakest(players, wk.ctx, wk.lines)
+    ir_text = ir.text(ir_moves, back, weakest)
+    planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
+    open_spots = max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players)))
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
-    ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
+    ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
                                      wk.later_weight)
     wk.price = add_price(state, week, wk, ranked, date)
     moves = []
     if wk.max_moves and wk.price is not None:
-        moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
+        moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                    wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
                                    candidates, ranked, wk.hold_days)
     midweek = None
@@ -1085,11 +1116,12 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now.")
-                + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None)))
+                + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))
+                + (f"\n\n{ir_text}" if ir_text else ""))
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
-    views = _safe(week_views, state, players, league, week, wk, nxt, ranked, moves)
+    views = _safe(week_views, state, planned, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])
         if png:
@@ -1106,10 +1138,14 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         buttons = [("Done", f"done:{rec_id}"), ("Taken", f"taken:{rec_id}"), ("Skip", f"skip:{rec_id}")]
         view = views and views["adds"].get(report.move_key(move))
         png = _safe(charts.add_chart, view) if view else None
-        message_id = (outbox.send_photo(png, matchup.move_text(move), buttons) if png
-                      else outbox.send(matchup.move_text(move), buttons))
+        # An add without a drop fills a spot already open, else the next IR move's.
+        k = sum(m.drop is None for m in moves[:i]) - open_spots
+        opens = ir_moves[k] if move.drop is None and 0 <= k < len(ir_moves) else None
+        text = matchup.move_text(move, opens.player.name if opens else None)
+        message_id = (outbox.send_photo(png, text, buttons) if png else outbox.send(text, buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
-                                    "drop": move.drop.id if move.drop else None, "message_id": message_id}
+                                    "drop": move.drop.id if move.drop else None, "message_id": message_id,
+                                    "ir": {str(opens.player.id): opens.slot} if opens else {}}
 
 
 def run_steps(steps: list[tuple[str, Callable[[], object]]]) -> list[tuple[str, Exception]]:

@@ -593,3 +593,23 @@ def test_each_days_roster_keeps_dropped_players_and_leaves_out_later_adds():
     assert sorted(p.id for p in by_day[dt.date(2026, 9, 30)]) == [1, 5, 7]
     assert sorted(p.id for p in by_day[dt.date(2026, 9, 29)]) == [1, 7]  # no snapshot: today's, less the add
     assert dt.date(2026, 10, 1) not in by_day  # today isn't banked yet
+
+
+def test_done_on_an_add_into_an_ir_spot_makes_the_ir_move(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("done:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "drop": None, "message_id": 7,
+                                 "ir": {"2": "IR+"}, "add": {"id": 11, "name": "Joey Daccord", "team": "SEA",
+                                                             "positions": ["G"], "slot": None}}
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert [(p.id, p.slot) for p in players] == [(1, "C"), (2, "IR+"), (11, "BN")]
+
+
+def test_the_briefing_mentions_each_ir_move_once(monkeypatch, tmp_path):
+    from clients.dfo_lines import LineInfo
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    lines = {"TOR": {"b": LineInfo(groups={"f2"}, injury="out")}}
+    monkeypatch.setattr(main.matchup, "drop_candidates", lambda roster, ctx, lines: [])
+    assert "move B to IR+" in main._new_ir_note(state, players, None, lines)
+    assert main._new_ir_note(state, players, None, lines) == ""  # said already
+    assert main._new_ir_note(state, players, None, {}) == "" and state["ir_noted"] == []  # healed: forgotten
+    assert "move B to IR+" in main._new_ir_note(state, players, None, lines)  # out again: said again

@@ -11,20 +11,17 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **IR management**: flag an IR-eligible player in an active slot (moving him
-   makes the next add drop-free), and a returning player who needs a spot.
-   Done when: the weekly plan and the briefing include an IR line when relevant.
-2. **Weekly results log, then the Sunday report**: Monday's projection, P(win),
+1. **Weekly results log, then the Sunday report**: Monday's projection, P(win),
    sigma, the final score and the adds per week in state (week 1 backfilled from
    git history); then the report: result vs projection, adds taken or skipped,
    the budget, the week chart. Done when: sent Sunday evening, with the same
    numbers `explain_week` shows. Unblocks every calibration below.
-3. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
+2. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
    skipped adds scored vs the drop, over the hold. Done when: one line of it in
    the Sunday report.
-4. **Data health**: say once a day when a source is down or stale (DFO lines,
+3. **Data health**: say once a day when a source is down or stale (DFO lines,
    starting goalies, projections). Done when: a broken DFO fetch shows in Telegram.
-5. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+4. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
    plus an alert when news makes an add clear the price between plans.
    Done when: a night with nothing to change gets one line or nothing.
@@ -43,6 +40,8 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
   goalie shares are the next suspects, before shrinking add gains.
 - Calibrate `MODEL_SD_SHARE`, the streaming-spot counts and the add price once 4-6
   weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
+- IR: read Yahoo's own injury tag (IR, IR-LT, O, DTD) from screenshots instead of
+  inferring it from DFO; value the spot crunch when an IR'd player returns.
 - Opponent profiles: adds per week (Transactions) and lineup efficiency (Yahoo's
   final vs our projection). Log first; shade their projection once 3-4 weeks show an effect.
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
@@ -91,3 +90,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Injury status fades along return curves fit from game logs (`scripts/fit_absence.py`), slower the more games missed; check_sigma replays the bot's availability: bias -0.36 -> -0.13 sigma | (this commit) |
 | 2026-10-01 | Waivers per player: drops (Transactions, Done) put a player on waivers; his add is a claim that counts from the day it can play, and says so | (this commit) |
 | 2026-10-01 | Banked points by day: each day's rosters kept until its first puck; points so far scored with them, so mid-week adds and drops don't move them | (this commit) |
+| 2026-10-01 | IR management (`engine/ir.py`): move an injured starter to a free IR slot (the plan's adds then need no drop, Done makes the move), and a player back from IR needs a spot; in the weekly plan and once in the briefing | (this commit) |

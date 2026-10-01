@@ -28,6 +28,8 @@
 - day_rosters: per NHL date, my active roster and my opponent's as they were
   before that day's first puck ({"me": [...], "them": {"team", "players"}}):
   the week's banked points are scored with each day's players (the last 14 days)
+- ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
+  "id:back"), so each is said once while it holds
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -74,6 +76,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("transactions_seen", {})
     state.setdefault("add_pools", {})
     state.setdefault("day_rosters", {})
+    state.setdefault("ir_noted", [])
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state

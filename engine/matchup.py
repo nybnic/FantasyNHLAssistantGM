@@ -690,13 +690,15 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
     return "\n".join(lines)
 
 
-def move_text(move: Move) -> str:
+def move_text(move: Move, opened_by: str | None = None) -> str:
+    """The add as a message. `opened_by`: whose IR move opens the spot it fills."""
     p = move.add
     head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {_games(move.games)} left this week)"
     if move.plays_from:
         head += (f". He's on waivers: claim him, he plays from {move.plays_from:%a %d %b}, "
                  "and a claim puts you last in waiver priority")
-    drop = f"drop {move.drop.name}" if move.drop else "into your open roster spot"
+    drop = (f"drop {move.drop.name}" if move.drop else
+            f"into the spot moving {opened_by} to IR opens" if opened_by else "into your open roster spot")
     detail = [f"{move.week_gain:+.1f} pts this week, win {_pct(move.win_before)} -> {_pct(move.win_after)}",
               f"{move.next_weeks:+.1f} over the next two weeks"]
     # The same long-run view that ranked the move, not just its next two weeks.
