@@ -87,3 +87,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Opponent profiles logged: other teams' adds (Transactions) and Yahoo's score vs the best-lineup box score on each screenshot day | (this commit) |
 | 2026-10-01 | Requirements pinned to CI's minor versions (numpy now explicit); the lineup solver's results cached (move search 24 -> 21 s, same output; profiled: the solver, not the projections, is the cost) | (this commit) |
 | 2026-10-01 | main.py split into bot/ (ingest, weekly, daily, common); tests and scripts import from there and run offline (checked with sockets blocked) | (this commit) |
+| 2026-10-01 | Fix: matchup Totals screenshots no longer add dropped players (slotless rows), short screenshot sets keep the players they miss, a recent player of mine isn't a new add; the week-1 phantom Schenn add and lost Murashov repaired (`state/repairs.py`) | (this commit) |

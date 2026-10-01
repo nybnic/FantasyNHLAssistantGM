@@ -31,7 +31,7 @@ import functools
 import logging
 from typing import Callable
 
-from bot.common import Outbox, _safe
+from bot.common import Outbox, _safe, nhl_today, remember_mine
 from bot.daily import alert_health, briefing_step, sync_teams, trade_step
 from bot.ingest import process_updates, report_relay, sync_webhook
 from bot.weekly import news_step, report_step, snapshot_rosters, weekly_step
@@ -40,7 +40,7 @@ from config.settings import Settings, load_settings
 from league import roster as roster_mod
 from league import teams
 from model import context
-from state import gm_state
+from state import gm_state, repairs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -93,6 +93,7 @@ def main() -> None:
     state = gm_state.load()
     players = roster_mod.load()
     league = teams.load()
+    repairs.apply(state, players)
     build_context = functools.lru_cache(maxsize=None)(context.build)
     if args.trade is not None:
         state["trade_request"] = args.trade
@@ -105,6 +106,7 @@ def main() -> None:
     steps = [("updates", read_updates)] if not settings.dry_run else []
     steps += [
         ("NHL teams", lambda: sync_teams(players) if players else None),
+        ("who's mine", lambda: remember_mine(state, players, nhl_today())),
         ("day rosters", lambda: snapshot_rosters(state, players, league, now)),
         ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),
         ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),

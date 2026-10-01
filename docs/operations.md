@@ -85,6 +85,7 @@ roster names one of them.
 | Date | What | Fix |
 |---|---|---|
 | 2026-09-29 | Two runs started 3 s apart. The second checked out the pre-push commit, handled a Skip tap twice, and crashed on Telegram's "message is not modified"; its state commit then conflicted | Checkout `ref: main`; relabeling buttons is best-effort; Telegram errors carry the reason, not the URL |
+| 2026-10-01 | Matchup screenshots of the week's Totals view listed Schenn (dropped that day) without a slot: he was saved to my roster and counted as an add (3 used in week 1), and Murashov, whose row the screenshots didn't reach, was dropped from it | Slotless rows are skipped; screenshots showing fewer players than I have keep the missing ones; a player mine within 30 days isn't a new add (`seen_mine`); `state/repairs.py` undid this once |
 | 2026-09-29 - 10-01 | No evening briefings. GitHub ran the `*/30` schedule only ~3 times a day (e.g. 15:33, 20:29, 00:06 UTC on Sep 30), never inside the 21:00-23:00 Helsinki window | The relay's Cloudflare crons start the runs; GitHub's cron stays as backup |
 
 ## Calendar assumptions to verify

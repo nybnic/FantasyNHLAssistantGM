@@ -41,6 +41,8 @@
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
 - health_alerts: per data source, the day its trouble was last reported
+- seen_mine: player id -> the last NHL date he was on my roster (a player back
+  on it within 30 days is a correction, not an add)
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
@@ -124,6 +126,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("day_rosters", {})
     state.setdefault("ir_noted", [])
     state.setdefault("health_alerts", {})
+    state.setdefault("seen_mine", {})
     state.setdefault("league_adds", {})
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})

@@ -777,3 +777,44 @@ def test_other_teams_adds_are_logged_from_transactions(monkeypatch, tmp_path):
             _tx("add", (9, 30, 10, 59), ["Nico's Groovy Team"], [("E. Lindell", "add")])]
     state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
     assert state["league_adds"] == {"Pastasauce": ["2026-09-30"]}  # mine go to the adds ledger instead
+
+
+def test_a_totals_view_row_without_a_slot_is_a_dropped_player_not_mine(monkeypatch, tmp_path):
+    rows = [_row(i) for i in range(12)]
+    rows.append({"slot": None, "mine": {"name": "P. ASON", "team": "BOS", "positions": ["C"], "points": 3.0,
+                                         "projected": 0.0}, "theirs": None})
+    rows[0]["mine"] = {"name": "P. LSON", "team": "BOS", "positions": ["C"], "points": 1.0, "projected": 9.0}
+    players = [RosterPlayer(200 + i, f"Paul {n}", "BOS", ["C"], "BN") for i, n in enumerate(SHOT_NAMES[1:], 1)]
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, {"all": _matchup_shot(rows)}, players)
+    assert 200 not in {p.id for p in players} and state["adds"] == []  # Ason: dropped earlier, listed slotless
+
+
+def test_screenshots_that_miss_a_player_keep_him(monkeypatch, tmp_path):
+    shots = {"top": _matchup_shot([_row(i) for i in range(11)])}  # Lson's row wasn't reached
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, shots)
+    assert 211 in {p.id for p in players} and len(players) == 12
+    assert "Not in these screenshots, so kept: Paul Lson." in sent[0]
+
+
+def test_a_player_mine_lately_coming_back_is_a_correction_not_an_add(tmp_path):
+    state = gm_state.load(tmp_path / "s.json")
+    state["seen_mine"] = {"9": "2026-09-25"}
+    players = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(9, "Murashov", "PIT", ["G"], "BN")]
+    lines = ingest.count_new_players(state, {"teams": {}, "taken": []}, {1}, players, dt.date(2026, 10, 1))
+    assert state["adds"] == [] and lines == ["Back on your roster, not counted as adds (yours within 30 days): "
+                                             "Murashov."]
+    common.remember_mine(state, players, dt.date(2026, 10, 1))
+    assert state["seen_mine"] == {"1": "2026-10-01", "9": "2026-10-01"}
+
+
+def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["adds"] = [{"id": None, "name": None, "date": "2026-10-01", "source": "done"},
+                     {"id": 8475170, "name": "Brayden Schenn", "date": "2026-10-01", "source": "roster"}]
+    players = [RosterPlayer(8480855, "Jack McBain", "UTA", ["C", "LW"], "C"),
+               RosterPlayer(8475170, "Brayden Schenn", "NYI", ["C", "LW"], None)]
+    repairs.apply(state, players)
+    repairs.apply(state, players)  # idempotent
+    assert [a["id"] for a in state["adds"]] == [None]
+    assert [(p.name, p.slot) for p in players] == [("Jack McBain", "C"), ("Sergei Murashov", "BN")]

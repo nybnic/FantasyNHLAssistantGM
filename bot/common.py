@@ -53,6 +53,13 @@ def nhl_today() -> dt.date:
     return dt.datetime.now(NHL_TIME).date()
 
 
+def remember_mine(state: dict, players: list, date: dt.date) -> None:
+    """Note today as the last day each of my players was on my roster
+    (bot/ingest.count_new_players: someone mine lately isn't a new add)."""
+    for p in players:
+        state["seen_mine"][str(p.id)] = date.isoformat()
+
+
 def current_opponent(state: dict, week: int) -> str | None:
     return weeks.opponent(week) or state["opponents"].get(str(week))
 

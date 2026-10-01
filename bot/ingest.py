@@ -50,6 +50,9 @@ SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
 # Judgment call: more new players than two weeks of adds in one roster update is
 # a stale roster or a misread page, not adds (League > Transactions counts those).
 MAX_NEW_AS_ADDS = 4
+# A player on my roster within this many days who shows up "new" is the bot
+# catching up (a misread screenshot, a missed row), not an add. Judgment call.
+SEEN_MINE_DAYS = 30
 
 
 def sync_webhook(settings: Settings, now: dt.datetime) -> str | None:
@@ -380,11 +383,13 @@ def _tx_label(when: str) -> str:
 
 
 def _side(rows: list[dict], side: str) -> list[dict]:
-    """One team's players from matchup rows, each once (screenshots overlap)."""
+    """One team's players from matchup rows, each once (screenshots overlap).
+    Rows without a slot are left out: the Totals view also lists players
+    dropped earlier in the week, who aren't on the roster any more."""
     seen, found = set(), []
     for row in rows:
         p = row[side]
-        if p and p["name"] not in seen:
+        if p and row["slot"] and p["name"] not in seen:
             seen.add(p["name"])
             found.append({**p, "slot": row["slot"]})
     return found
@@ -438,8 +443,11 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     state["matchup_shots"] = None
     learn_positions(found.players, found.tagged)
     before = {p.id for p in players}
-    changes = roster_mod.replace(players, found.players, found.tagged)
+    shown, kept = with_unseen(found.players, players)
+    changes = roster_mod.replace(players, shown, found.tagged)
     lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
+    if kept:
+        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}.")
     lines += count_new_players(state, league, before, players, date)
     if opponent and theirs:
         before = {p.id: p.name for p in teams.players(league, opponent)}
@@ -478,7 +486,7 @@ def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox,
                     f"Send the rest of the screenshots, or /save to save just these.{problems}")
         return
     if team == MY_TEAM:
-        apply_my_roster(found, state, players, league, outbox)
+        apply_my_roster(found, state, players, league, outbox, keep_unseen=True)
     else:
         save_team(team, found, league, outbox)
 
@@ -542,15 +550,34 @@ def update_my_roster(paste: str, state: dict, players: list, league: dict, outbo
     apply_my_roster(found, state, players, league, outbox)
 
 
-def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict, outbox: Outbox) -> None:
+def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict, outbox: Outbox,
+                    keep_unseen: bool = False) -> None:
+    """Make my roster what Yahoo shows. `keep_unseen` (screenshots, which can
+    miss a row): players they don't show are kept if they show fewer than I have."""
     learn_positions(found.players, found.tagged)
     before = {p.id for p in players}
-    changes = roster_mod.replace(players, found.players, found.tagged)
-    lines = [f"Roster saved: {len(found.players)} players."] + (changes or ["Same as I had."])
+    shown, kept = with_unseen(found.players, players) if keep_unseen else (found.players, [])
+    changes = roster_mod.replace(players, shown, found.tagged)
+    lines = [f"Roster saved: {len(shown)} players."] + (changes or ["Same as I had."])
+    if kept:
+        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}.")
     lines += count_new_players(state, league, before, players, common.nhl_today())
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
+
+
+def with_unseen(shown: list, players: list) -> tuple[list, list[str]]:
+    """Screenshots that show fewer players than I have most likely missed a
+    row (a bench goalie below the fold): keep my players they don't show, as
+    they were. A real drop comes with an add, a Transactions row or a Done tap.
+    Returns (the roster to save, names kept)."""
+    seen = {p.id for p in shown}
+    unseen = [p for p in players if p.id not in seen]
+    if len(shown) >= len(players) or not unseen:
+        return shown, []
+    kept = [roster_mod.RosterPlayer(p.id, p.name, p.team, list(p.positions), p.slot) for p in unseen]
+    return list(shown) + kept, [p.name for p in unseen]
 
 
 def count_new_players(state: dict, league: dict, before: set[int], players: list, date: dt.date) -> list[str]:
@@ -565,9 +592,12 @@ def count_new_players(state: dict, league: dict, before: set[int], players: list
         return [f"{len(new)} players are new to me, too many to be adds, so none were counted. To count "
                 "the adds among them, send your League > Transactions screenshots."]
     owner = {p.id: t for t in league["teams"] for p in teams.players(league, t)}
-    counted, traded = [], []
+    counted, traded, back = [], [], []
     for p in new:
-        if p.id in owner:
+        last_mine = state["seen_mine"].get(str(p.id))
+        if last_mine and (date - dt.date.fromisoformat(last_mine)).days <= SEEN_MINE_DAYS:
+            back.append(p.name)  # a correction: the bot had lost him, he never left
+        elif p.id in owner:
             teams.remove_player(league, owner[p.id], p.id)
             traded.append(f"{p.name} ({owner[p.id]})")
         elif gm_state.record_add(state, p.id, p.name, date, "roster"):
@@ -575,6 +605,9 @@ def count_new_players(state: dict, league: dict, before: set[int], players: list
     lines = []
     if counted:
         lines.append(f"Counted as adds: {', '.join(counted)} ({MAX_ADDS_PER_SEASON - len(state['adds'])} left).")
+    if back:
+        lines.append(f"Back on your roster, not counted as adds (yours within {SEEN_MINE_DAYS} days): "
+                     f"{', '.join(back)}.")
     if traded:
         lines.append(f"Not counted as adds, since another team had them (a trade?): {', '.join(traded)}. "
                      "If one was an add, send your League > Transactions screenshots.")
