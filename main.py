@@ -65,7 +65,8 @@ HELP = (
     "/taken Name - a free agent I suggested is on someone's roster\n"
     "/trade - trades worth proposing. /trade Knight for Bouchard - what one trade does to you and to them "
     "(several players: Knight, Tuch for Makar)\n"
-    "Tap Done on a recommendation once you've made it in Yahoo, or Skip."
+    "Tap Done on a recommendation once you've made it in Yahoo (on an add: Other drop if you dropped "
+    "someone else), or Skip."
 )
 MYTEAM_HINT = "\n\nWrong? Send screenshots of your Yahoo team page, or /myteam and paste its text."
 # Judgment call: screenshots sent within this of the previous one are one team page.
@@ -162,7 +163,12 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 continue
             if action == "done" and rec["type"] == "lineup":
                 roster_mod.apply_lineup(players, {int(pid): slot for pid, slot in rec["assignment"].items()})
-            if action == "done" and rec["type"] == "add":
+            if action == "other" and rec["type"] == "add":
+                # Made, with a drop of Nico's own: added now, the drop named in his next message.
+                rec = {**rec, "drop": None, "drop_name": None}
+                state["awaiting_drop"] = rec_id
+                outbox.send(f"Who did you drop for {rec['add'].get('name')}? Send the name.")
+            if action in ("done", "other") and rec["type"] == "add":
                 apply_add(players, rec)
                 gm_state.record_add(state, rec["add"]["id"], rec["add"].get("name"), _nhl_today(), "done")
                 if rec["drop"] is not None:
@@ -171,11 +177,13 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 teams.mark_taken(league, [rec["add"]["id"]])
                 state["week_requested"] = True  # the next best add, right away
             state["decisions"].append({
-                "rec_id": rec_id, "type": rec["type"], "date": rec["date"], "decision": action,
+                "rec_id": rec_id, "type": rec["type"], "date": rec["date"],
+                "decision": "done" if action == "other" else action,
                 "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
                 **(gm_state.add_players(rec) if rec["type"] == "add" else {}),
             })
-            label = {"done": "Recorded: Done", "taken": "Taken: finding the next best"}.get(action, "Recorded: Skipped")
+            label = {"done": "Recorded: Done", "other": "Recorded: Done, which drop?",
+                     "taken": "Taken: finding the next best"}.get(action, "Recorded: Skipped")
             telegram.mark_handled(token, chat_id, query["message"]["message_id"], label)
             telegram.answer_callback(token, query["id"], label)
         elif "message" in update:
@@ -212,6 +220,9 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                     finish_screenshots(state, players, league, outbox, save=True)
                 else:
                     outbox.send("No screenshots to save.")
+            elif state["awaiting_drop"] and not text.startswith("/"):
+                rec_id, state["awaiting_drop"] = state["awaiting_drop"], None
+                other_drop(rec_id, text, state, players, league, outbox)
             elif state["awaiting"] and not text.startswith("/"):
                 team, state["awaiting"] = state["awaiting"], None
                 if team == MY_TEAM:
@@ -225,6 +236,25 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
     if "transactions" in new_screenshots:
         finish_transactions(state, players, league, outbox)
     return problem
+
+
+def other_drop(rec_id: str, text: str, state: dict, players: list, league: dict, outbox: Outbox) -> None:
+    """The drop Nico made for an add tapped "Other drop": off my roster, onto
+    waivers, and into the add's decision (the scorecard compares against him)."""
+    found = parse.find_players(text, parse.registry())
+    mine = {p.id: p for p in players}
+    dropped = next((p for p in found.players if p.id in mine), None)
+    if not dropped:
+        outbox.send(f"I couldn't find {text.strip()!r} on your roster. Send /myteam with your team page "
+                    "to correct it.")
+        return
+    players[:] = [p for p in players if p.id != dropped.id]
+    teams.put_on_waivers(league, dropped.id, _nhl_today())
+    for d in reversed(state["decisions"]):
+        if d["rec_id"] == rec_id:
+            d.update(drop=dropped.id, drop_name=mine[dropped.id].name)
+            break
+    outbox.send(f"Noted: you dropped {mine[dropped.id].name}.")
 
 
 def _image(message: dict) -> str | None:
@@ -538,6 +568,7 @@ def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Ou
             return
         if week and not weeks.opponent(week):
             state["opponents"][str(week)] = team
+            state["week_requested"] = True  # the playoff week's plan, now its opponent is known
     else:
         team = current_opponent(state, week) if week else None
         if not team:
@@ -1243,7 +1274,8 @@ def send_adds(state: dict, p: PlanMoves, moves: list, views: dict | None, date: 
     """Each add as its own message with Done / Taken / Skip, and its chart."""
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
-        buttons = [("Done", f"done:{rec_id}"), ("Taken", f"taken:{rec_id}"), ("Skip", f"skip:{rec_id}")]
+        buttons = [("Done", f"done:{rec_id}"), ("Other drop", f"other:{rec_id}"), ("Taken", f"taken:{rec_id}"),
+                   ("Skip", f"skip:{rec_id}")]
         view = views and views["adds"].get(report.move_key(move))
         png = _safe(charts.add_chart, view) if view else None
         # An add without a drop fills a spot already open, else the next IR move's.

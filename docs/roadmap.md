@@ -33,7 +33,6 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 - Opponent profiles: adds per week (Transactions) and lineup efficiency (Yahoo's
   final vs our projection). Log first; shade their projection once 3-4 weeks show an effect.
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
-- "Done, other drop" button. Naming a playoff opponent with /opp sends the plan.
 - Pin requirements; memoize `ModelContext.skater`; split `main.py` (commands,
   ingest, weekly) and the message text out of `engine/matchup.py`.
 - Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected
@@ -82,3 +81,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Suggestion scorecard (`engine/scorecard.py`, `scripts/scorecard.py`): each add's raw points vs its drop over 14 days, made or skipped; a line in Monday's result. Decisions now name their players (past ones from git history), and untapped suggestions are logged | (this commit) |
 | 2026-10-01 | Data check (`clients/health.py`): a failing or stale source (DFO, NHL) gets one Telegram line a day saying what it means for the advice | (this commit) |
 | 2026-10-01 | Evening briefing as a Start Active diff (one line when it's fine, else the benches and starts that beat it, with why); an evening news check for adds that newly clear the price; the plan leads with the action | (this commit) |
+| 2026-10-01 | "Other drop" button on adds (records the add, asks who was dropped); naming a playoff opponent with /opp sends that week's plan | (this commit) |

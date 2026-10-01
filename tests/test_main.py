@@ -179,6 +179,7 @@ def test_opp_with_a_team_name_in_the_playoffs_records_the_opponent(monkeypatch, 
     main.process_updates(settings, state, players, league, main.Outbox(settings))
     assert state["opponents"] == {"24": "Vantaa"}
     assert "Vantaa" in league["teams"]
+    assert state["week_requested"]  # the playoff week's plan follows
 
 
 def test_taken_removes_a_player_from_the_free_agents(monkeypatch, tmp_path):
@@ -727,3 +728,22 @@ def test_the_plan_leads_with_the_action():
         "Do now: add Beniers for Stamkos (win 48% -> 55%). Details below."
     assert main._action_line([], "IR: ...") == "No add is worth one of yours right now. See the IR note below."
     assert main._action_line([], "", adds_left=0) == "No adds left this week (they reset Monday)."
+
+
+def test_other_drop_records_the_add_then_asks_who_went(monkeypatch, tmp_path):
+    settings, state, players, sent, handled = _setup(monkeypatch, tmp_path, [_tap("other:add-1")])
+    monkeypatch.setattr(main.parse, "registry", lambda: [{"id": 2, "name": "Bobby Bee", "team": "TOR", "position": "C"}])
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2026, 10, 6))
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-06", "drop": 1, "drop_name": "A", "message_id": 7,
+                                 "add": {"id": 11, "name": "Joey Daccord", "team": "SEA", "positions": ["G"],
+                                         "slot": None}}
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert [p.id for p in players] == [1, 2, 11] and state["awaiting_drop"] == "add-1"  # not the suggested drop
+    assert sent == ["Who did you drop for Joey Daccord? Send the name."] and handled == ["Recorded: Done, which drop?"]
+    assert [a["id"] for a in state["adds"]] == [11]
+    monkeypatch.setattr(main.telegram, "get_updates", lambda token, offset: [_message("Bobby Bee", 12)])
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert [p.id for p in players] == [1, 11] and league["waivers"] == {"2": "2026-10-08"}
+    d = state["decisions"][-1]
+    assert (d["decision"], d["drop"], d["drop_name"]) == ("done", 2, "B") and sent[-1] == "Noted: you dropped B."

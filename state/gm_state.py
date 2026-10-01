@@ -14,6 +14,7 @@
 - weeks: per fantasy week, when its matchup plan was sent
 - opponents: playoff opponents you've named with /opp (weeks 24-26)
 - awaiting: the team whose Yahoo page you're about to paste after /opp or /myteam
+- awaiting_drop: the add recommendation tapped "Other drop", whose drop's name comes next
 - screenshots: rows read from recent team-page screenshots, collected until
   they make a whole roster ({team, rows, at})
 - matchup_shots: rows and score read from recent matchup screenshots, collected
@@ -109,6 +110,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("weeks", {})
     state.setdefault("opponents", {})
     state.setdefault("awaiting", None)
+    state.setdefault("awaiting_drop", None)
     state.setdefault("screenshots", None)
     state.setdefault("matchup_shots", None)
     state.setdefault("live_score", None)
