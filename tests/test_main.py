@@ -543,3 +543,25 @@ def test_a_failure_alerts_once_a_day_without_the_token(monkeypatch, tmp_path):
     main.alert_failure(failures, settings, state, main.Outbox(settings), NOW)
     assert sent == ["Assistant GM run failed in weekly plan (and 1 more step): "
                     "RuntimeError: GET https://api.telegram.org/bot<token>/x failed"]
+
+
+def test_a_dropped_player_is_on_waivers_until_a_claim_can_play(monkeypatch, tmp_path):
+    shot = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")]),
+            _tx("trade", (9, 30, 14, 4), ["Pastasauce", "Vanilla Thunder"],
+                [("D. Cozens", "from:0"), ("J. Tavares", "from:1")])]  # traded players skip waivers
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
+    assert league["waivers"] == {"701": "2026-10-02"}  # dropped Wed 30 Sep, plays for a claimer from Fri
+    pool = [RosterPlayer(701, "Justin Faulk", "TOR", ["D"]), RosterPlayer(704, "Esa Lindell", "TOR", ["D"])]
+    assert main.waiver_days(pool, league, dt.date(2026, 10, 1)) == {701: dt.date(2026, 10, 2)}
+    assert main.waiver_days(pool, league, dt.date(2026, 10, 2)) == {} and league["waivers"] == {}
+
+
+def test_my_drop_on_done_goes_on_waivers(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("done:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "drop": 2, "message_id": 7,
+                                 "add": {"id": 11, "name": "Joey Daccord", "team": "SEA", "positions": ["G"],
+                                         "slot": None}}
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2026, 10, 1))
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert league["waivers"] == {"2": "2026-10-03"}

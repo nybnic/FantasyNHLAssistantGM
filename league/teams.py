@@ -3,7 +3,8 @@
 Seeded from the draft results (scripts/seed_league.py), then refreshed by
 pasting a team's Yahoo page into Telegram (/opp). Everyone on a current NHL
 roster who isn't on a fantasy roster here, on yours, or in `taken` (/taken)
-counts as a free agent.
+counts as a free agent. Players dropped in the last day or so are on waivers
+(`waivers`): a claim, not an instant add.
 """
 from __future__ import annotations
 
@@ -12,15 +13,21 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from config.league import WAIVER_DAYS
 from league.roster import RosterPlayer
 
 LEAGUE_FILE = Path("state/league.json")
+# Dropped on NHL date D: on waivers for WAIVER_DAYS, the claim is processed
+# overnight after, so he first plays for the claimer on D + 2. Unverified:
+# check the "W (date)" Yahoo shows next to a player dropped today.
+CLAIM_PLAYS_AFTER_DAYS = WAIVER_DAYS + 1
 
 
 def load(path: Path = LEAGUE_FILE) -> dict:
     data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     data.setdefault("teams", {})
     data.setdefault("taken", [])
+    data.setdefault("waivers", {})  # player id -> first day a claim of him can play
     return data
 
 
@@ -66,6 +73,19 @@ def remove_player(data: dict, team: str, player_id: int) -> None:
         entry = data["teams"][team]
         entry["players"] = [p for p in entry["players"] if p["id"] != player_id]
     data["taken"] = [pid for pid in data["taken"] if pid != player_id]
+
+
+def put_on_waivers(data: dict, player_id: int, dropped: dt.date) -> None:
+    """`player_id` was dropped on NHL date `dropped`: a claim of him plays
+    from CLAIM_PLAYS_AFTER_DAYS later."""
+    data.setdefault("waivers", {})[str(player_id)] = (dropped + dt.timedelta(days=CLAIM_PLAYS_AFTER_DAYS)).isoformat()
+
+
+def on_waivers(data: dict, today: dt.date) -> dict[int, dt.date]:
+    """Player id -> the first day a claim of him can play, for players still
+    on waivers today (older entries are forgotten)."""
+    data["waivers"] = {pid: day for pid, day in data.get("waivers", {}).items() if day > today.isoformat()}
+    return {int(pid): dt.date.fromisoformat(day) for pid, day in data["waivers"].items()}
 
 
 def mark_taken(data: dict, player_ids: list[int]) -> None:

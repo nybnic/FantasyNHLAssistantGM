@@ -124,8 +124,10 @@ def test_a_waiver_claim_only_counts_from_the_day_it_clears():
     pool = [RosterPlayer(9, "Claim", "NYR", ["C"])]
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0,
-                               max_moves=1, price=_price(0.001), available_from=TUE)
+                               max_moves=1, price=_price(0.001), available_from={9: TUE})
     assert moves[0].week_gain == pytest.approx(0.97 * 3.0)  # Tuesday's game only
+    assert moves[0].plays_from == TUE
+    assert "on waivers: claim him, he plays from Tue 10 Nov" in matchup.move_text(moves[0])
 
 
 def test_a_move_is_worth_an_add_when_its_win_probability_now_and_later_beats_the_price():

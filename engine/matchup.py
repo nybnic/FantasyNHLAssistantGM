@@ -124,6 +124,7 @@ class Move:
     win_before: float
     win_after: float
     later_weight: float = 0.0  # win probability per later point (addprice.later_weight)
+    plays_from: dt.date | None = None  # on waivers: the first day a claim of him plays
 
     @property
     def later_value(self) -> float:
@@ -369,19 +370,25 @@ def open_positions(week: TeamWeek) -> dict[dt.date, set[str]]:
     return out
 
 
+def _too_early(available_from: dict[int, dt.date] | None, p: RosterPlayer, date: dt.date) -> bool:
+    first = (available_from or {}).get(p.id)
+    return bool(first and date < first)
+
+
 def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
               lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict],
-              available_from: dt.date | None = None, open_days: dict[dt.date, set[str]] | None = None,
+              available_from: dict[int, dt.date] | None = None, open_days: dict[dt.date, set[str]] | None = None,
               fit_schedule: dict[dt.date, list[ScheduledGame]] | None = None) -> list[RosterPlayer]:
     """The free agents worth a full evaluation: the best per position by this
     week's games, a few by long-run value, and with `open_days` (day -> open
-    slots, over `fit_schedule`) a few by points on nights their slot is open."""
-    remaining = [d for d in sorted(schedule) if d >= ctx.today and not (available_from and d < available_from)]
+    slots, over `fit_schedule`) a few by points on nights their slot is open.
+    `available_from`: player id -> first day he can play for me (waivers)."""
+    remaining = [d for d in sorted(schedule) if d >= ctx.today]
     team_games = _team_games(schedule, ctx.today)
 
     def week_alone(p: RosterPlayer) -> float:
         total = 0.0
-        for d in remaining:
+        for d in (d for d in remaining if not _too_early(available_from, p, d)):
             game = _game_of(schedule[d]).get(p.team)
             if game:
                 yesterday = _game_of(schedule.get(d - dt.timedelta(days=1), []))
@@ -403,7 +410,7 @@ def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[Schedu
             total = 0.0
             for d, slots in open_days.items():
                 game = _game_of(fit_schedule.get(d, [])).get(p.team)
-                if game and slots & set(p.positions) and not (available_from and d < available_from):
+                if game and slots & set(p.positions) and not _too_early(available_from, p, d):
                     total += _player_day(p, ctx, d, game, False, lines, starters, True)[0]
             return total
 
@@ -424,7 +431,7 @@ def candidate_moves(
     starters: dict[str, dict],
     future: dict[dt.date, list[ScheduledGame]],
     weeks_after: int,
-    available_from: dt.date | None = None,
+    available_from: dict[int, dt.date] | None = None,
     so_far: tuple[float, float, int] | None = None,
     hold_days: int = 7 * STREAM_WEEKS,
     later_weight: float = 0.0,
@@ -433,7 +440,7 @@ def candidate_moves(
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
     `future` is the schedule of the days after this week used to judge the
     long run (LONG_RUN_WEEKS); `weeks_after` is how many weeks are left.
-    `available_from` is the first day an added player can play (waivers).
+    `available_from`: player id -> the first day he can play for me (waivers).
     `hold_days`: days after this week a streamer is kept (hold_weeks)."""
     future_weeks = len(future) / 7 or 1.0
     soon = set(sorted(future)[:7 * STREAM_WEEKS])
@@ -450,7 +457,8 @@ def candidate_moves(
     drops += drop_candidates(mine, ctx, lines)
     moves = []
     for add in candidates:
-        joins = {add.id: available_from} if available_from else None
+        plays_from = (available_from or {}).get(add.id)
+        joins = {add.id: plays_from} if plays_from else None
         for drop in drops:
             if drop and drop.is_goalie and not add.is_goalie and sum(p.is_goalie for p in mine) <= MIN_GOALIES:
                 continue
@@ -475,6 +483,7 @@ def candidate_moves(
                 games=team_games.get(add.team, 0),
                 win_before=before, win_after=win_prob(week, opponent),
                 later_weight=later_weight,
+                plays_from=plays_from,
             ))
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
@@ -505,7 +514,7 @@ def best_moves(
     weeks_after: int,
     max_moves: int,
     price: AddPrice,
-    available_from: dt.date | None = None,
+    available_from: dict[int, dt.date] | None = None,
     so_far: tuple[float, float, int] | None = None,
     candidates: list[RosterPlayer] | None = None,
     ranked: list[Move] | None = None,
@@ -683,6 +692,9 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
 def move_text(move: Move) -> str:
     p = move.add
     head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {_games(move.games)} left this week)"
+    if move.plays_from:
+        head += (f". He's on waivers: claim him, he plays from {move.plays_from:%a %d %b}, "
+                 "and a claim puts you last in waiver priority")
     drop = f"drop {move.drop.name}" if move.drop else "into your open roster spot"
     detail = [f"{move.week_gain:+.1f} pts this week, win {_pct(move.win_before)} -> {_pct(move.win_after)}",
               f"{move.next_weeks:+.1f} over the next two weeks"]

@@ -11,34 +11,31 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **Waivers per player**: a player dropped in the last day (Transactions
-   screenshots) joins a day later and costs waiver priority.
-   Done when: such an add shows "(waivers, plays from <day>)" and its week gain
-   starts then.
-2. **Banked points by day**: points so far from each day's roster, so mid-week
+1. **Banked points by day**: points so far from each day's roster, so mid-week
    adds and drops don't move them. Done when: dropping a player mid-week leaves
    "So far" unchanged.
-3. **IR management**: flag an IR-eligible player in an active slot (moving him
+2. **IR management**: flag an IR-eligible player in an active slot (moving him
    makes the next add drop-free), and a returning player who needs a spot.
    Done when: the weekly plan and the briefing include an IR line when relevant.
-4. **Weekly results log, then the Sunday report**: Monday's projection, P(win),
+3. **Weekly results log, then the Sunday report**: Monday's projection, P(win),
    sigma, the final score and the adds per week in state (week 1 backfilled from
    git history); then the report: result vs projection, adds taken or skipped,
    the budget, the week chart. Done when: sent Sunday evening, with the same
    numbers `explain_week` shows. Unblocks every calibration below.
-5. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
+4. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
    skipped adds scored vs the drop, over the hold. Done when: one line of it in
    the Sunday report.
-6. **Data health**: say once a day when a source is down or stale (DFO lines,
+5. **Data health**: say once a day when a source is down or stale (DFO lines,
    starting goalies, projections). Done when: a broken DFO fetch shows in Telegram.
-7. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+6. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
    plus an alert when news makes an add clear the price between plans.
    Done when: a night with nothing to change gets one line or nothing.
 
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
-- Verify in Yahoo: the add limit and goalie minimum in the week-19 double week
+- Verify in Yahoo: when a claim of a player dropped today can play (the bot assumes 2 days
+  later: the "W (date)" next to him), the add limit and goalie minimum in the week-19 double week
   (dates confirmed 2026-10-01), regular-season ties and standings tiebreakers
   (points-for matters for the add price, which values only wins), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
@@ -95,3 +92,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Add price in win probability: 0, 1 or 2 adds a week by closeness and the adds on offer; season sim vs the old rule | 11cfe36 |
 | 2026-10-01 | Review fixes: the add budget counts every add (Done, Transactions, roster screenshots; one add once), in the week it was made; a failed weekly plan stays due; one failing step no longer stops the others; stale cache when a refetch fails; week 19 dates confirmed | (this commit) |
 | 2026-10-01 | Injury status fades along return curves fit from game logs (`scripts/fit_absence.py`), slower the more games missed; check_sigma replays the bot's availability: bias -0.36 -> -0.13 sigma | (this commit) |
+| 2026-10-01 | Waivers per player: drops (Transactions, Done) put a player on waivers; his add is a claim that counts from the day it can play, and says so | (this commit) |

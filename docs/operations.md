@@ -72,6 +72,10 @@ roster names one of them.
   (`main.finish_transactions`: applied oldest first, each once, with a warning
   when new screenshots don't reach back to the last ones seen), the Taken
   button on an add, or `/taken`.
+- Waivers: every drop the bot learns of (a Transactions row, a Done tap's drop)
+  puts the player on waivers in `state/league.json` (`waivers`): an add of him is
+  a claim that plays from 2 days after the drop (assumed from "1 day" waivers;
+  verify against the "W (date)" Yahoo shows). Drops seen before 2026-10-01 aren't there.
 
 ## Past incidents
 | Date | What | Fix |

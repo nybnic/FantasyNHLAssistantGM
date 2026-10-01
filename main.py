@@ -165,6 +165,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             if action == "done" and rec["type"] == "add":
                 apply_add(players, rec)
                 gm_state.record_add(state, rec["add"]["id"], rec["add"].get("name"), _nhl_today(), "done")
+                if rec["drop"] is not None:
+                    teams.put_on_waivers(league, rec["drop"], _nhl_today())
             if action == "taken" and rec["type"] == "add":
                 teams.mark_taken(league, [rec["add"]["id"]])
                 state["week_requested"] = True  # the next best add, right away
@@ -344,10 +346,13 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                 gm_state.record_add(state, p.id, p.name, _tx_nhl_date(when), "transactions", already_mine)
         changes.setdefault(team, []).append(f"+{p.name}")
 
-    def drop(team: str, p) -> None:
+    def drop(team: str, p, when: str | None = None) -> None:
+        """`when` (the row's time) for a drop, which puts him on waivers; None for a trade."""
         if team == MY_TEAM:
             players[:] = [q for q in players if q.id != p.id]
         teams.remove_player(league, team, p.id)
+        if when:
+            teams.put_on_waivers(league, p.id, _tx_nhl_date(when))
         changes.setdefault(team, []).append(f"-{p.name}")
 
     for when, _, key, row in sorted(fresh):
@@ -364,7 +369,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
             elif action == "drop":
                 p = find(shown, on_team(teams_[0]))
                 if p:
-                    drop(teams_[0], p)
+                    drop(teams_[0], p, when)
             else:  # traded away by teams_[side] to the other
                 side = int(action.split(":")[1])
                 p = find(shown, on_team(teams_[side]))
@@ -752,6 +757,15 @@ def learn_positions(found_players: list, tagged: set[int] | None = None) -> None
         positions.save(known)
 
 
+def waiver_days(pool: list, league: dict, date: dt.date) -> dict[int, dt.date]:
+    """Free agent id -> the first day he can play for me, for those on waivers:
+    dropped in the last day or so, or everyone until the post-draft waivers cleared."""
+    days = {pid: day for pid, day in teams.on_waivers(league, date).items()}
+    if date < POST_DRAFT_WAIVERS_CLEAR:
+        days.update({p.id: max(days.get(p.id, POST_DRAFT_WAIVERS_CLEAR), POST_DRAFT_WAIVERS_CLEAR) for p in pool})
+    return days
+
+
 @dataclass
 class WeekInputs:
     """Everything the weekly plan is computed from (also used by
@@ -772,7 +786,7 @@ class WeekInputs:
     later_weight: float  # win probability per later point (addprice.later_weight)
     tau: float  # spread of the league's matchup margins
     weeks_after: int
-    available_from: dt.date | None
+    available_from: dict  # player id -> first day he can play for me: waivers
     so_far: tuple | None = None  # my banked points from a matchup screenshot (else box scores)
     hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
@@ -799,6 +813,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine)
     them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
     remaining = sum(d >= date for d in days)
+    pool = free_agents(players, league)
     tau = league_tau(players, league, ctx, future, lines, starters)
     sigma_week = math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1))
     return WeekInputs(
@@ -808,11 +823,11 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         so_far=mine, yahoo_projected=projected,
         hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
                       - sum(d >= date for d in days)),
-        pool=free_agents(players, league),
+        pool=pool,
         season_used=season_used, week_used=week_used,
         max_moves=matchup.max_moves(season_used, week_used),
         weeks_after=weeks.LAST_WEEK - week,
-        available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None,
+        available_from=waiver_days(pool, league, date),
     )
 
 
