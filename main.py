@@ -632,29 +632,67 @@ def _week_schedule(week: int) -> dict[dt.date, list]:
     return {d: nhl_client.games_on(d) for d in weeks.days(week)}
 
 
-def _send_week_charts(state: dict, players: list, league: dict, week: int, wk: WeekInputs, ranked: list,
-                      moves: list, outbox: Outbox) -> None:
-    """The week chart (win odds with each add, the race) and the schedule grid
-    for this week and next. A chart that fails is logged and skipped."""
-    png = _safe(lambda: charts.week_chart(report.week_view(week, wk.me, wk.them, ranked, moves)))
+@dataclass
+class NextWeek:
+    """The week after this one: the streamer horizon and the grid's second half."""
+    week: int | None
+    schedule: dict
+    mine: matchup.TeamWeek | None
+
+
+def next_week(week: int, players: list, wk: WeekInputs) -> NextWeek:
+    if week >= weeks.LAST_WEEK:
+        return NextWeek(None, {}, None)
+    sched = _week_schedule(week + 1)
+    return NextWeek(week + 1, sched, matchup.project(MY_TEAM, players, wk.ctx, sched, wk.lines, wk.starters, True))
+
+
+def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
+    """Free agents to judge, including streamers whose games fall on nights my
+    lineup has their slot open, this week and next (also scripts/explain_week.py)."""
+    open_days = matchup.open_positions(wk.me) | (matchup.open_positions(nxt.mine) if nxt.mine else {})
+    return matchup.shortlist(wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.available_from,
+                             open_days, wk.schedule | nxt.schedule)
+
+
+def streamer_text(view: dict, streams: list[dict], threshold: float | None) -> str:
+    if not streams:
+        return "No free agent adds points in your open slots this week or next."
+    lines = ["Best streamer per position, this week + next:"]
+    for row, st in zip(view["streamers"], streams):
+        m = st["move"]
+        verdict = "recommended, see below" if row["recommended"] else f"not recommended: {matchup.why_not(m, threshold)}"
+        lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
+                     + f": {row['slot_games']} games in open slots; net of the drop {m.week_gain:+.1f} pts this "
+                     f"week, {st['next_gain']:+.1f} next ({verdict}).")
+    return "\n".join(lines)
+
+
+def _send_week_charts(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
+                      ranked: list, moves: list, outbox: Outbox) -> None:
+    """The decision map (each add: this week vs the next two) and the schedule
+    grid for this week and next with the best streamers. A chart that fails is
+    logged and skipped."""
+    threshold = wk.threshold if wk.max_moves else None
+    png = _safe(lambda: charts.decision_chart(report.decision_view(week, ranked, moves, threshold)))
     if png:
         outbox.send_photo(png)
 
-    def schedule() -> bytes:
+    def schedule() -> tuple[bytes, str]:
         spans = [(week, current_opponent(state, week), wk.me, wk.them)]
-        if week < weeks.LAST_WEEK:
-            nxt = week + 1
-            sched = _week_schedule(nxt)
-            opp = current_opponent(state, nxt)
-            mine = matchup.project(MY_TEAM, players, wk.ctx, sched, wk.lines, wk.starters, True)
-            theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, sched,
+        if nxt.week:
+            opp = current_opponent(state, nxt.week)
+            theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, nxt.schedule,
                                      wk.lines, wk.starters, True)
-            spans.append((nxt, opp or "?", mine, theirs))
-        return charts.schedule_chart(report.schedule_view(players, spans))
+            spans.append((nxt.week, opp or "?", nxt.mine, theirs))
+        streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
+                                    wk.so_far)
+        view = report.schedule_view(players, spans, streams, moves)
+        return charts.schedule_chart(view), streamer_text(view, streams, threshold)
 
-    png = _safe(schedule)
-    if png:
-        outbox.send_photo(png)
+    result = _safe(schedule)
+    if result:
+        outbox.send_photo(result[0], result[1])
 
 
 def _add_chart(players: list, move, week: int, wk: WeekInputs, budget: dict) -> bytes:
@@ -697,7 +735,8 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         return
 
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
-    candidates = matchup.shortlist(wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.available_from)
+    nxt = next_week(week, players, wk)
+    candidates = add_candidates(wk, nxt)
     ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far)
     moves = []
@@ -716,7 +755,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
-    _send_week_charts(state, players, league, week, wk, ranked, moves, outbox)
+    _send_week_charts(state, players, league, week, wk, nxt, ranked, moves, outbox)
     budget = report.budget_view(state["decisions"], week)
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"

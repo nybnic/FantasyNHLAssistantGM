@@ -54,6 +54,11 @@ MIN_GOALIES = 3
 # this week's value, plus a few by long-run value.
 POOL_PER_POSITION = 8
 POOL_LONG_TERM_PER_POSITION = 3
+# Plus a few per skater position by schedule fit: points on the nights my best
+# lineup leaves that slot open, this week and next (streamers).
+POOL_FIT_PER_POSITION = 4
+STREAMER_POSITIONS = ("C", "LW", "RW", "D")  # no goalie streaming: three goalies kept (decision log)
+STREAMER_SHORTLIST = 4  # per position, judged on next week's lineup too
 MIN_WIN_GAIN = 0.02  # a this-week-only move must add 2 points of win probability
 # A long-run upgrade that costs points this week can wait for a week where it doesn't.
 MAX_WEEK_COST = 1.0
@@ -290,11 +295,22 @@ def _team_games(schedule: dict[dt.date, list[ScheduledGame]], today: dt.date) ->
     return counts
 
 
+def open_positions(week: TeamWeek) -> dict[dt.date, set[str]]:
+    """The starting slots my best lineup leaves empty, by day."""
+    out = {}
+    for d, day in week.lineups.items():
+        used = [slot for slot, _ in day.values() if slot != BENCH]
+        out[d] = {pos for pos, n in STARTERS.items() if used.count(pos) < n}
+    return out
+
+
 def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
               lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict],
-              available_from: dt.date | None = None) -> list[RosterPlayer]:
+              available_from: dt.date | None = None, open_days: dict[dt.date, set[str]] | None = None,
+              fit_schedule: dict[dt.date, list[ScheduledGame]] | None = None) -> list[RosterPlayer]:
     """The free agents worth a full evaluation: the best per position by this
-    week's games, plus a few by long-run value."""
+    week's games, a few by long-run value, and with `open_days` (day -> open
+    slots, over `fit_schedule`) a few by points on nights their slot is open."""
     remaining = [d for d in sorted(schedule) if d >= ctx.today and not (available_from and d < available_from)]
     team_games = _team_games(schedule, ctx.today)
 
@@ -315,6 +331,21 @@ def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[Schedu
             picked[p.id] = p
         for p in sorted(group, key=lambda p: season_value(p, ctx, lines), reverse=True)[:POOL_LONG_TERM_PER_POSITION]:
             picked[p.id] = p
+    if open_days:
+        fit_schedule = fit_schedule or schedule
+
+        def fit(p: RosterPlayer) -> float:
+            total = 0.0
+            for d, slots in open_days.items():
+                game = _game_of(fit_schedule.get(d, [])).get(p.team)
+                if game and slots & set(p.positions) and not (available_from and d < available_from):
+                    total += _player_day(p, ctx, d, game, False, lines, starters, True)[0]
+            return total
+
+        for position in STREAMER_POSITIONS:
+            group = [p for p in pool if position in p.positions]
+            for p in sorted(group, key=fit, reverse=True)[:POOL_FIT_PER_POSITION]:
+                picked[p.id] = p
     return list(picked.values())
 
 
@@ -434,6 +465,53 @@ def biggest_swing(ranked: list[Move]) -> Move | None:
     return best if best and best.win_after - best.win_before >= MIN_WIN_GAIN else None
 
 
+def streamers(
+    roster: list[RosterPlayer],
+    ranked: list[Move],
+    ctx,
+    schedule: dict[dt.date, list[ScheduledGame]],
+    next_schedule: dict[dt.date, list[ScheduledGame]],
+    lines: dict[str, dict[str, LineInfo]],
+    starters: dict[str, dict],
+    so_far: tuple[float, float, int] | None = None,
+) -> list[dict]:
+    """Per skater position, the free agent who adds the most points to my
+    lineup over this week and next (games on nights the slot is full add
+    nothing), with his best drop: {"position", "move", "next_gain", "this_week",
+    "next_week"} (the trial lineups' weeks). Positions where nobody helps are left out."""
+    base_next = project("me", roster, ctx, next_schedule, lines, starters, True).expected if next_schedule else 0.0
+    out, used = [], set()
+    for position in STREAMER_POSITIONS:
+        best: dict[int, Move] = {}
+        for m in ranked:
+            if m.add.positions[0] != position or m.add.id in used:
+                continue
+            if m.add.id not in best or m.week_gain + m.next_weeks / 2 > best[m.add.id].week_gain + best[m.add.id].next_weeks / 2:
+                best[m.add.id] = m
+        shortlisted = sorted(best.values(), key=lambda m: m.week_gain + m.next_weeks / 2, reverse=True)
+        top = None
+        for m in shortlisted[:STREAMER_SHORTLIST]:
+            trial = _swap(roster, m.add, m.drop)
+            nxt = project("me", trial, ctx, next_schedule, lines, starters, True) if next_schedule else None
+            gain = (nxt.expected - base_next) if nxt else 0.0
+            if m.week_gain + gain > 0 and (top is None or m.week_gain + gain > top["move"].week_gain + top["next_gain"]):
+                top = {"position": position, "move": m, "next_gain": gain, "next_week": nxt,
+                       "this_week": project("me", trial, ctx, schedule, lines, starters, so_far=so_far)}
+        if top:
+            used.add(top["move"].add.id)
+            out.append(top)
+    return out
+
+
+def why_not(move: Move, threshold: float | None) -> str:
+    """Why a move isn't a recommended add, in words Nico can weigh."""
+    if threshold is None:
+        return "no adds left"
+    if move.drop and move.long_term < 0:
+        return f"dropping {move.drop.name} costs about {-move.long_term:.0f} pts over the rest of the season"
+    return rejection(move, threshold) or "a better add is recommended"
+
+
 def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: float | None,
                  recommended: bool) -> str | None:
     """The mid-week stance in a few lines; None in a decided week (text() covers it)."""
@@ -455,9 +533,7 @@ def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: fl
     if recommended:
         lines.append(swing + " That's the add below.")
     else:
-        why = rejection(chase, threshold) if threshold is not None else "no adds left"
-        if threshold is not None and chase.drop and chase.long_term < 0:
-            why = f"dropping {chase.drop.name} costs about {-chase.long_term:.0f} pts over the rest of the season"
+        why = why_not(chase, threshold)
         lines.append(swing + f" Not a recommended add ({why}), so it's your call.")
     return "\n".join(lines)
 

@@ -50,60 +50,74 @@ def _clean(ax, grid_axis: str | None = None) -> None:
         ax.set_axisbelow(True)
 
 
-def week_chart(view: dict) -> bytes:
-    """Win odds with each add (from now to after), and the projected race."""
-    adds = view["adds"]
-    n = max(len(adds), 1)
-    height = 4.6 + 0.42 * n
-    fig = plt.figure(figsize=(WIDTH_IN, height))
-    odds_h = (0.42 * n + 0.2) / height
-    odds = fig.add_axes((0.36, 1 - 0.75 / height - odds_h, 0.6, odds_h))
-    race = fig.add_axes((0.09, 0.45 / height, 0.88, 2.6 / height))
-    now = view["win_now"]
-    fig.text(0.02, 1 - 0.3 / height, f"Week {view['week']}: win odds with each add (now {now:.0%})",
-             fontsize=12, fontweight="bold", va="center")
-    _clean(odds, "x")
-    for i, a in enumerate(adds):
-        y = len(adds) - 1 - i
-        colour = BLUE if a["recommended"] else NEUTRAL
-        odds.plot([now, a["win"]], [y, y], color=colour, linewidth=2, solid_capstyle="round", zorder=2)
-        odds.scatter([a["win"]], [y], s=70, color=colour, edgecolors=SURFACE, linewidths=2, zorder=3)
-        tag = "  recommended" if a["recommended"] else ""
-        odds.annotate(f"{a['win']:.0%}{tag}", (a["win"], y), xytext=(8, 0), textcoords="offset points",
-                      va="center", fontsize=9, color=INK if a["recommended"] else INK_2)
-    odds.axvline(now, color=MUTED, linewidth=1, zorder=1)
-    odds.set_yticks(range(len(adds)), [f"{a['label']} ({a['games']} gm)" for a in reversed(adds)], fontsize=9)
-    odds.set_ylim(-0.6, n - 0.4)
-    values = [now] + [a["win"] for a in adds]
-    odds.set_xlim(max(0.0, min(values) - 0.05), min(1.0, max(values) + 0.2))
-    odds.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
-    if not adds:
-        odds.text(0.5, 0.5, "No free agent changes the odds", transform=odds.transAxes, ha="center", color=INK_2)
-        odds.set_yticks([])
+def _wrap(text: str, width: int = 62) -> str:
+    import textwrap
+    return "\n".join(textwrap.wrap(text, width))
 
-    r = view["race"]
-    x = range(len(r["labels"]))
-    me_final, them_final = r["expected"]
-    race.set_title("Projected running total, best lineup every day")
-    _clean(race, "y")
-    race.plot(x, r["me"], color=BLUE, linewidth=2, marker="o", markersize=5, markeredgecolor=SURFACE,
-              label=f"You: {me_final:.0f} projected")
-    race.plot(x, r["them"], color=ORANGE, linewidth=2, marker="o", markersize=5, markeredgecolor=SURFACE,
-              label=f"Them: {them_final:.0f} projected")
-    race.set_xticks(list(x), r["labels"])
-    race.set_ylim(bottom=0)
-    race.legend(loc="upper left", frameon=False)
+
+def decision_chart(view: dict) -> bytes:
+    """Each add: this week's win-odds change against the next two weeks'
+    points. The add rule's bars split it into now / later / both / neither.
+    Dots are numbered (labels would collide in clusters); a key lists them."""
+    pts = sorted(view["points"], key=lambda pt: (not pt["recommended"], -pt["x"]))
+    x_bar, y_bar = view["x_bar"], view["y_bar"]
+    key_h = 0.22 * len(pts) + 0.3
+    height = 6.2 + key_h
+    fig = plt.figure(figsize=(WIDTH_IN, height))
+    ax = fig.add_axes((0.13, (key_h + 0.75) / height, 0.83, 4.3 / height))
+    fig.text(0.02, 1 - 0.25 / height, _wrap(view["headline"], 52), fontsize=12, fontweight="bold", va="top")
+    if view["detail"]:
+        fig.text(0.02, 1 - 0.75 / height, _wrap(view["detail"], 70), fontsize=9.5, color=INK_2, va="top")
+    _clean(ax)
+    ax.spines["left"].set_visible(True)
+    ax.spines["left"].set_color(GRID)
+    xs = [pt["x"] for pt in pts] + [0, x_bar]
+    ys = [pt["y"] for pt in pts] + [0] + ([y_bar] if y_bar is not None else [])
+    x_pad = max(1.0, (max(xs) - min(xs)) * 0.12)
+    y_pad = max(1.0, (max(ys) - min(ys)) * 0.12)
+    ax.set_xlim(min(xs) - x_pad, max(xs) + x_pad)
+    ax.set_ylim(min(ys) - y_pad, max(ys) + y_pad)
+    ax.axvline(x_bar, color=MUTED, linewidth=1, zorder=1)
+    ax.text(x_bar, ax.get_ylim()[0], f" +{x_bar:.0f} pts win odds", fontsize=7.5, color=MUTED, va="bottom", ha="left")
+    if y_bar is not None:
+        ax.axhline(y_bar, color=MUTED, linewidth=1, zorder=1)
+        ax.text(ax.get_xlim()[0], y_bar, f" +{y_bar:.1f} pts in 2 weeks", fontsize=7.5, color=MUTED, va="bottom")
+    corner = {"fontsize": 8.5, "color": MUTED, "zorder": 1}
+    ax.text(0.99, 0.98, "Helps now and later", transform=ax.transAxes, ha="right", va="top", **corner)
+    ax.text(0.99, 0.02, "This week only (streamer)", transform=ax.transAxes, ha="right", va="bottom", **corner)
+    ax.text(0.01, 0.98, "Later only (keeper)", transform=ax.transAxes, ha="left", va="top", **corner)
+    ax.text(0.01, 0.06, "Neither", transform=ax.transAxes, ha="left", va="bottom", **corner)
+    spots: dict[tuple[float, float], list[int]] = {}  # adds on the same spot share one label: "7,8"
+    for i, pt in enumerate(pts, 1):
+        colour = BLUE if pt["recommended"] else MUTED
+        ax.scatter([pt["x"]], [pt["y"]], s=80 if pt["recommended"] else 55, color=colour, edgecolors=SURFACE,
+                   linewidths=2, zorder=3)
+        spots.setdefault((round(pt["x"], 1), round(pt["y"], 1)), []).append(i)
+    for (x, y), numbers in spots.items():
+        lead = pts[numbers[0] - 1]
+        ax.annotate(",".join(map(str, numbers)), (x, y), xytext=(6, 5), textcoords="offset points", fontsize=8.5,
+                    fontweight="bold", color=INK if lead["recommended"] else INK_2, zorder=4)
+    ax.set_xlabel("This week: change in win odds (percentage points)")
+    ax.set_ylabel("Next 2 weeks: points gained")
+    for i, pt in enumerate(pts, 1):
+        y = (key_h - 0.15 - 0.22 * i) / height
+        fig.text(0.04, y, str(i), fontsize=8.5, fontweight="bold", color=INK if pt["recommended"] else INK_2)
+        fig.text(0.08, y, f"{pt['label']} ({pt['games']} gm): {pt['x']:+.0f} win odds, {pt['y']:+.1f} pts next 2 wks"
+                 + ("  - recommended" if pt["recommended"] else ""), fontsize=8.5,
+                 color=INK if pt["recommended"] else INK_2)
     return _png(fig)
 
 
 def schedule_chart(view: dict) -> bytes:
-    """Who plays when: a start, a game with no free slot, or no game; then the
-    open starting slots by position each day (where a streamer adds points)."""
-    days, rows = view["days"], view["rows"]
+    """Who plays when: a start, a game with no free slot, or no game; the best
+    streamer per position as he'd slot in (outlined); then the open starting
+    slots by position each day (where a streamer adds points)."""
+    days, rows, streams = view["days"], view["rows"], view.get("streamers", [])
     n_rows, n_days = len(rows), len(days)
+    stream_top = n_rows + 1 if streams else n_rows
     positions = list(view["open"][0]) if view["open"] else []
     summary = [f"Open {pos}" for pos in positions] + ["Your lineup games", "Their lineup games"]
-    first_summary = n_rows + 1
+    first_summary = stream_top + len(streams) + 1
     total = first_summary + len(summary)
     height = 1.9 + 0.3 * total
     fig = plt.figure(figsize=(WIDTH_IN, height))
@@ -114,35 +128,46 @@ def schedule_chart(view: dict) -> bytes:
         side.set_visible(False)
     ax.tick_params(length=0)
     ax.set_xticks([])
-    ax.set_yticks(list(range(n_rows)) + [first_summary + i for i in range(len(summary))],
-                  [f"{r['name']}  {r['positions']}" for r in rows] + summary, fontsize=8.5)
-    fig.text(0.02, 1 - 0.3 / height, "Games by day: starts, benched games, open slots",
+    stream_labels = [f"+ {st['name']}  {st['positions']}" for st in streams]
+    ax.set_yticks(list(range(n_rows)) + [stream_top + i for i in range(len(streams))]
+                  + [first_summary + i for i in range(len(summary))],
+                  [f"{r['name']}  {r['positions']}" for r in rows] + stream_labels + summary, fontsize=8.5)
+    fig.text(0.02, 1 - 0.3 / height, "Games by day: starts, benched games, open slots, streamers",
              fontsize=12, fontweight="bold", va="center")
 
     for i, d in enumerate(days):
         ax.text(i, -0.75, f"{d['label']}\n{d['day']}", ha="center", va="center", fontsize=8, color=INK_2)
     breaks = [i for i in range(1, n_days) if days[i]["week"] != days[i - 1]["week"]]
     starts = [0] + breaks
-    for k, s in enumerate(starts):
+    for k, s0 in enumerate(starts):
         end = (starts + [n_days])[k + 1] - 1
-        w = view["weeks"][k] if k < len(view["weeks"]) else {"week": days[s]["week"], "opponent": ""}
-        ax.text((s + end) / 2, -1.45, f"Week {w['week']} vs {w['opponent']}", ha="center", va="center",
+        w = view["weeks"][k] if k < len(view["weeks"]) else {"week": days[s0]["week"], "opponent": ""}
+        ax.text((s0 + end) / 2, -1.45, f"Week {w['week']} vs {w['opponent']}", ha="center", va="center",
                 fontsize=9, fontweight="bold")
     for b in breaks:
         ax.axvline(b - 0.5, color=MUTED, linewidth=1)
-    for y in range(n_rows):
+    for y in list(range(n_rows)) + [stream_top + i for i in range(len(streams))]:
         ax.axhline(y, color=GRID, linewidth=0.6, zorder=0)
+
+    def cell(x, y, colour, filled=True):
+        ax.add_patch(FancyBboxPatch((x - 0.36, y - 0.32), 0.72, 0.64, boxstyle="round,pad=0,rounding_size=0.12",
+                                    facecolor=colour if filled else SURFACE, edgecolor=colour if not filled else SURFACE,
+                                    linewidth=1.5 if filled else 2, zorder=2))
 
     for y, row in enumerate(rows):
         for x, (state, prob) in enumerate(zip(row["cells"], row["probs"])):
             if state is None:
                 continue
-            colour = BLUE if state == "start" else ORANGE
-            ax.add_patch(FancyBboxPatch((x - 0.36, y - 0.32), 0.72, 0.64, boxstyle="round,pad=0,rounding_size=0.12",
-                                        facecolor=colour, edgecolor=SURFACE, linewidth=1.5, zorder=2))
+            cell(x, y, BLUE if state == "start" else ORANGE)
             if prob is not None:
                 ax.text(x, y, f"{prob * 100:.0f}", ha="center", va="center", fontsize=7, zorder=3,
                         color="white" if state == "start" else INK)
+    for k, st in enumerate(streams):
+        for x, state in enumerate(st["cells"]):
+            if state is not None:
+                cell(x, stream_top + k, BLUE if state == "start" else ORANGE, filled=False)
+    if streams:
+        ax.axhline(stream_top - 0.6, color=GRID, linewidth=0.8)
 
     for x in range(n_days):
         for k, pos in enumerate(positions):
@@ -152,13 +177,15 @@ def schedule_chart(view: dict) -> bytes:
         ax.text(x, first_summary + len(positions), str(view["my_games"][x]), ha="center", va="center", fontsize=8.5)
         ax.text(x, first_summary + len(positions) + 1, str(view["their_games"][x]), ha="center", va="center",
                 fontsize=8.5, color=INK_2)
-    ax.axhline(n_rows + 0.4, color=MUTED, linewidth=1)
+    ax.axhline(first_summary - 0.6, color=MUTED, linewidth=1)
     ax.axhline(first_summary + len(positions) - 0.5, color=GRID, linewidth=0.8)
 
-    ax.legend(handles=[Patch(color=BLUE, label="Starts"), Patch(color=ORANGE, label="Plays, but no slot free"),
-                       Patch(facecolor=SURFACE, edgecolor=GRID, label="No game")],
-              loc="upper center", bbox_to_anchor=(0.4, -0.005), ncol=3, frameon=False, fontsize=8.5)
-    fig.text(0.98, 0.18 / height, "Goalie cells: % chance to start", ha="right", fontsize=7.5, color=INK_2)
+    handles = [Patch(color=BLUE, label="Starts"), Patch(color=ORANGE, label="Plays, no slot free")]
+    if streams:
+        handles.append(Patch(facecolor=SURFACE, edgecolor=BLUE, linewidth=2, label="+ Streamer fills a slot"))
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.4, -0.005), ncol=3, frameon=False, fontsize=8.5)
+    fig.text(0.98, 0.18 / height, "Goalie cells: % chance to start. Empty: no game", ha="right", fontsize=7.5,
+             color=INK_2)
     return _png(fig)
 
 

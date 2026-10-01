@@ -201,3 +201,24 @@ def test_midweek_hopeless_leaves_it_to_the_lost_week_line():
     assert matchup.stance(0.04) == "lost" and matchup.stance(0.3) == "chase" and matchup.stance(0.7) == "protect"
     assert matchup.midweek_text(_team(100), _team(160), None, 3.0, recommended=False) is None
     assert "looks lost" in matchup.text(1, [MON, TUE], _team(100), _team(160), None, 0, 0, MON)
+
+
+def test_a_streamer_is_shortlisted_for_games_on_nights_his_slot_is_open():
+    # Neither D plays Monday in the biggest numbers, but only the one on the open night fits.
+    pool = [RosterPlayer(40 + i, f"Busy {i}", "BOS", ["D"]) for i in range(10)] + [RosterPlayer(60, "Fit", "SEA", ["D"])]
+    schedule = {MON: [_game(MON, "BOS", "TOR")], TUE: [_game(TUE, "SEA", "NJD")]}
+    open_days = {MON: {"C"}, TUE: {"D"}}
+    picked = matchup.shortlist(pool, FakeContext(), schedule, {}, {}, open_days=open_days)
+    assert 60 in [p.id for p in picked]
+    assert 60 not in [p.id for p in matchup.shortlist(pool, FakeContext(), schedule, {}, {})]
+
+
+def test_the_best_streamer_per_position_counts_only_points_that_reach_the_lineup():
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["D"], "D")]
+    schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "SEA", "BOS")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    pool = [RosterPlayer(9, "Wing", "NYR", ["LW"]), RosterPlayer(11, "Dman", "SEA", ["D"])]
+    ranked = matchup.candidate_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0)
+    found = matchup.streamers(roster, ranked, FakeContext(), schedule, {}, {}, {})
+    assert {s["position"]: s["move"].add.id for s in found} == {"LW": 9, "D": 11}
+    assert all(s["move"].drop is None for s in found)  # open roster spots first

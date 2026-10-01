@@ -68,10 +68,12 @@ From Wednesday the plan comes again with a stance: chase when behind (with the
 add that would swing the odds most, and what it costs), protect when ahead, or
 save adds when the week is decided.
 
-The plan comes with charts: win odds with each candidate add and the projected
-score race; a schedule grid for this week and next (who starts, games lost to
-a full lineup, open slots by position: where a streamer adds points); and for
-each recommended add, its points gain week by week and the add budget.
+The plan comes with charts: a decision map (each candidate add's effect on this
+week's win odds against its points over the next two weeks, split by the add
+rule into now / later / both / neither); a schedule grid for this week and next
+(who starts, games lost to a full lineup, open slots by position, and the best
+streamer per position drawn on the nights he'd fill); and for each recommended
+add, its points gain week by week and the add budget.
 
 Coming next: a web dashboard, IR management and a Sunday report.
 

@@ -29,41 +29,50 @@ def _move_label(m: matchup.Move) -> str:
     return f"{_last(m.add.name)} for {_last(m.drop.name)}" if m.drop else f"{_last(m.add.name)} (open spot)"
 
 
-def week_view(week: int, me: matchup.TeamWeek, them: matchup.TeamWeek, ranked: list[matchup.Move],
-              recommended: list[matchup.Move], top: int = 5) -> dict:
-    """Win odds now and with each of the best `top` adds (each player once, his
-    best drop) plus every recommended one, and both teams' projected running
-    totals over the days left."""
+def decision_view(week: int, ranked: list[matchup.Move], recommended: list[matchup.Move],
+                  threshold: float | None, top: int = 4) -> dict:
+    """Every add as a point: this week's win-odds change (x, percentage points)
+    against the points it gains over the next two weeks (y). The add rule's two
+    bars split the map: an add needs one of them (and to be worth an add).
+    Each player once, with the drop the rule likes best; the `top` by each
+    axis plus every recommended add."""
     best: dict[int, matchup.Move] = {}
     for m in ranked:
-        if m.add.id not in best or m.win_after > best[m.add.id].win_after:
+        if m.add.id not in best or m.score > best[m.add.id].score:
             best[m.add.id] = m
+    for m in recommended:
+        best[m.add.id] = m
     chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
-    adds = sorted(best.values(), key=lambda m: m.win_after, reverse=True)[:top]
-    adds += [m for m in recommended if m not in adds]
-    days = sorted(me.by_day)
 
-    def running(team: matchup.TeamWeek) -> list[float]:
-        totals = [team.so_far]
-        for d in days:
-            totals.append(totals[-1] + team.by_day.get(d, 0.0))
-        return totals
+    def lift(m: matchup.Move) -> float:
+        return (m.win_after - m.win_before) * 100
 
-    return {
-        "week": week,
-        "win_now": matchup.win_prob(me, them),
-        "adds": [{"label": _move_label(m), "games": m.games, "win": m.win_after,
-                  "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen} for m in adds],
-        "race": {"labels": ["So far"] + [f"{d:%a}" for d in days], "me": running(me), "them": running(them),
-                 "expected": [me.expected, them.expected]},
-    }
+    moves = list(best.values())
+    shown = sorted(moves, key=lift, reverse=True)[:top] + sorted(moves, key=lambda m: m.next_weeks, reverse=True)[:top]
+    shown += [best[m.add.id] for m in recommended]
+    shown = list({m.add.id: m for m in shown}.values())
+    points = [{"label": _move_label(m), "x": lift(m), "y": m.next_weeks, "games": m.games,
+               "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen} for m in shown]
+    if recommended:
+        headline = "Recommended: " + ", ".join(_move_label(m) for m in recommended)
+    else:
+        headline = "No add clears the bar right now"
+    biggest = max(points, key=lambda pt: pt["x"], default=None)
+    detail = ""
+    if biggest and biggest["x"] >= matchup.MIN_WIN_GAIN * 100 and not biggest["recommended"]:
+        detail = (f"Biggest lift this week: {biggest['label']}, +{biggest['x']:.0f} pts of win odds, "
+                  f"but {biggest['y']:+.0f} pts over the next 2 weeks")
+    return {"week": week, "points": points, "headline": headline, "detail": detail,
+            "x_bar": matchup.MIN_WIN_GAIN * 100, "y_bar": 2 * threshold if threshold is not None else None}
 
 
-def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchup.TeamWeek, matchup.TeamWeek]]) -> dict:
+def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchup.TeamWeek, matchup.TeamWeek]],
+                  streamers: list[dict] | None = None, recommended: list[matchup.Move] = ()) -> dict:
     """My active players by day over the given weeks ((week, opponent, my week,
     their week)): "start" (in the best lineup), "bench" (plays, but no slot is
-    free), or None (no game); goalies carry their start odds. Below: open
-    starting slots, and both teams' lineup games per day."""
+    free), or None (no game); goalies carry their start odds. Then the best
+    streamer per position (matchup.streamers) on the same days, as he'd slot
+    in, and below: open starting slots, and both teams' lineup games per day."""
     days, my_games, their_games, open_slots, cells = [], [], [], [], {}
     for week, _, mine, theirs in spans:
         for d in sorted(mine.lineups):
@@ -82,8 +91,22 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
         rows.append({"name": _short(p.name), "positions": "/".join(p.positions),
                      "cells": [mine.get(d["date"], (None, None))[0] for d in days],
                      "probs": [mine[d["date"]][1] if p.is_goalie and d["date"] in mine else None for d in days]})
-    return {"days": days, "rows": rows, "open": open_slots, "my_games": my_games, "their_games": their_games,
-            "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}
+    chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
+    stream_rows = []
+    for st in streamers or []:
+        m = st["move"]
+        merged = {}
+        for wk in (st["this_week"], st["next_week"]):
+            for d, day in (wk.lineups if wk else {}).items():
+                if m.add.id in day:
+                    merged[d.isoformat()] = "start" if day[m.add.id][0] != BENCH else "bench"
+        cells = [merged.get(d["date"]) for d in days]
+        stream_rows.append({"name": _short(m.add.name), "positions": "/".join(m.add.positions), "team": m.add.team,
+                            "drop": _short(m.drop.name) if m.drop else None, "cells": cells,
+                            "slot_games": cells.count("start"), "gain": [m.week_gain, st["next_gain"]],
+                            "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen})
+    return {"days": days, "rows": rows, "streamers": stream_rows, "open": open_slots, "my_games": my_games,
+            "their_games": their_games, "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}
 
 
 def weekly_gains(roster: list[RosterPlayer], move: matchup.Move, ctx, week_schedules: dict[int, dict],

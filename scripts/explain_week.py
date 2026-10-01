@@ -52,7 +52,7 @@ def main_() -> None:
           + (f"{wk.threshold:.1f} pts" if wk.threshold is not None else "none (budget spent)")
           + (f", adds play from {wk.available_from}" if wk.available_from else ""))
 
-    candidates = matchup.shortlist(wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.available_from)
+    candidates = main.add_candidates(wk, main.next_week(week, players, wk))
     by_name = {normalize_name(p.name): p for p in wk.pool}
     for name in args.add:
         p = by_name.get(normalize_name(name))
