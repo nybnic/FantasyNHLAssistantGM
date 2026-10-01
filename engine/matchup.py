@@ -170,14 +170,17 @@ def _so_far(roster, ctx, days) -> tuple[float, float, int]:
 
 def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
             lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict], long_run: bool = False,
-            joins: dict[int, dt.date] | None = None) -> TeamWeek:
+            joins: dict[int, dt.date] | None = None, so_far: tuple[float, float, int] | None = None) -> TeamWeek:
     """The team's week. `schedule` has every day of the fantasy week; days
     before ctx.today are scored from box scores, the rest projected.
-    `joins` holds players who only count from a date on (a waiver claim)."""
+    `joins` holds players who only count from a date on (a waiver claim).
+    `so_far` (skater points, goalie points, goalie games) replaces the box
+    scores: a trial roster keeps the points the real one banked, since an
+    added player's earlier games never count for you."""
     joins = joins or {}
     roster = active(roster)
     days = sorted(schedule)
-    skater_so_far, goalie_so_far, goalie_games = _so_far(roster, ctx, days)
+    skater_so_far, goalie_so_far, goalie_games = so_far or _so_far(roster, ctx, days)
     skater_mean = skater_var = goalie_mean = goalie_var = 0.0
     start_probs: list[float] = []
     player_games = 0
@@ -306,6 +309,7 @@ def candidate_moves(
     future: dict[dt.date, list[ScheduledGame]],
     weeks_after: int,
     available_from: dt.date | None = None,
+    so_far: tuple[float, float, int] | None = None,
 ) -> list[Move]:
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
@@ -315,7 +319,8 @@ def candidate_moves(
     future_weeks = len(future) / 7 or 1.0
     team_games = _team_games(schedule, ctx.today)
     mine = active(roster)
-    current = project("me", roster, ctx, schedule, lines, starters)
+    so_far = so_far or _so_far(mine, ctx, sorted(schedule))
+    current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
     current_future = project("me", roster, ctx, future, lines, starters, True).expected if future else 0.0
     before = win_prob(current, opponent)
     # An open roster spot comes first: on a tie, keep everyone.
@@ -328,7 +333,7 @@ def candidate_moves(
             if drop and drop.is_goalie and not add.is_goalie and sum(p.is_goalie for p in mine) <= MIN_GOALIES:
                 continue
             trial = _swap(roster, add, drop)
-            week = project("me", trial, ctx, schedule, lines, starters, joins=joins)
+            week = project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far)
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
             later = (project("me", trial, ctx, future, lines, starters, True).expected - current_future
@@ -378,14 +383,16 @@ def best_moves(
     max_moves: int,
     threshold: float,
     available_from: dt.date | None = None,
+    so_far: tuple[float, float, int] | None = None,
 ) -> list[Move]:
     """Up to `max_moves` add/drops worth making, best first; each one is
     judged with the previous ones already made."""
     candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
+    so_far = so_far or _so_far(active(roster), ctx, sorted(schedule))  # banked before any move
     moves: list[Move] = []
     for _ in range(max_moves):
         ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
-                                 weeks_after, available_from)
+                                 weeks_after, available_from, so_far)
         if not ranked or rejection(ranked[0], threshold):
             break
         best = ranked[0]
@@ -411,13 +418,14 @@ def _pct(p: float) -> str:
 
 
 def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_updated: str | None,
-         season_used: int, week_used: int, today: dt.date) -> str:
+         season_used: int, week_used: int, today: dt.date, yahoo_projected: list | None = None) -> str:
     span = f"{days[0]:%a %d %b} - {days[-1]:%a %d %b}"
     lines = [f"Week {week} ({span}) vs {them.name}"]
     if me.so_far or them.so_far:
-        lines.append(f"So far about {me.so_far:.0f} - {them.so_far:.0f}")
+        lines.append(f"So far {'' if yahoo_projected else 'about '}{me.so_far:.0f} - {them.so_far:.0f}")
     p_win = win_prob(me, them)
-    lines.append(f"Expected {me.expected:.0f} - {them.expected:.0f}: {_pct(p_win)} to win")
+    yahoo = f" (Yahoo: {yahoo_projected[0]:.0f} - {yahoo_projected[1]:.0f})" if yahoo_projected else ""
+    lines.append(f"Expected {me.expected:.0f} - {them.expected:.0f}{yahoo}: {_pct(p_win)} to win")
     if decided(p_win) == "lost":
         lines.append("This week looks lost: don't spend adds chasing it, only on players worth keeping.")
     elif decided(p_win) == "won":

@@ -1,5 +1,7 @@
 import datetime as dt
 
+import pytest
+
 import main
 from config.settings import load_settings
 from league.roster import RosterPlayer
@@ -269,7 +271,7 @@ def _screenshots(monkeypatch, tmp_path, updates):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, updates)
     monkeypatch.setattr(main.parse, "registry", lambda: SHOT_REGISTRY)
     monkeypatch.setattr(main.telegram, "download_file", lambda token, file_id: file_id.encode())
-    monkeypatch.setattr(main.screenshot, "read_roster", lambda image: SHOTS[image.decode()])
+    monkeypatch.setattr(main.screenshot, "read", lambda image: {"kind": "team", "rows": SHOTS[image.decode()]})
     return settings, state, players, sent
 
 
@@ -294,6 +296,76 @@ def test_screenshots_across_runs_wait_for_the_rest(monkeypatch, tmp_path):
 
 def test_a_screenshot_without_players_says_so(monkeypatch, tmp_path):
     settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9)])
-    monkeypatch.setattr(main.screenshot, "read_roster", lambda image: [])
+    monkeypatch.setattr(main.screenshot, "read", lambda image: {"kind": "team", "rows": []})
     main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
     assert "couldn't find any players" in sent[0] and state["screenshots"] is None
+
+
+OPP_NAMES = ["Aho", "Bo", "Cho", "Do", "Eho", "Fo", "Gho", "Ho", "Iho", "Jo", "Kho", "Lo"]
+OPP_REGISTRY = [{"id": 300 + i, "name": f"Rick {n}", "team": "TOR", "position": "C"} for i, n in enumerate(OPP_NAMES)]
+SLOTS = ["C", "C", "LW", "LW", "RW", "RW", "D", "D", "D", "D", "G", "G"]
+WEEK1 = 1_790_838_000  # Thu 1 Oct 2026, 03:00 in New York: before that day's games
+
+
+def _matchup_shot(rows, score=(13.4, 51.5)):
+    return {"kind": "matchup", "score": score, "projected": (159.79, 164.52), "labels": ([], ["BAHELIN BOYS"]),
+            "rows": rows}
+
+
+def _row(i, mine=True, points=1.0):
+    def player(name, team):
+        return {"name": name, "team": team, "positions": ["C"], "points": points, "projected": 9.0}
+    return {"slot": SLOTS[i],
+            "mine": player(f"P. {SHOT_NAMES[i].upper()}", "BOS") if mine else None,
+            "theirs": player(f"R. {OPP_NAMES[i].upper()}", "TOR")}
+
+
+def _matchup(monkeypatch, tmp_path, shots, players=None):
+    updates = [_photo(name, 20 + i, WEEK1 + i) for i, name in enumerate(shots)]
+    settings, state, _, sent, _ = _setup(monkeypatch, tmp_path, updates)
+    monkeypatch.setattr(main.parse, "registry", lambda: SHOT_REGISTRY + OPP_REGISTRY)
+    monkeypatch.setattr(main.telegram, "download_file", lambda token, file_id: file_id.encode())
+    monkeypatch.setattr(main.screenshot, "read", lambda image: shots[image.decode()])
+    monkeypatch.setattr(main.nhl_client, "games_on", lambda d: [])
+    players = players if players is not None else [RosterPlayer(200 + i, f"Paul {n}", "BOS", ["C"], "BN")
+                                                   for i, n in enumerate(SHOT_NAMES)]
+    league = {"teams": {"Bahelin Boys": {"updated": "2026-09-29", "players": [
+        {"id": 300 + i, "name": f"Rick {n}", "team": "TOR", "positions": ["C"], "slot": None}
+        for i, n in enumerate(OPP_NAMES[:11])] + [
+        {"id": 399, "name": "Old Guy", "team": "TOR", "positions": ["C"], "slot": None}]}}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    return state, players, league, sent
+
+
+def test_matchup_screenshots_update_both_rosters_and_the_live_score(monkeypatch, tmp_path):
+    shots = {"top": _matchup_shot([_row(i) for i in range(7)]),
+             "bottom": _matchup_shot([_row(i, points=0.0) for i in range(6, 12)])}
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, shots)
+    assert [p.slot for p in players] == SLOTS  # slots from the matchup, Lson is a G here
+    assert {p["id"] for p in league["teams"]["Bahelin Boys"]["players"]} == set(range(300, 312))
+    assert state["live_score"]["score"] == [13.4, 51.5] and state["live_score"]["through"] == "2026-10-01"
+    assert state["live_score"]["goalies"] == [0.0, 0.0]  # rows 10-11 are G, read with 0 points
+    assert state["week_requested"] and state["matchup_shots"] is None
+    assert sent[0].startswith("Week 1 vs Bahelin Boys: 13.40 - 51.50 (Yahoo projects 160 - 165)")
+    assert "new: Rick Lo; gone: Old Guy" in sent[0]
+
+
+def test_a_partial_matchup_saves_the_score_and_waits_for_the_rest(monkeypatch, tmp_path):
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, {"top": _matchup_shot([_row(i) for i in range(7)])})
+    assert state["live_score"]["score"] == [13.4, 51.5]
+    assert "Read 7 of your players so far" in sent[0] and state["matchup_shots"]
+    assert all(p.slot == "BN" for p in players) and not state["week_requested"]
+
+
+def test_someone_elses_matchup_changes_no_roster(monkeypatch, tmp_path):
+    mine = [RosterPlayer(500 + i, f"Other {i}", "SEA", ["C"], "BN") for i in range(12)]
+    state, players, league, sent = _matchup(monkeypatch, tmp_path,
+                                            {"top": _matchup_shot([_row(i) for i in range(12)])}, players=mine)
+    assert [p.id for p in players] == list(range(500, 512))
+    assert "doesn't look like yours" in sent[0]
+
+
+def test_yahoos_score_is_split_by_the_goalie_rows_else_by_box_scores(monkeypatch):
+    monkeypatch.setattr(main.matchup, "_so_far", lambda roster, ctx, days: (5.0, 3.0, 1))
+    assert main._banked(13.4, 8.2, [], None, []) == (pytest.approx(5.2), 8.2, 1)
+    assert main._banked(13.4, None, [], None, []) == (pytest.approx(10.4), 3.0, 1)

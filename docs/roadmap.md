@@ -10,18 +10,12 @@ week's result, save them where they don't, and show that trade-off this week and
 over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
-1. **Matchup screenshot ingestion**: the Yahoo app's matchup page updates both
-   rosters, slots and points so far (the opponent's roster goes stale otherwise:
-   week 1 showed them at 44 here vs 51.5 in Yahoo).
-   Done when: one or more matchup screenshots update my roster, the opponent and
-   points so far, the reply shows the parsed score, and synthetic-OCR tests
-   cover it. *Waiting on Nico's sample screenshots.*
-2. **Mid-week advice: chase, protect or concede**: from Wednesday (or on each
+1. **Mid-week advice: chase, protect or concede**: from Wednesday (or on each
    matchup screenshot), the live score, projected final and P(win), plus one
    recommendation (volume adds when behind but close, steady when ahead, save
    adds when decided).
    Done when: `/week` mid-week shows it, with tests for ahead, close and hopeless.
-3. **Telegram charts**: one view model (`engine/report.py`) feeds the charts and
+2. **Telegram charts**: one view model (`engine/report.py`) feeds the charts and
    the dashboard. This week: win odds now vs with each candidate add, and the
    daily projected score race. Per add: extra points per week for the next 4-6
    weeks (weeks 3+ display only, lower confidence) and the add-budget timeline
@@ -29,17 +23,17 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
    1-2 backup free agents.
    Done when: `/week` and each recommended add send their chart, and the
    view-model numbers are tested.
-4. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
+3. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
    view model each run, linked from Telegram; pick a candidate add to see its
    impact. (Public, like `state/`; Nico decides whether to keep the URL unlisted.)
    Done when: each run publishes `site/data.json` and the page renders it.
-5. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+4. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night).
    Done when: a night with nothing to change gets one line or nothing.
-6. **IR management**: flag an IR-eligible player in an active slot, and a
+5. **IR management**: flag an IR-eligible player in an active slot, and a
    returning player who needs a spot.
    Done when: the weekly plan and the briefing include an IR line when relevant.
-7. **Sunday report**: the result vs projection, adds taken or skipped, the
+6. **Sunday report**: the result vs projection, adds taken or skipped, the
    budget, and the week chart.
    Done when: sent Sunday evening, with the same numbers `explain_week` shows.
 
@@ -73,4 +67,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | Evening briefings missed: relay crons start the runs | e3e1c8e |
 | 2026-10-01 | `/myteam` paste replaces my roster and slots; briefing window 19:30-20:30 | (this commit) |
 | 2026-10-01 | Roster and opponent screenshots via free OCR (`clients/screenshot.py`) | (this commit) |
-| 2026-10-01 | Decided-week rule: no adds chasing a lost (<10%) or won (>90%) week; roadmap re-planned around the add decision | (this commit) |
+| 2026-10-01 | Decided-week rule: no adds chasing a lost (<10%) or won (>90%) week; roadmap re-planned around the add decision | 9a2654c |
+| 2026-10-01 | Matchup screenshots: both rosters, slots and Yahoo's live score; fix: an added player's earlier games no longer count as gain | (this commit) |

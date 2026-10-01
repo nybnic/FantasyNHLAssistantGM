@@ -57,10 +57,15 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   replaces your roster and slots and replies with what changed. Screenshots
   are read with free offline OCR; if a set looks incomplete it asks for the
   rest, or `/save` keeps what it read. `/opp` takes screenshots too.
+- **Matchup screenshots** are the quickest update: screenshots of the Yahoo
+  app's Matchup tab (scrolled through) refresh your roster and slots, your
+  opponent's roster and the live score at once, then the bot replans the week.
+  Taken before the day's first puck, Yahoo's score replaces the bot's own
+  box-score tally. Ideal on Monday and again mid-week.
 - If a run fails, you get one alert that day.
 
-Coming next: mid-week risk advice (protect a lead, chase when behind), IR
-management, and a Sunday report.
+Coming next: mid-week advice (chase, protect or concede), charts of win odds
+and the add budget, a web dashboard, IR management and a Sunday report.
 
 ## Setup
 

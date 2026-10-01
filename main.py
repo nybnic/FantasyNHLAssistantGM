@@ -51,6 +51,8 @@ HELP = (
     "/roster - the roster I think you have\n"
     "/myteam - then send screenshots of your Yahoo team page or paste its text, to correct your roster\n"
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
+    "Matchup screenshots (the Yahoo app's Matchup tab, scrolled through) - both rosters and the live score, "
+    "then an updated plan\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
@@ -120,7 +122,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                        "half-hourly runs. A 401 means its GitHub token needs renewing (see README).")
     else:
         updates = telegram.get_updates(token, state["telegram_offset"])
-    new_screenshots = False
+    new_screenshots = set()
     for update in updates:
         state["telegram_offset"] = update["update_id"] + 1
         if "callback_query" in update:
@@ -149,7 +151,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 _warn_other_chat(str(message["chat"]["id"]), chat_id, token)
                 continue
             if _image(message):
-                new_screenshots |= add_screenshot(message, settings, state, outbox)
+                if kind := add_screenshot(message, settings, state, outbox):
+                    new_screenshots.add(kind)
                 continue
             text = message.get("text", "").strip()
             first_line, _, body = text.partition("\n")
@@ -170,7 +173,9 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             elif command == "/taken":
                 taken_command(rest + "\n" + body, league, outbox)
             elif command == "/save":
-                if state["screenshots"]:
+                if state["matchup_shots"]:
+                    finish_matchup(state, players, league, outbox, save=True)
+                elif state["screenshots"]:
                     finish_screenshots(state, players, league, outbox, save=True)
                 else:
                     outbox.send("No screenshots to save.")
@@ -180,8 +185,10 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                     update_my_roster(text, players, outbox)
                 else:
                     update_team(team, text, league, outbox)
-    if new_screenshots:
+    if "team" in new_screenshots:
         finish_screenshots(state, players, league, outbox)
+    if "matchup" in new_screenshots:
+        finish_matchup(state, players, league, outbox)
     return problem
 
 
@@ -193,32 +200,124 @@ def _image(message: dict) -> str | None:
     return doc["file_id"] if doc.get("mime_type", "").startswith("image/") else None
 
 
-def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbox) -> bool:
-    """Read a team-page screenshot into the draft roster. Screenshots within
-    SCREENSHOT_WINDOW of each other add up; the team is the one named by
-    /opp or /myteam, else the draft's, else mine."""
+def _fresh(draft: dict | None, at: dt.datetime) -> bool:
+    return bool(draft) and at - dt.datetime.fromisoformat(draft["at"]) < SCREENSHOT_WINDOW
+
+
+def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbox) -> str | None:
+    """Read a screenshot into a draft: returns "team" (a team page) or
+    "matchup", or None if it couldn't be read. Screenshots within
+    SCREENSHOT_WINDOW of each other add up. A team page belongs to the team
+    named by /opp or /myteam, else the draft's, else mine."""
     at = dt.datetime.fromtimestamp(message["date"], dt.timezone.utc)
+    try:
+        shot = screenshot.read(telegram.download_file(settings.telegram_bot_token, _image(message)))
+    except (screenshot.ScreenshotError, telegram.TelegramError) as e:
+        outbox.send(f"Couldn't read that screenshot: {e}")
+        return None
+    except requests.RequestException:  # its text can hold the download URL, which holds the token
+        outbox.send("Couldn't download that screenshot from Telegram; try again.")
+        return None
+    if shot["kind"] == "matchup":
+        draft = state["matchup_shots"] if _fresh(state["matchup_shots"], at) else {"rows": [], "labels": []}
+        draft["rows"] += shot["rows"]
+        draft["labels"] += shot["labels"][1]  # the opponent's side of the header
+        draft["score"] = shot["score"] or draft.get("score")
+        draft["projected"] = shot["projected"] or draft.get("projected")
+        draft["at"] = at.isoformat()
+        state["matchup_shots"] = draft
+        return "matchup"
     draft = state["screenshots"]
-    fresh = draft and at - dt.datetime.fromisoformat(draft["at"]) < SCREENSHOT_WINDOW
+    fresh = _fresh(draft, at)
     team = state["awaiting"] or (draft["team"] if fresh else MY_TEAM)
     state["awaiting"] = None
     if not fresh or draft["team"] != team:
         draft = {"team": team, "rows": []}
-    try:
-        rows = screenshot.read_roster(telegram.download_file(settings.telegram_bot_token, _image(message)))
-    except (screenshot.ScreenshotError, telegram.TelegramError) as e:
-        outbox.send(f"Couldn't read that screenshot: {e}")
-        return False
-    except requests.RequestException:  # its text can hold the download URL, which holds the token
-        outbox.send("Couldn't download that screenshot from Telegram; try again.")
-        return False
-    if not rows:
-        outbox.send("I couldn't find any players in that screenshot. Send the Team tab of the Yahoo app.")
-        return False
-    draft["rows"] += rows
+    if not shot["rows"]:
+        outbox.send("I couldn't find any players in that screenshot. Send the Team or Matchup tab of the Yahoo app.")
+        return None
+    draft["rows"] += shot["rows"]
     draft["at"] = at.isoformat()
     state["screenshots"] = draft
-    return True
+    return "team"
+
+
+def _side(rows: list[dict], side: str) -> list[dict]:
+    """One team's players from matchup rows, each once (screenshots overlap)."""
+    seen, found = set(), []
+    for row in rows:
+        p = row[side]
+        if p and p["name"] not in seen:
+            seen.add(p["name"])
+            found.append({**p, "slot": row["slot"]})
+    return found
+
+
+def _goalie_points(rows: list[dict]) -> float | None:
+    """Points from the G slots, or None if no goalie row was read."""
+    goalies = [r["points"] or 0.0 for r in rows if r["slot"] == "G"]
+    return sum(goalies) if goalies else None
+
+
+def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
+    """Save what matchup screenshots show: the live score at once, and both
+    rosters once my side looks whole (at most one player short) or on /save.
+    Then plan the week again on this run."""
+    draft = state["matchup_shots"]
+    at = dt.datetime.fromisoformat(draft["at"])
+    date = at.astimezone(NHL_TIME).date()
+    week = weeks.week_of(date)
+    names = {normalize_name(t): t for t in (*SCHEDULE, *league["teams"])}
+    named = [names[n] for n in map(normalize_name, draft["labels"]) if n in names and names[n] != MY_TEAM]
+    opponent = named[0] if named else current_opponent(state, week) if week else None
+    mine, theirs = _side(draft["rows"], "mine"), _side(draft["rows"], "theirs")
+    lines = []
+    if draft.get("score") and week:
+        games = _safe(nhl_client.games_on, date, default=[])
+        state["live_score"] = {
+            "week": week, "opponent": opponent, "at": draft["at"],
+            # Before the day's first puck the score covers exactly the days before it.
+            "through": date.isoformat() if not games or at < games[0].start else None,
+            "score": list(draft["score"]), "projected": list(draft["projected"] or []),
+            "goalies": [_goalie_points(mine), _goalie_points(theirs)],
+        }
+        line = f"Week {week} vs {opponent or '?'}: {draft['score'][0]:.2f} - {draft['score'][1]:.2f}"
+        if draft.get("projected"):
+            line += f" (Yahoo projects {draft['projected'][0]:.0f} - {draft['projected'][1]:.0f})"
+        lines.append(line)
+
+    registry = parse.registry()
+    mine_ids = {p.id for p in players}
+    found = parse.match_shown_names(mine, registry, mine_ids)
+    if players and found.players and sum(p.id in mine_ids for p in found.players) < len(found.players) / 2:
+        state["matchup_shots"] = None
+        outbox.send("\n".join(lines + ["The left team doesn't look like yours, so no rosters were saved. "
+                                        "Send your own matchup (your team is on the left)."]))
+        return
+    if not save and len(found.players) < max(roster_mod.MIN_PASTED, len(players) - 1):
+        outbox.send("\n".join(lines + [f"Read {len(found.players)} of your players so far. Send the rest of "
+                                        "the matchup screenshots, or /save to save just these."]))
+        return
+    state["matchup_shots"] = None
+    changes = roster_mod.replace(players, found.players, found.tagged)
+    lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
+    if opponent and theirs:
+        before = {p.id: p.name for p in teams.players(league, opponent)}
+        found_them = parse.match_shown_names(theirs, registry, set(before))
+        for p in found_them.players:
+            p.slot = None  # other teams are assumed to set their best lineup
+        teams.set_team(league, opponent, found_them.players, date)
+        after = {p.id for p in found_them.players}
+        new = [p.name for p in found_them.players if p.id not in before]
+        gone = [name for pid, name in before.items() if pid not in after]
+        changed = (f"new: {', '.join(new)}" if new else "") + ("; " if new and gone else "") + (
+            f"gone: {', '.join(gone)}" if gone else "")
+        lines.append(f"{opponent}: " + (changed if before and changed else f"{len(after)} players saved") + ".")
+        found.problems += found_them.problems
+    if found.problems:
+        lines.append("Couldn't place: " + "; ".join(found.problems))
+    state["week_requested"] = True
+    outbox.send("\n".join(lines + ["Updated plan below."]))
 
 
 def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
@@ -471,6 +570,8 @@ class WeekInputs:
     threshold: float | None
     weeks_after: int
     available_from: dt.date | None
+    so_far: tuple | None = None  # my banked points from a matchup screenshot (else box scores)
+    yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
 
 
 def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
@@ -483,10 +584,18 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     starters = _safe(goalie_client.get_starters, date, default={})
     season_used, week_used = matchup.adds_used(state["decisions"], days)
+    them_roster = teams.players(league, opponent)
+    mine = theirs = projected = None
+    live = state["live_score"]
+    if live and live["week"] == week and live["opponent"] == opponent and live["through"] == date.isoformat():
+        mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days)
+        theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days)
+        projected = live["projected"] or None
     return WeekInputs(
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
-        me=matchup.project(MY_TEAM, players, ctx, schedule, lines, starters),
-        them=matchup.project(opponent, teams.players(league, opponent), ctx, schedule, lines, starters),
+        me=matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine),
+        them=matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs),
+        so_far=mine, yahoo_projected=projected,
         pool=free_agents(players, league),
         season_used=season_used, week_used=week_used,
         max_moves=matchup.max_moves(season_used, week_used),
@@ -494,6 +603,14 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         weeks_after=weeks.LAST_WEEK - week,
         available_from=POST_DRAFT_WAIVERS_CLEAR if date < POST_DRAFT_WAIVERS_CLEAR else None,
     )
+
+
+def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date]) -> tuple[float, float, int]:
+    """(skater points, goalie points, goalie games) so far: Yahoo's score,
+    split by the G-slot rows (else by box scores); goalie games from box scores."""
+    skater_bs, goalie_bs, goalie_games = matchup._so_far(roster_mod.active(roster), ctx, days)
+    goalie = goalie_bs if goalie is None else goalie
+    return total - goalie, goalie, goalie_games
 
 
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
@@ -521,9 +638,9 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     moves = []
     if wk.max_moves and wk.threshold is not None:
         moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from)
+                                   wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far)
     outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
-                             wk.week_used, date)
+                             wk.week_used, date, wk.yahoo_projected)
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"

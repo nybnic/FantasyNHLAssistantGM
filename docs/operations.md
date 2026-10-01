@@ -30,14 +30,18 @@ masked: `notify/telegram.TelegramError` and the failure alert strip the token.
 ## State files (bot-owned, committed every run)
 | File | Holds | Changed by |
 |---|---|---|
-| `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, `scripts/seed_roster.py` |
-| `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, `/taken`, `scripts/seed_league.py` |
+| `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, matchup screenshots, `scripts/seed_roster.py` |
+| `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
 | `state/gm_state.json` | Telegram offset, pending recs, decisions (the add budget counts Done adds), sent briefings/plans | Every run |
 
 ## Keeping league data fresh (no Yahoo API)
 - My roster: Done on recommendations; for anything else (moves the bot didn't
   suggest, IR changes), `/myteam` + paste my Yahoo team page.
 - Opponent: `/opp` + paste their Yahoo team page, ideally each Monday.
+- Both at once, plus the live score: screenshots of the Yahoo app's Matchup tab
+  (`clients/screenshot.read`, `main.finish_matchup`). The score is used as
+  points so far only on the day it was taken, and only if it was taken before
+  that day's first puck (later, today's points can't be told apart).
 - Free agents: everyone on an NHL roster minus all known rosters minus `taken`.
   Other teams' pickups are unknown until pasted or `/taken`.
 

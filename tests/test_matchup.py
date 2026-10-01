@@ -155,3 +155,23 @@ def test_a_hopeless_week_gets_no_streamer_and_says_so():
     assert moves == []
     me = matchup.project("me", roster, FakeContext(), schedule, {}, {})
     assert "looks lost" in matchup.text(1, [MON, TUE], me, opponent, None, 0, 0, MON)
+
+
+@dataclass
+class _Log:
+    date: dt.date
+    stats: dict
+    started: bool = True
+
+
+def test_an_added_players_earlier_games_dont_count_for_you():
+    # The free agent had a big Monday; on Tuesday his points can't come with him.
+    ctx = FakeContext()
+    ctx.today = TUE
+    ctx.skater_games = {9: [_Log(MON, {"g": 3})]}
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C")]
+    schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "NYR", "BOS")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    moves = matchup.candidate_moves(roster, opponent, [RosterPlayer(9, "Hot", "NYR", ["C"])], ctx, schedule,
+                                    {}, {}, future={}, weeks_after=0)
+    assert moves[0].week_gain == pytest.approx(0.97 * 3.0)  # Tuesday's game only

@@ -10,6 +10,11 @@
 - awaiting: the team whose Yahoo page you're about to paste after /opp or /myteam
 - screenshots: rows read from recent team-page screenshots, collected until
   they make a whole roster ({team, rows, at})
+- matchup_shots: rows and score read from recent matchup screenshots, collected
+  until my side makes a whole roster ({rows, labels, score, projected, at})
+- live_score: the latest matchup screenshot's score ({week, opponent, at,
+  through: the day it was taken if before that day's first puck, score,
+  projected, goalies: points from G slots per team})
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 """
@@ -36,6 +41,8 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("opponents", {})
     state.setdefault("awaiting", None)
     state.setdefault("screenshots", None)
+    state.setdefault("matchup_shots", None)
+    state.setdefault("live_score", None)
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state
