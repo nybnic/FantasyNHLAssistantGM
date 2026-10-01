@@ -378,3 +378,20 @@ def test_the_plan_goes_out_at_the_start_of_the_week_and_once_from_wednesday():
     assert not main.plan_due({"sent": "x"}, tue, 2)
     assert main.plan_due({"sent": "x"}, wed, 2) and main.plan_due({"sent": "x"}, thu, 2)
     assert not main.plan_due({"sent": "x", "midweek": "y"}, thu, 2)
+
+
+def test_the_dashboard_data_carries_the_summary_and_every_view(monkeypatch, tmp_path):
+    import json
+    from types import SimpleNamespace
+    monkeypatch.setattr(main, "SITE_DIR", tmp_path)
+    me = main.matchup.TeamWeek("me", 13.4, 153.0, 400.0, 26, 1, 3, 1.0)
+    them = main.matchup.TeamWeek("them", 51.5, 156.0, 400.0, 23, 1, 3, 1.0)
+    wk = SimpleNamespace(me=me, them=them, days=[dt.date(2026, 9, 29), dt.date(2026, 10, 4)], season_used=1,
+                         max_moves=1, yahoo_projected=[159.79, 164.52])
+    views = {"decision": {"points": []}, "schedule": {}, "budget": {}, "adds": {}, "streamer_text": "x"}
+    path = main.write_dashboard(views, wk, 1, "Bahelin Boys", "Mid-week: chase", NOW, dry_run=False)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert path == tmp_path / "data.json"
+    assert data["summary"]["so_far"] == [13.4, 51.5] and data["summary"]["stance"] == "chase"
+    assert data["summary"]["adds_left"] == {"season": 35, "week": 1}
+    assert set(data) >= {"decision", "schedule", "budget", "adds"} and "streamer_text" not in data

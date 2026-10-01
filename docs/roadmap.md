@@ -10,17 +10,13 @@ week's result, save them where they don't, and show that trade-off this week and
 over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
-1. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
-   view model each run, linked from Telegram; pick a candidate add to see its
-   impact. (Public, like `state/`; Nico decides whether to keep the URL unlisted.)
-   Done when: each run publishes `site/data.json` and the page renders it.
-2. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+1. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night).
    Done when: a night with nothing to change gets one line or nothing.
-3. **IR management**: flag an IR-eligible player in an active slot, and a
+2. **IR management**: flag an IR-eligible player in an active slot, and a
    returning player who needs a spot.
    Done when: the weekly plan and the briefing include an IR line when relevant.
-4. **Sunday report**: the result vs projection, adds taken or skipped, the
+3. **Sunday report**: the result vs projection, adds taken or skipped, the
    budget, and the week chart.
    Done when: sent Sunday evening, with the same numbers `explain_week` shows.
 
@@ -59,4 +55,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | Mid-week stance (chase / protect / concede) with the biggest-swing add; badge colours read at Telegram's photo size | 60752a3 |
 | 2026-10-01 | Telegram charts: win odds per add + score race, schedule grid (this week and next: starts, benched games, open slots by position), per-add weekly gain + add budget | b62cd6b |
 | 2026-10-01 | Decision map replaces the win-odds chart; best streamer per position on the schedule grid; schedule-fit shortlist | 9b22d8b |
-| 2026-10-01 | Drops tried per group (2 lowest forwards, D, goalies): found Ehlers for Schenn | (this commit) |
+| 2026-10-01 | Drops tried per group (2 lowest forwards, D, goalies): found Ehlers for Schenn | a7da318 |
+| 2026-10-01 | Web dashboard (site/, GitHub Pages): tap an add for its week-by-week gain and budget; grid with streamers; table of every add | (this commit) |

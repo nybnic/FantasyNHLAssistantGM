@@ -75,7 +75,11 @@ rule into now / later / both / neither); a schedule grid for this week and next
 streamer per position drawn on the nights he'd fill); and for each recommended
 add, its points gain week by week and the add budget.
 
-Coming next: a web dashboard, IR management and a Sunday report.
+The same numbers are on a phone-first web dashboard (GitHub Pages, rebuilt with
+each plan): tap any add on the decision map, the grid or the table for its
+week-by-week gain and what it does to the add budget.
+
+Coming next: IR management and a Sunday report.
 
 ## Setup
 

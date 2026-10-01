@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import functools
+import json
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -65,6 +66,7 @@ MYTEAM_HINT = "\n\nWrong? Send screenshots of your Yahoo team page, or /myteam a
 # Judgment call: screenshots sent within this of the previous one are one team page.
 SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
 CHART_DIR = Path("data/charts")  # where a dry run saves the charts it would send
+SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (written by each weekly plan)
 CHART_WEEKS = 5  # an add's chart shows this many weeks after the current one
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
 
@@ -668,37 +670,60 @@ def streamer_text(view: dict, streams: list[dict], threshold: float | None) -> s
     return "\n".join(lines)
 
 
-def _send_week_charts(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
-                      ranked: list, moves: list, outbox: Outbox) -> None:
-    """The decision map (each add: this week vs the next two) and the schedule
-    grid for this week and next with the best streamers. A chart that fails is
-    logged and skipped."""
+def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
+               ranked: list, moves: list) -> dict:
+    """Every number the charts and the dashboard show, computed once: the
+    decision map, the schedule grid with streamers, the add budget, and each
+    shown add's week-by-week gain (keyed by report.move_key)."""
     threshold = wk.threshold if wk.max_moves else None
-    png = _safe(lambda: charts.decision_chart(report.decision_view(week, ranked, moves, threshold)))
-    if png:
-        outbox.send_photo(png)
-
-    def schedule() -> tuple[bytes, str]:
-        spans = [(week, current_opponent(state, week), wk.me, wk.them)]
-        if nxt.week:
-            opp = current_opponent(state, nxt.week)
-            theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, nxt.schedule,
-                                     wk.lines, wk.starters, True)
-            spans.append((nxt.week, opp or "?", nxt.mine, theirs))
-        streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
-                                    wk.so_far)
-        view = report.schedule_view(players, spans, streams, moves)
-        return charts.schedule_chart(view), streamer_text(view, streams, threshold)
-
-    result = _safe(schedule)
-    if result:
-        outbox.send_photo(result[0], result[1])
-
-
-def _add_chart(players: list, move, week: int, wk: WeekInputs, budget: dict) -> bytes:
+    decision = report.decision_view(week, ranked, moves, threshold)
+    spans = [(week, current_opponent(state, week), wk.me, wk.them)]
+    if nxt.week:
+        opp = current_opponent(state, nxt.week)
+        theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, nxt.schedule,
+                                 wk.lines, wk.starters, True)
+        spans.append((nxt.week, opp or "?", nxt.mine, theirs))
+    streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far)
+    schedule = report.schedule_view(players, spans, streams, moves)
+    budget = report.budget_view(state["decisions"], week)
+    by_key = {report.move_key(m): m for m in ranked}
+    by_key.update({report.move_key(m): m for m in moves + [st["move"] for st in streams]})
+    chosen = {report.move_key(m) for m in moves}
+    keys = [pt["key"] for pt in decision["points"]] + [r["key"] for r in schedule["streamers"]] + list(chosen)
     later = {w: _week_schedule(w) for w in range(week + 1, min(week + CHART_WEEKS, weeks.LAST_WEEK) + 1)}
-    gains = report.weekly_gains(players, move, wk.ctx, later, wk.lines, wk.starters)
-    return charts.add_chart(report.add_view(move, week, gains, budget))
+    adds = {}
+    for key in dict.fromkeys(keys):
+        m = by_key[key]
+        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, threshold)
+        gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
+        adds[key] = report.add_view(m, week, gains, budget, verdict)
+    return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
+            "streamer_text": streamer_text(schedule, streams, threshold)}
+
+
+def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
+                    now: dt.datetime, dry_run: bool) -> Path:
+    """site/data.json for the dashboard (site/index.html), published to GitHub
+    Pages by the workflow. A dry run writes it next to its charts instead,
+    with a copy of the page, to preview locally."""
+    p_win = matchup.win_prob(wk.me, wk.them)
+    data = {
+        "generated": now.astimezone(dt.timezone.utc).isoformat(timespec="minutes"),
+        "week": week, "opponent": opponent, "days": [wk.days[0].isoformat(), wk.days[-1].isoformat()],
+        "summary": {
+            "so_far": [wk.me.so_far, wk.them.so_far], "expected": [wk.me.expected, wk.them.expected],
+            "yahoo": wk.yahoo_projected, "win": p_win, "stance": matchup.stance(p_win), "stance_text": stance_text,
+            "adds_left": {"season": MAX_ADDS_PER_SEASON - wk.season_used, "week": wk.max_moves},
+        },
+        **{k: v for k, v in views.items() if k != "streamer_text"},
+    }
+    folder = CHART_DIR if dry_run else SITE_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    if dry_run:
+        (folder / "index.html").write_bytes((SITE_DIR / "index.html").read_bytes())
+    path = folder / "data.json"
+    path.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
+    return path
 
 
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
@@ -755,12 +780,23 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                              wk.week_used, date, wk.yahoo_projected)
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
-    _send_week_charts(state, players, league, week, wk, nxt, ranked, moves, outbox)
-    budget = report.budget_view(state["decisions"], week)
+    views = _safe(week_views, state, players, league, week, wk, nxt, ranked, moves)
+    if views:
+        png = _safe(charts.decision_chart, views["decision"])
+        if png:
+            outbox.send_photo(png)
+        png = _safe(charts.schedule_chart, views["schedule"])
+        if png:
+            outbox.send_photo(png, views["streamer_text"])
+        decided = matchup.decided(matchup.win_prob(wk.me, wk.them))
+        stance_text = midweek or (f"This week looks {decided}: save your adds for players worth keeping."
+                                  if decided else None)
+        _safe(write_dashboard, views, wk, week, opponent, stance_text, now, outbox.settings.dry_run)
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
         buttons = [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")]
-        png = _safe(_add_chart, players, move, week, wk, budget)
+        view = views and views["adds"].get(report.move_key(move))
+        png = _safe(charts.add_chart, view) if view else None
         message_id = (outbox.send_photo(png, matchup.move_text(move), buttons) if png
                       else outbox.send(matchup.move_text(move), buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),

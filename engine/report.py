@@ -25,6 +25,11 @@ def _last(name: str) -> str:
     return name.partition(" ")[2] or name
 
 
+def move_key(m: matchup.Move) -> str:
+    """A move's id across views: "add id:drop id" (0 for an open spot)."""
+    return f"{m.add.id}:{m.drop.id if m.drop else 0}"
+
+
 def _move_label(m: matchup.Move) -> str:
     return f"{_last(m.add.name)} for {_last(m.drop.name)}" if m.drop else f"{_last(m.add.name)} (open spot)"
 
@@ -51,7 +56,7 @@ def decision_view(week: int, ranked: list[matchup.Move], recommended: list[match
     shown = sorted(moves, key=lift, reverse=True)[:top] + sorted(moves, key=lambda m: m.next_weeks, reverse=True)[:top]
     shown += [best[m.add.id] for m in recommended]
     shown = list({m.add.id: m for m in shown}.values())
-    points = [{"label": _move_label(m), "x": lift(m), "y": m.next_weeks, "games": m.games,
+    points = [{"key": move_key(m), "label": _move_label(m), "x": lift(m), "y": m.next_weeks, "games": m.games,
                "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen} for m in shown]
     if recommended:
         headline = "Recommended: " + ", ".join(_move_label(m) for m in recommended)
@@ -101,7 +106,7 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
                 if m.add.id in day:
                     merged[d.isoformat()] = "start" if day[m.add.id][0] != BENCH else "bench"
         cells = [merged.get(d["date"]) for d in days]
-        stream_rows.append({"name": _short(m.add.name), "positions": "/".join(m.add.positions), "team": m.add.team,
+        stream_rows.append({"key": move_key(m), "name": _short(m.add.name), "positions": "/".join(m.add.positions), "team": m.add.team,
                             "drop": _short(m.drop.name) if m.drop else None, "cells": cells,
                             "slot_games": cells.count("start"), "gain": [m.week_gain, st["next_gain"]],
                             "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen})
@@ -122,13 +127,18 @@ def weekly_gains(roster: list[RosterPlayer], move: matchup.Move, ctx, week_sched
     return gains
 
 
-def add_view(move: matchup.Move, week: int, later: list[tuple[int, float]], budget: dict) -> dict:
+def add_view(move: matchup.Move, week: int, later: list[tuple[int, float]], budget: dict,
+             verdict: str = "") -> dict:
     """This week's gain, then each later week's; weeks past the add rule's
     horizon are marked as less certain."""
     rows = [{"week": week, "gain": move.week_gain, "confident": True}]
     rows += [{"week": w, "gain": g, "confident": w - week <= CONFIDENT_WEEKS} for w, g in later]
-    return {"label": f"Add {_short(move.add.name)}" + (f", drop {_short(move.drop.name)}" if move.drop else ""),
-            "weeks": rows, "win": [move.win_before, move.win_after], "budget": budget}
+    return {"key": move_key(move),
+            "label": f"Add {_short(move.add.name)}" + (f", drop {_short(move.drop.name)}" if move.drop else ""),
+            "add": {"name": move.add.name, "team": move.add.team, "positions": "/".join(move.add.positions)},
+            "drop": move.drop.name if move.drop else None, "games": move.games,
+            "weeks": rows, "win": [move.win_before, move.win_after], "next_two_weeks": move.next_weeks,
+            "season": move.long_term, "verdict": verdict, "budget": budget}
 
 
 def budget_view(decisions: list[dict], week: int) -> dict:

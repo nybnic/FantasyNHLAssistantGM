@@ -21,6 +21,7 @@ move in Yahoo, and the bot learns about them from Done taps and pasted Yahoo pag
 | `notify/telegram.py` | Bot API calls |
 | `state/` | Bot-owned JSON, committed by every run (roster, league, gm_state) |
 | `scripts/` | One-off tools: seeding, backtest, explain_week, compare_yahoo, xfp_table |
+| `site/` | The dashboard: `index.html` (ours), `data.json` (written by each weekly plan), on GitHub Pages |
 | `relay/` | Cloudflare Worker for instant Telegram replies |
 | `docs/league-rules.md` | Full scoring and league rules, worked examples, where the points come from |
 | `docs/operations.md` | Runtime, secrets, state ownership, past incidents |

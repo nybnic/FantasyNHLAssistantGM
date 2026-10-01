@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assistant GM</title>
+<meta name="robots" content="noindex">
+<style>
+  /* Tokens: the dataviz reference palette, blue/orange validated for colour-blind
+     separation in both modes (2026-10-01). Dark values are their own steps. */
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb; --card: #ffffff; --text: #0b0b0b; --text-2: #52514e; --muted: #8a8984;
+    --grid: #e6e5e1; --blue: #2a78d6; --blue-soft: #86b6ef; --orange: #eb6834; --neutral: #a3a29d;
+    --on-blue: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface: #1a1a19; --card: #232321; --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e87;
+      --grid: #383835; --blue: #3987e5; --blue-soft: #1c5cab; --orange: #d95926; --neutral: #6f6e69;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1a1a19; --card: #232321; --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e87;
+    --grid: #383835; --blue: #3987e5; --blue-soft: #1c5cab; --orange: #d95926; --neutral: #6f6e69;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
+  h2 { font-size: 16px; margin: 0 0 4px; }
+  .sub, .note { color: var(--text-2); font-size: 13px; }
+  .card { background: var(--card); border: 1px solid var(--grid); border-radius: 12px; padding: 14px; margin-top: 14px; }
+  .hero { display: flex; gap: 18px; align-items: baseline; flex-wrap: wrap; }
+  .hero .big { font-size: 48px; font-weight: 650; line-height: 1; }
+  .facts { display: grid; grid-template-columns: auto auto; gap: 2px 14px; font-size: 14px; }
+  .facts span:nth-child(odd) { color: var(--text-2); }
+  .stance { margin: 10px 0 0; }
+  svg { display: block; width: 100%; overflow: visible; }
+  svg text { fill: var(--text-2); font-size: 11px; }
+  .tip { position: fixed; pointer-events: none; background: var(--card); color: var(--text); border: 1px solid var(--grid);
+         border-radius: 8px; padding: 6px 9px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.15); display: none;
+         max-width: 260px; z-index: 5; }
+  .tip b { display: block; font-size: 14px; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+  .stat { border: 1px solid var(--grid); border-radius: 8px; padding: 6px 8px; }
+  .stat .v { font-size: 18px; font-weight: 600; }
+  .stat .l { font-size: 12px; color: var(--text-2); }
+  .verdict { font-size: 14px; }
+  .verdict.yes { font-weight: 600; }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px -4px 0; padding: 0 4px; }
+  table { border-collapse: collapse; font-size: 12px; }
+  .grid th, .grid td { padding: 2px 1px; text-align: center; min-width: 30px; }
+  .grid th.name, .grid td.name { text-align: left; white-space: nowrap; padding-right: 8px; position: sticky; left: 0;
+                                  background: var(--card); min-width: 0; font-weight: 400; }
+  .grid thead th { color: var(--text-2); font-weight: 400; }
+  .grid .wk { font-weight: 600; color: var(--text); }
+  .grid .brk { border-left: 1px solid var(--muted); }
+  .cell { width: 26px; height: 20px; border-radius: 4px; margin: 0 auto; font-size: 10px; line-height: 20px; }
+  .cell.start { background: var(--blue); color: var(--on-blue); }
+  .cell.bench { background: var(--orange); color: #0b0b0b; }
+  .cell.s-start { border: 2px solid var(--blue); }
+  .cell.s-bench { border: 2px solid var(--orange); }
+  tr.sep td { border-top: 1px solid var(--grid); padding-top: 6px; }
+  tr.stream { cursor: pointer; }
+  tr.stream:hover td, tr.stream.sel td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  .num { font-variant-numeric: tabular-nums; }
+  .open { font-weight: 600; }
+  .zero { color: var(--muted); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); margin-top: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .adds { width: 100%; }
+  .adds th { text-align: left; color: var(--text-2); font-weight: 400; padding: 4px 6px; border-bottom: 1px solid var(--grid); }
+  .adds td { padding: 6px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  .adds tr[data-key] { cursor: pointer; }
+  .adds tr.sel td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .empty { color: var(--text-2); padding: 40px 0; text-align: center; }
+  button.theme { float: right; background: none; border: 1px solid var(--grid); color: var(--text-2); border-radius: 6px;
+                 font-size: 12px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main id="app"><p class="empty">Loading...</p></main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script>
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const app = document.getElementById("app");
+const tip = document.getElementById("tip");
+let data = null, selected = null;
+
+function el(tag, attrs = {}, text) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function svgEl(tag, attrs = {}, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const pct = p => `${Math.round(Math.min(Math.max(p, 0.01), 0.99) * 100)}%`;
+const signed = (v, d = 1) => (v >= 0 ? "+" : "") + v.toFixed(d);
+
+function showTip(evt, lines) {
+  tip.replaceChildren();
+  lines.forEach((line, i) => tip.append(el(i === 0 ? "b" : "div", {}, line)));
+  tip.style.display = "block";
+  const x = Math.min(evt.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = `${Math.max(8, x)}px`;
+  tip.style.top = `${evt.clientY + 14}px`;
+}
+const hideTip = () => { tip.style.display = "none"; };
+
+function select(key) {
+  if (!data.adds[key]) return;
+  selected = key;
+  render();
+  document.getElementById("detail").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---- header -------------------------------------------------------------
+function header() {
+  const s = data.summary;
+  const box = el("section");
+  const theme = el("button", { class: "theme", type: "button" }, "Theme");
+  theme.onclick = () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+    render();
+  };
+  box.append(theme, el("h1", {}, `Week ${data.week} vs ${data.opponent}`));
+  const updated = new Date(data.generated);
+  box.append(el("div", { class: "sub" }, `${fmtDay(data.days[0])} - ${fmtDay(data.days[1])} · updated ${updated.toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" })}`));
+  const card = el("div", { class: "card" });
+  const hero = el("div", { class: "hero" });
+  const big = el("div");
+  big.append(el("div", { class: "big num" }, pct(s.win)), el("div", { class: "sub" }, "chance to win this week"));
+  const facts = el("div", { class: "facts num" });
+  const pair = v => `${v[0].toFixed(0)} - ${v[1].toFixed(0)}`;
+  [["So far", pair(s.so_far)], ["Projected", pair(s.expected)]].concat(s.yahoo ? [["Yahoo projects", pair(s.yahoo)]] : [])
+    .concat([["Adds left", `${s.adds_left.week} this week, ${s.adds_left.season} season`]])
+    .forEach(([k, v]) => facts.append(el("span", {}, k), el("span", {}, v)));
+  hero.append(big, facts);
+  card.append(hero);
+  if (s.stance_text) card.append(el("p", { class: "stance" }, s.stance_text));
+  box.append(card);
+  return box;
+}
+function fmtDay(iso) {
+  return new Date(iso + "T12:00:00").toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+}
+
+// ---- decision map -------------------------------------------------------
+function decisionMap() {
+  const d = data.decision;
+  const card = el("section", { class: "card" });
+  card.append(el("h2", {}, d.headline));
+  if (d.detail) card.append(el("div", { class: "note" }, d.detail));
+  const width = Math.max(280, Math.min(app.clientWidth - 30, 728));
+  const height = 300, m = { l: 40, r: 14, t: 12, b: 38 };
+  const pts = d.points;
+  const xs = pts.map(p => p.x).concat([0, d.x_bar]);
+  const ys = pts.map(p => p.y).concat([0]).concat(d.y_bar != null ? [d.y_bar] : []);
+  const pad = (lo, hi) => Math.max(1, (hi - lo) * 0.12);
+  const [x0, x1] = [Math.min(...xs), Math.max(...xs)], [y0, y1] = [Math.min(...ys), Math.max(...ys)];
+  const xLo = x0 - pad(x0, x1), xHi = x1 + pad(x0, x1), yLo = y0 - pad(y0, y1), yHi = y1 + pad(y0, y1);
+  const X = v => m.l + (v - xLo) / (xHi - xLo) * (width - m.l - m.r);
+  const Y = v => m.t + (yHi - v) / (yHi - yLo) * (height - m.t - m.b);
+  const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img",
+    "aria-label": "Each add: change in this week's win odds against points over the next two weeks" });
+  for (const t of ticks(yLo, yHi)) {
+    svg.append(svgEl("line", { x1: m.l, x2: width - m.r, y1: Y(t), y2: Y(t), stroke: css("--grid") }));
+    svg.append(svgEl("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, t));
+  }
+  for (const t of ticks(xLo, xHi)) svg.append(svgEl("text", { x: X(t), y: height - m.b + 16, "text-anchor": "middle" }, t));
+  svg.append(svgEl("line", { x1: X(d.x_bar), x2: X(d.x_bar), y1: m.t, y2: height - m.b, stroke: css("--muted") }));
+  svg.append(svgEl("text", { x: X(d.x_bar) + 4, y: height - m.b - 5 }, `+${d.x_bar.toFixed(0)} pts win odds`));
+  if (d.y_bar != null) {
+    svg.append(svgEl("line", { x1: m.l, x2: width - m.r, y1: Y(d.y_bar), y2: Y(d.y_bar), stroke: css("--muted") }));
+    svg.append(svgEl("text", { x: m.l + 4, y: Y(d.y_bar) - 5 }, `+${d.y_bar.toFixed(1)} pts in 2 weeks`));
+  }
+  svg.append(svgEl("text", { x: (m.l + width - m.r) / 2, y: height - 4, "text-anchor": "middle" }, "This week: change in win odds (pts)"));
+  ordered(pts).forEach((p, i) => {
+    const g = svgEl("g", { tabindex: 0, role: "button", "aria-label": `${p.label}: ${signed(p.x, 0)} win odds, ${signed(p.y)} points next 2 weeks` });
+    g.style.cursor = "pointer";
+    const colour = p.recommended ? css("--blue") : css("--neutral");
+    if (p.key === selected) g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 10, fill: "none", stroke: css("--blue"), "stroke-width": 2 }));
+    g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: p.recommended ? 6 : 5, fill: colour, stroke: css("--card"), "stroke-width": 2 }));
+    g.append(svgEl("text", { x: X(p.x) + 8, y: Y(p.y) - 6, "font-weight": 700, fill: p.recommended ? css("--text") : css("--text-2") }, i + 1));
+    g.append(svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 14, fill: "transparent" }));
+    const lines = [`${p.label} (${p.games} gm)`, `${signed(p.x, 0)} pts win odds this week`, `${signed(p.y)} pts over the next 2 weeks`, p.recommended ? "Recommended" : "Tap for details"];
+    g.addEventListener("pointermove", e => showTip(e, lines));
+    g.addEventListener("pointerleave", hideTip);
+    g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); showTip({ clientX: r.right, clientY: r.top }, lines); });
+    g.addEventListener("blur", hideTip);
+    g.addEventListener("click", () => { hideTip(); select(p.key); });
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") select(p.key); });
+    svg.append(g);
+  });
+  card.append(svg);
+  card.append(el("div", { class: "note" }, "Right: helps this week. Up: helps over the next two weeks. Top right helps both; bottom right is a streamer; top left a keeper. The lines are the add rule: an add must clear one and be worth one of your adds. Tap a dot."));
+  return card;
+}
+const ordered = pts => [...pts].sort((a, b) => (b.recommended - a.recommended) || (b.x - a.x));
+function ticks(lo, hi) {
+  const step = [1, 2, 5, 10, 20, 50].find(s => (hi - lo) / s <= 6) || 100;
+  const out = [];
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) out.push(t);
+  return out;
+}
+
+// ---- one add ------------------------------------------------------------
+function detail() {
+  const card = el("section", { class: "card", id: "detail" });
+  const a = data.adds[selected];
+  if (!a) { card.append(el("div", { class: "note" }, "Tap an add on the map, the grid or the table.")); return card; }
+  card.append(el("h2", {}, `${a.label}`));
+  card.append(el("div", { class: "sub" }, `${a.add.name} (${a.add.team}, ${a.add.positions}), ${a.games} games left this week`));
+  card.append(el("div", { class: "verdict" + (a.verdict === "Recommended" ? " yes" : "") }, a.verdict));
+  const stats = el("div", { class: "stats num" });
+  [[`${pct(a.win[0])} → ${pct(a.win[1])}`, "win odds this week"], [signed(a.weeks[0].gain), "points this week"],
+   [signed(a.next_two_weeks), "points over the next 2 weeks"], [signed(a.season, 0), "long-run value (season)"]]
+    .forEach(([v, l]) => { const s = el("div", { class: "stat" }); s.append(el("div", { class: "v" }, v), el("div", { class: "l" }, l)); stats.append(s); });
+  card.append(stats);
+  card.append(el("h2", {}, "Points gained per week"));
+  card.append(gainBars(a.weeks));
+  const legend = el("div", { class: "legend" });
+  legend.append(key("--blue", "Judged by the add rule"), key("--blue-soft", "Later weeks: less certain"));
+  card.append(legend);
+  card.append(el("h2", { style: "margin-top:14px" }, `Adds: ${a.budget.used.at(-1) ?? 0} of ${a.budget.cap} used`));
+  card.append(budgetLine(a.budget));
+  const legend2 = el("div", { class: "legend" });
+  legend2.append(key("--muted", "Even pace"), key("--blue", "Used"), key("--orange", "After this add"));
+  card.append(legend2);
+  return card;
+}
+function key(token, label) {
+  const s = el("span"); const i = el("i"); i.style.background = css(token); s.append(i, document.createTextNode(label)); return s;
+}
+function gainBars(rows) {
+  const width = Math.max(280, Math.min(app.clientWidth - 30, 728)), height = 170, m = { l: 34, r: 8, t: 18, b: 22 };
+  const vals = rows.map(r => r.gain).concat([0]);
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = (hi - lo) || 1;
+  const Y = v => m.t + (hi + span * 0.1 - v) / (span * 1.2) * (height - m.t - m.b);
+  const band = (width - m.l - m.r) / rows.length, bw = Math.min(24, band * 0.6);
+  const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Points gained per week" });
+  svg.append(svgEl("line", { x1: m.l, x2: width - m.r, y1: Y(0), y2: Y(0), stroke: css("--muted") }));
+  rows.forEach((r, i) => {
+    const cx = m.l + band * (i + 0.5), top = Math.min(Y(r.gain), Y(0)), h = Math.max(1, Math.abs(Y(r.gain) - Y(0)));
+    const bar = svgEl("rect", { x: cx - bw / 2, y: top, width: bw, height: h, rx: 4, fill: css(r.confident ? "--blue" : "--blue-soft") });
+    const lines = [`${signed(r.gain)} pts`, `Week ${r.week}${i === 0 ? " (this week)" : ""}${r.confident ? "" : ", less certain"}`];
+    bar.addEventListener("pointermove", e => showTip(e, lines));
+    bar.addEventListener("pointerleave", hideTip);
+    svg.append(bar);
+    svg.append(svgEl("text", { x: cx, y: r.gain >= 0 ? top - 4 : top + h + 12, "text-anchor": "middle", fill: css("--text") }, signed(r.gain)));
+    svg.append(svgEl("text", { x: cx, y: height - 6, "text-anchor": "middle" }, i === 0 ? `Wk ${r.week} now` : `Wk ${r.week}`));
+  });
+  return svg;
+}
+function budgetLine(b) {
+  const width = Math.max(280, Math.min(app.clientWidth - 30, 728)), height = 150, m = { l: 30, r: 8, t: 8, b: 22 };
+  const n = b.pace.length, X = w => m.l + (w - 1) / (n - 1) * (width - m.l - m.r), Y = v => m.t + (1 - v / (b.cap + 2)) * (height - m.t - m.b);
+  const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Adds used against an even pace" });
+  svg.append(svgEl("rect", { x: X(b.playoffs_from) - 4, y: m.t, width: width - m.r - X(b.playoffs_from) + 4, height: height - m.t - m.b, fill: css("--grid"), opacity: 0.6 }));
+  svg.append(svgEl("text", { x: width - m.r - 2, y: height - m.b - 6, "text-anchor": "end" }, `playoffs: ${b.reserve} kept`));
+  for (const t of [0, 10, 20, 30]) {
+    svg.append(svgEl("line", { x1: m.l, x2: width - m.r, y1: Y(t), y2: Y(t), stroke: css("--grid") }));
+    svg.append(svgEl("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, t));
+  }
+  [1, 5, 10, 15, 20, 25].filter(w => w <= n).forEach(w => svg.append(svgEl("text", { x: X(w), y: height - 6, "text-anchor": "middle" }, `Wk ${w}`)));
+  svg.append(svgEl("polyline", { points: b.pace.map((v, i) => `${X(i + 1)},${Y(v)}`).join(" "), fill: "none", stroke: css("--muted"), "stroke-width": 2 }));
+  if (b.used.length) {
+    const steps = b.used.flatMap((v, i) => [`${X(i + 1)},${Y(i ? b.used[i - 1] : 0)}`, `${X(i + 1)},${Y(v)}`]);
+    svg.append(svgEl("polyline", { points: steps.join(" "), fill: "none", stroke: css("--blue"), "stroke-width": 2 }));
+  }
+  const now = b.used.at(-1) ?? 0;
+  svg.append(svgEl("circle", { cx: X(b.week), cy: Y(now + 1), r: 5, fill: css("--orange"), stroke: css("--card"), "stroke-width": 2 }));
+  return svg;
+}
+
+// ---- schedule grid --------------------------------------------------------
+function grid() {
+  const s = data.schedule;
+  const card = el("section", { class: "card" });
+  card.append(el("h2", {}, "Games by day"));
+  card.append(el("div", { class: "note" }, "Who starts, games lost to a full lineup, open slots, and the best streamer per position (tap one)."));
+  const table = el("table", { class: "grid" });
+  const thead = el("thead"), weeks = el("tr"), days = el("tr");
+  weeks.append(el("th", { class: "name" }, ""));
+  days.append(el("th", { class: "name" }, ""));
+  const brk = i => i > 0 && s.days[i].week !== s.days[i - 1].week;
+  let run = [];
+  s.days.forEach((d, i) => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0, start: i }); run.at(-1).n++; });
+  run.forEach((r, k) => {
+    const w = s.weeks[k] || { week: r.week, opponent: "" };
+    weeks.append(el("th", { colspan: r.n, class: "wk" + (k ? " brk" : "") }, `Week ${w.week} vs ${w.opponent}`));
+  });
+  s.days.forEach((d, i) => days.append(el("th", { class: brk(i) ? "brk" : "" }, `${d.label} ${d.day}`)));
+  thead.append(weeks, days);
+  const tbody = el("tbody");
+  s.rows.forEach(r => {
+    const tr = el("tr");
+    tr.append(el("td", { class: "name" }, `${r.name} ${r.positions}`));
+    r.cells.forEach((c, i) => {
+      const td = el("td", { class: brk(i) ? "brk" : "" });
+      if (c) {
+        const prob = r.probs[i];
+        const box = el("div", { class: `cell ${c}` }, prob != null ? Math.round(prob * 100) : "");
+        const lines = [c === "start" ? "Starts" : "Plays, but no slot free", `${r.name}, ${s.days[i].label} ${s.days[i].day}`].concat(prob != null ? [`${Math.round(prob * 100)}% chance to start`] : []);
+        box.addEventListener("pointermove", e => showTip(e, lines));
+        box.addEventListener("pointerleave", hideTip);
+        td.append(box);
+      }
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+  (s.streamers || []).forEach((r, k) => {
+    const tr = el("tr", { class: "stream" + (k === 0 ? " sep" : "") + (r.key === selected ? " sel" : "") });
+    tr.append(el("td", { class: "name" }, `+ ${r.name} ${r.positions}`));
+    r.cells.forEach((c, i) => {
+      const td = el("td", { class: brk(i) ? "brk" : "" });
+      if (c) td.append(el("div", { class: `cell s-${c}` }));
+      tr.append(td);
+    });
+    tr.addEventListener("click", () => select(r.key));
+    tbody.append(tr);
+  });
+  const positions = s.open.length ? Object.keys(s.open[0]) : [];
+  const summary = positions.map(p => [`Open ${p}`, s.open.map(o => o[p]), true])
+    .concat([["Your lineup games", s.my_games, false], ["Their lineup games", s.their_games, false]]);
+  summary.forEach(([label, vals, isOpen], k) => {
+    const tr = el("tr", { class: k === 0 ? "sep" : "" });
+    tr.append(el("td", { class: "name" }, label));
+    vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brk(i) ? "brk " : "") + (isOpen ? (v ? "open" : "zero") : "") }, isOpen && !v ? "·" : v)));
+    tbody.append(tr);
+  });
+  table.append(thead, tbody);
+  const scroll = el("div", { class: "scroll" });
+  scroll.append(table);
+  card.append(scroll);
+  const legend = el("div", { class: "legend" });
+  legend.append(key("--blue", "Starts"), key("--orange", "Plays, no slot free"));
+  const outline = el("span"); const i = el("i"); i.style.border = `2px solid ${css("--blue")}`; outline.append(i, document.createTextNode("Streamer fills a slot"));
+  legend.append(outline, el("span", {}, "Goalie cells: % chance to start"));
+  card.append(legend);
+  return card;
+}
+
+// ---- table view -----------------------------------------------------------
+function addTable() {
+  const card = el("section", { class: "card" });
+  card.append(el("h2", {}, "Every add shown"));
+  const table = el("table", { class: "adds num" });
+  const head = el("tr");
+  ["#", "Add", "Win", "2 wks", "Why not / verdict"].forEach(h => head.append(el("th", {}, h)));
+  table.append(head);
+  const numbered = ordered(data.decision.points).map((p, i) => [i + 1, p.key]);
+  const keys = numbered.concat(Object.keys(data.adds).filter(k => !numbered.some(([, nk]) => nk === k)).map(k => ["+", k]));
+  keys.forEach(([n, k]) => {
+    const a = data.adds[k];
+    if (!a) return;
+    const tr = el("tr", { "data-key": k, class: k === selected ? "sel" : "" });
+    const name = el("td"); const dot = el("span", { class: "dot" }); dot.style.background = css(a.verdict === "Recommended" ? "--blue" : "--neutral");
+    const last = full => full.split(" ").slice(1).join(" ") || full;
+    name.append(dot, document.createTextNode(a.drop ? `${last(a.add.name)} for ${last(a.drop)}` : `${last(a.add.name)} (open spot)`));
+    tr.append(el("td", {}, n), name, el("td", {}, `${Math.round(a.win[0] * 100)}→${pct(a.win[1])}`),
+              el("td", {}, signed(a.next_two_weeks)), el("td", { class: "note" }, a.verdict.replace(/^Not recommended: /, "")));
+    tr.addEventListener("click", () => select(k));
+    table.append(tr);
+  });
+  const scroll = el("div", { class: "scroll" });
+  scroll.append(table);
+  card.append(scroll, el("div", { class: "note" }, "#: the number on the map. +: a streamer from the grid."));
+  return card;
+}
+
+function render() {
+  if (!data) return;
+  app.replaceChildren(header(), decisionMap(), detail(), grid(), addTable());
+}
+
+try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+fetch("data.json", { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => {
+    data = d;
+    const rec = Object.values(d.adds).find(a => a.verdict === "Recommended");
+    selected = rec ? rec.key : (ordered(d.decision.points)[0] || {}).key || null;
+    render();
+  })
+  .catch(() => { app.replaceChildren(el("p", { class: "empty" }, "No plan yet: send /week to the bot.")); });
+let resizeTimer;
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+</script>
+</body>
+</html>
