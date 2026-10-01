@@ -79,4 +79,4 @@ Full rules: `docs/league-rules.md` (kept in sync with `config/league.py` by a te
 - 12 starters (C2 LW2 RW2 D4 G2) + 2 bench + IR + IR+. Max 2 adds/week, 36/season.
 - A goalie minimum of 3 games/week, or **all goalie points that week are zeroed**.
 - Weeks run Mon-Sun (NHL dates). Week 1 was Sep 29 - Oct 4 2026. Week 19 is
-  *assumed* to be the double week (Feb 1-14): verify in Yahoo.
+  the double week (Feb 1-14 2027, confirmed in Yahoo).

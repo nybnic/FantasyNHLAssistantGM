@@ -126,8 +126,10 @@ is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
 - Fantasy weeks run **Monday-Sunday on NHL (Eastern) dates**.
 - **Week 1: Tue Sep 29 - Sun Oct 4 2026** (a short week, confirmed in Yahoo).
 - 26 weeks ending **Sun Apr 4 2027** (the NHL season runs to Apr 10; its last
-  week doesn't count). That requires one two-week week, *assumed* to be
-  **week 19 = Feb 1-14 2027**, spanning the early-February break. **Verify in Yahoo.**
+  week doesn't count). That requires one two-week week:
+  **week 19 = Feb 1-14 2027** (confirmed in Yahoo's matchup view, 2026-10-01).
+  Unverified: whether the 2-adds-a-week limit and the 3-goalie minimum count
+  per calendar week or per matchup in it.
 - **Regular season:** weeks 1-23, one standings table (no divisions).
 - **Playoffs:** 8 teams, weeks 24, 25 and 26 (ends Sun Apr 4): quarterfinal,
   semifinal, final, with no byes. **Reseeded** after each round. **A tied

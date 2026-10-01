@@ -3,6 +3,10 @@
 - briefings: per game date, what was recommended/sent (so nothing repeats)
 - pending: recommendations awaiting a Done/Skip tap
 - decisions: every tap, kept for the weekly report
+- adds: every add I made ({id, name, date: NHL date, source}). The add budget
+  counts these, however the bot learned of the add: a Done tap, my row in
+  League > Transactions, or a new player in my team page or matchup (unless
+  another team had him: likely a trade). One add learned twice counts once
 - last_error: date of the last failure alert (one alert per day)
 - relay_alert: date of the last "instant replies are down" alert
 - weeks: per fantasy week, when its matchup plan was sent
@@ -29,12 +33,18 @@ from __future__ import annotations
 import datetime as dt
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+NHL_TIME = ZoneInfo("America/New_York")
 
 STATE_FILE = Path("state/gm_state.json")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
 KEEP_TRANSACTIONS = 300
 KEEP_POOL_WEEKS = 12
+# Judgment call: re-adding a player you dropped within a week is rare, while
+# learning of one add twice (Done, then a screenshot) is common.
+SAME_ADD_DAYS = 7
 
 
 def load(path: Path = STATE_FILE) -> dict:
@@ -43,6 +53,12 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("briefings", {})
     state.setdefault("pending", {})
     state.setdefault("decisions", [])
+    if "adds" not in state:  # before the ledger, Done taps were the only record
+        state["adds"] = [
+            {"id": None, "name": None, "source": "done",
+             "date": dt.datetime.fromisoformat(d["at"]).astimezone(NHL_TIME).date().isoformat()}
+            for d in state["decisions"] if d["type"] == "add" and d["decision"] == "done"
+        ]
     state.setdefault("last_error", None)
     state.setdefault("relay_alert", None)
     state.setdefault("weeks", {})
@@ -57,6 +73,27 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     return state
+
+
+def record_add(state: dict, player_id: int, name: str | None, date: dt.date, source: str,
+               already_mine: bool = False) -> bool:
+    """An add I made: `player_id` joined my roster on NHL date `date`. One add
+    is often learned twice (a Done tap, then a screenshot of it, days apart),
+    so an add of the same player within SAME_ADD_DAYS of a recorded one is
+    that add. `already_mine`: he was on my roster before this news, so it may
+    be an add from before the ledger (no player id), which it then names.
+    Returns whether it was new."""
+    def near(a: dict) -> bool:
+        return abs((dt.date.fromisoformat(a["date"]) - date).days) <= SAME_ADD_DAYS
+
+    if any(a["id"] == player_id and near(a) for a in state["adds"]):
+        return False
+    unnamed = next((a for a in state["adds"] if a["id"] is None and near(a)), None) if already_mine else None
+    if unnamed:
+        unnamed.update(id=player_id, name=name)
+        return False
+    state["adds"].append({"id": player_id, "name": name, "date": date.isoformat(), "source": source})
+    return True
 
 
 def save(state: dict, today: dt.date, path: Path = STATE_FILE) -> None:

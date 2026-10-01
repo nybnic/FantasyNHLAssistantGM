@@ -13,14 +13,16 @@ what they do to P(win):
   P(win) treats the point difference as normal.
 - Missing the goalie minimum zeroes all goalie points, so they count only
   in proportion to the chance of reaching it.
-- A move that only helps this week (a streamer) must lift P(win); one that
-  makes the roster better for the rest of the season just has to be worth
-  the add, and not cost points this week (it can wait a week otherwise).
-  Long-run value is the same whole-lineup projection run over the next two
-  weeks' schedule (so an empty D slot or thin goalie depth counts), per week,
-  times the weeks left, discounted for how much can change. Three goalies
-  are always kept. Your 36 adds are paced over the season, with some kept back for
-  the playoffs.
+- A move's value, in win probability, is this week's change in P(win) plus
+  its later points times what a point is worth in a typical week. It is made
+  when that beats the add's price (engine/addprice.py), which paces the 36
+  adds, some kept back for the playoffs. Later points are the same
+  whole-lineup projection run over the next LONG_RUN_WEEKS (so an empty D
+  slot or thin goalie depth counts), per week, times the weeks left,
+  discounted; a swap into one of my streaming spots is credited only its
+  scheduled gain while the streamer would be held (hold_weeks).
+- A move that costs points this week, or a keeper that gains little this
+  week, waits for next week's adds. Three goalies are always kept.
 """
 from __future__ import annotations
 
@@ -624,11 +626,11 @@ def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, price: AddPri
     return "\n".join(lines)
 
 
-def adds_used(decisions: list[dict], week_days: list[dt.date]) -> tuple[int, int]:
-    """(this season, this week) adds you've confirmed with Done."""
-    done = [d for d in decisions if d["type"] == "add" and d["decision"] == "done"]
+def adds_used(adds: list[dict], week_days: list[dt.date]) -> tuple[int, int]:
+    """(this season, this week) adds made, from the ledger (state["adds"]):
+    each counts in the week it was made."""
     first, last = week_days[0].isoformat(), week_days[-1].isoformat()
-    return len(done), sum(1 for d in done if first <= d["date"] <= last)
+    return len(adds), sum(1 for a in adds if first <= a["date"] <= last)
 
 
 def max_moves(season_used: int, week_used: int) -> int:

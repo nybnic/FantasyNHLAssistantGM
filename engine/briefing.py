@@ -1,8 +1,9 @@
 """Tonight's lineup plan and the evening briefing message.
 
-Timing (per-game lock, user in Finland): the briefing goes out at 21:00
-local time, or an hour before the day's first puck drop if that's earlier
-(weekend matinees start ~19:30-20:00 local). Nothing is sent 23:00-08:00.
+Timing (per-game lock, user in Finland): the briefing goes out 19:30-20:30
+local time, earlier only if the day's first puck drop is within the hour
+(weekend matinees); a missed window means no briefing that day, but updates
+can follow until 23:00. Nothing is sent 23:00-08:00.
 Players whose game has already started are locked where they are.
 """
 from __future__ import annotations

@@ -24,8 +24,8 @@ SCHEDULE: tuple[str, ...] = (
 
 # Fantasy weeks run Monday-Sunday on NHL (Eastern) dates. Week 1 is short:
 # Tue Sep 29 - Sun Oct 4 (confirmed in Yahoo). 26 weeks ending Apr 4 then
-# need one two-week week; assumed to be the early-February break (week 19 =
-# Feb 1-14, 2027) - check Yahoo's dates before then.
+# need one two-week week: week 19 = Mon Feb 1 - Sun Feb 14, 2027 (confirmed
+# in Yahoo's matchup view, 2026-10-01).
 SEASON_START = dt.date(2026, 9, 29)
 DOUBLE_WEEK = 19
 

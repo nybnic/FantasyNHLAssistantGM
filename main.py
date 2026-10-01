@@ -5,14 +5,15 @@ Each run:
 1. reads your Telegram taps and commands - Done/Skip on recommendations,
    /roster, /myteam (paste your Yahoo team page), /week, /opp (paste a team's
    Yahoo page), /taken, /trade, /help;
-2. on the first day of each fantasy week (and on /week), sends the matchup
-   plan: expected score and win odds vs this week's opponent, the goalie
-   minimum, and the add/drops worth making;
+2. from noon on the first day of each fantasy week, again from Wednesday
+   noon, and on /week, sends the matchup plan: expected score and win odds
+   vs this week's opponent, the goalie minimum, and the add/drops worth
+   making (a plan that fails stays due for the next run);
 3. once tonight's briefing is due, plans tonight's lineup and sends it if a
    change is worth >= 0.5 expected points (or the full lineup until one has
    been confirmed). Later runs send at most one update, if new information
    (goalie confirmations, injuries) makes a clearly better lineup;
-4. on a failure, alerts you once a day.
+4. on a failure, still runs the other steps, and alerts you once a day.
 
 Notify-only: it never touches Yahoo.
 
@@ -30,6 +31,7 @@ import math
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Callable
 from zoneinfo import ZoneInfo
 
 import requests
@@ -73,6 +75,9 @@ SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (writt
 CHART_WEEKS = 5  # an add's chart shows this many weeks after the current one
 MIN_KNOWN_ROSTER = 10  # a league team's roster counts toward the matchup spread from this many players
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
+# Judgment call: more new players than two weeks of adds in one roster update is
+# a stale roster or a misread page, not adds (League > Transactions counts those).
+MAX_NEW_AS_ADDS = 4
 
 
 class Outbox:
@@ -159,6 +164,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 roster_mod.apply_lineup(players, {int(pid): slot for pid, slot in rec["assignment"].items()})
             if action == "done" and rec["type"] == "add":
                 apply_add(players, rec)
+                gm_state.record_add(state, rec["add"]["id"], rec["add"].get("name"), _nhl_today(), "done")
             if action == "taken" and rec["type"] == "add":
                 teams.mark_taken(league, [rec["add"]["id"]])
                 state["week_requested"] = True  # the next best add, right away
@@ -185,7 +191,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             if command == "/roster":
                 outbox.send((roster_mod.describe(players) or "No roster yet.") + MYTEAM_HINT)
             elif command == "/myteam":
-                myteam_command((rest + "\n" + body).strip(), state, players, outbox)
+                myteam_command((rest + "\n" + body).strip(), state, players, league, outbox)
             elif command in ("/help", "/start"):
                 outbox.send(HELP)
             elif command == "/week":
@@ -206,7 +212,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             elif state["awaiting"] and not text.startswith("/"):
                 team, state["awaiting"] = state["awaiting"], None
                 if team == MY_TEAM:
-                    update_my_roster(text, players, outbox)
+                    update_my_roster(text, state, players, league, outbox)
                 else:
                     update_team(team, text, league, outbox)
     if "team" in new_screenshots:
@@ -281,6 +287,11 @@ def _tx_time(when: list) -> str:
     return f"{year}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}"
 
 
+def _tx_nhl_date(when: str) -> dt.date:
+    """The NHL date of a transaction time as the phone shows it (Helsinki)."""
+    return dt.datetime.fromisoformat(when).replace(tzinfo=briefing.LOCAL).astimezone(NHL_TIME).date()
+
+
 def _tx_key(row: dict) -> str:
     names = ",".join(normalize_name(p["name"]).replace(" ", "") for p in row["players"])
     teams_ = ",".join(normalize_name(t).replace(" ", "") for t in row["teams"])
@@ -320,13 +331,17 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     def on_team(team: str) -> set[int]:
         return mine_ids if team == MY_TEAM else {p.id for p in teams.players(league, team)}
 
-    def add(team: str, p) -> None:
+    def add(team: str, p, when: str | None = None) -> None:
+        """`when` (the row's time) for an add or claim; None for a trade, which costs no add."""
         teams.add_player(league, team, p)  # off every other roster; mine isn't in league.json
         if team == MY_TEAM:
             league["taken"] = [pid for pid in league["taken"] if pid != p.id]
-            if all(q.id != p.id for q in players):
+            already_mine = any(q.id == p.id for q in players)
+            if not already_mine:
                 p.slot = roster_mod.BENCH if roster_mod.lineup_known(players) else None
                 players.append(p)
+            if when:
+                gm_state.record_add(state, p.id, p.name, _tx_nhl_date(when), "transactions", already_mine)
         changes.setdefault(team, []).append(f"+{p.name}")
 
     def drop(team: str, p) -> None:
@@ -345,7 +360,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
             if action == "add":
                 p = find(shown, {q["id"] for q in registry} - rostered)
                 if p:
-                    add(teams_[0], p)
+                    add(teams_[0], p, when)
             elif action == "drop":
                 p = find(shown, on_team(teams_[0]))
                 if p:
@@ -438,8 +453,10 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
         return
     state["matchup_shots"] = None
     learn_positions(found.players, found.tagged)
+    before = {p.id for p in players}
     changes = roster_mod.replace(players, found.players, found.tagged)
     lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
+    lines += count_new_players(state, league, before, players, date)
     if opponent and theirs:
         before = {p.id: p.name for p in teams.players(league, opponent)}
         found_them = parse.match_shown_names(theirs, registry, set(before))
@@ -477,7 +494,7 @@ def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox,
                     f"Send the rest of the screenshots, or /save to save just these.{problems}")
         return
     if team == MY_TEAM:
-        apply_my_roster(found, players, outbox)
+        apply_my_roster(found, state, players, league, outbox)
     else:
         save_team(team, found, league, outbox)
 
@@ -525,17 +542,17 @@ def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Ou
         outbox.send(f"OK - now send screenshots of {team}'s Yahoo team page, or paste its text.")
 
 
-def myteam_command(paste: str, state: dict, players: list, outbox: Outbox) -> None:
+def myteam_command(paste: str, state: dict, players: list, league: dict, outbox: Outbox) -> None:
     """/myteam, with your Yahoo team page pasted below it or in the next message."""
     if paste:
-        update_my_roster(paste, players, outbox)
+        update_my_roster(paste, state, players, league, outbox)
     else:
         state["awaiting"] = MY_TEAM
         outbox.send("OK - now send screenshots of your Yahoo team page, or paste its text "
                     "(or one player per line with the slot first: \"BN Nathan MacKinnon\").")
 
 
-def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
+def update_my_roster(paste: str, state: dict, players: list, league: dict, outbox: Outbox) -> None:
     found = parse.find_players(paste, parse.registry())
     n = len(found.players)
     if not roster_mod.MIN_PASTED <= n <= roster_mod.MAX_PLAYERS:
@@ -543,16 +560,46 @@ def update_my_roster(paste: str, players: list, outbox: Outbox) -> None:
         outbox.send(f"I found {n} players, but a roster has {roster_mod.MIN_PASTED}-{roster_mod.MAX_PLAYERS}. "
                     f"Your roster is unchanged: paste the whole team page.{problems}")
         return
-    apply_my_roster(found, players, outbox)
+    apply_my_roster(found, state, players, league, outbox)
 
 
-def apply_my_roster(found: parse.Found, players: list, outbox: Outbox) -> None:
+def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict, outbox: Outbox) -> None:
     learn_positions(found.players, found.tagged)
+    before = {p.id for p in players}
     changes = roster_mod.replace(players, found.players, found.tagged)
     lines = [f"Roster saved: {len(found.players)} players."] + (changes or ["Same as I had."])
+    lines += count_new_players(state, league, before, players, _nhl_today())
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
+
+
+def count_new_players(state: dict, league: dict, before: set[int], players: list, date: dt.date) -> list[str]:
+    """Players new on my roster since `before` (ids) were added, so they count
+    against the add budget, unless another team had them: then it was likely
+    a trade, which costs no add. Either way they're off that team now.
+    Returns what to tell Nico."""
+    if not before:
+        return []  # the first roster I see: nothing was added
+    new = [p for p in players if p.id not in before]
+    if len(new) > MAX_NEW_AS_ADDS:
+        return [f"{len(new)} players are new to me, too many to be adds, so none were counted. To count "
+                "the adds among them, send your League > Transactions screenshots."]
+    owner = {p.id: t for t in league["teams"] for p in teams.players(league, t)}
+    counted, traded = [], []
+    for p in new:
+        if p.id in owner:
+            teams.remove_player(league, owner[p.id], p.id)
+            traded.append(f"{p.name} ({owner[p.id]})")
+        elif gm_state.record_add(state, p.id, p.name, date, "roster"):
+            counted.append(p.name)
+    lines = []
+    if counted:
+        lines.append(f"Counted as adds: {', '.join(counted)} ({MAX_ADDS_PER_SEASON - len(state['adds'])} left).")
+    if traded:
+        lines.append(f"Not counted as adds, since another team had them (a trade?): {', '.join(traded)}. "
+                     "If one was an add, send your League > Transactions screenshots.")
+    return lines
 
 
 def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
@@ -741,7 +788,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     starters = _safe(goalie_client.get_starters, date, default={})
-    season_used, week_used = matchup.adds_used(state["decisions"], days)
+    season_used, week_used = matchup.adds_used(state["adds"], days)
     them_roster = teams.players(league, opponent)
     mine = theirs = projected = None
     live = state["live_score"]
@@ -859,7 +906,7 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         spans.append((nxt.week, opp or "?", nxt.mine, theirs))
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far)
     schedule = report.schedule_view(players, spans, streams, moves)
-    budget = report.budget_view(state["decisions"], week)
+    budget = report.budget_view(state["adds"], week)
     by_key = {report.move_key(m): m for m in ranked}
     by_key.update({report.move_key(m): m for m in moves + [st["move"] for st in streams]})
     chosen = {report.move_key(m) for m in moves}
@@ -915,6 +962,14 @@ def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
     return date >= weeks.midweek(week) and "midweek" not in record
 
 
+def _plan_sent(state: dict, key: str, now: dt.datetime, midweek: bool) -> None:
+    stamp = now.isoformat(timespec="minutes")
+    record = state["weeks"].setdefault(key, {"sent": stamp})
+    if midweek:
+        record["midweek"] = stamp
+    state["week_requested"] = False
+
+
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
                 build_context=context.build) -> None:
     """The matchup plan: from noon local on the week's first day, again from
@@ -922,23 +977,22 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     /week or a matchup screenshot."""
     date = now.astimezone(NHL_TIME).date()
     week = weeks.week_of(date)
-    requested, state["week_requested"] = state["week_requested"], False
+    requested = state["week_requested"]
     if week is None or not roster_mod.active(players):
         if requested:
             outbox.send("No roster yet." if not players else "No fantasy week in progress.")
+        state["week_requested"] = False
         return
     key = str(week)
     if not (force or requested):
         if not plan_due(state["weeks"].get(key), date, week) or briefing.quiet(now) \
                 or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
             return
-    record = state["weeks"].setdefault(key, {"sent": now.isoformat(timespec="minutes")})
     is_midweek = date >= weeks.midweek(week)
-    if is_midweek:
-        record["midweek"] = now.isoformat(timespec="minutes")
     opponent = current_opponent(state, week)
     if not opponent:
         outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
+        _plan_sent(state, key, now, is_midweek)  # asked once; /opp then /week brings the plan
         return
 
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
@@ -966,6 +1020,9 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                 + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now.")
                 + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None)))
+    # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
+    # the plan due, so the next run sends it.
+    _plan_sent(state, key, now, is_midweek)
     views = _safe(week_views, state, players, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])
@@ -987,6 +1044,32 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                       else outbox.send(matchup.move_text(move), buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None, "message_id": message_id}
+
+
+def run_steps(steps: list[tuple[str, Callable[[], object]]]) -> list[tuple[str, Exception]]:
+    """Run every step even when an earlier one fails (a /trade crash mustn't
+    cost tonight's briefing). Returns the failures, (step name, error)."""
+    failures = []
+    for name, step in steps:
+        try:
+            step()
+        except Exception as exc:
+            logger.exception("Step %s failed", name)
+            failures.append((name, exc))
+    return failures
+
+
+def alert_failure(failures: list[tuple[str, Exception]], settings: Settings, state: dict, outbox: Outbox,
+                  now: dt.datetime) -> None:
+    """Tell Nico, once a day. The text never holds the bot token."""
+    today = now.date().isoformat()
+    if state["last_error"] == today:
+        return
+    state["last_error"] = today
+    name, exc = failures[0]
+    detail = str(exc).replace(settings.telegram_bot_token, "<token>") if settings.telegram_bot_token else str(exc)
+    more = f" (and {len(failures) - 1} more step{'s' if len(failures) > 2 else ''})" if len(failures) > 1 else ""
+    _safe(outbox.send, f"Assistant GM run failed in {name}{more}: {type(exc).__name__}: {detail}")
 
 
 def main() -> None:
@@ -1013,23 +1096,24 @@ def main() -> None:
     if args.trade is not None:
         state["trade_request"] = args.trade
 
+    def read_updates() -> None:
+        webhook_problem = sync_webhook(settings, now)
+        relay_problem = process_updates(settings, state, players, league, outbox)
+        report_relay(webhook_problem or relay_problem, state, outbox, now)
+
+    steps = [("updates", read_updates)] if not settings.dry_run else []
+    steps += [
+        ("NHL teams", lambda: sync_teams(players) if players else None),
+        ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),
+        ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
+        ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
+    ]
     try:
-        if not settings.dry_run:
-            webhook_problem = sync_webhook(settings, now)
-            relay_problem = process_updates(settings, state, players, league, outbox)
-            report_relay(webhook_problem or relay_problem, state, outbox, now)
-        if players:
-            sync_teams(players)
-        trade_step(state, players, league, now, outbox, build_context)
-        weekly_step(state, players, league, now, args.force, outbox, build_context)
-        briefing_step(state, players, now, args.force, outbox, build_context)
-    except Exception as exc:
-        today = now.date().isoformat()
-        if not settings.dry_run and state["last_error"] != today:
-            state["last_error"] = today
-            detail = str(exc).replace(settings.telegram_bot_token, "<token>") if settings.telegram_bot_token else exc
-            _safe(outbox.send, f"Assistant GM run failed: {type(exc).__name__}: {detail}")
-        raise
+        failures = run_steps(steps)
+        if failures:
+            if not settings.dry_run:
+                alert_failure(failures, settings, state, outbox, now)
+            raise failures[0][1]
     finally:
         if not settings.dry_run:
             roster_mod.save(players)

@@ -84,14 +84,9 @@ def test_best_move_fills_an_open_spot_with_the_free_agent_who_plays():
     assert moves[0].win_after > moves[0].win_before
 
 
-def test_adds_used_counts_done_adds_by_week():
-    decisions = [
-        {"type": "add", "decision": "done", "date": "2026-11-09"},
-        {"type": "add", "decision": "skip", "date": "2026-11-10"},
-        {"type": "add", "decision": "done", "date": "2026-11-02"},
-        {"type": "lineup", "decision": "done", "date": "2026-11-10"},
-    ]
-    assert matchup.adds_used(decisions, [MON, TUE]) == (2, 1)
+def test_adds_used_counts_the_ledger_by_week():
+    adds = [{"id": 1, "date": "2026-11-09"}, {"id": 2, "date": "2026-11-02"}]
+    assert matchup.adds_used(adds, [MON, TUE]) == (2, 1)
     assert matchup.max_moves(2, 1) == 1 and matchup.max_moves(36, 0) == 0
 
 

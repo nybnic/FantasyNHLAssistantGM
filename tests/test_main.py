@@ -469,3 +469,77 @@ def test_free_agents_take_yahoos_positions_once_a_screenshot_showed_them(monkeyp
     main.learn_positions([RosterPlayer(800, "Jack McBain", "UTA", ["C", "LW"])])
     pool = {p.id: p.positions for p in main.free_agents([], {"teams": {}, "taken": []})}
     assert pool == {800: ["C", "LW"], 801: ["C"]}
+
+
+def test_my_adds_count_once_however_they_are_learned(monkeypatch, tmp_path):
+    shot = [_tx("add", (9, 30, 10, 59), ["Nico's Groovy Team"], [("E. Lindell", "add")]),
+            _tx("add", (10, 5, 2, 30), ["Nico's Groovy Team"], [("J. McCann", "add")]),  # Sunday night in New York
+            _tx("trade", (10, 5, 9, 0), ["Nico's Groovy Team", "Pastasauce"],
+                [("D. Cozens", "from:1")])]  # a trade costs no add
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
+    assert [(a["id"], a["date"], a["source"]) for a in state["adds"]] == [
+        (704, "2026-09-30", "transactions"), (700, "2026-10-04", "transactions")]
+    # A day later Nico taps Done on the bot's recommendation of that same add: still one add.
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-09-30", "drop": None, "message_id": 7, "add": {
+        "id": 704, "name": "Esa Lindell", "team": "TOR", "positions": ["D"], "slot": None}}
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2026, 10, 1))
+    monkeypatch.setattr(main.telegram, "get_updates", lambda token, offset: [_tap("done:add-1", update_id=99)])
+    settings = load_settings()
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert len(state["adds"]) == 2
+
+
+def test_an_add_counts_in_the_week_it_was_made_not_the_week_it_was_suggested(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("done:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-04", "drop": None, "message_id": 7,  # Sun, week 1
+                                 "add": {"id": 11, "name": "Joey Daccord", "team": "SEA", "positions": ["G"],
+                                         "slot": None}}
+    monkeypatch.setattr(main, "_nhl_today", lambda: dt.date(2026, 10, 5))  # made on Monday, week 2
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert main.matchup.adds_used(state["adds"], main.weeks.days(2)) == (1, 1)
+
+
+def test_new_players_on_my_team_page_count_as_adds_unless_another_team_had_them(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9), _photo("bottom", 10)])
+    players[:] = [RosterPlayer(200 + i, f"Paul {n}", "BOS", ["C"], "BN") for i, n in enumerate(SHOT_NAMES[:10])]
+    players.append(RosterPlayer(290, "Old Guy", "BOS", ["C"], "BN"))
+    league = {"teams": {"Bellova": {"updated": "2026-09-29", "players": [
+        {"id": 211, "name": "Paul Lson", "team": "BOS", "positions": ["C"], "slot": None}]}}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert [(a["id"], a["source"]) for a in state["adds"]] == [(210, "roster")]
+    assert league["teams"]["Bellova"]["players"] == []  # he's mine now, by trade or not
+    assert "Counted as adds: Paul Kson (35 left)." in sent[0]
+    assert "Not counted as adds, since another team had them (a trade?): Paul Lson (Bellova)" in sent[0]
+
+
+def test_a_roster_update_with_many_new_players_counts_no_adds(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9), _photo("bottom", 10)])
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    assert state["adds"] == [] and "12 players are new to me, too many to be adds" in sent[0]
+
+
+def test_a_weekly_plan_that_fails_stays_due_for_the_next_run(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    noon = dt.datetime(2026, 10, 5, 9, 30, tzinfo=dt.timezone.utc)  # Monday 12:30 Helsinki
+    state["week_requested"] = True
+    with pytest.raises(ZeroDivisionError):  # e.g. the NHL API down
+        main.weekly_step(state, players, {"teams": {}, "taken": []}, noon, False, main.Outbox(settings),
+                         build_context=lambda d: 1 / 0)
+    assert state["weeks"] == {} and state["week_requested"] and sent == []
+
+
+def test_a_failing_step_doesnt_stop_the_ones_after_it():
+    ran = []
+    failures = main.run_steps([("trade", lambda: 1 / 0), ("briefing", lambda: ran.append("briefing"))])
+    assert ran == ["briefing"] and [(name, type(e)) for name, e in failures] == [("trade", ZeroDivisionError)]
+
+
+def test_a_failure_alerts_once_a_day_without_the_token(monkeypatch, tmp_path):
+    settings, state, _, sent, _ = _setup(monkeypatch, tmp_path, [])
+    settings.telegram_bot_token = "123:secret"
+    failures = [("weekly plan", RuntimeError("GET https://api.telegram.org/bot123:secret/x failed")),
+                ("briefing", ValueError("x"))]
+    main.alert_failure(failures, settings, state, main.Outbox(settings), NOW)
+    main.alert_failure(failures, settings, state, main.Outbox(settings), NOW)
+    assert sent == ["Assistant GM run failed in weekly plan (and 1 more step): "
+                    "RuntimeError: GET https://api.telegram.org/bot<token>/x failed"]

@@ -142,3 +142,21 @@ def test_screenshot_name_clashes_use_team_then_my_roster():
 def test_overlapping_screenshots_count_a_player_once():
     rows = [_row("E. LINDELL", slot="D"), _row("E. LINDELL", slot="D")]
     assert len(parse.match_shown_names(rows, SHOWN).players) == 1
+
+
+def test_the_add_ledger_starts_from_done_taps_and_counts_one_add_once(tmp_path):
+    from state import gm_state
+    path = tmp_path / "state.json"
+    path.write_text('{"decisions": [{"type": "add", "decision": "done", "date": "2026-10-04", '
+                    '"at": "2026-10-05T02:00:00+00:00"}, {"type": "add", "decision": "skip", "date": "2026-10-04", '
+                    '"at": "2026-10-05T02:00:00+00:00"}]}', encoding="utf-8")
+    state = gm_state.load(path)
+    assert state["adds"] == [{"id": None, "name": None, "source": "done", "date": "2026-10-04"}]  # 22:00 in New York
+    assert gm_state.record_add(state, 5, "A", dt.date(2026, 10, 6), "done")
+    assert not gm_state.record_add(state, 5, "A", dt.date(2026, 10, 9), "transactions")  # the same add, learned again
+    assert gm_state.record_add(state, 5, "A", dt.date(2026, 10, 20), "done")  # re-added two weeks later
+    assert len(state["adds"]) == 3
+    # A screenshot of an add from before the ledger, for a player already mine: it names that add.
+    assert not gm_state.record_add(state, 7, "B", dt.date(2026, 10, 4), "transactions", already_mine=True)
+    assert state["adds"][0] == {"id": 7, "name": "B", "source": "done", "date": "2026-10-04"}
+    assert gm_state.record_add(state, 8, "C", dt.date(2026, 10, 4), "transactions", already_mine=True)

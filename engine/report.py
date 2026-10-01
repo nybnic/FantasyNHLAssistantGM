@@ -12,7 +12,7 @@ from engine import matchup
 from league import weeks
 from league.roster import BENCH, RosterPlayer, active
 
-CONFIDENT_WEEKS = 2  # weeks after this one the add rule judges (decision log); later ones are display only
+CONFIDENT_WEEKS = 2  # weeks after this one an add's chart shows as firm; later ones are faded (schedules and injuries change)
 POSITION_ORDER = ["C", "LW", "RW", "D", "G"]
 
 
@@ -142,15 +142,14 @@ def add_view(move: matchup.Move, week: int, later: list[tuple[int, float]], budg
             "season": move.long_term, "verdict": verdict, "budget": budget}
 
 
-def budget_view(decisions: list[dict], week: int) -> dict:
-    """Adds used by the end of each week so far, against an even pace to the
-    regular season's share, then the playoff reserve."""
+def budget_view(adds: list[dict], week: int) -> dict:
+    """Adds used (the ledger, state["adds"]) by the end of each week so far,
+    against an even pace to the regular season's share, then the playoff reserve."""
     used_by_week: dict[int, int] = {}
-    for d in decisions:
-        if d["type"] == "add" and d["decision"] == "done":
-            w = weeks.week_of(dt.date.fromisoformat(d["date"]))
-            if w:
-                used_by_week[w] = used_by_week.get(w, 0) + 1
+    for a in adds:
+        w = weeks.week_of(dt.date.fromisoformat(a["date"]))
+        if w:
+            used_by_week[w] = used_by_week.get(w, 0) + 1
     regular = MAX_ADDS_PER_SEASON - matchup.PLAYOFF_RESERVE
     pace, used, total = [], [], 0
     for w in range(1, weeks.LAST_WEEK + 1):

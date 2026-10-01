@@ -51,10 +51,8 @@ def test_schedule_view_marks_starts_benched_games_and_open_slots():
 
 
 def test_budget_paces_the_regular_season_then_the_playoff_reserve():
-    decisions = [{"type": "add", "decision": "done", "date": "2026-10-01"},
-                 {"type": "add", "decision": "skip", "date": "2026-10-01"},
-                 {"type": "add", "decision": "done", "date": "2026-10-06"}]
-    budget = report.budget_view(decisions, week=2)
+    adds = [{"id": 1, "date": "2026-10-01"}, {"id": 2, "date": "2026-10-06"}]
+    budget = report.budget_view(adds, week=2)
     assert budget["used"] == [1, 2]
     assert budget["pace"][22] == pytest.approx(30) and budget["pace"][-1] == pytest.approx(36)
 

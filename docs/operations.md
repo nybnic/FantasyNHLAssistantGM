@@ -15,7 +15,13 @@
   (on each message and on its crons).
   Setup is in the README.
 - **Cache**: `data/cache/gm` is kept between runs by `actions/cache` (past
-  seasons never expire; current data expires in hours).
+  seasons never expire; current data expires in hours). When a refetch fails,
+  a copy up to 2 days old is used instead (`clients/cache.STALE_LIMIT`), with a
+  warning in the log.
+- **Failures**: each step (Telegram updates, NHL teams, /trade, weekly plan,
+  briefing) runs even if an earlier one failed; the run then goes red and
+  Telegram gets one alert a day naming the step. A weekly plan counts as sent
+  only once its message is out, so a failed one is retried by the next run.
 
 ## Secrets
 | Where | Name | Used for |
@@ -41,7 +47,17 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
 | `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, matchup screenshots, `scripts/seed_roster.py` |
 | `state/positions.json` | Yahoo position eligibility per player (free agents use it) | Every Yahoo screenshot or paste; seeded once by `scripts/seed_positions.py` |
 | `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
-| `state/gm_state.json` | Telegram offset, pending recs, decisions (the add budget counts Done adds), sent briefings/plans, the latest matchup score, transactions applied, and each week's add candidates (`add_pools`, which the add price is solved over) | Every run |
+| `state/gm_state.json` | Telegram offset, pending recs, decisions, the adds ledger (`adds`: what the add budget counts), sent briefings/plans, the latest matchup score, transactions applied, and each week's add candidates (`add_pools`, which the add price is solved over) | Every run |
+
+## The add budget (`state["adds"]`)
+Every add counts once, however the bot learns of it: a Done tap (dated the
+day of the tap), my row in a League > Transactions screenshot (dated by the
+row), or a new player in a team page, `/myteam` paste or matchup screenshot.
+A new player another team had is taken for a trade (no add) and named in the
+reply; more than 4 new players at once is a stale roster, not adds. The same
+player within 7 days is one add learned twice. Adds from before the ledger
+(Oct 1 2026) have no player id; a Transactions row for a player already on my
+roster names one of them.
 
 ## Keeping league data fresh (no Yahoo API)
 - My roster: Done on recommendations; for anything else (moves the bot didn't
@@ -64,5 +80,7 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
 | 2026-09-29 - 10-01 | No evening briefings. GitHub ran the `*/30` schedule only ~3 times a day (e.g. 15:33, 20:29, 00:06 UTC on Sep 30), never inside the 21:00-23:00 Helsinki window | The relay's Cloudflare crons start the runs; GitHub's cron stays as backup |
 
 ## Calendar assumptions to verify
-- Week 19 = Feb 1-14 2027 (the double week). Check Yahoo's matchup dates before February.
+- Week 19 = Feb 1-14 2027 (the double week): confirmed in Yahoo 2026-10-01. Still to check
+  (Yahoo's settings or help): do the weekly add limit and the goalie minimum apply per
+  calendar week or per matchup in week 19?
 - Playoff opponents (weeks 24-26) must be named with `/opp Team Name`.
