@@ -154,18 +154,23 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
     today's injury report can't show for games weeks away."""
     team_lines = lines.get(p.team, {})
     info = team_lines.get(normalize_name(p.name))
+    days_ahead = (date - ctx.today).days
     if p.is_goalie:
         team_starts, prior = ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id)
-        prob = availability.goalie(p.id, p.name, date, info, starters.get(p.team) if date == ctx.today else None,
-                                   team_starts, prior).prob
-        if date > ctx.today and played_yesterday and prob:
+        avail = availability.goalie(p.id, p.name, date, info, starters.get(p.team) if date == ctx.today else None,
+                                    team_starts, prior, days_ahead)
+        prob = avail.prob
+        if date > ctx.today and played_yesterday and prob and avail.note not in ("IR", "out"):
             # Who starts the night before isn't known yet.
             prob = availability.second_of_back_to_back(availability.start_share(p.id, date, info, team_starts, prior))
         home = game.home == p.team
         x = ctx.goalie_start(p.id, p.team, game.away if home else game.home, home)["xfp"]
         return prob * x, prob * (GOALIE_START_VARIANCE + x * x) - (prob * x) ** 2, prob
     x = ctx.skater(p.id, _position(p)).xfp
-    prob = availability.skater(info, bool(team_lines)).prob
+    status = availability.skater(info, bool(team_lines))
+    if days_ahead and status.prob < availability.HEALTHY_PLAY:  # how long he's been out sets his return
+        status = availability.skater(info, bool(team_lines), days_ahead, ctx.games_missed(p.id, p.team))
+    prob = status.prob
     if long_run:
         prob *= ctx.durability(p.id)
     return prob * x, prob * (SKATER_VARIANCE_PER_XFP * x + x * x) - (prob * x) ** 2, 1.0

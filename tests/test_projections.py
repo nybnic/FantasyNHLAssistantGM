@@ -67,3 +67,15 @@ def test_half_weight_projection_averages_per_game():
     row = {"gp": 80.0, "toi": 18.0, "stats": {"hit": 160.0}}
     proj = project_skater(with_projection(PRIOR, row, 0.5), [])
     assert proj.per_game["hit"] == pytest.approx(0.5 * 2.0 + 0.5 * 0.001 * 18 * 60)
+
+
+def test_games_missed_counts_his_teams_games_since_he_last_played():
+    import datetime as dt
+    from clients.nhl_stats import SkaterGame
+    from model.context import ModelContext
+    days = [dt.date(2026, 10, d) for d in (7, 9, 11, 13)]
+    ctx = ModelContext(today=dt.date(2026, 10, 14), season=20262027, skater_priors={}, skater_fallback={},
+                       skater_games={5: [SkaterGame(5, "A", "C", "BOS", "TOR", days[1], 1)]}, goalie_history={},
+                       goalie_games={}, team_starts={"BOS": [(d, 30) for d in days]}, team_ratings={}, league=None)
+    assert ctx.games_missed(5, "BOS") == 2  # played the 9th, missed the 11th and 13th
+    assert ctx.games_missed(6, "BOS") == 4  # never played

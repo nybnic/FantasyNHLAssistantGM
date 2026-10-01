@@ -17,6 +17,13 @@ lineup actually got. Skaters who didn't play in the week before count as out
 
     python -m scripts.check_sigma            # 8 leagues
     python -m scripts.check_sigma --leagues 20
+    python -m scripts.check_sigma --availability old   # skaters who played last week
+        certain to play, the others left out (the replay before the return curves)
+
+Default `--availability bot`: a skater who played his team's last game plays at
+availability.HEALTHY_PLAY; one who missed it returns along the curve for how
+many games he has missed (availability.return_curve), counted from that
+game, as the bot projects a player DFO lists as out or IR.
 """
 from __future__ import annotations
 
@@ -29,7 +36,7 @@ from statistics import mean
 
 from clients import nhl_stats
 from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
-from engine import lineup
+from engine import availability, lineup
 from engine.matchup import GOALIE_START_VARIANCE, MODEL_SD_SHARE, SKATER_VARIANCE_PER_XFP, _at_least
 from model.projections import goalie_priors, project_goalie, project_skater, skater_priors
 
@@ -73,6 +80,7 @@ def main_() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--leagues", type=int, default=8)
     parser.add_argument("--seed", type=int, default=11)
+    parser.add_argument("--availability", choices=("bot", "old"), default="bot")
     args = parser.parse_args()
     s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load()
 
@@ -121,14 +129,28 @@ def main_() -> None:
                 for pos in ("C", "LW", "RW", "D"):
                     for pid in roster[pos]:
                         past = [g for g in by_skater[pid] if g.date < monday]
-                        if not any(g.date >= monday - dt.timedelta(days=7) for g in past):
+                        if args.availability == "old" and not any(
+                                g.date >= monday - dt.timedelta(days=7) for g in past):
                             continue  # out: the bot would see it
+                        # Team games missed in a row before Monday, as scripts/fit_absence.py counts them.
+                        mine = {g.date for g in past}
+                        team = past[-1].team if past else team_of[pid]  # his team then (trades)
+                        team_past = sorted(d for d in team_dates[team] if d < monday)
+                        missed = next((i for i, d in enumerate(reversed(team_past)) if d in mine), len(team_past))
+                        curve = availability.return_curve(missed)
                         x = project_skater(s_prior(pid), past).xfp
                         played = {g.date: fantasy_points(g.stats, SKATER_WEIGHTS) for g in by_skater[pid]
                                   if monday <= g.date < monday + dt.timedelta(days=7)}
                         for d in days:
-                            if d in team_dates[team_of[pid]]:
-                                proj.setdefault(d, []).append((pid, (pos,), x, SKATER_VARIANCE_PER_XFP * x, 1.0))
+                            if d in team_dates[team]:
+                                if args.availability == "old":
+                                    p = 1.0
+                                elif not missed:
+                                    p = availability.HEALTHY_PLAY
+                                else:  # days since his team's last game, which he missed
+                                    p = availability.ahead(curve, (d - team_past[-1]).days, 0.0)
+                                var = p * (SKATER_VARIANCE_PER_XFP * x + x * x) - (p * x) ** 2
+                                proj.setdefault(d, []).append((pid, (pos,), p * x, var, 1.0))
                                 actual[(d, pid)] = played.get(d, 0.0)
                 for pid in roster["G"]:
                     team = team_of[pid]

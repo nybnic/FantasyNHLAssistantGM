@@ -53,6 +53,18 @@ class ModelContext:
         gp = self.projected_gp.get(player_id)
         return 1.0 if gp is None else min(gp / (GAMES_PER_SEASON * HEALTHY_SHARE), 1.0)
 
+    def games_missed(self, player_id: int, team: str) -> int:
+        """Team games in a row he has missed, up to today (how slowly an
+        absent player comes back depends on it: availability.RETURN_CURVES).
+        A team's games are the dates it had a starting goalie."""
+        played = {g.date for g in self.skater_games.get(player_id, []) if g.date < self.today}
+        missed = 0
+        for date, _ in reversed(self.team_starts.get(team, [])):
+            if date in played:
+                break
+            missed += 1
+        return missed
+
     def prior_start_share(self, player_id: int) -> float | None:
         gs = self.projected_starts.get(player_id)
         return None if gs is None else min(gs / GAMES_PER_SEASON, 0.85)

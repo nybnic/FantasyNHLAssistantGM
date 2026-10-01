@@ -3,7 +3,7 @@
 | File | Decides |
 |---|---|
 | `lineup.py` | The best slot assignment for one day. Exact DP; a move must gain `KEEP_SLOT_BONUS` |
-| `availability.py` | Who plays: skater injury/lineup status, goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
+| `availability.py` | Who plays: skater injury/lineup status tonight, fading on later days along return curves fit from game logs (slower the more games missed), goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
 | `briefing.py` | The evening lineup message: timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
 | `addprice.py` | What an add buys and costs, in win probability: later points' worth, the budget's pace, the add price (solved by simulating weeks over logged candidates) |
 | `matchup.py` | The weekly plan: both teams' week, P(win), the goalie minimum, add/drops, the add budget, the mid-week stance |

@@ -41,6 +41,7 @@ python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, s
 python -m scripts.backtest                        # model accuracy on 2025-26
 python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
 python -m scripts.check_sigma                     # is P(win)'s spread right? 2025-26 replay
+python -m scripts.fit_absence                     # how fast absent players return (availability curves)
 ```
 Live runs need network. First runs fill `data/cache/` and take a few minutes.
 

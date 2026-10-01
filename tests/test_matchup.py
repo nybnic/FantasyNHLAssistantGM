@@ -43,6 +43,9 @@ class FakeContext:
     def durability(self, pid):
         return 1.0
 
+    def games_missed(self, pid, team):
+        return 0
+
 
 def test_at_least_counts_goalie_games_already_played():
     assert matchup._at_least([0.5, 0.5], 0, 3) == 0
@@ -324,3 +327,24 @@ def test_a_streaming_spot_swap_is_credited_only_while_he_would_be_held(monkeypat
         return next(m for m in moves if m.drop and m.drop.id == 2).long_term
 
     assert credit(7) == pytest.approx(credit(14) / 2) and credit(7) > 0
+
+
+def test_a_player_out_tonight_counts_later_in_the_week():
+    from clients.dfo_lines import LineInfo
+    from engine import availability
+    roster = [RosterPlayer(1, "Skater", "BOS", ["C"], "C")]
+    schedule = {MON: [_game(MON, "BOS", "TOR")], WED: [_game(WED, "BOS", "NJD")]}
+    lines = {"BOS": {"skater": LineInfo(groups={"f1"}, injury="out")}}
+    week = matchup.project("me", roster, FakeContext(), schedule, lines, {})
+    assert week.expected == pytest.approx(availability.return_curve(1)[0] * 4.0)  # out Monday, 32% Wednesday
+
+
+def test_a_player_out_tonight_is_not_free_to_drop_in_the_long_run():
+    from clients.dfo_lines import LineInfo
+    roster = [RosterPlayer(1, "Hurt Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["C"], "C")]
+    future = {MON + dt.timedelta(days=d): [_game(MON + dt.timedelta(days=d), "BOS", "NJD")] for d in range(7, 49, 2)}
+    lines = {"BOS": {"hurt star": LineInfo(groups={"f1"}, injury="out")}}
+    with_him = matchup.project("me", roster, FakeContext(), future, lines, {}, long_run=True)
+    without = matchup.project("me", roster[1:], FakeContext(), future, lines, {}, long_run=True)
+    # Out tonight used to mean zero for all six weeks, so dropping him cost nothing later.
+    assert with_him.expected - without.expected > 0.5 * 4.0 * len(future)

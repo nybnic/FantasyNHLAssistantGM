@@ -42,3 +42,29 @@ def test_back_to_back_flips_the_odds():
 def test_injured_goalie_never_starts():
     info = LineInfo(groups={"g"}, goalie_depth=1, injury="out")
     assert availability.goalie(1, "A", TONIGHT, info, None, [], 0.7).prob == 0.0
+
+
+def test_tonights_status_fades_along_the_return_curves():
+    out, ir = LineInfo(groups={"f2"}, injury="out"), LineInfo(groups={"ir"}, injury="ir")
+    short, long_ = availability.return_curve(1), availability.return_curve(20)
+    assert availability.skater(out, True).prob == 0.0
+    assert availability.skater(out, True, days_ahead=2).prob == short[0]  # out tonight: a 1-game absence
+    assert availability.skater(out, True, days_ahead=10).prob == short[2]
+    assert availability.skater(out, True, days_ahead=10, missed=19).prob == long_[2]  # out a month: slower
+    # Just placed on IR: at least the 3-5 game curve. Past six weeks the last value holds.
+    assert availability.skater(ir, True, days_ahead=10).prob == availability.return_curve(3)[2]
+    assert availability.skater(ir, True, days_ahead=90, missed=19).prob == long_[-1]
+    assert availability.skater(None, True, days_ahead=4).prob == short[1]  # scratched tonight
+    dtd = LineInfo(groups={"f3"}, injury="dtd")
+    assert availability.skater(dtd, True, 1).prob == 0.85
+    assert availability.skater(dtd, True, 3).prob == availability.HEALTHY_PLAY
+    # An injured goalie starts at his usual share once back.
+    goalie = availability.goalie(1, "A", TONIGHT, ir, None, [], 0.6, days_ahead=30)
+    assert goalie.prob == pytest.approx(availability.return_curve(3)[-1] * 0.6)
+    assert availability.goalie(1, "A", TONIGHT, ir, None, [], 0.6).prob == 0.0
+
+
+def test_return_curves_are_slower_the_longer_the_absence():
+    curves = [curve for _, curve in availability.RETURN_CURVES]
+    assert all(a > b for earlier, later in zip(curves, curves[1:]) for a, b in zip(earlier, later))
+    assert all(list(c) == sorted(c) for c in curves)  # and rise with time
