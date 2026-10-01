@@ -36,6 +36,11 @@ def days(week: int) -> list[dt.date]:
     return [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
 
 
+def midweek(week: int) -> dt.date:
+    """When the mid-week update is due: the week's first Wednesday after its first day."""
+    return next(d for d in days(week)[1:] if d.weekday() == 2)
+
+
 def opponent(week: int) -> str | None:
     """Your opponent in a regular-season week; None in the playoffs."""
     return SCHEDULE[week - 1] if week <= REGULAR_SEASON_WEEKS else None

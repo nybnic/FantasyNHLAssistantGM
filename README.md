@@ -64,8 +64,12 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   box-score tally. Ideal on Monday and again mid-week.
 - If a run fails, you get one alert that day.
 
-Coming next: mid-week advice (chase, protect or concede), charts of win odds
-and the add budget, a web dashboard, IR management and a Sunday report.
+From Wednesday the plan comes again with a stance: chase when behind (with the
+add that would swing the odds most, and what it costs), protect when ahead, or
+save adds when the week is decided.
+
+Coming next: charts of win odds and the add budget, a web dashboard, IR
+management and a Sunday report.
 
 ## Setup
 

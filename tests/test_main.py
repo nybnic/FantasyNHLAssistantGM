@@ -369,3 +369,12 @@ def test_yahoos_score_is_split_by_the_goalie_rows_else_by_box_scores(monkeypatch
     monkeypatch.setattr(main.matchup, "_so_far", lambda roster, ctx, days: (5.0, 3.0, 1))
     assert main._banked(13.4, 8.2, [], None, []) == (pytest.approx(5.2), 8.2, 1)
     assert main._banked(13.4, None, [], None, []) == (pytest.approx(10.4), 3.0, 1)
+
+
+def test_the_plan_goes_out_at_the_start_of_the_week_and_once_from_wednesday():
+    mon, tue, wed, thu = (dt.date(2026, 10, d) for d in (5, 6, 7, 8))  # week 2
+    assert main.weeks.midweek(2) == wed and main.weeks.midweek(1) == dt.date(2026, 9, 30)
+    assert main.plan_due(None, mon, 2)
+    assert not main.plan_due({"sent": "x"}, tue, 2)
+    assert main.plan_due({"sent": "x"}, wed, 2) and main.plan_due({"sent": "x"}, thu, 2)
+    assert not main.plan_due({"sent": "x", "midweek": "y"}, thu, 2)

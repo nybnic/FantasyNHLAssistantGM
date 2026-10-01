@@ -239,6 +239,12 @@ def decided(p_win: float) -> str | None:
     return None
 
 
+def stance(p_win: float) -> str:
+    """How to play the rest of the week: "lost" or "won" (save adds),
+    "chase" when behind, "protect" when ahead."""
+    return decided(p_win) or ("chase" if p_win < 0.5 else "protect")
+
+
 def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
     """Expected points per team game over the long run (injuries ignored)."""
     if p.is_goalie:
@@ -402,6 +408,56 @@ def best_moves(
     return moves
 
 
+def best_chase(
+    roster: list[RosterPlayer],
+    opponent: TeamWeek,
+    pool: list[RosterPlayer],
+    ctx,
+    schedule: dict[dt.date, list[ScheduledGame]],
+    lines: dict[str, dict[str, LineInfo]],
+    starters: dict[str, dict],
+    future: dict[dt.date, list[ScheduledGame]],
+    weeks_after: int,
+    available_from: dt.date | None = None,
+    so_far: tuple[float, float, int] | None = None,
+) -> Move | None:
+    """The add that lifts this week's win odds most, recommended or not, if
+    it lifts them by MIN_WIN_GAIN: what chasing would cost, for Nico to weigh."""
+    candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
+    ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future, weeks_after,
+                             available_from, so_far)
+    best = max(ranked, key=lambda m: m.win_after - m.win_before, default=None)
+    return best if best and best.win_after - best.win_before >= MIN_WIN_GAIN else None
+
+
+def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, threshold: float | None,
+                 recommended: bool) -> str | None:
+    """The mid-week stance in a few lines; None in a decided week (text() covers it)."""
+    p_win = win_prob(me, them)
+    gap = me.expected - them.expected
+    st = stance(p_win)
+    if st == "protect":
+        return (f"Mid-week: ahead ({_pct(p_win)}), protect the lead: you're {gap:.0f} expected points up. "
+                "No need to chase; make only the adds listed below, if any.")
+    if st != "chase":
+        return None
+    lines = [f"Mid-week: behind ({_pct(p_win)}) but close, so chase: you trail by {-gap:.0f} expected points."]
+    if chase is None:
+        lines.append("No free agent moves your odds much, so there's nothing to chase with.")
+        return "\n".join(lines)
+    swing = (f"Biggest swing: add {chase.add.name} ({_games(chase.games)} left)"
+             + (f" for {chase.drop.name}" if chase.drop else "")
+             + f", win {_pct(chase.win_before)} -> {_pct(chase.win_after)}.")
+    if recommended:
+        lines.append(swing + " That's the add below.")
+    else:
+        why = rejection(chase, threshold) if threshold is not None else "no adds left"
+        if threshold is not None and chase.drop and chase.long_term < 0:
+            why = f"dropping {chase.drop.name} costs about {-chase.long_term:.0f} pts over the rest of the season"
+        lines.append(swing + f" Not a recommended add ({why}), so it's your call.")
+    return "\n".join(lines)
+
+
 def adds_used(decisions: list[dict], week_days: list[dt.date]) -> tuple[int, int]:
     """(this season, this week) adds you've confirmed with Done."""
     done = [d for d in decisions if d["type"] == "add" and d["decision"] == "done"]
@@ -411,6 +467,10 @@ def adds_used(decisions: list[dict], week_days: list[dt.date]) -> tuple[int, int
 
 def max_moves(season_used: int, week_used: int) -> int:
     return max(0, min(MAX_ADDS_PER_WEEK - week_used, MAX_ADDS_PER_SEASON - season_used))
+
+
+def _games(n: int) -> str:
+    return f"{n} game{'' if n == 1 else 's'}"
 
 
 def _pct(p: float) -> str:
@@ -449,7 +509,7 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
 
 def move_text(move: Move) -> str:
     p = move.add
-    head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {move.games} games left this week)"
+    head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {_games(move.games)} left this week)"
     drop = f"drop {move.drop.name}" if move.drop else "into your open roster spot"
     detail = [f"{move.week_gain:+.1f} pts this week, win {_pct(move.win_before)} -> {_pct(move.win_after)}"]
     if move.next_weeks >= 1:

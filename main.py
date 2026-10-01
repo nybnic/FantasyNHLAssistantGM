@@ -613,10 +613,18 @@ def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt
     return total - goalie, goalie, goalie_games
 
 
+def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
+    """The plan goes out once at the start of a week and once from mid-week."""
+    if record is None:
+        return True
+    return date >= weeks.midweek(week) and "midweek" not in record
+
+
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
                 build_context=context.build) -> None:
-    """The matchup plan, once per fantasy week (the first run from noon
-    local on its first day) and whenever you send /week."""
+    """The matchup plan: from noon local on the week's first day, again from
+    noon on its Wednesday (with the mid-week stance), and whenever you send
+    /week or a matchup screenshot."""
     date = now.astimezone(NHL_TIME).date()
     week = weeks.week_of(date)
     requested, state["week_requested"] = state["week_requested"], False
@@ -626,9 +634,13 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         return
     key = str(week)
     if not (force or requested):
-        if key in state["weeks"] or briefing.quiet(now) or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
+        if not plan_due(state["weeks"].get(key), date, week) or briefing.quiet(now) \
+                or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
             return
-    state["weeks"][key] = {"sent": now.isoformat(timespec="minutes")}
+    record = state["weeks"].setdefault(key, {"sent": now.isoformat(timespec="minutes")})
+    is_midweek = date >= weeks.midweek(week)
+    if is_midweek:
+        record["midweek"] = now.isoformat(timespec="minutes")
     opponent = current_opponent(state, week)
     if not opponent:
         outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
@@ -639,8 +651,17 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     if wk.max_moves and wk.threshold is not None:
         moves = matchup.best_moves(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                    wk.weeks_after, wk.max_moves, wk.threshold, wk.available_from, wk.so_far)
+    midweek = None
+    if is_midweek or wk.so_far is not None:
+        chase = next((m for m in moves if m.win_after - m.win_before >= matchup.MIN_WIN_GAIN), None)
+        recommended = chase is not None
+        if not chase and matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
+            chase = matchup.best_chase(players, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters,
+                                       wk.future, wk.weeks_after, wk.available_from, wk.so_far)
+        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.threshold if wk.max_moves else None, recommended)
     outbox.send(matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                              wk.week_used, date, wk.yahoo_projected)
+                + (f"\n\n{midweek}" if midweek else "")
                 + ("" if moves else "\n\nNo free agent is worth one of your adds right now."))
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"

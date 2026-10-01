@@ -28,7 +28,11 @@ _NAME = re.compile(r"^([A-Z])\s?\.\s?([A-Z][A-Z'’ .-]*[A-Z])")
 _POS_TEAM = re.compile(r"^((?:LW|RW|C|D|G)(?:,(?:LW|RW|C|D|G))*)[^A-Z]*([A-Z]{2,3})$")
 # Badge hues (degrees), measured on the screenshots above.
 _HUE_SLOTS = [((190, 250), "C"), ((140, 190), "TEAL"), ((60, 100), "G"), ((25, 60), "D")]
-_MIN_VIVID = 30  # coloured pixels for a badge to count as coloured, not grey
+# A badge counts as coloured, not grey, when this share of its sampled pixels
+# is vivid. A share, not a count: Telegram shrinks photos to 1280 px, and a
+# matchup badge's letter is ~1.3-3.8% vivid at any size, a grey badge 0%.
+_MIN_VIVID_SHARE = 0.005
+_MIN_VIVID = 8
 _POINTS = re.compile(r"^-?\d+\.\d\d$")
 _SCORE_PAIR = re.compile(r"^(-?\d+\.\d\d)\s*/\s*(-?\d+\.\d\d)$")  # the scrolled-down header
 _CENTRE_SLOT = re.compile(r"^(LW|RW|BN|IR\+?|C|D|G)$")
@@ -188,7 +192,7 @@ def _badge_colour(badge: Image.Image) -> str | None:
     px = np.asarray(badge).reshape(-1, 3)[::3] / 255
     hsv = np.array([colorsys.rgb_to_hsv(*p) for p in px])
     vivid = hsv[(hsv[:, 1] > 0.35) & (hsv[:, 2] > 0.45)]
-    if len(vivid) < _MIN_VIVID:
+    if len(vivid) < max(_MIN_VIVID, _MIN_VIVID_SHARE * len(px)):
         return None
     hue = float(np.median(vivid[:, 0])) * 360
     return next((slot for (lo, hi), slot in _HUE_SLOTS if lo <= hue < hi), None)

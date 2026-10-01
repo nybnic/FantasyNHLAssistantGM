@@ -69,3 +69,9 @@ def test_a_team_page_is_not_a_matchup(monkeypatch):
     Image.new("RGB", (1179, 2556)).save(buf, "PNG")
     assert screenshot.read(buf.getvalue()) == {
         "kind": "team", "rows": [{"slot": "C", "name": "M. SCHEIFELE", "team": "WPG", "positions": ["C"]}]}
+
+
+def test_a_small_coloured_letter_still_counts_at_telegram_size():
+    img = Image.new("RGB", (70, 120), (20, 22, 30))
+    img.paste((230, 190, 60), (30, 50, 36, 60))  # a few gold pixels: a "D" letter shrunk by Telegram
+    assert screenshot._badge_colour(img) == "D"

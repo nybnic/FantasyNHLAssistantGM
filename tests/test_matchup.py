@@ -175,3 +175,29 @@ def test_an_added_players_earlier_games_dont_count_for_you():
     moves = matchup.candidate_moves(roster, opponent, [RosterPlayer(9, "Hot", "NYR", ["C"])], ctx, schedule,
                                     {}, {}, future={}, weeks_after=0)
     assert moves[0].week_gain == pytest.approx(0.97 * 3.0)  # Tuesday's game only
+
+
+def _team(expected):
+    return matchup.TeamWeek("t", 10.0, expected, 400.0, 20, 2, 2, 1.0)
+
+
+def test_midweek_ahead_protects_the_lead():
+    text = matchup.midweek_text(_team(160), _team(150), None, 3.0, recommended=False)
+    assert "protect the lead" in text and "10 expected points up" in text
+
+
+def test_midweek_close_behind_chases_and_names_the_biggest_swing():
+    chase = matchup.Move(RosterPlayer(9, "Streamer", "NYR", ["C"]), RosterPlayer(2, "Depth", "NJD", ["C"]),
+                         week_gain=2.0, long_term=-3.0, next_weeks=-1.0, games=3, win_before=0.42, win_after=0.47)
+    text = matchup.midweek_text(_team(150), _team(155), chase, 3.0, recommended=False)
+    assert "so chase: you trail by 5" in text
+    assert "add Streamer (3 games left) for Depth, win 42% -> 47%" in text
+    assert "Not a recommended add (dropping Depth costs about 3 pts over the rest of the season)" in text
+    assert "your call" in text
+    assert "That's the add below" in matchup.midweek_text(_team(150), _team(155), chase, 3.0, recommended=True)
+
+
+def test_midweek_hopeless_leaves_it_to_the_lost_week_line():
+    assert matchup.stance(0.04) == "lost" and matchup.stance(0.3) == "chase" and matchup.stance(0.7) == "protect"
+    assert matchup.midweek_text(_team(100), _team(160), None, 3.0, recommended=False) is None
+    assert "looks lost" in matchup.text(1, [MON, TUE], _team(100), _team(160), None, 0, 0, MON)
