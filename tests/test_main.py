@@ -395,3 +395,67 @@ def test_the_dashboard_data_carries_the_summary_and_every_view(monkeypatch, tmp_
     assert data["summary"]["so_far"] == [13.4, 51.5] and data["summary"]["stance"] == "chase"
     assert data["summary"]["adds_left"] == {"season": 35, "week": 1}
     assert set(data) >= {"decision", "schedule", "budget", "adds"} and "streamer_text" not in data
+
+
+TX_REGISTRY = [{"id": 700 + i, "name": n, "team": "TOR", "position": pos} for i, (n, pos) in enumerate(
+    [("Jared McCann", "C"), ("Justin Faulk", "D"), ("Dylan Cozens", "C"), ("John Tavares", "C"), ("Esa Lindell", "D")])]
+
+
+def _tx(kind, when, teams_, players):
+    return {"type": kind, "when": list(when), "teams": teams_,
+            "players": [{"name": n, "positions": ["C"], "action": a} for n, a in players]}
+
+
+def _transactions(monkeypatch, tmp_path, shots, league=None, players=None):
+    updates = [_photo(name, 40 + i, WEEK1 + i) for i, name in enumerate(shots)]
+    settings, state, default_players, sent, _ = _setup(monkeypatch, tmp_path, updates)
+    monkeypatch.setattr(main.parse, "registry", lambda: TX_REGISTRY)
+    monkeypatch.setattr(main.telegram, "download_file", lambda token, file_id: file_id.encode())
+    monkeypatch.setattr(main.screenshot, "read", lambda image: {"kind": "transactions", "rows": shots[image.decode()]})
+    league = league or {"teams": {
+        "Pastasauce": {"updated": "2026-09-29", "players": [
+            {"id": 702, "name": "Dylan Cozens", "team": "TOR", "positions": ["C"], "slot": None},
+            {"id": 701, "name": "Justin Faulk", "team": "TOR", "positions": ["D"], "slot": None}]},
+        "Vanilla Thunder": {"updated": "2026-09-29", "players": [
+            {"id": 703, "name": "John Tavares", "team": "TOR", "positions": ["C"], "slot": None}]}}, "taken": []}
+    players = players if players is not None else default_players
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    return state, players, league, sent
+
+
+def _ids(league, team):
+    return {p["id"] for p in league["teams"][team]["players"]}
+
+
+def test_transactions_move_players_between_teams_and_the_free_agents(monkeypatch, tmp_path):
+    shot = [_tx("trade", (9, 30, 14, 4), ["Pastasauce", "Vanilla Thunder"],
+                [("D. Cozens", "from:0"), ("J. Tavares", "from:1")]),
+            _tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")]),
+            _tx("add", (9, 30, 10, 59), ["Nico's Groovy Team"], [("E. Lindell", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
+    assert _ids(league, "Pastasauce") == {700, 703} and _ids(league, "Vanilla Thunder") == {702}
+    assert 701 not in main.teams.rostered_ids(league)  # Faulk is a free agent again
+    assert 704 in [p.id for p in players]  # my own add, onto my roster
+    assert sent[0].startswith("Transactions: 3 new (Wed 30 Sep 10:59 - Wed 30 Sep 14:04).")
+    assert "Pastasauce: +Jared McCann, -Justin Faulk, -Dylan Cozens, +John Tavares" in sent[0]
+
+
+def test_transactions_already_applied_are_skipped_and_a_gap_is_flagged(monkeypatch, tmp_path):
+    old = [_tx("add", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": old, "b": old})
+    assert sent == [sent[0]] and "1 new" in sent[0]
+    later = [_tx("drop", (10, 3, 9, 0), ["Pastasauce"], [("J. McCann", "drop")])]
+    monkeypatch.setattr(main.telegram, "get_updates", lambda token, offset: [_photo("c", 60, WEEK1 + 99)])
+    monkeypatch.setattr(main.screenshot, "read", lambda image: {"kind": "transactions", "rows": later})
+    settings = load_settings()
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert "may be missing" in sent[-1] and 700 not in _ids(league, "Pastasauce")
+
+
+def test_taken_marks_the_suggested_player_and_asks_for_the_next_best(monkeypatch, tmp_path):
+    settings, state, players, _, handled = _setup(monkeypatch, tmp_path, [_tap("taken:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "add": {"id": 900}, "drop": None, "message_id": 7}
+    league = {"teams": {}, "taken": []}
+    main.process_updates(settings, state, players, league, main.Outbox(settings))
+    assert league["taken"] == [900] and state["week_requested"]
+    assert state["decisions"][-1]["decision"] == "taken" and handled == ["Taken: finding the next best"]

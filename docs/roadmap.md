@@ -21,8 +21,6 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
    Done when: sent Sunday evening, with the same numbers `explain_week` shows.
 
 ## Later
-- Transactions-page screenshot to refresh every team (lower now: the matchup
-  screenshot covers the opponent who matters).
 - Playoff odds (needs all 16 rosters fresh).
 - Verify in Yahoo: week-19 dates, regular-season ties and standings tiebreakers
   (points-for matters for the decided-week rule), the consolation bracket.
@@ -57,4 +55,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | Decision map replaces the win-odds chart; best streamer per position on the schedule grid; schedule-fit shortlist | 9b22d8b |
 | 2026-10-01 | Drops tried per group (2 lowest forwards, D, goalies): found Ehlers for Schenn | a7da318 |
 | 2026-10-01 | Web dashboard (site/, GitHub Pages): tap an add for its week-by-week gain and budget; grid with streamers; table of every add | 6edd0b2 |
-| 2026-10-01 | Long run over 6 weeks; streaming spots judged on the next 2 weeks | (this commit) |
+| 2026-10-01 | Long run over 6 weeks; streaming spots judged on the next 2 weeks | 2acaa74 |
+| 2026-10-01 | League > Transactions screenshots update every roster; Taken button on adds | (this commit) |

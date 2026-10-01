@@ -57,6 +57,11 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   replaces your roster and slots and replies with what changed. Screenshots
   are read with free offline OCR; if a set looks incomplete it asks for the
   rest, or `/save` keeps what it read. `/opp` takes screenshots too.
+- **League > Transactions screenshots** keep every roster current: the bot
+  applies each team's adds, drops and trades (each once, even when screenshots
+  overlap), and warns if new ones don't reach back to the last it saw. An add
+  recommendation also has a **Taken** button: one tap and the bot suggests
+  the next best.
 - **Matchup screenshots** are the quickest update: screenshots of the Yahoo
   app's Matchup tab (scrolled through) refresh your roster and slots, your
   opponent's roster and the live score at once, then the bot replans the week.

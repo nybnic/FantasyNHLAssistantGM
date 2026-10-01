@@ -47,6 +47,27 @@ def set_team(data: dict, team: str, roster: list[RosterPlayer], date: dt.date) -
             entry["players"] = [p for p in entry["players"] if p["id"] not in ids]
 
 
+def add_player(data: dict, team: str, player: RosterPlayer) -> None:
+    """A team picked up `player` (an add, a claim, a trade): off every other
+    roster and the taken list, onto `team`'s if its roster is known, else just taken."""
+    for entry in data["teams"].values():
+        entry["players"] = [p for p in entry["players"] if p["id"] != player.id]
+    data["taken"] = [pid for pid in data["taken"] if pid != player.id]
+    if team in data["teams"]:
+        data["teams"][team]["players"].append(asdict(RosterPlayer(player.id, player.name, player.team,
+                                                                  player.positions, None)))
+    else:
+        mark_taken(data, [player.id])
+
+
+def remove_player(data: dict, team: str, player_id: int) -> None:
+    """`team` let `player_id` go: he's a free agent (or on waivers) again."""
+    if team in data["teams"]:
+        entry = data["teams"][team]
+        entry["players"] = [p for p in entry["players"] if p["id"] != player_id]
+    data["taken"] = [pid for pid in data["taken"] if pid != player_id]
+
+
 def mark_taken(data: dict, player_ids: list[int]) -> None:
     data["taken"] = sorted(set(data["taken"]) | set(player_ids))
 

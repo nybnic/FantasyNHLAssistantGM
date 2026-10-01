@@ -51,7 +51,10 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
   points so far only on the day it was taken, and only if it was taken before
   that day's first puck (later, today's points can't be told apart).
 - Free agents: everyone on an NHL roster minus all known rosters minus `taken`.
-  Other teams' pickups are unknown until pasted or `/taken`.
+  Other teams' pickups are unknown until a League > Transactions screenshot
+  (`main.finish_transactions`: applied oldest first, each once, with a warning
+  when new screenshots don't reach back to the last ones seen), the Taken
+  button on an add, or `/taken`.
 
 ## Past incidents
 | Date | What | Fix |

@@ -75,3 +75,33 @@ def test_a_small_coloured_letter_still_counts_at_telegram_size():
     img = Image.new("RGB", (70, 120), (20, 22, 30))
     img.paste((230, 190, 60), (30, 50, 36, 60))  # a few gold pixels: a "D" letter shrunk by Telegram
     assert screenshot._badge_colour(img) == "D"
+
+
+def test_transactions_read_adds_drops_and_trades_with_their_dates(monkeypatch):
+    # OCR lines as read from Nico's League > Transactions screenshot (590 px wide).
+    lines = [(194, 102, 21, "LeagueTransactions"),
+             (22, 191, 27, "Drop"), (404, 195, 17, "jeu.oct.110:32AM"), (22, 233, 28, "Gwp"),
+             (423, 236, 21, "A. Stolarz G (W)"),
+             (22, 303, 21, "Add"), (374, 305, 18, "mer.sept.3010:30PM"), (24, 346, 20, "Bottomthree"),
+             (412, 347, 19, "A.Nikishin D (FA)"),
+             (22, 634, 20, "Trade"), (370, 637, 16, "mer.sept.3002:04PM"), (20, 677, 21, "Pastasauce"),
+             (436, 678, 18, "Vanilla Thunder"), (20, 701, 22, "Trading away"), (456, 701, 22, "Trading away"),
+             (21, 726, 19, "D.Cozens C"), (395, 726, 18, "K.Sherwood LW,RW"), (464, 750, 19, "J.TavaresC"),
+             (22, 816, 21, "Add/Drop"), (372, 818, 18, "mer.sept.3002:03PM"), (23, 859, 20, "Pastasauce"),
+             (387, 860, 18, "J.McCannC,LW(FA)"), (387, 900, 18, "J. Faulk D"),
+             (22, 1146, 22, "Add")]  # cut off by the nav bar: no date, so left out
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_icon_action", lambda img, y, h: "add" if y < 880 else "drop")
+    buf = io.BytesIO()
+    Image.new("RGB", (590, 1280)).save(buf, "PNG")
+    shot = screenshot.read(buf.getvalue())
+    assert shot["kind"] == "transactions"
+    rows = shot["rows"]
+    assert [(r["type"], r["when"], r["teams"]) for r in rows] == [
+        ("drop", (10, 1, 10, 32), ["Gwp"]), ("add", (9, 30, 22, 30), ["Bottomthree"]),
+        ("trade", (9, 30, 14, 4), ["Pastasauce", "Vanilla Thunder"]), ("add/drop", (9, 30, 14, 3), ["Pastasauce"])]
+    assert rows[0]["players"] == [{"name": "A. Stolarz", "positions": ["G"], "action": "drop"}]
+    assert [(p["name"], p["action"]) for p in rows[2]["players"]] == [
+        ("D. Cozens", "from:0"), ("K. Sherwood", "from:1"), ("J. Tavares", "from:1")]
+    assert [(p["name"], p["positions"], p["action"]) for p in rows[3]["players"]] == [
+        ("J. McCann", ["C", "LW"], "add"), ("J. Faulk", ["D"], "drop")]

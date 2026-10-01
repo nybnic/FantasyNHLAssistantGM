@@ -1,5 +1,7 @@
 """Read Yahoo app screenshots with free, offline OCR (RapidOCR).
 
+League > Transactions: each add, drop and trade, with its date.
+
 Team tab: each row's slot, the name as shown ("M. SCHEIFELE"), team and
 positions. Matchup tab: the same for both teams side by side (the slot badge
 sits between them), each player's points and Yahoo projection, and the
@@ -36,6 +38,13 @@ _MIN_VIVID = 8
 _POINTS = re.compile(r"^-?\d+\.\d\d$")
 _SCORE_PAIR = re.compile(r"^(-?\d+\.\d\d)\s*/\s*(-?\d+\.\d\d)$")  # the scrolled-down header
 _CENTRE_SLOT = re.compile(r"^(LW|RW|BN|IR\+?|C|D|G)$")
+_TX_TYPE = re.compile(r"^(Add/Drop|Add|Drop|Trade)$", re.I)
+# "mer.sept.3002:04PM" once spaces are gone: weekday, month, day, then a
+# zero-padded hh:mm (so "oct.110:32AM" is Oct 1, 10:32). French or English.
+_TX_DATE = re.compile(r"^[A-Za-zé]{3,4}\.?,?([A-Za-zéûô]{3,5})\.?(\d{1,2}),?(\d{2}):(\d{2})(AM|PM)$", re.I)
+_TX_PLAYER = re.compile(r"^([A-Z])\.\s*(.+?)\s*((?:LW|RW|C|D|G)(?:,(?:LW|RW|C|D|G))*)\s*(\(.*)?$")
+_MONTHS = {"jan": 1, "fev": 2, "feb": 2, "mar": 3, "avr": 4, "apr": 4, "mai": 5, "may": 5, "juin": 6, "jun": 6,
+           "juil": 7, "jul": 7, "aou": 8, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
 
 
 class ScreenshotError(Exception):
@@ -52,9 +61,12 @@ def _ocr():
 
 
 def read(image: bytes) -> dict:
-    """{"kind": "team", "rows": [...]} or {"kind": "matchup", ...} (see _matchup)."""
+    """{"kind": "team", "rows": [...]}, {"kind": "matchup", ...} (see _matchup)
+    or {"kind": "transactions", "rows": [...]} (see _transactions)."""
     img = _open(image)
     lines = _read_lines(img)
+    if any("transactions" in t.replace(" ", "").lower() for _, _, _, t in lines[:8]):
+        return {"kind": "transactions", "rows": _transactions(img, lines)}
     if _is_matchup(lines, img.width):
         return {"kind": "matchup", **_matchup(img, lines)}
     return {"kind": "team", "rows": _roster_rows(img, lines)}
@@ -157,6 +169,80 @@ def _matchup(img: Image.Image, lines: list) -> dict:
         projected = pairs[0]
     labels = ([t for x, _, t in header if x < 0.5 * w], [t for x, _, t in header if x >= 0.5 * w])
     return {"score": score, "projected": projected, "labels": labels, "rows": rows}
+
+
+def _month(text: str) -> int | None:
+    t = text.lower().replace("é", "e").replace("û", "u").replace("ô", "o")
+    return _MONTHS.get(t[:4]) or _MONTHS.get(t[:3])
+
+
+def _tx_when(text: str) -> tuple[int, int, int, int] | None:
+    """(month, day, hour, minute) from a transaction's date line."""
+    m = _TX_DATE.match(text.replace(" ", ""))
+    if not m or not (month := _month(m.group(1))):
+        return None
+    hour = int(m.group(3)) % 12 + (12 if m.group(5).upper() == "PM" else 0)
+    return month, int(m.group(2)), hour, int(m.group(4))
+
+
+def _tx_player(text: str) -> dict | None:
+    m = _TX_PLAYER.match(text.strip())
+    if not m or not any(ch.islower() for ch in m.group(2)):
+        return None
+    return {"name": f"{m.group(1)}. {m.group(2).strip()}", "positions": m.group(3).split(",")}
+
+
+def _icon_action(img: Image.Image, y: float, h: float) -> str | None:
+    """"add" (a green +) or "drop" (a red -) from the icon mid-row."""
+    w = img.width
+    crop = img.crop((int(0.44 * w), int(y - 0.3 * h), int(0.56 * w), int(y + 1.3 * h)))
+    px = np.asarray(crop).reshape(-1, 3)[::2] / 255
+    hsv = np.array([colorsys.rgb_to_hsv(*p) for p in px])
+    vivid = hsv[(hsv[:, 1] > 0.35) & (hsv[:, 2] > 0.4)]
+    if len(vivid) < 4:
+        return None
+    hue = float(np.median(vivid[:, 0])) * 360
+    return "add" if 90 <= hue < 180 else "drop" if hue < 25 or hue > 330 else None
+
+
+def _transactions(img: Image.Image, lines: list) -> list[dict]:
+    """Each transaction block: {"type": "add" | "drop" | "add/drop" | "trade",
+    "when": (month, day, hour, minute), "teams": [team] (two for a trade),
+    "players": [{"name", "positions", "action"}]}, action being "add", "drop",
+    or for a trade "from:0" / "from:1" (traded away by that team). Newest first,
+    as on screen; blocks cut off by the screen's edge are left out."""
+    w = img.width
+    headers = []
+    for i, (x, y, h, t) in enumerate(lines):
+        if x < 0.15 * w and (m := _TX_TYPE.match(t.replace(" ", ""))):
+            when = next((_tx_when(t2) for x2, y2, _, t2 in lines if x2 > 0.4 * w and abs(y2 - y) < h), None)
+            if when:
+                headers.append((y, h, m.group(1).lower(), when))
+    blocks = []
+    for k, (y, h, kind, when) in enumerate(headers):
+        end = headers[k + 1][0] if k + 1 < len(headers) else img.height
+        body = [(x, ly, lh, t) for x, ly, lh, t in lines if y + 0.8 * h < ly < end - 0.5 * h]
+        left = [(ly, lh, t) for x, ly, lh, t in body if x < 0.3 * w]
+        right = [(ly, lh, t) for x, ly, lh, t in body if x > 0.4 * w]
+        players = []
+        if kind == "trade":
+            names = [t for _, _, t in left if not _tx_player(t) and "trading" not in t.lower()][:1]
+            names += [t for _, _, t in right if not _tx_player(t) and "trading" not in t.lower()][:1]
+            for side, rows in ((0, left), (1, right)):
+                for ly, lh, t in rows:
+                    if p := _tx_player(t):
+                        players.append({**p, "action": f"from:{side}"})
+            teams = names
+        else:
+            teams = [t for _, _, t in left if not _tx_player(t)][:1]
+            for ly, lh, t in right:
+                if p := _tx_player(t):
+                    action = kind if kind in ("add", "drop") else _icon_action(img, ly, lh)
+                    if action:
+                        players.append({**p, "action": action})
+        if players and len(teams) == (2 if kind == "trade" else 1):
+            blocks.append({"type": kind, "when": when, "teams": teams, "players": players})
+    return blocks
 
 
 def _read_lines(img: Image.Image) -> list[tuple[float, float, float, str]]:

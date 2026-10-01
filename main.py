@@ -35,7 +35,8 @@ import requests
 
 from clients import dfo_lines, goalie_client, nhl_client, screenshot
 from clients.names import normalize_name
-from config.league import MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, TRADE_DEADLINE
+from config.league import (MAX_ADDS_PER_SEASON, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR, SCHEDULE, SEASON_START,
+                           TRADE_DEADLINE)
 from config.settings import Settings, load_settings
 from engine import briefing, matchup, report, trade
 from league import draft, parse, teams, weeks
@@ -55,6 +56,7 @@ HELP = (
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
     "Matchup screenshots (the Yahoo app's Matchup tab, scrolled through) - both rosters and the live score, "
     "then an updated plan\n"
+    "League > Transactions screenshots - every team's adds, drops and trades, so suggested free agents are free\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
@@ -155,11 +157,14 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 roster_mod.apply_lineup(players, {int(pid): slot for pid, slot in rec["assignment"].items()})
             if action == "done" and rec["type"] == "add":
                 apply_add(players, rec)
+            if action == "taken" and rec["type"] == "add":
+                teams.mark_taken(league, [rec["add"]["id"]])
+                state["week_requested"] = True  # the next best add, right away
             state["decisions"].append({
                 "rec_id": rec_id, "type": rec["type"], "date": rec["date"], "decision": action,
                 "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             })
-            label = "Recorded: Done" if action == "done" else "Recorded: Skipped"
+            label = {"done": "Recorded: Done", "taken": "Taken: finding the next best"}.get(action, "Recorded: Skipped")
             telegram.mark_handled(token, chat_id, query["message"]["message_id"], label)
             telegram.answer_callback(token, query["id"], label)
         elif "message" in update:
@@ -206,6 +211,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
         finish_screenshots(state, players, league, outbox)
     if "matchup" in new_screenshots:
         finish_matchup(state, players, league, outbox)
+    if "transactions" in new_screenshots:
+        finish_transactions(state, players, league, outbox)
     return problem
 
 
@@ -235,6 +242,12 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     except requests.RequestException:  # its text can hold the download URL, which holds the token
         outbox.send("Couldn't download that screenshot from Telegram; try again.")
         return None
+    if shot["kind"] == "transactions":
+        if not shot["rows"]:
+            outbox.send("I couldn't read any transactions in that screenshot.")
+            return None
+        state["transaction_rows"] += shot["rows"]
+        return "transactions"
     if shot["kind"] == "matchup":
         draft = state["matchup_shots"] if _fresh(state["matchup_shots"], at) else {"rows": [], "labels": []}
         draft["rows"] += shot["rows"]
@@ -257,6 +270,111 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     draft["at"] = at.isoformat()
     state["screenshots"] = draft
     return "team"
+
+
+def _tx_time(when: list) -> str:
+    """ "2026-09-30T14:04" from (month, day, hour, minute), as shown on the phone."""
+    month, day, hour, minute = when
+    year = SEASON_START.year if month >= 7 else SEASON_START.year + 1
+    return f"{year}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}"
+
+
+def _tx_key(row: dict) -> str:
+    names = ",".join(normalize_name(p["name"]).replace(" ", "") for p in row["players"])
+    teams_ = ",".join(normalize_name(t).replace(" ", "") for t in row["teams"])
+    return f"{_tx_time(row['when'])}|{row['type']}|{teams_}|{names}"
+
+
+def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox) -> None:
+    """Apply League > Transactions rows not seen before, oldest first: adds
+    and claims put a player on that team (off the free agents), drops free him,
+    trades swap rosters; my own team's moves update my roster too. Says what
+    changed, and warns when the screenshots may not reach back to the last ones seen."""
+    rows, state["transaction_rows"] = state["transaction_rows"], []
+    seen = state["transactions_seen"]
+    names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
+    had_seen = bool(seen)
+    overlap = any(_tx_key(row) in seen for row in rows)
+    fresh, keys = [], set()
+    for i, row in enumerate(rows):
+        key = _tx_key(row)
+        if key not in seen and key not in keys:
+            keys.add(key)
+            fresh.append((_tx_time(row["when"]), -i, key, row))  # same minute: the screen lists newest first
+    registry = parse.registry()
+    mine_ids = {p.id for p in players}
+    rostered = teams.rostered_ids(league) | mine_ids
+    changes: dict[str, list[str]] = {}
+    problems = []
+
+    def find(shown: dict, prefer: set[int]):
+        found = parse.match_shown_names([{**shown, "team": "", "slot": None}], registry, prefer)
+        if not found.players:
+            problems.append(found.problems[0] if found.problems else shown["name"])
+            return None
+        return found.players[0]
+
+    def on_team(team: str) -> set[int]:
+        return mine_ids if team == MY_TEAM else {p.id for p in teams.players(league, team)}
+
+    def add(team: str, p) -> None:
+        teams.add_player(league, team, p)  # off every other roster; mine isn't in league.json
+        if team == MY_TEAM:
+            league["taken"] = [pid for pid in league["taken"] if pid != p.id]
+            if all(q.id != p.id for q in players):
+                p.slot = roster_mod.BENCH if roster_mod.lineup_known(players) else None
+                players.append(p)
+        changes.setdefault(team, []).append(f"+{p.name}")
+
+    def drop(team: str, p) -> None:
+        if team == MY_TEAM:
+            players[:] = [q for q in players if q.id != p.id]
+        teams.remove_player(league, team, p.id)
+        changes.setdefault(team, []).append(f"-{p.name}")
+
+    for when, _, key, row in sorted(fresh):
+        teams_ = [names.get(normalize_name(t).replace(" ", "")) for t in row["teams"]]
+        if None in teams_:
+            problems.append(f"team {row['teams'][teams_.index(None)]!r}")
+            continue
+        for shown in row["players"]:
+            action = shown["action"]
+            if action == "add":
+                p = find(shown, {q["id"] for q in registry} - rostered)
+                if p:
+                    add(teams_[0], p)
+            elif action == "drop":
+                p = find(shown, on_team(teams_[0]))
+                if p:
+                    drop(teams_[0], p)
+            else:  # traded away by teams_[side] to the other
+                side = int(action.split(":")[1])
+                p = find(shown, on_team(teams_[side]))
+                if p:
+                    drop(teams_[side], p)
+                    add(teams_[1 - side], p)
+        seen[key] = when
+
+    if not fresh:
+        outbox.send("Those transactions are all ones I already have.")
+        return
+    times = sorted(f[0] for f in fresh)
+    lines = [f"Transactions: {len(fresh)} new ({_tx_label(times[0])} - {_tx_label(times[-1])})."]
+    lines += [f"{team}: {', '.join(moves)}" for team, moves in changes.items()]
+    pending = [rec["add"]["name"] for rec in state["pending"].values()
+               if rec["type"] == "add" and rec["add"]["id"] in teams.rostered_ids(league)]
+    if pending:
+        lines.append(f"Taken since I suggested them: {', '.join(pending)}. Send /week for the next best.")
+    if had_seen and not overlap:
+        lines.append("These don't reach back to the last transactions I saw, so moves in between may be missing: "
+                     "scroll down and send the older ones too.")
+    if problems:
+        lines.append("Couldn't place: " + "; ".join(problems))
+    outbox.send("\n".join(lines))
+
+
+def _tx_label(when: str) -> str:
+    return dt.datetime.fromisoformat(when).strftime("%a %d %b %H:%M")
 
 
 def _side(rows: list[dict], side: str) -> list[dict]:
@@ -794,7 +912,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         _safe(write_dashboard, views, wk, week, opponent, stance_text, now, outbox.settings.dry_run)
     for i, move in enumerate(moves):
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
-        buttons = [("Done", f"done:{rec_id}"), ("Skip", f"skip:{rec_id}")]
+        buttons = [("Done", f"done:{rec_id}"), ("Taken", f"taken:{rec_id}"), ("Skip", f"skip:{rec_id}")]
         view = views and views["adds"].get(report.move_key(move))
         png = _safe(charts.add_chart, view) if view else None
         message_id = (outbox.send_photo(png, matchup.move_text(move), buttons) if png

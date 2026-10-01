@@ -650,4 +650,4 @@ def move_text(move: Move) -> str:
     elif move.next_weeks < -1:
         detail.append("a streamer: drop him again when his games are done")
     return f"{head}, {drop}.\n" + "; ".join(detail) + (
-        ".\nTap Done once it's made in Yahoo. If he's taken, send /taken " + p.name)
+        ".\nTap Done once it's made in Yahoo, or Taken if someone has him.")
