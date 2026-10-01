@@ -49,7 +49,9 @@ Live runs need network. First runs fill `data/cache/` and take a few minutes.
   `git pull --rebase` before committing, and never hand-edit state while a
   run may be in flight.
 - **Public repo.** No secrets, and no third-party data files (Yahoo exports,
-  projection snapshots stay gitignored). Error text must never contain the bot token.
+  projection snapshots stay gitignored). One approved exception (Nico,
+  2026-10-01): Yahoo position eligibility only, in `state/positions.json`
+  (`scripts/seed_positions.py`). Error text must never contain the bot token.
 - **Deploy = push to `main`.** The workflow runs from `main`. Nico has approved
   this flow: implement, run tests, dry run, then commit and push. Ask before
   destructive git (deleting branches or tags, force-push).

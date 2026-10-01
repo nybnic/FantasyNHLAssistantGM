@@ -57,4 +57,5 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 | 2026-10-01 | Web dashboard (site/, GitHub Pages): tap an add for its week-by-week gain and budget; grid with streamers; table of every add | 6edd0b2 |
 | 2026-10-01 | Long run over 6 weeks; streaming spots judged on the next 2 weeks | 2acaa74 |
 | 2026-10-01 | League > Transactions screenshots update every roster; Taken button on adds | d1bb801 |
-| 2026-10-01 | Coherent plan: this week's adds to moves that pay now (keepers wait for Monday), true biggest swing, verdicts that say why; Yahoo position eligibility learned from screenshots | (this commit) |
+| 2026-10-01 | Coherent plan: this week's adds to moves that pay now (keepers wait for Monday), true biggest swing, verdicts that say why; Yahoo position eligibility learned from screenshots | 0fd4429 |
+| 2026-10-01 | Yahoo positions seeded for 559 skaters (`scripts/seed_positions.py`) | (this commit) |

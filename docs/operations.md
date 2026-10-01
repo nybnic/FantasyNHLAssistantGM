@@ -39,6 +39,7 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
 | File | Holds | Changed by |
 |---|---|---|
 | `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, matchup screenshots, `scripts/seed_roster.py` |
+| `state/positions.json` | Yahoo position eligibility per player (free agents use it) | Every Yahoo screenshot or paste; seeded once by `scripts/seed_positions.py` |
 | `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
 | `state/gm_state.json` | Telegram offset, pending recs, decisions (the add budget counts Done adds), sent briefings/plans | Every run |
 
