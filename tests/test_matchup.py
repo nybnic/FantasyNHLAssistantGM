@@ -231,3 +231,39 @@ def test_drops_are_tried_per_group_so_a_weak_forward_is_considered():
         RosterPlayer(i, f"D{i}", "BOS", ["D"], "D") for i in (2, 3, 4, 5)]
     # The two weakest D, then both forwards: per group, so the forwards are tried at all.
     assert [p.id for p in matchup.drop_candidates(mine, ctx, {})] == [2, 3, 1, 6]
+
+
+def test_streaming_spots_are_the_skaters_closest_to_waiver_level_at_their_position():
+    ctx = FakeContext()
+    ctx.xfp = {1: 5.0, 2: 2.0, 3: 2.6, 9: 4.6, 11: 1.9}  # 9: best free C, 11: best free D
+    mine = [RosterPlayer(1, "Good C", "BOS", ["C"]), RosterPlayer(2, "Low D", "BOS", ["D"]),
+            RosterPlayer(3, "Mid D", "BOS", ["D"])]
+    free = [RosterPlayer(9, "FA C", "NYR", ["C"]), RosterPlayer(11, "FA D", "NYR", ["D"])]
+    # The C scores most per game but sits only 0.4 above his waiver level; Mid D sits 0.7 above.
+    assert matchup.streaming_spots(mine, free, ctx, {}) == {1, 2, 3}
+    matchup_spots = matchup.STREAMING_SPOTS
+    try:
+        matchup.STREAMING_SPOTS = 2
+        assert matchup.streaming_spots(mine, free, ctx, {}) == {1, 2}
+    finally:
+        matchup.STREAMING_SPOTS = matchup_spots
+
+
+def test_dropping_a_streaming_spot_costs_only_the_next_two_weeks(monkeypatch):
+    # The free agent plays the next 2 weeks, then his team is idle for 4: a
+    # streamer. Dropped for a streaming spot, the idle weeks don't count.
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "SEA", ["C"], "C")]
+    days = [WED + dt.timedelta(days=i) for i in range(42)]
+    future = {d: [_game(d, "NYR" if i < 14 else "BOS", "SEA")] for i, d in enumerate(days)}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    fa = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
+    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 1)
+    ctx = FakeContext()
+    ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
+    move = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
+                if m.drop and m.drop.id == 2)
+    assert move.next_weeks > 0 and move.long_term == pytest.approx(move.next_weeks)
+    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 0)  # Depth is core now: the season view
+    core = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
+                if m.drop and m.drop.id == 2)
+    assert core.long_term < 0

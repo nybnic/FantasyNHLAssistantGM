@@ -575,7 +575,7 @@ class WeekInputs:
     ctx: object
     days: list[dt.date]
     schedule: dict
-    future: dict  # the two weeks after this one, for long-run value
+    future: dict  # the weeks after this one (matchup.LONG_RUN_WEEKS), for long-run value
     lines: dict
     starters: dict
     me: matchup.TeamWeek
@@ -596,7 +596,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     ctx = build_context(date)
     days = weeks.days(week)
     schedule = {d: nhl_client.games_on(d) for d in days}
-    future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 15)]
+    future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 7 * matchup.LONG_RUN_WEEKS + 1)]
     future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     starters = _safe(goalie_client.get_starters, date, default={})

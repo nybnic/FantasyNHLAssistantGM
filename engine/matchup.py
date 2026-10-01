@@ -46,6 +46,19 @@ ACTIVE_SPOTS = sum(STARTERS.values()) + BENCH_SLOTS
 # Injuries, role changes and later adds make a long-run edge worth less
 # than it projects to (a judgment call, not fitted).
 LONG_RUN_DISCOUNT = 0.5
+# The long run is judged on the weeks after this one: averaged over 6 (one
+# week's schedule swings a swap by 5-10 pts; 2 weeks times the season turned
+# that noise into "-55 pts", 2026-10-01), while the add rule's "pays off soon"
+# test and streaming use the next 2 (STREAM_WEEKS) as scheduled.
+LONG_RUN_WEEKS = 6
+STREAM_WEEKS = 2
+# My streaming spots: the skaters closest to what waivers offer at their
+# position. Dropping one isn't a season-long loss (the spot gets recycled; ~1.3
+# adds a week over ~3 spots is a new player every 2-3 weeks), so such a swap is
+# credited the better of its next STREAM_WEEKS as scheduled and its long run.
+# Judgment calls (Nico, 2026-10-01); calibrate with real weeks.
+STREAMING_SPOTS = 3
+REPLACEMENT_SAMPLE = 3  # free agents averaged for a position's replacement level
 # Drops tried: your lowest long-run players per group (forwards, D, goalies).
 # Per group, because per-player value ranks D low (fewer points a game), so a
 # plain bottom 4 was mostly D and never tried a weak forward (Schenn, 2026-10-01).
@@ -271,6 +284,21 @@ def _group(p: RosterPlayer) -> str:
     return "G" if p.is_goalie else "D" if p.positions == ["D"] else "F"
 
 
+def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], ctx,
+                    lines: dict[str, dict[str, LineInfo]]) -> set[int]:
+    """Ids of my STREAMING_SPOTS skaters with the least long-run value above
+    the best free agents at their position (so D and forwards compare fairly)."""
+    def replacement(position: str) -> float:
+        values = sorted((season_value(p, ctx, lines) for p in free_agents
+                         if position in p.positions and not p.is_goalie), reverse=True)[:REPLACEMENT_SAMPLE]
+        return sum(values) / len(values) if values else 0.0
+
+    levels = {pos: replacement(pos) for pos in ("C", "LW", "RW", "D")}
+    skaters = [p for p in mine if not p.is_goalie]
+    by_gap = sorted(skaters, key=lambda p: season_value(p, ctx, lines) - levels.get(p.positions[0], 0.0))
+    return {p.id for p in by_gap[:STREAMING_SPOTS]}
+
+
 def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:
     """The players worth trying as a drop: the DROPS_PER_GROUP lowest long-run
     value per group, lowest first."""
@@ -382,14 +410,16 @@ def candidate_moves(
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
     `future` is the schedule of the days after this week used to judge the
-    long run (two weeks is plenty); `weeks_after` is how many weeks are left.
+    long run (LONG_RUN_WEEKS); `weeks_after` is how many weeks are left.
     `available_from` is the first day an added player can play (waivers)."""
     future_weeks = len(future) / 7 or 1.0
+    soon = set(sorted(future)[:7 * STREAM_WEEKS])
     team_games = _team_games(schedule, ctx.today)
     mine = active(roster)
     so_far = so_far or _so_far(mine, ctx, sorted(schedule))
     current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
-    current_future = project("me", roster, ctx, future, lines, starters, True).expected if future else 0.0
+    current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
+    spots = streaming_spots(mine, candidates, ctx, lines)
     before = win_prob(current, opponent)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
@@ -404,13 +434,19 @@ def candidate_moves(
             week = project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far)
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
-            later = (project("me", trial, ctx, future, lines, starters, True).expected - current_future
-                     if future else 0.0)
+            later = soon_gain = 0.0
+            if current_future:
+                trial_future = project("me", trial, ctx, future, lines, starters, True)
+                later = trial_future.expected - current_future.expected
+                soon_gain = sum(trial_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in soon)
+            long_term = LONG_RUN_DISCOUNT * later / future_weeks * weeks_after
+            if drop and drop.id in spots:
+                long_term = max(soon_gain, long_term)  # a streaming spot gets recycled
             moves.append(Move(
                 add=add, drop=drop,
                 week_gain=week.expected - current.expected,
-                long_term=LONG_RUN_DISCOUNT * later / future_weeks * weeks_after,
-                next_weeks=later,
+                long_term=long_term,
+                next_weeks=soon_gain,
                 games=team_games.get(add.team, 0),
                 win_before=before, win_after=win_prob(week, opponent),
                 week_counts=decided(before) is None,
