@@ -59,6 +59,11 @@ MIN_WIN_GAIN = 0.02  # a this-week-only move must add 2 points of win probabilit
 MAX_WEEK_COST = 1.0
 BASE_ADD_SCORE = 3.0  # expected points a move must be worth at an even pace of adds
 PLAYOFF_RESERVE = 6  # adds kept for playoff weeks
+# A week this lopsided is decided: points gained in it don't change the result,
+# so an add has to pay off later (adds are capped per season, so a skipped one
+# isn't lost). Judgment calls (Nico, 2026-10-01), calibrate with real weeks.
+CONCEDE_BELOW = 0.10
+COAST_ABOVE = 0.90
 
 
 @dataclass
@@ -83,10 +88,11 @@ class Move:
     games: int  # the added player's games left this week
     win_before: float
     win_after: float
+    week_counts: bool = True  # False when the week is already decided
 
     @property
     def score(self) -> float:
-        return self.week_gain + self.long_term
+        return (self.week_gain if self.week_counts else 0.0) + self.long_term
 
 
 def _position(p: RosterPlayer) -> str:
@@ -221,6 +227,15 @@ def win_prob(me: TeamWeek, them: TeamWeek) -> float:
     return 0.5 * (1 + math.erf((me.expected - them.expected) / (sd * math.sqrt(2))))
 
 
+def decided(p_win: float) -> str | None:
+    """"lost" or "won" when the week is beyond what an add changes, else None."""
+    if p_win < CONCEDE_BELOW:
+        return "lost"
+    if p_win > COAST_ABOVE:
+        return "won"
+    return None
+
+
 def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
     """Expected points per team game over the long run (injuries ignored)."""
     if p.is_goalie:
@@ -325,6 +340,7 @@ def candidate_moves(
                 next_weeks=later,
                 games=team_games.get(add.team, 0),
                 win_before=before, win_after=win_prob(week, opponent),
+                week_counts=decided(before) is None,
             ))
     # Stable sort: on equal scores the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.score, reverse=True)
@@ -333,7 +349,10 @@ def candidate_moves(
 def rejection(move: Move, threshold: float) -> str | None:
     """Why a move isn't worth an add, or None if it is. It must be worth
     `threshold` points and either lift this week's win odds or pay off visibly
-    soon: a long-run edge too small to show in two weeks is noise."""
+    soon: a long-run edge too small to show in two weeks is noise. In a
+    decided week (see `decided`) only the paying-off-soon route counts."""
+    if not move.week_counts and move.next_weeks < 2 * threshold:
+        return f"the week is {decided(move.win_before)} ({_pct(move.win_before)}) and it doesn't pay off within two weeks"
     if move.score < threshold:
         return f"worth {move.score:.1f} pts, under the {threshold:.1f} an add costs"
     if move.win_after - move.win_before < MIN_WIN_GAIN and move.next_weeks < 2 * threshold:
@@ -397,7 +416,12 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
     lines = [f"Week {week} ({span}) vs {them.name}"]
     if me.so_far or them.so_far:
         lines.append(f"So far about {me.so_far:.0f} - {them.so_far:.0f}")
-    lines.append(f"Expected {me.expected:.0f} - {them.expected:.0f}: {_pct(win_prob(me, them))} to win")
+    p_win = win_prob(me, them)
+    lines.append(f"Expected {me.expected:.0f} - {them.expected:.0f}: {_pct(p_win)} to win")
+    if decided(p_win) == "lost":
+        lines.append("This week looks lost: don't spend adds chasing it, only on players worth keeping.")
+    elif decided(p_win) == "won":
+        lines.append("This week looks won: no adds needed for it, only on players worth keeping.")
     lines.append(f"Lineup games left, setting the best lineup every day: you {me.player_games}, "
                  f"them {them.player_games}")
     goalie_games = me.goalie_games_so_far + me.goalie_starts_left

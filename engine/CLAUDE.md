@@ -19,6 +19,8 @@
 - **Score** = this week's gain + long run. Long run = the whole-lineup
   projection over the next 2 weeks (with durability), per week, times the weeks
   left, x `LONG_RUN_DISCOUNT` 0.5.
+- **Decided week** (P(win) < 10% or > 90%): this week's gain counts zero, so only
+  a move that pays off within two weeks gets an add.
 - **Accept** if score >= the add threshold (3 pts at an even pace, paced by adds
   left) **and** (win odds +2 pts **or** the next two weeks gain >= 2x the threshold).
 - `scripts/explain_week.py` prints every candidate with its verdict. Use it
@@ -36,8 +38,10 @@
 | 2026-09-29 | Post-draft waivers: adds count from Sep 30 | Every undrafted player showed "W (Sep 30)" |
 | 2026-10-01 | Screenshots are read with free offline OCR (RapidOCR), no paid API (Nico) | Claude vision would be more robust, but costs money; OCR + badge colours read Nico's screenshots perfectly |
 | 2026-10-01 | Evening briefing window 19:30-20:30 Helsinki (Nico); no first briefing after it closes, updates until 23:00 | When Nico sets his lineup |
+| 2026-10-01 | Decided weeks save adds: below 10% or above 90% win, this week's points count zero and an add must pay off within two weeks (Nico) | Points in a decided week don't change the result, and adds are capped per season, so a skipped add carries over. Unchecked: if points-for breaks standings ties, they aren't fully worthless |
+| 2026-10-01 | No goalie-minimum alerts beyond the weekly line (Nico) | Yahoo already warns; the model still counts the minimum in P(win) |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `BASE_ADD_SCORE` 3,
-`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02, `CONCEDE_BELOW` 0.10, `COAST_ABOVE` 0.90, `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.

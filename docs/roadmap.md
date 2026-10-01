@@ -3,30 +3,61 @@
 Pick the top item unless Nico names another. Each item has a short "done when".
 Move finished items to the log at the bottom, with the commit.
 
+## Direction (2026-10-01)
+Yahoo covers live scores, projections, Start Active and goalie-minimum warnings.
+The bot's edge is the **add decision**: spend the 36 adds where they change a
+week's result, save them where they don't, and show that trade-off this week and
+over the season. Input is mobile screenshots; output is Telegram plus charts.
+
 ## Next
-1. **Mid-week risk advice**: from Wednesday on, use points so far to advise
-   protecting a lead (steady players, safe goalie starts) or chasing when behind
-   (volume, extra goalie starts).
-   Done when: `/week` mid-week shows the live score and one clear risk
-   recommendation, and a test covers ahead vs behind.
-2. **Keep all rosters fresh cheaply**: a paste of Yahoo's league Transactions
-   page updates every team's adds and drops at once.
-   Done when: pasting a transactions list moves players between teams and the
-   pool in `state/league.json`, and the reply lists the changes.
-3. **IR management**: flag an IR-eligible injured player sitting in an active
-   slot, and a returning player who needs a spot (who to drop).
-   Done when: the weekly plan and the evening briefing include an IR line when relevant.
-4. **Sunday report**: the week's result vs projection, decisions taken or
-   skipped, and the add budget.
-   Done when: sent Sunday evening, with the same numbers `explain_week` would show.
+1. **Matchup screenshot ingestion**: the Yahoo app's matchup page updates both
+   rosters, slots and points so far (the opponent's roster goes stale otherwise:
+   week 1 showed them at 44 here vs 51.5 in Yahoo).
+   Done when: one or more matchup screenshots update my roster, the opponent and
+   points so far, the reply shows the parsed score, and synthetic-OCR tests
+   cover it. *Waiting on Nico's sample screenshots.*
+2. **Mid-week advice: chase, protect or concede**: from Wednesday (or on each
+   matchup screenshot), the live score, projected final and P(win), plus one
+   recommendation (volume adds when behind but close, steady when ahead, save
+   adds when decided).
+   Done when: `/week` mid-week shows it, with tests for ahead, close and hopeless.
+3. **Telegram charts**: one view model (`engine/report.py`) feeds the charts and
+   the dashboard. This week: win odds now vs with each candidate add, and the
+   daily projected score race. Per add: extra points per week for the next 4-6
+   weeks (weeks 3+ display only, lower confidence) and the add-budget timeline
+   (used vs pace, the playoff reserve). Add texts list the slot-games filled and
+   1-2 backup free agents.
+   Done when: `/week` and each recommended add send their chart, and the
+   view-model numbers are tested.
+4. **Web dashboard**: a static, phone-first page on GitHub Pages, rebuilt from the
+   view model each run, linked from Telegram; pick a candidate add to see its
+   impact. (Public, like `state/`; Nico decides whether to keep the URL unlisted.)
+   Done when: each run publishes `site/data.json` and the page renders it.
+5. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+   or only the overrides (an unconfirmed goalie, a scratch, an overflow night).
+   Done when: a night with nothing to change gets one line or nothing.
+6. **IR management**: flag an IR-eligible player in an active slot, and a
+   returning player who needs a spot.
+   Done when: the weekly plan and the briefing include an IR line when relevant.
+7. **Sunday report**: the result vs projection, adds taken or skipped, the
+   budget, and the week chart.
+   Done when: sent Sunday evening, with the same numbers `explain_week` shows.
 
 ## Later
-- Streaming-goalie advice in light-schedule weeks (only if the 3-goalie policy changes).
-- Yahoo projected GP as a durability input (needs Nico's OK to commit Yahoo data, or a paste command).
-- Verify the week-19 dates in Yahoo, and the two remaining "Not recorded yet" rules in `docs/league-rules.md` (regular-season ties and standings tiebreakers, consolation bracket).
-- Late regular season: weigh playoff seeding (the higher seed wins tied playoff weeks) when the bot plans weeks 20-23.
-- Calibrate `MODEL_SD_SHARE` and the add threshold once 4-6 weeks of real results exist.
-- Next year's draft: restore the tooling from tag `draft-2026`.
+- Transactions-page screenshot to refresh every team (lower now: the matchup
+  screenshot covers the opponent who matters).
+- Playoff odds (needs all 16 rosters fresh).
+- Verify in Yahoo: week-19 dates, regular-season ties and standings tiebreakers
+  (points-for matters for the decided-week rule), the consolation bracket.
+- Late regular season: weigh playoff seeding (the higher seed wins tied playoff
+  weeks) when planning weeks 20-23.
+- Calibrate `MODEL_SD_SHARE`, the add threshold and `CONCEDE_BELOW`/`COAST_ABOVE`
+  once 4-6 weeks of real results exist.
+- Streaming-goalie advice (only if the 3-goalie policy changes); Yahoo projected
+  GP as a durability input; next year's draft (restore from tag `draft-2026`).
+
+## Dropped
+- Goalie-minimum alerts beyond the weekly line: Yahoo already warns.
 
 ## Log
 | Date | Done | Commit |
@@ -42,3 +73,4 @@ Move finished items to the log at the bottom, with the commit.
 | 2026-10-01 | Evening briefings missed: relay crons start the runs | e3e1c8e |
 | 2026-10-01 | `/myteam` paste replaces my roster and slots; briefing window 19:30-20:30 | (this commit) |
 | 2026-10-01 | Roster and opponent screenshots via free OCR (`clients/screenshot.py`) | (this commit) |
+| 2026-10-01 | Decided-week rule: no adds chasing a lost (<10%) or won (>90%) week; roadmap re-planned around the add decision | (this commit) |

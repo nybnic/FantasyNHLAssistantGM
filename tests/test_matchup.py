@@ -116,7 +116,7 @@ def test_never_drops_below_three_goalies_for_a_skater():
     schedule = {MON: [_game(MON, "NYR", "PHI")]}
     pool = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
     later = {}
-    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    opponent = matchup.TeamWeek("them", 0, 1.0, 10.0, 2, 3, 0, 1.0)  # a close week, so a streamer is worth it
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future=later, weeks_after=0,
                                max_moves=1, threshold=0.5)
     assert moves and not moves[0].drop.is_goalie
@@ -130,3 +130,28 @@ def test_a_waiver_claim_only_counts_from_the_day_it_clears():
     moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0,
                                max_moves=1, threshold=0.5, available_from=TUE)
     assert moves[0].week_gain == pytest.approx(0.97 * 3.0)  # Tuesday's game only
+
+
+def _move(win_before, week_gain=5.0, next_weeks=0.0, long_term=0.0):
+    return matchup.Move(RosterPlayer(9, "FA", "NYR", ["C"]), None, week_gain, long_term, next_weeks, 3,
+                        win_before, win_before + 0.06, week_counts=matchup.decided(win_before) is None)
+
+
+def test_a_decided_week_saves_the_add_unless_it_pays_off_later():
+    assert matchup.rejection(_move(0.50), threshold=3.0) is None
+    assert "lost" in matchup.rejection(_move(0.05), threshold=3.0)
+    assert "won" in matchup.rejection(_move(0.95), threshold=3.0)
+    # A keeper is still worth it: the long run alone clears the bar.
+    assert matchup.rejection(_move(0.05, long_term=4.0, next_weeks=8.0), threshold=3.0) is None
+
+
+def test_a_hopeless_week_gets_no_streamer_and_says_so():
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["C"], "C")]
+    schedule = {MON: [_game(MON, "BOS", "TOR")], TUE: [_game(TUE, "NYR", "PHI")]}
+    pool = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
+    opponent = matchup.TeamWeek("them", 0, 60.0, 10.0, 20, 3, 0, 1.0)
+    moves = matchup.best_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={}, weeks_after=0,
+                               max_moves=2, threshold=1.0)
+    assert moves == []
+    me = matchup.project("me", roster, FakeContext(), schedule, {}, {})
+    assert "looks lost" in matchup.text(1, [MON, TUE], me, opponent, None, 0, 0, MON)
