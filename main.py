@@ -375,6 +375,8 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                 players.append(p)
             if when:
                 gm_state.record_add(state, p.id, p.name, _tx_nhl_date(when), "transactions", already_mine)
+        elif when:  # how much each team streams (opponent profiles, logged before they're used)
+            state["league_adds"].setdefault(team, []).append(_tx_nhl_date(when).isoformat())
         changes.setdefault(team, []).append(f"+{p.name}")
 
     def drop(team: str, p, when: str | None = None) -> None:
@@ -848,6 +850,9 @@ class WeekInputs:
     available_from: dict  # player id -> first day he can play for me: waivers
     so_far: tuple | None = None  # my banked points: a matchup screenshot's, else box scores by day's roster
     live: bool = False  # so_far comes from a matchup screenshot taken today
+    # Then Yahoo's score and the box scores' best-lineup score for the same days
+    # (how far each manager's real lineups fall short: opponent profiles).
+    live_check: dict | None = None
     hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
@@ -871,9 +876,12 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     live = state["live_score"]
     is_live = bool(live and live["week"] == week and live["opponent"] == opponent
                    and live["through"] == date.isoformat())
+    box = None
     if is_live:
         mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days, my_days)
         theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days, their_days)
+        box = [sum(matchup._so_far(roster_mod.active(players), ctx, days, my_days)[:2]),
+               sum(matchup._so_far(them_roster, ctx, days, their_days)[:2])]
         projected = live["projected"] or None
     else:
         mine = matchup._so_far(roster_mod.active(players), ctx, days, my_days)
@@ -889,6 +897,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         me=me, them=them, tau=tau, later_weight=addprice.later_weight(sigma_week, tau),
         pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
         so_far=mine, live=is_live, yahoo_projected=projected,
+        live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box} if is_live else None,
         hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
                       - sum(d >= date for d in days)),
         pool=pool,
@@ -1211,6 +1220,9 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
     record_plan(state, week, opponent, wk.me, wk.them, now)
+    if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
+        entry = state["results"][str(week)]
+        entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]
     views = _safe(week_views, state, p.planned, league, week, wk, nxt, ranked, moves)
     if views:
         png = _safe(charts.decision_chart, views["decision"])

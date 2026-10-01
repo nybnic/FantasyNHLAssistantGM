@@ -35,7 +35,11 @@
   "id:back"), so each is said once while it holds
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
   so_far, sd per team, win}) and, once the week is over, the result ("final":
-  {score, goalie_min, at, source}); what calibrating the model is checked on
+  {score, goalie_min, at, source}) and, for plans built on a matchup screenshot,
+  Yahoo's score next to the box scores' best-lineup one ("live": [{through,
+  yahoo, box}]); what calibrating the model is checked on
+- league_adds: each other team's adds (NHL dates), from Transactions screenshots:
+  how much each streams (opponent profiles; logged, not yet used)
 - health_alerts: per data source, the day its trouble was last reported
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran
 - week_requested: /week was sent; plan the week on this run
@@ -120,6 +124,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("day_rosters", {})
     state.setdefault("ir_noted", [])
     state.setdefault("health_alerts", {})
+    state.setdefault("league_adds", {})
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)

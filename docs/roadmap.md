@@ -30,8 +30,9 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
   weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
 - IR: read Yahoo's own injury tag (IR, IR-LT, O, DTD) from screenshots instead of
   inferring it from DFO; value the spot crunch when an IR'd player returns.
-- Opponent profiles: adds per week (Transactions) and lineup efficiency (Yahoo's
-  final vs our projection). Log first; shade their projection once 3-4 weeks show an effect.
+- Opponent profiles: being logged since 2026-10-01 (`league_adds` from Transactions;
+  Yahoo's score vs the box scores' best lineup in `results[week]["live"]`). Once 3-4 weeks
+  show an effect, shade opponents' projections (inactive managers, heavy streamers).
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
 - Pin requirements; memoize `ModelContext.skater`; split `main.py` (commands,
   ingest, weekly) and the message text out of `engine/matchup.py`.
@@ -82,3 +83,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Data check (`clients/health.py`): a failing or stale source (DFO, NHL) gets one Telegram line a day saying what it means for the advice | (this commit) |
 | 2026-10-01 | Evening briefing as a Start Active diff (one line when it's fine, else the benches and starts that beat it, with why); an evening news check for adds that newly clear the price; the plan leads with the action | (this commit) |
 | 2026-10-01 | "Other drop" button on adds (records the add, asks who was dropped); naming a playoff opponent with /opp sends that week's plan | (this commit) |
+| 2026-10-01 | Opponent profiles logged: other teams' adds (Transactions) and Yahoo's score vs the best-lineup box score on each screenshot day | (this commit) |

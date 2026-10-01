@@ -747,3 +747,28 @@ def test_other_drop_records_the_add_then_asks_who_went(monkeypatch, tmp_path):
     assert [p.id for p in players] == [1, 11] and league["waivers"] == {"2": "2026-10-08"}
     d = state["decisions"][-1]
     assert (d["decision"], d["drop"], d["drop_name"]) == ("done", 2, "B") and sent[-1] == "Noted: you dropped B."
+
+
+def test_a_plan_on_a_matchup_screenshot_logs_yahoos_score_next_to_the_box_scores(monkeypatch, tmp_path):
+    from engine import matchup
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    state["live_score"] = {"week": 1, "opponent": "Bahelin Boys", "through": "2026-10-01", "score": [13.4, 51.5],
+                           "projected": [160.0, 165.0], "goalies": [None, None], "at": "2026-10-01T07:15+00:00"}
+    monkeypatch.setattr(main.nhl_client, "games_on", lambda d: [])
+    monkeypatch.setattr(main.nhl_client, "current_teams", lambda: [])
+    monkeypatch.setattr(main.nhl_client, "current_rosters", lambda: [])
+    monkeypatch.setattr(main.goalie_client, "get_starters", lambda d: {})
+    monkeypatch.setattr(main.matchup, "_so_far", lambda roster, ctx, days, history=None: (10.0, 2.0, 1))
+
+    class Ctx:
+        today = dt.date(2026, 10, 1)
+    league = {"teams": {}, "taken": []}
+    wk = main.week_inputs(dt.date(2026, 10, 1), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
+    assert wk.live and wk.live_check == {"through": "2026-10-01", "yahoo": [13.4, 51.5], "box": [12.0, 12.0]}
+
+
+def test_other_teams_adds_are_logged_from_transactions(monkeypatch, tmp_path):
+    shot = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")]),
+            _tx("add", (9, 30, 10, 59), ["Nico's Groovy Team"], [("E. Lindell", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
+    assert state["league_adds"] == {"Pastasauce": ["2026-09-30"]}  # mine go to the adds ledger instead
