@@ -43,3 +43,4 @@ Move finished items to the log at the bottom, with the commit.
 | 2026-09-29 | Yahoo settings page transcribed into the rules doc | e331164 |
 | 2026-09-29 | `/trade` command (and `main.py --dry-run --trade "A for B"`) | 74fa6db |
 | 2026-09-29 | `/trade` suggestions, roster balance and short-of-starters check | (this commit) |
+| 2026-10-01 | Evening briefings missed: relay crons start the runs (needs `npx wrangler deploy`) | (this commit) |

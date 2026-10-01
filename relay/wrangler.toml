@@ -8,6 +8,12 @@ compatibility_date = "2026-09-01"
 GITHUB_REPO = "nybnic/FantasyNHLAssistantGM"
 GITHUB_WORKFLOW = "assistant_gm.yml"
 
+# Starts the workflow on time (see worker.js): every 30 min, 09:00-21:30 UTC,
+# the same hours as the workflow's cron. Covers the briefing window, 21:00-23:00
+# Helsinki, in both summer and winter time (tests/test_relay.py checks).
+[triggers]
+crons = ["*/30 9-21 * * *"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "assistant-gm-relay"

@@ -1,15 +1,18 @@
 # Operations
 
 ## How it runs
-- **GitHub Actions** (`.github/workflows/assistant_gm.yml`): cron every 30 min,
-  09:00-21:30 UTC, plus `workflow_dispatch` from the relay on each Telegram
-  message. The concurrency group `assistant-gm` runs one at a time; a newer
+- **GitHub Actions** (`.github/workflows/assistant_gm.yml`): started every 30 min,
+  09:00-21:30 UTC, by the relay's Cloudflare crons (`relay/wrangler.toml`), and
+  by the relay on each Telegram message. The workflow's own cron is only a
+  backup: GitHub ran it ~3 times a day. Changing the crons needs `npx wrangler
+  deploy` in `relay/`; `tests/test_relay.py` checks they cover the briefing window. The concurrency group `assistant-gm` runs one at a time; a newer
   queued run replaces an older queued one (shown as "cancelled", harmless).
 - Each run: checkout **latest `main`** -> `python main.py` -> commit `state/` ->
   `git pull --rebase` -> push. A whole run is ~20-40 s; the weekly plan adds
   ~1 min (DFO lines for 32 teams + move search).
 - **Relay** (`relay/`, a Cloudflare Worker + D1): Telegram's webhook target.
-  Queues updates until a run acks them by offset, and dispatches the workflow.
+  Queues updates until a run acks them by offset, and dispatches the workflow
+  (on each message and on its crons).
   Setup is in the README.
 - **Cache**: `data/cache/gm` is kept between runs by `actions/cache` (past
   seasons never expire; current data expires in hours).
@@ -42,6 +45,7 @@ masked: `notify/telegram.TelegramError` and the failure alert strip the token.
 | Date | What | Fix |
 |---|---|---|
 | 2026-09-29 | Two runs started 3 s apart. The second checked out the pre-push commit, handled a Skip tap twice, and crashed on Telegram's "message is not modified"; its state commit then conflicted | Checkout `ref: main`; relabeling buttons is best-effort; Telegram errors carry the reason, not the URL |
+| 2026-09-29 - 10-01 | No evening briefings. GitHub ran the `*/30` schedule only ~3 times a day (e.g. 15:33, 20:29, 00:06 UTC on Sep 30), never inside the 21:00-23:00 Helsinki window | The relay's Cloudflare crons start the runs; GitHub's cron stays as backup |
 
 ## Calendar assumptions to verify
 - Week 19 = Feb 1-14 2027 (the double week). Check Yahoo's matchup dates before February.

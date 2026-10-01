@@ -10,6 +10,11 @@
  * The queue is what makes this safe: GitHub keeps only one waiting run per
  * concurrency group (cancelling older ones) and a run can fail to start, but
  * every message waits here until a run has read it.
+ *
+ * It also starts the half-hourly runs (the crons in wrangler.toml). GitHub's
+ * own schedule is best-effort and in practice ran about 3 times a day, missing
+ * the evening briefing; Cloudflare's crons fire on time. The workflow's cron
+ * stays as a backup.
  */
 
 export default {
@@ -18,6 +23,9 @@ export default {
     if (request.method === "POST" && pathname === "/telegram") return receive(request, env, ctx);
     if (request.method === "POST" && pathname === "/updates") return updates(request, env);
     return new Response("Not found", { status: 404 });
+  },
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(startRun(env));
   },
 };
 
