@@ -11,12 +11,9 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From the 2026-10-01 review (accuracy first, then the evidence loop, then messages).
-1. **Recommendation scorecard** (`scripts/scorecard.py`): what recommended and
-   skipped adds scored vs the drop, over the hold. Done when: one line of it in
-   Monday's result report.
-2. **Data health**: say once a day when a source is down or stale (DFO lines,
+1. **Data health**: say once a day when a source is down or stale (DFO lines,
    starting goalies, projections). Done when: a broken DFO fetch shows in Telegram.
-3. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
+2. **Evening briefing as a Start Active diff**: "Start Active is fine tonight",
    or only the overrides (an unconfirmed goalie, a scratch, an overflow night);
    plus an alert when news makes an add clear the price between plans.
    Done when: a night with nothing to change gets one line or nothing.
@@ -87,3 +84,4 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 | 2026-10-01 | Banked points by day: each day's rosters kept until its first puck; points so far scored with them, so mid-week adds and drops don't move them | (this commit) |
 | 2026-10-01 | IR management (`engine/ir.py`): move an injured starter to a free IR slot (the plan's adds then need no drop, Done makes the move), and a player back from IR needs a spot; in the weekly plan and once in the briefing | (this commit) |
 | 2026-10-01 | Results log (`state["results"]`: each week's first and latest plan, then its result; week 1 from git history) and the week's result report with a score-race chart: Monday noon, before the new plan (Sunday evening is too early: Sunday's games end after midnight Helsinki) | (this commit) |
+| 2026-10-01 | Suggestion scorecard (`engine/scorecard.py`, `scripts/scorecard.py`): each add's raw points vs its drop over 14 days, made or skipped; a line in Monday's result. Decisions now name their players (past ones from git history), and untapped suggestions are logged | (this commit) |

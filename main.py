@@ -41,7 +41,7 @@ from clients.names import normalize_name
 from config.league import (MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SCHEDULE, SEASON_END, SEASON_START, TRADE_DEADLINE)
 from config.settings import Settings, load_settings
-from engine import addprice, briefing, ir, matchup, report, trade
+from engine import addprice, briefing, ir, matchup, report, scorecard, trade
 from league import draft, parse, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
@@ -173,6 +173,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
             state["decisions"].append({
                 "rec_id": rec_id, "type": rec["type"], "date": rec["date"], "decision": action,
                 "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+                **(gm_state.add_players(rec) if rec["type"] == "add" else {}),
             })
             label = {"done": "Recorded: Done", "taken": "Taken: finding the next best"}.get(action, "Recorded: Skipped")
             telegram.mark_handled(token, chat_id, query["message"]["message_id"], label)
@@ -966,7 +967,8 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
                   if d["type"] == "add" and d["decision"] == "skip" and first <= d["date"] <= last)
     plan = state["results"].get(str(week), {}).get("first")
     return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
-                              report.budget_view(state["adds"], week), finished)
+                              report.budget_view(state["adds"], week), finished,
+                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)))
 
 
 def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -1214,7 +1216,8 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         text = matchup.move_text(move, opens.player.name if opens else None)
         message_id = (outbox.send_photo(png, text, buttons) if png else outbox.send(text, buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
-                                    "drop": move.drop.id if move.drop else None, "message_id": message_id,
+                                    "drop": move.drop.id if move.drop else None,
+                                    "drop_name": move.drop.name if move.drop else None, "message_id": message_id,
                                     "ir": {str(opens.player.id): opens.slot} if opens else {}}
 
 

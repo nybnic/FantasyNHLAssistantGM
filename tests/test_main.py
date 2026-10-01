@@ -669,3 +669,13 @@ def test_a_weeks_result_scores_each_day_with_that_days_roster(monkeypatch, tmp_p
     view = main.week_result(state, 1, players, league, Ctx())
     assert view["final"] == [2.75 + 4.0, 8.0] and view["finished"]
     assert view["goalie_min"] == [False, False]  # nobody's goalies played: goalie points (none) zeroed
+
+
+def test_a_tap_on_an_add_records_its_players(monkeypatch, tmp_path):
+    settings, state, players, _, _ = _setup(monkeypatch, tmp_path, [_tap("skip:add-1")])
+    state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "drop": 2, "drop_name": "B", "message_id": 7,
+                                 "add": {"id": 11, "name": "Joey Daccord", "team": "SEA", "positions": ["G"],
+                                         "slot": None}}
+    main.process_updates(settings, state, players, {"teams": {}, "taken": []}, main.Outbox(settings))
+    d = state["decisions"][-1]
+    assert (d["decision"], d["add"], d["add_name"], d["drop"], d["drop_name"]) == ("skip", 11, "Joey Daccord", 2, "B")

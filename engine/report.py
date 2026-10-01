@@ -167,7 +167,7 @@ def budget_view(adds: list[dict], week: int) -> dict:
 
 def result_view(week: int, opponent: str, days: list[dt.date], mine: list[float], theirs: list[float],
                 goalie_min: list[bool], plan: dict | None, adds: list[dict], skipped: int, budget: dict,
-                finished: bool = True) -> dict:
+                finished: bool = True, scorecard: str | None = None) -> dict:
     """The finished week: each day's points for both teams (box scores, each
     day's roster, goalie points zeroed if the minimum was missed), against
     the week's first plan; the adds made and skipped; the budget."""
@@ -175,7 +175,7 @@ def result_view(week: int, opponent: str, days: list[dt.date], mine: list[float]
     view = {"week": week, "opponent": opponent, "days": [d.isoformat() for d in days], "finished": finished,
             "mine": mine, "theirs": theirs, "final": final, "goalie_min": goalie_min, "plan": plan,
             "adds": len(adds), "added": [a["name"] for a in adds if a["name"]], "skipped": skipped,
-            "budget": budget}
+            "budget": budget, "scorecard": scorecard}
     if plan:
         view["vs_plan"] = [final[i] - plan["expected"][i] for i in (0, 1)]
         view["z"] = [(final[i] - plan["expected"][i]) / plan["sd"][i] if plan["sd"][i] else None for i in (0, 1)]
@@ -204,4 +204,6 @@ def result_text(view: dict) -> str:
     made = f"{view['adds']} made" + (f" ({', '.join(view['added'])})" if view["added"] else "")
     lines.append(f"Adds: {made}, {view['skipped']} suggestion{'' if view['skipped'] == 1 else 's'} skipped. "
                  f"{b['cap'] - used} left; {used} used vs {pace:.1f} at an even pace.")
+    if view.get("scorecard"):
+        lines.append(view["scorecard"])
     return "\n".join(lines)

@@ -2,7 +2,9 @@
 - telegram_offset: next Telegram update id to read
 - briefings: per game date, what was recommended/sent (so nothing repeats)
 - pending: recommendations awaiting a Done/Skip tap
-- decisions: every tap, kept for the weekly report
+- decisions: every tap, kept for the weekly report; an add's also names its add
+  and drop (engine/scorecard.py), and an add suggestion nobody tapped is
+  logged as "none" when it expires
 - adds: every add I made ({id, name, date: NHL date, source}). The add budget
   counts these, however the bot learned of the add: a Done tap, my row in
   League > Transactions, or a new player in my team page or matchup (unless
@@ -67,12 +69,33 @@ WEEK_1 = {
 }
 
 
+# Add suggestions tapped before decisions named their players, from the
+# pending records in git history (2026-10-01).
+PAST_ADD_PLAYERS = {
+    "add-2026-09-29-0922-0": (8476892, "Colton Parayko", None, None),
+    "add-2026-09-29-0246-0": (8476892, "Colton Parayko", None, None),
+    "add-2026-10-01-0715-0": (8481668, "Arturs Silovs", 8483703, "Sergei Murashov"),
+    "add-2026-10-01-0900-0": (8481668, "Arturs Silovs", 8483703, "Sergei Murashov"),
+    "add-2026-10-01-1256-0": (8481617, "Vasily Podkolzin", 8475170, "Brayden Schenn"),
+    "add-2026-10-01-1406-0": (8480855, "Jack McBain", 8475170, "Brayden Schenn"),
+}
+
+
+def add_players(rec: dict) -> dict:
+    """The add and drop of an add recommendation, as a decision records them."""
+    return {"add": rec["add"]["id"], "add_name": rec["add"].get("name"), "drop": rec.get("drop"),
+            "drop_name": rec.get("drop_name")}
+
+
 def load(path: Path = STATE_FILE) -> dict:
     state = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     state.setdefault("telegram_offset", 0)
     state.setdefault("briefings", {})
     state.setdefault("pending", {})
     state.setdefault("decisions", [])
+    for d in state["decisions"]:
+        if d.get("rec_id") in PAST_ADD_PLAYERS and "add" not in d:
+            d.update(zip(("add", "add_name", "drop", "drop_name"), PAST_ADD_PLAYERS[d["rec_id"]]))
     if "adds" not in state:  # before the ledger, Done taps were the only record
         state["adds"] = [
             {"id": None, "name": None, "source": "done",
@@ -123,6 +146,10 @@ def save(state: dict, today: dt.date, path: Path = STATE_FILE) -> None:
     cutoff = (today - dt.timedelta(days=KEEP_DAYS)).isoformat()
     state["briefings"] = {d: b for d, b in state["briefings"].items() if d >= cutoff}
     state["day_rosters"] = {d: r for d, r in state["day_rosters"].items() if d >= cutoff}
+    for rec_id, rec in state["pending"].items():
+        if rec["date"] < cutoff and rec["type"] == "add":  # never tapped: the scorecard still judges it
+            state["decisions"].append({"rec_id": rec_id, "type": "add", "date": rec["date"], "decision": "none",
+                                       "at": None, **add_players(rec)})
     state["pending"] = {k: v for k, v in state["pending"].items() if v["date"] >= cutoff}
     state["decisions"] = state["decisions"][-KEEP_DECISIONS:]
     seen = sorted(state["transactions_seen"].items(), key=lambda kv: kv[1])[-KEEP_TRANSACTIONS:]
