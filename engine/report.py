@@ -101,15 +101,18 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
     stream_rows = []
     for st in streamers or []:
         m = st["move"]
-        merged = {}
+        merged, starts = {}, 0.0
         for wk in (st["this_week"], st["next_week"]):
             for d, day in (wk.lineups if wk else {}).items():
                 if m.add.id in day:
-                    merged[d.isoformat()] = "start" if day[m.add.id][0] != BENCH else "bench"
+                    slot, prob = day[m.add.id]
+                    merged[d.isoformat()] = "start" if slot != BENCH else "bench"
+                    starts += prob if slot != BENCH else 0.0
         cells = [merged.get(d["date"]) for d in days]
         stream_rows.append({"key": move_key(m), "name": _short(m.add.name), "positions": "/".join(m.add.positions), "team": m.add.team,
                             "drop": _short(m.drop.name) if m.drop else None, "cells": cells,
-                            "slot_games": cells.count("start"), "gain": [m.week_gain, st["next_gain"]],
+                            "slot_games": cells.count("start"),
+                            "slot_starts": round(starts, 2) if m.add.is_goalie else None, "gain": [m.week_gain, st["next_gain"]],
                             "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen})
     return {"days": days, "rows": rows, "streamers": stream_rows, "open": open_slots, "my_games": my_games,
             "their_games": their_games, "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}

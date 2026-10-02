@@ -62,6 +62,19 @@ def test_add_view_marks_weeks_past_the_rule_horizon_as_less_certain():
     assert [(w["week"], w["confident"]) for w in view["weeks"]] == [(1, True), (2, True), (3, True), (4, False)]
 
 
+def test_a_goalie_streamer_shows_his_expected_starts_not_just_games():
+    from bot import weekly
+    silovs = RosterPlayer(2, "Arturs Silovs", "PIT", ["G"])
+    move = matchup.Move(silovs, None, 0.0, 0.0, 0.0, 3, 0.5, 0.5)
+    mine = _team(0, {THU: 0.0, FRI: 0.0}, {THU: {}, FRI: {}})
+    week = _team(0, {THU: 3.0, FRI: 1.0}, {THU: {2: ("G", 0.65)}, FRI: {2: ("BN", 0.46)}})
+    stream = {"position": "G", "move": move, "next_gain": 2.0, "this_week": week, "next_week": None}
+    row = report.schedule_view([], [(1, "Bahelin Boys", mine, mine)], [stream])["streamers"][0]
+    assert (row["slot_games"], row["slot_starts"]) == (1, 0.65)  # the benched game isn't a start
+    text = weekly.streamer_text({"streamers": [row]}, [stream], None, adds_left=0)
+    assert "1 games in open slots, ~0.7 expected starts" in text
+
+
 def test_every_chart_draws_a_png():
     roster = [RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G")]
     mine = _team(13.4, {THU: 5.0}, {THU: {3: ("BN", 0.4)}})

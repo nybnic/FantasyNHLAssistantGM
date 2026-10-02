@@ -295,6 +295,13 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
                              open_days, wk.schedule | nxt.schedule)
 
 
+def _slot_games(row: dict) -> str:
+    """A streamer's games in open slots; a goalie's with his expected starts
+    (each game counts at his odds of starting)."""
+    text = f"{row['slot_games']} games in open slots"
+    return text + (f", ~{row['slot_starts']:.1f} expected starts" if row.get("slot_starts") is not None else "")
+
+
 def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), adds_left: int = 1) -> str:
     """The schedule chart's caption. With this week's adds spent, a pickup
     plays from Monday, so only next week's games count."""
@@ -305,7 +312,7 @@ def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), add
         for row, st in zip(view["streamers"], streams):
             m = st["move"]
             lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
-                         + f": {row['slot_games']} games in open slots, net of the drop {st['next_gain']:+.1f} pts.")
+                         + f": {_slot_games(row)}, net of the drop {st['next_gain']:+.1f} pts.")
         return "\n".join(lines)
     if not streams:
         return "No free agent adds points in your open slots this week or next."
@@ -315,7 +322,7 @@ def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), add
         verdict = ("recommended, see below" if row["recommended"]
                    else f"not recommended: {matchup.why_not(m, price, chosen)}")
         lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
-                     + f": {row['slot_games']} games in open slots; net of the drop {m.week_gain:+.1f} pts this "
+                     + f": {_slot_games(row)}; net of the drop {m.week_gain:+.1f} pts this "
                      f"week, {st['next_gain']:+.1f} next ({verdict}).")
     return "\n".join(lines)
 
