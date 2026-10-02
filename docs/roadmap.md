@@ -33,6 +33,15 @@ From the 2026-10-01 review (accuracy first, then the evidence loop, then message
 - Opponent profiles: being logged since 2026-10-01 (`league_adds` from Transactions;
   Yahoo's score vs the box scores' best lineup in `results[week]["live"]`). Once 3-4 weeks
   show an effect, shade opponents' projections (inactive managers, heavy streamers).
+  Nico (2026-10-02): wait for data, no league-wide prior. Today the plan credits my
+  adds but freezes the opponent's roster, so shown win odds run high when they stream
+  (one ~4-5 pt add moves a close week ~5 pp; matters most in weeks I lead by 15-30).
+  Shape: per team, logged add rate x a typical streamer's gain for the days left x
+  a discount for less careful picks (judgment call), minus their lineup gap (Yahoo vs
+  best lineup); only adds not yet visible on their roster; widen sigma a little.
+  Check against projections already running high (`check_sigma`). Needs Transactions
+  screenshots weekly (`league_adds` was empty on 2026-10-02). Done when: per-team
+  shading backtested on the logged weeks, and `explain_week` shows it.
 - Snapshot our own weekly xFP (not DFO's) to check the model in-season.
 - Move the message text out of `engine/matchup.py` (as bot/ did for main.py).
 - Speed: the move search spends most of its time in the lineup solver (2,100 distinct
