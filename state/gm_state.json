@@ -518,7 +518,7 @@
             "C",
             "LW"
           ],
-          "slot": "C",
+          "slot": "BN",
           "team": "UTA"
         },
         {
@@ -583,7 +583,7 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": "BN",
           "team": "SEA"
         },
         {
@@ -619,7 +619,7 @@
           "positions": [
             "D"
           ],
-          "slot": "BN",
+          "slot": "D",
           "team": "DAL"
         },
         {
@@ -628,7 +628,7 @@
           "positions": [
             "C"
           ],
-          "slot": "BN",
+          "slot": "C",
           "team": "WPG"
         }
       ],
@@ -845,6 +845,13 @@
       "drop_name": "Brayden Schenn",
       "rec_id": "add-2026-10-01-1406-0",
       "type": "add"
+    },
+    {
+      "at": "2026-10-02T16:56:44+00:00",
+      "date": "2026-10-02",
+      "decision": "done",
+      "rec_id": "lineup-2026-10-02-1630",
+      "type": "lineup"
     }
   ],
   "health_alerts": {},
@@ -905,27 +912,6 @@
       },
       "date": "2026-10-01",
       "message_id": 96,
-      "type": "lineup"
-    },
-    "lineup-2026-10-02-1630": {
-      "assignment": {
-        "8474564": "RW",
-        "8476457": "BN",
-        "8476460": "C",
-        "8476887": "LW",
-        "8476902": "D",
-        "8477949": "LW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8484801": "C",
-        "8485406": "RW"
-      },
-      "date": "2026-10-02",
-      "message_id": 135,
       "type": "lineup"
     }
   },
@@ -1130,7 +1116,7 @@
     "8484801": "2026-10-02",
     "8485406": "2026-10-02"
   },
-  "telegram_offset": 929784557,
+  "telegram_offset": 929784558,
   "trade_request": null,
   "transaction_rows": [],
   "transactions_seen": {
