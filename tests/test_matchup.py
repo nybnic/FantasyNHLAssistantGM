@@ -241,7 +241,9 @@ def test_streaming_spots_are_the_skaters_closest_to_waiver_level_at_their_positi
     assert matchup.streaming_spots(mine, free, ctx, {}) == {1, 2, 3}
     goalies = [RosterPlayer(20, "G1", "BOS", ["G"]), RosterPlayer(21, "G2", "BOS", ["G"])]
     ctx.prior_start_share = lambda pid: 0.3 if pid == 21 else 0.6
-    assert matchup.streaming_spots(mine + goalies, free, ctx, {}) == {1, 2, 3, 21}  # plus the weakest goalie
+    assert matchup.streaming_spots(mine + goalies, free, ctx, {}) == {1, 2, 3}  # two goalies: both core
+    third = RosterPlayer(22, "G3", "BOS", ["G"])
+    assert matchup.streaming_spots(mine + goalies + [third], free, ctx, {}) == {1, 2, 3, 21}  # the weakest of three
     matchup_spots = matchup.STREAMING_SPOTS
     try:
         matchup.STREAMING_SPOTS = 2
@@ -360,3 +362,37 @@ def test_banked_points_come_from_each_days_roster():
     history = {MON: [RosterPlayer(5, "Dropped", "BOS", ["C"], "C")], TUE: now}
     skaters, _, _ = matchup._so_far(now, ctx, [MON, TUE, WED], history)
     assert skaters == pytest.approx(4.0 + 2.75)  # his Monday goal, then the new player's Tuesday assist
+
+
+def _goalie(pid, team):
+    return RosterPlayer(pid, f"G{pid}", team, ["G"], "G")
+
+
+def test_the_long_run_checks_the_goalie_minimum_week_by_week():
+    ctx = FakeContext()
+    ctx.prior_start_share = lambda pid: 1.0  # certain starters, to keep the arithmetic plain
+    goalies = [_goalie(20, "BOS"), _goalie(21, "TOR")]
+    days = {MON + dt.timedelta(days=d): [_game(MON + dt.timedelta(days=d), "BOS", "TOR")] for d in (7, 8)}  # wk A
+    days[MON + dt.timedelta(days=14)] = [_game(MON + dt.timedelta(days=14), "BOS", "NJD")]  # week B: one start
+    week = matchup.project("me", goalies, ctx, days, {}, {}, long_run=True)
+    # Week A: 4 starts, its 4 x 9 points count (with each goalie's odds of being there); week B: 1 start, zeroed.
+    assert week.goalie_min_prob == 0.0  # the riskiest week
+    one_block = matchup._at_least([1.0] * 5, 0, 3)  # what treating the span as one week would have said
+    assert one_block == 1.0 and week.expected < 4 * 9.0
+
+
+def test_a_third_goalie_is_insurance_in_the_long_run_only():
+    ctx = FakeContext()
+    ctx.prior_start_share = lambda pid: 1.0
+    two = [_goalie(20, "BOS"), _goalie(21, "TOR")]
+    three = two + [_goalie(22, "NJD")]
+    later = {MON + dt.timedelta(days=d): [_game(MON + dt.timedelta(days=d), "BOS", "TOR"),
+                                          _game(MON + dt.timedelta(days=d), "NJD", "PHI")] for d in (14, 15)}
+    this_week = {MON: later[MON + dt.timedelta(days=14)], TUE: later[MON + dt.timedelta(days=15)]}
+    # This week everyone is there: the third goalie sits behind the two starters, worth nothing.
+    assert matchup.project("me", three, ctx, this_week, {}, {}).expected == \
+        pytest.approx(matchup.project("me", two, ctx, this_week, {}, {}).expected)
+    # Weeks on, either starter may be lost for the week (GOALIE_KEEP): then the third plays.
+    gain = matchup.project("me", three, ctx, later, {}, {}, long_run=True).expected \
+        - matchup.project("me", two, ctx, later, {}, {}, long_run=True).expected
+    assert gain > 1.0

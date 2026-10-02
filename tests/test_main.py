@@ -821,3 +821,16 @@ def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
     assert [a["id"] for a in state["adds"]] == [None]
     assert [(p.name, p.slot) for p in players] == [("Jack McBain", "C"), ("Sergei Murashov", "BN")]
     assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == 2
+
+
+def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():
+    from engine.addprice import AddPrice
+    two = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(20, "Knight", "CHI", ["G"], "G"),
+           RosterPlayer(21, "Vejmelka", "UTA", ["G"], "G")]
+    third = matchup.Move(RosterPlayer(30, "Silovs", "PIT", ["G"]), None, 1.0, 5.0, 2.0, 2, 0.50, 0.51, 0.002)
+    skater = matchup.Move(RosterPlayer(31, "Beniers", "SEA", ["C"]), None, 3.0, 0.0, 0.0, 3, 0.50, 0.55)
+    line = weekly.goalie_line(two, [skater, third], AddPrice(0.05, 0.002, 1.2))
+    assert line == ("Goalies: 2, by value. Best move to a third: Silovs, +2.0 win-pts vs the 5.0 an add costs: "
+                    "two are enough for now.")
+    assert "worth an add" in weekly.goalie_line(two, [third], AddPrice(0.01, 0.002, 1.2))
+    assert "(no adds left this week)" in weekly.goalie_line(two, [third], None)

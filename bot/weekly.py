@@ -430,6 +430,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     outbox.send(_action_line(moves, ir_text, wk.max_moves) + "\n\n"
                 + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                                wk.week_used, date, wk.yahoo_projected)
+                + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
                 + (f"\n\n{midweek}" if midweek else "")
                 + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))
                 + (f"\n\n{ir_text}" if ir_text else ""))
@@ -485,6 +486,28 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
                                    candidates, ranked, wk.hold_days)
     return PlanMoves(wk, nxt, ranked, moves, ir_moves, planned,
                      max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))))
+
+
+def goalie_line(players: list, ranked: list, price) -> str:
+    """Two goalies or three, by value: the best move that changes the count,
+    against what an add costs (the same moves the plan weighed)."""
+    goalies = sum(p.is_goalie for p in roster_mod.active(players))
+    if goalies <= matchup.MIN_GOALIES:
+        options = [m for m in ranked if m.add.is_goalie and not (m.drop and m.drop.is_goalie)]
+        what, keep = "a third", "two are enough for now"
+    else:
+        options = [m for m in ranked if m.drop and m.drop.is_goalie and not m.add.is_goalie]
+        what, keep = "two (a skater for your weakest goalie)", "keep three"
+    best = max(options, key=lambda m: m.value, default=None)
+    head = f"Goalies: {goalies}, by value."
+    if best is None:
+        return f"{head} No move to {what} came up."
+    swap = f"{best.add.name}" + (f" for {best.drop.name}" if best.drop else "")
+    if price is None:
+        return f"{head} Best move to {what}: {swap}, {100 * best.value:+.1f} win-pts (no adds left this week)."
+    verdict = "worth an add" if best.value >= price.lam else keep
+    return (f"{head} Best move to {what}: {swap}, {100 * best.value:+.1f} win-pts vs the "
+            f"{100 * price.lam:.1f} an add costs: {verdict}.")
 
 
 def _action_line(moves: list, ir_text: str, adds_left: int = 1) -> str:

@@ -22,7 +22,8 @@ what they do to P(win):
   discounted; a swap into one of my streaming spots is credited only its
   scheduled gain while the streamer would be held (hold_weeks).
 - A move that costs points this week, or a keeper that gains little this
-  week, waits for next week's adds. Three goalies are always kept.
+  week, waits for next week's adds. Two goalies or three is judged by
+  value too: each week's goalie minimum is priced, never less than two kept.
 """
 from __future__ import annotations
 
@@ -38,6 +39,7 @@ from config.league import (PLAYOFF_WEEKS, BENCH_SLOTS, GOALIE_WEIGHTS, MAX_ADDS_
                            fantasy_points)
 from engine import availability, lineup
 from engine.addprice import PLAYOFF_RESERVE, AddPrice
+from league import weeks
 from league.roster import BENCH, RosterPlayer, active
 
 SKATER_VARIANCE_PER_XFP = 2.5
@@ -61,17 +63,19 @@ STREAM_WEEKS = 2
 # weeks, see hold_weeks), so the swap is credited its scheduled gain over that
 # hold only, never the season (Nico, 2026-10-01). Judgment calls; calibrate.
 STREAMING_SPOTS = 3
-# Plus my weakest goalie: with three kept (decision log), the third is swapped
-# goalie for goalie like any streaming spot (Murashov, my lowest-value player).
+# Plus a third goalie, when I carry one: he's swapped goalie for goalie like
+# any streaming spot. Two goalies are both core (the minimum rests on them).
 GOALIE_STREAMING_SPOTS = 1
 REPLACEMENT_SAMPLE = 3  # free agents averaged for a position's replacement level
 # Drops tried: your lowest long-run players per group (forwards, D, goalies).
 # Per group, because per-player value ranks D low (fewer points a game), so a
 # plain bottom 4 was mostly D and never tried a weak forward (Schenn, 2026-10-01).
 DROPS_PER_GROUP = 2
-# Keep three goalies: with two, one injury or a light schedule week risks
-# the goalie minimum, which zeroes every goalie point that week.
-MIN_GOALIES = 3
+# Two goalies or three is judged by value (Nico, 2026-10-02): the projection
+# prices each week's goalie minimum and a goalie lost for the week
+# (availability.GOALIE_KEEP), so a third goalie is kept, dropped or added like
+# any other move. Below two, the minimum (3 starts a week) is out of reach.
+MIN_GOALIES = 2
 # Free agents shortlisted per position (so an empty D slot finds a D) by
 # this week's value, plus a few by long-run value.
 POOL_PER_POSITION = 8
@@ -79,7 +83,7 @@ POOL_LONG_TERM_PER_POSITION = 3
 # Plus a few per skater position by schedule fit: points on the nights my best
 # lineup leaves that slot open, this week and next (streamers).
 POOL_FIT_PER_POSITION = 4
-STREAMER_POSITIONS = ("C", "LW", "RW", "D")  # no goalie streaming: three goalies kept (decision log)
+STREAMER_POSITIONS = ("C", "LW", "RW", "D", "G")  # a goalie fits the nights a G slot is open
 STREAMER_SHORTLIST = 4  # per position, judged on next week's lineup too
 # Display only: the smallest win-odds lift worth naming as "the biggest swing".
 # Whether a move is worth an add is engine/addprice.py's call.
@@ -223,18 +227,50 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
     `joins` holds players who only count from a date on (a waiver claim).
     `so_far` (skater points, goalie points, goalie games) replaces the box
     scores: a trial roster keeps the points the real one banked, since an
-    added player's earlier games never count for you."""
+    added player's earlier games never count for you.
+    A schedule spanning several fantasy weeks (the long run) is projected week
+    by week and summed: the goalie minimum holds for each week, not the span."""
+    by_week: dict[int | None, dict] = {}
+    for d in sorted(schedule):
+        by_week.setdefault(weeks.week_of(d), {})[d] = schedule[d]
+    if len(by_week) > 1:
+        parts = [_project_week(name, roster, ctx, part, lines, starters, long_run, joins, so_far if i == 0 else None)
+                 for i, part in enumerate(by_week.values())]
+        return TeamWeek(
+            name=name, so_far=parts[0].so_far, expected=sum(p.expected for p in parts),
+            variance=sum(p.variance for p in parts), player_games=sum(p.player_games for p in parts),
+            goalie_games_so_far=parts[0].goalie_games_so_far,
+            goalie_starts_left=sum(p.goalie_starts_left for p in parts),
+            goalie_min_prob=min(p.goalie_min_prob for p in parts),  # the riskiest week
+            by_day={d: v for p in parts for d, v in p.by_day.items()},
+            lineups={d: v for p in parts for d, v in p.lineups.items()},
+        )
+    return _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far)
+
+
+def _goalie_states(goalies: list[RosterPlayer], keep: dict[int, float]) -> list[tuple[float, set[int]]]:
+    """(probability, goalies available) for each combination of my goalies
+    being there all week or not (`keep`: each one's odds of being there)."""
+    states = [(1.0, set())]
+    for g in goalies:
+        a = keep.get(g.id, 1.0)
+        states = [(p * a, s | {g.id}) for p, s in states] + ([(p * (1 - a), s) for p, s in states] if a < 1 else [])
+    return states
+
+
+def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far) -> TeamWeek:
     joins = joins or {}
     roster = active(roster)
     days = sorted(schedule)
     skater_so_far, goalie_so_far, goalie_games = so_far or _so_far(roster, ctx, days)
-    skater_mean = skater_var = goalie_mean = goalie_var = 0.0
-    start_probs: list[float] = []
+    skater_mean = skater_var = 0.0
     player_games = 0
     day_skaters: dict[dt.date, float] = {}
-    day_goalies: dict[dt.date, float] = {}
+    goalie_days: dict[dt.date, dict[int, tuple[float, float, float]]] = {}
     lineups: dict[dt.date, dict[int, tuple[str, float]]] = {}
-    for date in (d for d in days if d >= ctx.today):
+    goalies = [p for p in roster if p.is_goalie]
+    upcoming = [d for d in days if d >= ctx.today]
+    for date in upcoming:
         game_of = _game_of(schedule[date])
         yesterday = _game_of(schedule.get(date - dt.timedelta(days=1), []))
         values = {}
@@ -242,42 +278,65 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
             game = game_of.get(p.team)
             if game and date >= joins.get(p.id, date):
                 values[p.id] = _player_day(p, ctx, date, game, p.team in yesterday, lines, starters, long_run)
+        # Only goalies fill G slots, so skaters and goalies are set apart.
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
-                      for p in roster if p.id in values]
-        by_id = {p.id: p for p in roster}
-        assignment = lineup.optimize(candidates)
-        lineups[date] = {pid: (slot, values[pid][2]) for pid, slot in assignment.items()}
-        day_skaters[date] = day_goalies[date] = 0.0
+                      for p in roster if p.id in values and not p.is_goalie]
+        assignment = lineup.optimize(candidates, {s: n for s, n in STARTERS.items() if s != "G"})
+        lineups[date] = {pid: (slot, 1.0) for pid, slot in assignment.items()}
+        day_skaters[date] = 0.0
         for pid, slot in assignment.items():
-            if slot == BENCH:
-                continue
-            mean, var, prob = values[pid]
-            player_games += 1
-            if by_id[pid].is_goalie:
-                goalie_mean += mean
-                goalie_var += var
-                day_goalies[date] += mean
-                start_probs.append(prob)
-            else:
+            if slot != BENCH:
+                mean, var, _ = values[pid]
+                player_games += 1
                 skater_mean += mean
                 skater_var += var
                 day_skaters[date] += mean
+        goalie_days[date] = {g.id: values[g.id] for g in goalies if g.id in values}
 
-    min_prob = _at_least(start_probs, goalie_games, MIN_GOALIE_GAMES_PER_WEEK)
-    goalie_total = goalie_so_far + goalie_mean
-    # Goalie points only count if the minimum is met (a Bernoulli on top).
-    goalie_week_var = min_prob * (goalie_var + goalie_total ** 2) - (min_prob * goalie_total) ** 2
+    # The long run weighs losing a goalie for the week (injury, a lost job):
+    # each is there with GOALIE_KEEP odds at the week's midpoint, and on each
+    # day the two best of those there start. This week, DFO's news covers it.
+    keep = {}
+    if long_run and upcoming:
+        mid = (upcoming[len(upcoming) // 2] - ctx.today).days
+        keep = {g.id: availability.ahead(availability.GOALIE_KEEP, mid, 1.0) for g in goalies}
+    expected_goalie = second_moment = starts_left = min_prob = goalie_mean = 0.0
+    day_goalies = {d: 0.0 for d in upcoming}
+    for p_state, there in _goalie_states(goalies, keep):
+        probs, mean, var, per_day = [], 0.0, 0.0, {}
+        for date in upcoming:
+            playing = sorted(((v, pid) for pid, v in goalie_days[date].items() if pid in there), reverse=True)
+            started = playing[:STARTERS["G"]]
+            per_day[date] = sum(v[0] for v, _ in started)
+            for (m, v, prob), pid in started:
+                mean += m
+                var += v
+                probs.append(prob)
+            if len(there) == len(goalies):  # the lineup shown: everyone there
+                for rank, ((m, v, prob), pid) in enumerate(playing):
+                    lineups[date][pid] = ("G" if rank < STARTERS["G"] else BENCH, prob)
+                player_games += len(started)
+        p_min = _at_least(probs, goalie_games, MIN_GOALIE_GAMES_PER_WEEK)
+        total = goalie_so_far + mean
+        expected_goalie += p_state * p_min * total
+        second_moment += p_state * p_min * (var + total ** 2)
+        starts_left += p_state * sum(probs)
+        min_prob += p_state * p_min
+        goalie_mean += p_state * mean
+        for d in upcoming:
+            day_goalies[d] += p_state * p_min * per_day[d]
+    goalie_week_var = second_moment - expected_goalie ** 2
     model_var = (MODEL_SD_SHARE * (skater_mean + goalie_mean)) ** 2
     return TeamWeek(
         name=name,
         so_far=skater_so_far + goalie_so_far,
-        expected=skater_so_far + skater_mean + min_prob * goalie_total,
+        expected=skater_so_far + skater_mean + expected_goalie,
         variance=skater_var + goalie_week_var + model_var,
         player_games=player_games,
         goalie_games_so_far=goalie_games,
-        goalie_starts_left=sum(start_probs),
+        goalie_starts_left=starts_left,
         goalie_min_prob=min_prob,
-        by_day={d: day_skaters[d] + min_prob * day_goalies[d] for d in day_skaters},
+        by_day={d: day_skaters[d] + day_goalies[d] for d in upcoming},
         lineups=lineups,
     )
 
@@ -310,7 +369,7 @@ def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], c
                     lines: dict[str, dict[str, LineInfo]]) -> set[int]:
     """Ids of my STREAMING_SPOTS skaters with the least long-run value above
     the best free agents at their position (so D and forwards compare fairly),
-    and my GOALIE_STREAMING_SPOTS weakest goalies."""
+    and my GOALIE_STREAMING_SPOTS weakest goalies beyond MIN_GOALIES."""
     def replacement(position: str) -> float:
         values = sorted((season_value(p, ctx, lines) for p in free_agents
                          if position in p.positions and not p.is_goalie), reverse=True)[:REPLACEMENT_SAMPLE]
@@ -320,7 +379,8 @@ def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], c
     skaters = [p for p in mine if not p.is_goalie]
     by_gap = sorted(skaters, key=lambda p: season_value(p, ctx, lines) - levels.get(p.positions[0], 0.0))
     goalies = sorted((p for p in mine if p.is_goalie), key=lambda p: season_value(p, ctx, lines))
-    return {p.id for p in by_gap[:STREAMING_SPOTS] + goalies[:GOALIE_STREAMING_SPOTS]}
+    spare_goalies = goalies[:GOALIE_STREAMING_SPOTS] if len(goalies) > MIN_GOALIES else []
+    return {p.id for p in by_gap[:STREAMING_SPOTS] + spare_goalies}
 
 
 def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:

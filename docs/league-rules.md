@@ -107,7 +107,7 @@ What this means:
 **At least 3 goalie appearances per week** in active G slots, or **all goalie
 points that week are zeroed**. Yahoo counts *appearances*, so relief
 appearances count toward the 3, but only while the goalie is in a G slot. Missing it almost certainly loses the matchup, which
-is why we carry 3 goalies (decision log in `engine/CLAUDE.md`).
+is why the bot weighs carrying a third goalie every week (decision log in `engine/CLAUDE.md`).
 
 ## Transactions
 - **Adds:** max **2 per week**, **36 for the entire season**, playoffs included,

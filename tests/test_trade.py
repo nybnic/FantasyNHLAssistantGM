@@ -41,8 +41,8 @@ def _full(team, first_id, goalies):
             + [RosterPlayer(first_id + 50 + i, f"G{first_id + i}", team, ["G"], "BN") for i in range(goalies)])
 
 
-def test_trading_a_goalie_away_makes_room_for_another_to_keep_three():
-    mine, theirs = _full("BOS", 100, 3), _full("NYR", 300, 2) + [RosterPlayer(11, "Star", "NYR", ["C"])]
+def test_trading_a_goalie_away_below_two_makes_room_for_another():
+    mine, theirs = _full("BOS", 100, 2), _full("NYR", 300, 2) + [RosterPlayer(11, "Star", "NYR", ["C"])]
     theirs = [p for p in theirs if p.id != 300]  # keep them at the limit
     pool = [RosterPlayer(900, "Free Goalie", "PHI", ["G"]), RosterPlayer(9, "Free Skater", "PHI", ["C"])]
     schedule = {MON: [_game(MON, "BOS", "NYR")], WED: [_game(WED, "PHI", "BOS")]}

@@ -44,6 +44,15 @@ IR_MIN_MISSED = 3  # NHL IR is 7+ days: someone just placed there returns like a
 # (a judgment call: DFO statuses aren't archived, so this can't be fit).
 DTD_RETURN = (0.85,) + (HEALTHY_PLAY,) * 5
 
+# A healthy goalie's odds of still holding his starts this many days on
+# (injuries, a lost job), per RETURN_BUCKETS: his starts then over his share
+# of the last 10, relative to 3-6 days on (the first days dip for
+# back-to-backs, handled apart, and the last-10 share drifting to the mean).
+# scripts/fit_absence.py --goalies: fit on 2024-25, 2023-24 and 2025-26 within 0.04.
+# The long run treats a goalie as there all week or not at all, so a lost
+# goalie takes all his starts with him (what makes a third goalie insurance).
+GOALIE_KEEP = (1.0, 1.0, 0.98, 0.95, 0.93, 0.90)
+
 CONFIRMED_START = 0.97
 LIKELY_START = 0.8
 RECENT_STARTS = 10

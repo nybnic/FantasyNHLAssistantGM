@@ -88,7 +88,19 @@ def curves(season: int) -> dict[str, dict[tuple[int, int], list[int]]]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seasons", nargs="+", type=int, default=[20242025, 20252026])
+    parser.add_argument("--goalies", action="store_true", help="goalies' starts k days on, vs their share then")
     args = parser.parse_args()
+    if args.goalies:
+        header = "".join(f"{f'{a}-{b}d':>9}" for a, b in availability.RETURN_BUCKETS)
+        for season in args.seasons:
+            cells = goalie_curves(season)
+            print(f"{season}: a goalie's starts k days on / his share of the last 10 then")
+            print(f"{'':14}{header}")
+            ratios = [made / exp for made, exp in cells.values()]
+            print(f"{'goalies':14}" + "".join(f"{r:9.2f}" for r in ratios))
+            print(f"{'  / 3-6 days':14}" + "".join(f"{min(r / ratios[1], 1.0):9.2f}" for r in ratios))
+            print(f"{'  model':14}" + "".join(f"{v:9.2f}" for v in availability.GOALIE_KEEP))
+        return
     model = {_label(most or 999): curve for most, curve in availability.RETURN_CURVES}
     for season in args.seasons:
         print(f"\n{season}: P(plays a team game k days after the anchor game)")
@@ -100,6 +112,38 @@ def main() -> None:
             print(f"{group:14}{row}   ({sum(n for _, n in cells.values())})")
             if group in model:
                 print(f"{'  model':14}" + "".join(f"{p:9.2f}" for p in model[group]))
+
+
+
+
+GOALIE_SHARE_MIN = 0.3  # a goalie with a role: this share of his team's last 10 starts
+GOALIE_RECENT = 5  # ...and a start in its last 5 games (not already hurt)
+
+
+def goalie_curves(season: int) -> dict[tuple[int, int], list[float]]:
+    """bucket -> [starts made, starts expected at the anchor's share]: how a
+    goalie's starts hold up k days after a game (injuries, lost jobs)."""
+    starts = [g for g in nhl_stats.goalie_games(season) if g.started]
+    by_team: dict[str, list[tuple[dt.date, int]]] = defaultdict(list)
+    for g in sorted(starts, key=lambda g: g.date):
+        by_team[g.team].append((g.date, g.player_id))
+    out = {b: [0.0, 0.0] for b in availability.RETURN_BUCKETS}
+    for team, seq in by_team.items():
+        for i in range(10, len(seq)):
+            anchor = seq[i - 1][0]  # the team's latest game before seq[i]
+            last10 = [pid for _, pid in seq[i - 10:i]]
+            for goalie in set(last10):
+                share = last10.count(goalie) / 10
+                if share < GOALIE_SHARE_MIN or goalie not in last10[-GOALIE_RECENT:]:
+                    continue
+                for d, pid in seq[i:]:
+                    k = (d - anchor).days
+                    bucket = next((b for b in availability.RETURN_BUCKETS if b[0] <= k <= b[1]), None)
+                    if bucket is None:
+                        break
+                    out[bucket][0] += pid == goalie
+                    out[bucket][1] += share
+    return out
 
 
 if __name__ == "__main__":

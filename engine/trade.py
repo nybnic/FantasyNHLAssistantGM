@@ -6,8 +6,9 @@ week, before and after. Both teams play from the same free-agent pool, so:
 - a team left with an open roster spot fills it with its best free agent
   (that costs an add), and one left over the limit drops its lowest-value
   players;
-- you always keep three goalies (decision log), so trading one away means
-  adding one;
+- you keep at least two goalies (matchup.MIN_GOALIES), so trading one away
+  below that means adding one; above it, the projection (each week's goalie
+  minimum) prices whether the third is worth his spot;
 - the result is close to zero-sum: what you gain they mostly lose. A trade
   gets accepted because they value players differently (names, "starting
   goalie"), which the numbers here don't try to model.

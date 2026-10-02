@@ -49,7 +49,8 @@
 | Date | Decision | Why |
 |---|---|---|
 | 2026-09-29 | Optimize P(win this week), not season points | H2H: only beating this week's opponent counts |
-| 2026-09-29 | **Always keep 3 goalies** (policy A, Nico) | Season sim: 2G + a skater = +35 pts, but 2.5 vs 1.1 weeks with goalie points zeroed, plus goalie streams cost adds |
+| 2026-09-29 | ~~**Always keep 3 goalies** (policy A, Nico)~~ Superseded 2026-10-02: goalie count by value | Season sim: 2G + a skater = +35 pts, but 2.5 vs 1.1 weeks with goalie points zeroed, plus goalie streams cost adds |
+| 2026-10-02 | **Two goalies or three is judged by value** (Nico: "based on analytical estimates"); never fewer than two | The long run now checks the goalie minimum each week (it had checked a 6-week block: "100%") and weighs a goalie lost for the week (`availability.GOALIE_KEEP`, fit on game logs), so a third goalie is kept, dropped or added like any move. `scripts/sim_goalies.py`, 2025-26, 8 leagues x 16 teams: by-value + like-for-like swaps +0.05 wins a season vs always-3 + swaps (+/- 0.10), carrying 2.87 goalies; always-2 -0.65 (+/- 0.18) vs always-3, -1.01 with swaps, with twice the weeks zeroed. So by value is as good as three and clearly better than two |
 | 2026-09-29 | Long run is judged by a whole-lineup projection, not per-player value | The per-player shortcut dropped D into a thin D group and chased injury-prone forwards |
 | 2026-09-29 | Upgrades that cost > 1 pt this week wait | They can be made next week at no cost |
 | 2026-09-29 | ~~Long-run edges must show within 2 weeks~~ Superseded 2026-10-01 by the add price | Tiny edges multiplied over a season are noise (e.g. goalie-for-goalie swaps); now handled by the 6-week long run and streaming-spot holds |
@@ -70,4 +71,4 @@
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
-`PLAYOFF_RESERVE` 6, `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 (wording only), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 (wording only), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.
