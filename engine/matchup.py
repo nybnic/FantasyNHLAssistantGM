@@ -221,10 +221,12 @@ def _so_far(roster, ctx, days, history: dict[dt.date, list[RosterPlayer]] | None
 
 def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
             lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict], long_run: bool = False,
-            joins: dict[int, dt.date] | None = None, so_far: tuple[float, float, int] | None = None) -> TeamWeek:
+            joins: dict[int, dt.date] | None = None, so_far: tuple[float, float, int] | None = None,
+            leaves: dict[int, dt.date] | None = None) -> TeamWeek:
     """The team's week. `schedule` has every day of the fantasy week; days
     before ctx.today are scored from box scores, the rest projected.
-    `joins` holds players who only count from a date on (a waiver claim).
+    `joins` holds players who only count from a date on (a waiver claim),
+    `leaves` players who count only before one (that claim's drop).
     `so_far` (skater points, goalie points, goalie games) replaces the box
     scores: a trial roster keeps the points the real one banked, since an
     added player's earlier games never count for you.
@@ -234,7 +236,8 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
     for d in sorted(schedule):
         by_week.setdefault(weeks.week_of(d), {})[d] = schedule[d]
     if len(by_week) > 1:
-        parts = [_project_week(name, roster, ctx, part, lines, starters, long_run, joins, so_far if i == 0 else None)
+        parts = [_project_week(name, roster, ctx, part, lines, starters, long_run, joins, so_far if i == 0 else None,
+                               leaves)
                  for i, part in enumerate(by_week.values())]
         return TeamWeek(
             name=name, so_far=parts[0].so_far, expected=sum(p.expected for p in parts),
@@ -245,7 +248,7 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
             by_day={d: v for p in parts for d, v in p.by_day.items()},
             lineups={d: v for p in parts for d, v in p.lineups.items()},
         )
-    return _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far)
+    return _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far, leaves)
 
 
 def _goalie_states(goalies: list[RosterPlayer], keep: dict[int, float]) -> list[tuple[float, set[int]]]:
@@ -258,8 +261,8 @@ def _goalie_states(goalies: list[RosterPlayer], keep: dict[int, float]) -> list[
     return states
 
 
-def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far) -> TeamWeek:
-    joins = joins or {}
+def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far, leaves=None) -> TeamWeek:
+    joins, leaves = joins or {}, leaves or {}
     roster = active(roster)
     days = sorted(schedule)
     skater_so_far, goalie_so_far, goalie_games = so_far or _so_far(roster, ctx, days)
@@ -276,7 +279,7 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         values = {}
         for p in roster:
             game = game_of.get(p.team)
-            if game and date >= joins.get(p.id, date):
+            if game and joins.get(p.id, date) <= date < leaves.get(p.id, date + dt.timedelta(days=1)):
                 values[p.id] = _player_day(p, ctx, date, game, p.team in yesterday, lines, starters, long_run)
         # Only goalies fill G slots, so skaters and goalies are set apart.
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
@@ -519,12 +522,12 @@ def candidate_moves(
     moves = []
     for add in candidates:
         plays_from = (available_from or {}).get(add.id)
-        joins = {add.id: plays_from} if plays_from else None
         for drop in drops:
             if drop and drop.is_goalie and not add.is_goalie and sum(p.is_goalie for p in mine) <= MIN_GOALIES:
                 continue
             trial = _swap(roster, add, drop)
-            week = project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far)
+            during, joins, leaves = _deferred(roster, add, drop, plays_from)
+            week = project("me", during, ctx, schedule, lines, starters, joins=joins, so_far=so_far, leaves=leaves)
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
             later = soon_gain = held_gain = 0.0
@@ -561,6 +564,17 @@ def rejection(move: Move, price: AddPrice) -> str | None:
 def _swap(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None) -> list[RosterPlayer]:
     return [p for p in roster if drop is None or p.id != drop.id] + [
         RosterPlayer(add.id, add.name, add.team, add.positions, BENCH)]
+
+
+def _deferred(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None,
+              plays_from: dt.date | None) -> tuple[list[RosterPlayer], dict | None, dict | None]:
+    """The trial roster with its (joins, leaves) for project: an add who can't
+    play before `plays_from` (a waiver claim, or this week's adds spent) is
+    made then, so his drop keeps playing until that day."""
+    if plays_from is None:
+        return _swap(roster, add, drop), None, None
+    return (_swap(roster, add, None), {add.id: plays_from},
+            {drop.id: plays_from} if drop else None)
 
 
 def best_moves(
@@ -632,11 +646,13 @@ def streamers(
     lines: dict[str, dict[str, LineInfo]],
     starters: dict[str, dict],
     so_far: tuple[float, float, int] | None = None,
+    available_from: dict[int, dt.date] | None = None,
 ) -> list[dict]:
     """Per skater position, the free agent who adds the most points to my
     lineup over this week and next (games on nights the slot is full add
-    nothing), with his best drop: {"position", "move", "next_gain", "this_week",
-    "next_week"} (the trial lineups' weeks). Positions where nobody helps are left out."""
+    nothing, and so do games before he can join: `available_from`), with his
+    best drop: {"position", "move", "next_gain", "this_week", "next_week"}
+    (the trial lineups' weeks). Positions where nobody helps are left out."""
     base_next = project("me", roster, ctx, next_schedule, lines, starters, True).expected if next_schedule else 0.0
     out, used = [], set()
     for position in STREAMER_POSITIONS:
@@ -649,12 +665,14 @@ def streamers(
         shortlisted = sorted(best.values(), key=lambda m: m.week_gain + m.next_weeks / 2, reverse=True)
         top = None
         for m in shortlisted[:STREAMER_SHORTLIST]:
-            trial = _swap(roster, m.add, m.drop)
-            nxt = project("me", trial, ctx, next_schedule, lines, starters, True) if next_schedule else None
+            trial, joins, leaves = _deferred(roster, m.add, m.drop, (available_from or {}).get(m.add.id))
+            nxt = (project("me", trial, ctx, next_schedule, lines, starters, True, joins, leaves=leaves)
+                   if next_schedule else None)
             gain = (nxt.expected - base_next) if nxt else 0.0
             if m.week_gain + gain > 0 and (top is None or m.week_gain + gain > top["move"].week_gain + top["next_gain"]):
                 top = {"position": position, "move": m, "next_gain": gain, "next_week": nxt,
-                       "this_week": project("me", trial, ctx, schedule, lines, starters, so_far=so_far)}
+                       "this_week": project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far,
+                                            leaves=leaves)}
         if top:
             used.add(top["move"].add.id)
             out.append(top)
@@ -688,7 +706,8 @@ def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, price: AddPri
         return None
     lines = [f"Mid-week: behind ({_pct(p_win)}) but close, so chase: you trail by {-gap:.0f} expected points."]
     if chase is None:
-        lines.append("No free agent moves your odds much, so there's nothing to chase with.")
+        lines.append("No adds left this week, so there's nothing to chase with." if price is None
+                     else "No free agent moves your odds much, so there's nothing to chase with.")
         return "\n".join(lines)
     swing = (f"Biggest swing: add {chase.add.name} ({_games(chase.games)} left)"
              + (f" for {chase.drop.name}" if chase.drop else "")

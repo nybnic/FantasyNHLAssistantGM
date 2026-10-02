@@ -46,7 +46,8 @@ def current_pool() -> dict:
     wk = weekly.week_inputs(date, week, players, league, state, context.build, common.current_opponent(state, week))
     ranked = matchup.candidate_moves(players, wk.them, weekly.add_candidates(wk, weekly.next_week(week, players, wk)),
                                      wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future, wk.weeks_after,
-                                     wk.available_from, wk.so_far, wk.hold_days, wk.later_weight)
+                                     weekly.waiver_days(wk.pool, league, date),  # what the week offers, adds or not
+                                     wk.so_far, wk.hold_days, wk.later_weight)
     remaining = sum(d >= date for d in wk.days)
     return addprice.pool_entry(ranked, remaining, math.sqrt(wk.me.variance + wk.them.variance), wk.tau)
 

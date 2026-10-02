@@ -66,8 +66,10 @@ def main_() -> None:
           f"{wk.max_moves} allowed now; matchup spread tau {wk.tau:.1f} pts, a later point = "
           f"{100 * wk.later_weight:.2f} win-pts")
     print("  add price: " + (f"{100 * price.lam:.1f} win-pts (pace {price.pace:.2f} adds a week, "
-                             f"{len(state['add_pools'])} week(s) of candidates logged)" if price else "none (budget spent)")
-          + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from else ""))
+                             f"{len(state['add_pools'])} week(s) of candidates logged)" if price
+                             else "none (no adds left this week: everyone joins Monday)" if not wk.max_moves
+                             else "none (budget spent)")
+          + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from and wk.max_moves else ""))
     print(f"\n{len(ranked)} moves from {len(candidates)} free agents (value = this week's win-pts + later win-pts):")
     print(f"  {'add':22} {'pos':5} {'drop':18} {'wk gms':>6} {'week':>6} {'later':>6} {'now':>5} {'+later':>6} "
           f"{'value':>6}  win     verdict")

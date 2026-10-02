@@ -23,7 +23,9 @@
   constants come from `model/CLAUDE.md`).
 - **Candidate moves:** free agents shortlisted per position (and by schedule fit),
   times drops (the open spot first, then my 2 lowest long-run players per group:
-  forwards, D, goalies).
+  forwards, D, goalies). An add who can't play yet (waivers, or this week's adds
+  spent: everyone joins Monday) counts from that day, and his drop plays until
+  then (`_deferred`): Yahoo makes both at once.
 - **Later points** = the long run. Long run = the whole-lineup
   projection over the next 6 weeks (`LONG_RUN_WEEKS`, with durability), per
   week, times the weeks left, x `LONG_RUN_DISCOUNT` 0.5. Dropping one of my

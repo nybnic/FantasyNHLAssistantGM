@@ -64,7 +64,7 @@ class WeekInputs:
     later_weight: float  # win probability per later point (addprice.later_weight)
     tau: float  # spread of the league's matchup margins
     weeks_after: int
-    available_from: dict  # player id -> first day he can play for me: waivers
+    available_from: dict  # player id -> first day he can play for me: waivers, or Monday with no adds left
     so_far: tuple | None = None  # my banked points: a matchup screenshot's, else box scores by day's roster
     live: bool = False  # so_far comes from a matchup screenshot taken today
     # Then Yahoo's score and the box scores' best-lineup score for the same days
@@ -107,6 +107,10 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
     remaining = sum(d >= date for d in days)
     pool = free_agents(players, league)
+    max_moves = matchup.max_moves(season_used, week_used)
+    available_from = waiver_days(pool, league, date)
+    if not max_moves:
+        available_from = after_this_week(available_from, pool, days)
     tau = league_tau(players, league, ctx, future, lines, starters)
     sigma_week = math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1))
     return WeekInputs(
@@ -119,10 +123,17 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
                       - sum(d >= date for d in days)),
         pool=pool,
         season_used=season_used, week_used=week_used,
-        max_moves=matchup.max_moves(season_used, week_used),
+        max_moves=max_moves,
         weeks_after=weeks.LAST_WEEK - week,
-        available_from=waiver_days(pool, league, date),
+        available_from=available_from,
     )
+
+
+def after_this_week(available_from: dict, pool: list, days: list[dt.date]) -> dict[int, dt.date]:
+    """With this week's adds spent, nobody joins before Monday: every free
+    agent's first day moves to next week's first (or his waiver day, if later)."""
+    monday = days[-1] + dt.timedelta(days=1)
+    return {p.id: max(available_from.get(p.id, monday), monday) for p in pool}
 
 
 def league_tau(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict) -> float:
@@ -142,8 +153,8 @@ def league_tau(players: list, league: dict, ctx, future: dict, lines: dict, star
 def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
     """The add's price this week, solved over this week's candidates and the
     ones logged in earlier weeks (state["add_pools"])."""
-    if wk.pace is None:
-        return None
+    if wk.pace is None or not wk.max_moves:
+        return None  # with this week's adds spent, its candidates can't join: the logged pool stays
     sigma_now = math.sqrt(wk.me.variance + wk.them.variance)
     remaining = sum(d >= date for d in wk.days)
     state["add_pools"][str(week)] = addprice.pool_entry(ranked, remaining, sigma_now, wk.tau)
@@ -284,7 +295,18 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
                              open_days, wk.schedule | nxt.schedule)
 
 
-def streamer_text(view: dict, streams: list[dict], price, chosen: list = ()) -> str:
+def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), adds_left: int = 1) -> str:
+    """The schedule chart's caption. With this week's adds spent, a pickup
+    plays from Monday, so only next week's games count."""
+    if not adds_left:
+        if not streams:
+            return "This week's adds are used. No free agent adds points in your open slots next week."
+        lines = ["This week's adds are used; best streamer per position from Monday:"]
+        for row, st in zip(view["streamers"], streams):
+            m = st["move"]
+            lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
+                         + f": {row['slot_games']} games in open slots, net of the drop {st['next_gain']:+.1f} pts.")
+        return "\n".join(lines)
     if not streams:
         return "No free agent adds points in your open slots this week or next."
     lines = ["Best streamer per position, this week + next:"]
@@ -311,7 +333,8 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, nxt.schedule,
                                  wk.lines, wk.starters, True)
         spans.append((nxt.week, opp or "?", nxt.mine, theirs))
-    streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far)
+    streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
+                                wk.available_from)
     schedule = report.schedule_view(players, spans, streams, moves)
     budget = report.budget_view(state["adds"], week)
     by_key = {report.move_key(m): m for m in ranked}
@@ -326,7 +349,7 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
         adds[key] = report.add_view(m, week, gains, budget, verdict)
     return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
-            "streamer_text": streamer_text(schedule, streams, price, moves)}
+            "streamer_text": streamer_text(schedule, streams, price, moves, wk.max_moves)}
 
 
 def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,

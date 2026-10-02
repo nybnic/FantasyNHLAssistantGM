@@ -786,6 +786,26 @@ def test_a_plan_on_a_matchup_screenshot_logs_yahoos_score_next_to_the_box_scores
     assert wk.live and wk.live_check == {"through": "2026-10-01", "yahoo": [13.4, 51.5], "box": [12.0, 12.0]}
 
 
+def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_path):
+    from engine import matchup
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    state["adds"] = [{"id": 90 + i, "date": "2026-09-30"} for i in range(2)]  # week 1's two
+    pool = [RosterPlayer(7, "Free", "SEA", ["C"]), RosterPlayer(8, "Waived", "BOS", ["D"])]
+    monkeypatch.setattr(weekly, "free_agents", lambda players, league: pool)
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    monkeypatch.setattr(nhl_client, "current_teams", lambda: [])
+    monkeypatch.setattr(goalie_client, "get_starters", lambda d: {})
+    monkeypatch.setattr(matchup, "_so_far", lambda roster, ctx, days, history=None: (10.0, 2.0, 1))
+
+    class Ctx:
+        today = dt.date(2026, 10, 2)
+    league = {"teams": {}, "taken": [], "waivers": {"8": "2026-10-06"}}
+    wk = weekly.week_inputs(dt.date(2026, 10, 2), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
+    assert wk.max_moves == 0
+    assert wk.available_from == {7: dt.date(2026, 10, 5), 8: dt.date(2026, 10, 6)}  # Monday, or a later waiver day
+    assert weekly.add_price(state, 1, wk, [], wk.days[0]) is None and "1" not in state["add_pools"]
+
+
 def test_other_teams_adds_are_logged_from_transactions(monkeypatch, tmp_path):
     shot = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")]),
             _tx("add", (9, 30, 10, 59), ["Nico's Groovy Team"], [("E. Lindell", "add")])]

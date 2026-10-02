@@ -222,6 +222,34 @@ def test_the_best_streamer_per_position_counts_only_points_that_reach_the_lineup
     assert all(s["move"].drop is None for s in found)  # open roster spots first
 
 
+def test_a_streamer_who_joins_next_week_gets_nothing_this_week():
+    # This week's adds are spent: he plays from Monday, so only next week's game counts.
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C")]
+    schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "NYR", "BOS")]}
+    next_mon = MON + dt.timedelta(days=7)
+    next_schedule = {next_mon: [_game(next_mon, "NYR", "PHI")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    pool = [RosterPlayer(9, "Wing", "NYR", ["LW"])]
+    joins = {9: next_mon}
+    ranked = matchup.candidate_moves(roster, opponent, pool, FakeContext(), schedule, {}, {}, future={},
+                                     weeks_after=0, available_from=joins)
+    assert ranked[0].week_gain == 0 and ranked[0].win_after == ranked[0].win_before
+    [found] = matchup.streamers(roster, ranked, FakeContext(), schedule, next_schedule, {}, {},
+                                available_from=joins)
+    assert not any(9 in day for day in found["this_week"].lineups.values())
+    assert 9 in found["next_week"].lineups[next_mon] and found["next_gain"] > 0
+
+
+def test_a_deferred_adds_drop_keeps_playing_until_he_joins():
+    # A claim from Tuesday: the drop plays Monday, the add from Tuesday, never both.
+    star, wing = RosterPlayer(1, "Star", "NYR", ["LW"], "LW"), RosterPlayer(9, "Wing", "NYR", ["LW"])
+    schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "NYR", "BOS")]}
+    trial, joins, leaves = matchup._deferred([star], wing, star, TUE)
+    week = matchup.project("me", trial, FakeContext(), schedule, {}, {}, joins=joins, so_far=(0, 0, 0), leaves=leaves)
+    assert set(week.lineups[MON]) == {1} and set(week.lineups[TUE]) == {9}
+    assert matchup._deferred([star], wing, star, None)[1:] == (None, None)
+
+
 def test_drops_are_tried_per_group_so_a_weak_forward_is_considered():
     ctx = FakeContext()
     ctx.xfp = {1: 2.0, 2: 1.0, 3: 1.1, 4: 1.2, 5: 1.3, 6: 3.0}
