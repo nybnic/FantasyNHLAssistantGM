@@ -277,7 +277,7 @@ def _screenshots(monkeypatch, tmp_path, updates):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, updates)
     monkeypatch.setattr(parse, "registry", lambda: SHOT_REGISTRY)
     monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
-    monkeypatch.setattr(screenshot, "read", lambda image: {"kind": "team", "rows": SHOTS[image.decode()]})
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "team", "rows": SHOTS[image.decode()]})
     return settings, state, players, sent
 
 
@@ -302,7 +302,7 @@ def test_screenshots_across_runs_wait_for_the_rest(monkeypatch, tmp_path):
 
 def test_a_screenshot_without_players_says_so(monkeypatch, tmp_path):
     settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9)])
-    monkeypatch.setattr(screenshot, "read", lambda image: {"kind": "team", "rows": []})
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "team", "rows": []})
     ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
     assert "couldn't find any players" in sent[0] and state["screenshots"] is None
 
@@ -331,7 +331,7 @@ def _matchup(monkeypatch, tmp_path, shots, players=None):
     settings, state, _, sent, _ = _setup(monkeypatch, tmp_path, updates)
     monkeypatch.setattr(parse, "registry", lambda: SHOT_REGISTRY + OPP_REGISTRY)
     monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
-    monkeypatch.setattr(screenshot, "read", lambda image: shots[image.decode()])
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: shots[image.decode()])
     monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
     players = players if players is not None else [RosterPlayer(200 + i, f"Paul {n}", "BOS", ["C"], "BN")
                                                    for i, n in enumerate(SHOT_NAMES)]
@@ -417,7 +417,7 @@ def _transactions(monkeypatch, tmp_path, shots, league=None, players=None):
     settings, state, default_players, sent, _ = _setup(monkeypatch, tmp_path, updates)
     monkeypatch.setattr(parse, "registry", lambda: TX_REGISTRY)
     monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
-    monkeypatch.setattr(screenshot, "read", lambda image: {"kind": "transactions", "rows": shots[image.decode()]})
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "transactions", "rows": shots[image.decode()]})
     league = league or {"teams": {
         "Pastasauce": {"updated": "2026-09-29", "players": [
             {"id": 702, "name": "Dylan Cozens", "team": "TOR", "positions": ["C"], "slot": None},
@@ -452,10 +452,24 @@ def test_transactions_already_applied_are_skipped_and_a_gap_is_flagged(monkeypat
     assert sent == [sent[0]] and "1 new" in sent[0]
     later = [_tx("drop", (10, 3, 9, 0), ["Pastasauce"], [("J. McCann", "drop")])]
     monkeypatch.setattr(telegram, "get_updates", lambda token, offset: [_photo("c", 60, WEEK1 + 99)])
-    monkeypatch.setattr(screenshot, "read", lambda image: {"kind": "transactions", "rows": later})
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "transactions", "rows": later})
     settings = load_settings()
     ingest.process_updates(settings, state, players, league, common.Outbox(settings))
     assert "may be missing" in sent[-1] and 700 not in _ids(league, "Pastasauce")
+
+
+def test_a_move_seen_in_the_app_then_the_website_or_chat_is_applied_once(monkeypatch, tmp_path):
+    app = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": app})
+    # The website's full names, and the chat's time: that of the first message sent with it.
+    chat = [_tx("add/drop", (9, 30, 13, 50), ["Pastasauce"], [("Jared McCann", "add"), ("Justin Faulk", "drop")]),
+            _tx("add", (9, 30, 13, 50), ["Nico'sGroovyTeam"], [("EsaLindell", "add")])]
+    monkeypatch.setattr(telegram, "get_updates", lambda token, offset: [_photo("c", 60, WEEK1 + 99)])
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "transactions", "rows": chat})
+    settings = load_settings()
+    ingest.process_updates(settings, state, players, league, common.Outbox(settings))
+    assert sent[-1].startswith("Transactions: 1 new") and "may be missing" not in sent[-1]
+    assert "Nico's Groovy Team: +Esa Lindell" in sent[-1] and 704 in [p.id for p in players]
 
 
 def test_taken_marks_the_suggested_player_and_asks_for_the_next_best(monkeypatch, tmp_path):

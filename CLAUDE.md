@@ -10,7 +10,7 @@ both in win probability: an add is made when it beats the add price
 Runs on GitHub Actions every 30 min (plus on each Telegram message via the
 Cloudflare relay). Notify-only: there is no Yahoo API access, so Nico makes every
 move in Yahoo, and the bot learns about them from Done/Taken taps and Yahoo app
-screenshots (team pages, matchups, League > Transactions) or pasted pages.
+screenshots (team pages, matchups, transactions from the app, website or league chat) or pasted pages.
 
 ## Map
 | Path | What lives there |

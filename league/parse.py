@@ -113,9 +113,9 @@ def find_players(text: str, players: list[dict]) -> Found:
 
 
 def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = frozenset()) -> Found:
-    """Players from screenshot rows (clients/vision.py): {"slot", "name" as
-    shown, e.g. "M. SCHEIFELE", "team" or "", "positions" or []}. A name
-    matches on first initial and last name, then team and position narrow it
+    """Players from screenshot rows (clients/screenshot.py): {"slot", "name" as
+    shown, e.g. "M. SCHEIFELE" or "Jack McBain", "team" or "", "positions" or []}.
+    A name matches on first initial and last name (or the full name), then team and position narrow it
     down; still ambiguous, the player already on the team (`prefer`) wins."""
     unique = list({p["id"]: p for p in reversed(players)}.values())[::-1]  # first entry per id wins
     found = Found()
@@ -127,6 +127,9 @@ def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = 
         last = " ".join(shown[1:] if initial else shown)
         candidates = [p for p in unique if (" " + normalize_name(p["name"])).endswith(" " + last)
                       and (initial is None or normalize_name(p["name"]).startswith(initial))]
+        if not candidates and not initial:  # a full name OCR ran together: "jjpeterka"
+            squashed = last.replace(" ", "")
+            candidates = [p for p in unique if normalize_name(p["name"]).replace(" ", "") == squashed]
         positions = list(row.get("positions") or [])
         team = YAHOO_TO_NHL_TEAM.get(row.get("team") or "", row.get("team") or "")
         if len(candidates) > 1 and positions:

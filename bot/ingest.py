@@ -1,5 +1,5 @@
 """Telegram in: taps on recommendations, commands, pasted Yahoo pages, and screenshots
-(team pages, matchups, League > Transactions) turned into rosters, adds and waivers.
+(team pages, matchups, transactions: app, website or league chat) turned into rosters, adds and waivers.
 """
 from __future__ import annotations
 
@@ -29,7 +29,8 @@ HELP = (
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
     "Matchup screenshots (the Yahoo app's Matchup tab, scrolled through) - both rosters and the live score, "
     "then an updated plan\n"
-    "League > Transactions screenshots - every team's adds, drops and trades, so suggested free agents are free\n"
+    "Transactions screenshots (League > Transactions in the app or website, or the league chat) - every team's "
+    "adds, drops and trades, so suggested free agents are free\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
@@ -45,6 +46,11 @@ MYTEAM_HINT = "\n\nWrong? Send screenshots of your Yahoo team page, or /myteam a
 
 # Judgment call: screenshots sent within this of the previous one are one team page.
 SCREENSHOT_WINDOW = dt.timedelta(minutes=5)
+# One move seen twice: the same team, type and players within this of each other.
+# The league chat dates moves sent together by the first one's time (15 min early
+# on 2026-09-30), and "13m ago" is a minute off. Judgment call: wide enough for a
+# wrong time zone, while a team re-adding a player it dropped that same day is rare.
+TX_SAME_MOVE = dt.timedelta(hours=12)
 
 
 # Judgment call: more new players than two weeks of adds in one roster update is
@@ -227,7 +233,8 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     named by /opp or /myteam, else the draft's, else mine."""
     at = dt.datetime.fromtimestamp(message["date"], dt.timezone.utc)
     try:
-        shot = screenshot.read(telegram.download_file(settings.telegram_bot_token, _image(message)))
+        shot = screenshot.read(telegram.download_file(settings.telegram_bot_token, _image(message)),
+                               now=at.astimezone(briefing.LOCAL))
     except (screenshot.ScreenshotError, telegram.TelegramError) as e:
         outbox.send(f"Couldn't read that screenshot: {e}")
         return None
@@ -236,7 +243,8 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
         return None
     if shot["kind"] == "transactions":
         if not shot["rows"]:
-            outbox.send("I couldn't read any transactions in that screenshot.")
+            outbox.send("I couldn't read any transactions in that screenshot. Send League > Transactions "
+                        "(app or website) or the league chat, with each move's date in view.")
             return None
         state["transaction_rows"] += shot["rows"]
         return "transactions"
@@ -276,27 +284,51 @@ def _tx_nhl_date(when: str) -> dt.date:
     return dt.datetime.fromisoformat(when).replace(tzinfo=briefing.LOCAL).astimezone(NHL_TIME).date()
 
 
+def _tx_name(name: str) -> str:
+    """ "astolarz" from "A. Stolarz" or "Anthony Stolarz": the app shows initials,
+    the website and the league chat full names."""
+    first, *rest = normalize_name(name).split() or [""]
+    return first[:1] + "".join(rest) if rest else first
+
+
 def _tx_key(row: dict) -> str:
-    names = ",".join(normalize_name(p["name"]).replace(" ", "") for p in row["players"])
+    names = ",".join(_tx_name(p["name"]) for p in row["players"])
     teams_ = ",".join(normalize_name(t).replace(" ", "") for t in row["teams"])
     return f"{_tx_time(row['when'])}|{row['type']}|{teams_}|{names}"
+
+
+def _tx_move(key: str) -> tuple[dt.datetime, str]:
+    """A key's time, and the move itself (type, teams, players) in any order."""
+    when, kind, teams_, names = key.split("|")
+    return dt.datetime.fromisoformat(when), f"{kind}|{sorted(teams_.split(','))}|{sorted(names.split(','))}"
+
+
+def _seen_move(key: str, moves: dict[str, list[dt.datetime]]) -> bool:
+    when, move = _tx_move(key)
+    return any(abs(when - t) <= TX_SAME_MOVE for t in moves.get(move, []))
 
 
 def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox) -> None:
     """Apply League > Transactions rows not seen before, oldest first: adds
     and claims put a player on that team (off the free agents), drops free him,
     trades swap rosters; my own team's moves update my roster too. Says what
-    changed, and warns when the screenshots may not reach back to the last ones seen."""
+    changed, and warns when the screenshots may not reach back to the last ones seen.
+    A move already seen in another layout, at a time within TX_SAME_MOVE, is the same move."""
     rows, state["transaction_rows"] = state["transaction_rows"], []
     seen = state["transactions_seen"]
     names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
     had_seen = bool(seen)
-    overlap = any(_tx_key(row) in seen for row in rows)
-    fresh, keys = [], set()
+    moves: dict[str, list[dt.datetime]] = {}
+    for key in seen:
+        when, move = _tx_move(key)
+        moves.setdefault(move, []).append(when)
+    overlap = any(_seen_move(_tx_key(row), moves) for row in rows)
+    fresh = []
     for i, row in enumerate(rows):
         key = _tx_key(row)
-        if key not in seen and key not in keys:
-            keys.add(key)
+        if not _seen_move(key, moves):
+            when, move = _tx_move(key)
+            moves.setdefault(move, []).append(when)
             fresh.append((_tx_time(row["when"]), -i, key, row))  # same minute: the screen lists newest first
     registry = parse.registry()
     mine_ids = {p.id for p in players}

@@ -72,9 +72,13 @@ roster names one of them.
   points so far only on the day it was taken, and only if it was taken before
   that day's first puck (later, today's points can't be told apart).
 - Free agents: everyone on an NHL roster minus all known rosters minus `taken`.
-  Other teams' pickups are unknown until a League > Transactions screenshot
-  (`bot/ingest.finish_transactions`: applied oldest first, each once, with a warning
-  when new screenshots don't reach back to the last ones seen), the Taken
+  Other teams' pickups are unknown until a transactions screenshot: League >
+  Transactions in the app or on the website (whose times are US Eastern), or the
+  league chat (dated "hier à 18:48", read against when it was sent; moves sent
+  together share the first one's time). `bot/ingest.finish_transactions` applies
+  them oldest first, each once: the same team, type and players within 12 h of a
+  move already seen is that move (`TX_SAME_MOVE`). It warns when new screenshots
+  don't reach back to the last ones seen. Then there's the Taken
   button on an add, or `/taken`.
 - Waivers: every drop the bot learns of (a Transactions row, a Done tap's drop)
   puts the player on waivers in `state/league.json` (`waivers`): an add of him is

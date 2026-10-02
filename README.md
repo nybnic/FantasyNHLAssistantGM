@@ -68,9 +68,11 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
 - Free agents carry Yahoo's position eligibility (seeded from a Yahoo export,
   then updated from every screenshot), so a streamer is slotted the way Yahoo
   would let you.
-- **League > Transactions screenshots** keep every roster current: the bot
-  applies each team's adds, drops and trades (each once, even when screenshots
-  overlap), and warns if new ones don't reach back to the last it saw. An add
+- **Transactions screenshots** keep every roster current: League > Transactions
+  in the app or on the website, or the league chat's "Gwp added ..." messages.
+  The bot applies each team's adds, drops and trades (each once, even when
+  screenshots overlap or show the same move in two places), and warns if new
+  ones don't reach back to the last it saw. An add
   recommendation also has a **Taken** button: one tap and the bot suggests
   the next best.
 - **Matchup screenshots** are the quickest update: screenshots of the Yahoo

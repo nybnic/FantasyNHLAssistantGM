@@ -1,4 +1,6 @@
+import datetime as dt
 import io
+from zoneinfo import ZoneInfo
 
 from PIL import Image
 
@@ -105,3 +107,102 @@ def test_transactions_read_adds_drops_and_trades_with_their_dates(monkeypatch):
         ("D. Cozens", "from:0"), ("K. Sherwood", "from:1"), ("J. Tavares", "from:1")]
     assert [(p["name"], p["positions"], p["action"]) for p in rows[3]["players"]] == [
         ("J. McCann", ["C", "LW"], "add"), ("J. Faulk", ["D"], "drop")]
+
+
+HELSINKI_NOW = dt.datetime(2026, 10, 2, 10, 30, tzinfo=ZoneInfo("Europe/Helsinki"))
+
+
+def _read(monkeypatch, lines, size, now=HELSINKI_NOW):
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    buf = io.BytesIO()
+    Image.new("RGB", size).save(buf, "PNG")
+    return screenshot.read(buf.getvalue(), now=now)
+
+
+def test_the_websites_transactions_page_reads_full_names_and_eastern_times(monkeypatch):
+    # OCR lines from Nico's yahoo.com Transactions screenshot at Telegram's size (974 px wide).
+    lines = [(57, 43, 27, "Transactions"), (811, 116, 17, "AllTeamsY"),
+             (123, 184, 17, "VasilyPodkolzinEDM-LW,RW"), (124, 202, 17, "Free Agent"), (827, 205, 17, "Lazy Lew"),
+             (796, 221, 17, "Oct2,3:21am"), (124, 223, 17, "MatthewWoodNSH-C,Rw"), (123, 241, 17, "To Waivers"),
+             (122, 276, 19, "Elias Lindholm Bos-c目"), (851, 280, 18, "GWp"), (122, 294, 20, "Free Agent"),
+             (797, 294, 19, "Oct2,3:04 am"),
+             (123, 756, 18, "Dylan CozensoTT-c"), (726, 759, 17, "Vanilla Thunder( Mikael)"), (620, 767, 17, "Traded to"),
+             (789, 776, 17, "Sep 30, 7:04 am"), (125, 777, 17, "SethJarvisCAR-LW,RWIR-NR"),
+             (748, 811, 22, "Pastasauce(fMikael)"), (125, 813, 17, "KieferSherwoodsJ-LW,Rw"),
+             (620, 822, 18, "Traded to"), (788, 831, 17, "Sep30,7:04am"), (124, 832, 17, "JohnTavaresTOR-c"),
+             (124, 866, 20, "Jared McCann SEA-C,Lw"), (814, 867, 20, "Pastasauce"),
+             (123, 885, 17, "Free Agent"), (789, 885, 17, "Sep30,7:03am")]
+    shot = _read(monkeypatch, lines, (974, 900))
+    assert shot["kind"] == "transactions"
+    rows = shot["rows"]
+    assert [(r["type"], r["when"], r["teams"]) for r in rows] == [
+        ("add/drop", (10, 2, 10, 21), ["Lazy Lew"]), ("add", (10, 2, 10, 4), ["GWp"]),  # 3:21 am in New York
+        ("trade", (9, 30, 14, 4), ["Pastasauce", "Vanilla Thunder"]), ("add", (9, 30, 14, 3), ["Pastasauce"])]
+    assert rows[0]["players"] == [{"name": "Vasily Podkolzin", "positions": ["LW", "RW"], "action": "add"},
+                                  {"name": "Matthew Wood", "positions": ["C", "RW"], "action": "drop"}]
+    assert [(p["name"], p["action"]) for p in rows[2]["players"]] == [
+        ("Dylan Cozens", "from:0"), ("Seth Jarvis", "from:0"), ("Kiefer Sherwood", "from:1"),
+        ("John Tavares", "from:1")]
+
+
+def test_a_block_cut_off_at_the_bottom_of_the_website_is_left_out(monkeypatch):
+    lines = [(124, 443, 17, "JackMcBainUTA-C,LW"), (123, 461, 17, "Free Agent"), (771, 465, 16, "Nico'sGroovyTeam"),
+             (790, 482, 14, "Oct1,11:48am")]  # Schenn's drop is below the screen's edge
+    assert _read(monkeypatch, lines, (974, 490))["rows"] == []
+
+
+def test_the_league_chat_reads_moves_dated_relative_to_when_it_was_sent(monkeypatch):
+    # OCR lines from Nico's league chat screenshots at Telegram's size (590 px wide), joined.
+    lines = [(61, 33, 25, "10:18N"),  # the phone's clock: taken at 10:18
+             (97, 204, 23, "Yahoo Fantasy"), (287, 207, 19, "hiera18:48"),
+             (96, 233, 24, "Nico's Groovy Team added Jack McBain"), (97, 262, 24, "anddroppedBraydenSchenn"),
+             (147, 325, 20, "JackMcBainUTA-C,LW"), (149, 362, 24, "Brayden Schenn NYI-C,LW"),
+             (97, 685, 27, "Yahoo Fantasy"), (296, 691, 19, "hiera20:18"),
+             (96, 715, 26, "Nico's Groovy Team dropped Sergei"), (95, 745, 24, "Murashov"),
+             (148, 807, 23, "Sergei Murashov PIT-G"),
+             (97, 922, 25, "Yahoo Fantasy"), (297, 926, 23, "13mago"),
+             (97, 951, 26, "Gwp added Elias Lindholm"), (147, 1015, 21, "EliasLindholmBos-C"),
+             (29, 1078, 21, "Hitthe+(plus)iconto createa poll"), (108, 1176, 24, "Add a message")]
+    rows = _read(monkeypatch, lines, (590, 1280))["rows"]
+    assert [(r["type"], r["when"], r["teams"]) for r in rows] == [  # newest first
+        ("add", (10, 2, 10, 5), ["Gwp"]), ("drop", (10, 1, 20, 18), ["Nico'sGroovyTeam"]),
+        ("add/drop", (10, 1, 18, 48), ["Nico'sGroovyTeam"])]
+    assert rows[2]["players"] == [{"name": "Jack McBain", "positions": ["C", "LW"], "action": "add"},
+                                  {"name": "Brayden Schenn", "positions": ["C", "LW"], "action": "drop"}]
+    assert rows[1]["players"][0]["name"] == "Sergei Murashov"  # the wrapped sentence, the card's name
+
+
+def test_the_league_chat_reads_processed_claims_and_moves_sent_together(monkeypatch):
+    lines = [(96, 185, 26, "Yahoo Fantasy"), (295, 190, 18, "avant-hiera10:49"),
+             (97, 216, 22, "ViktoriosaddedEastonCowan"), (148, 279, 21, "EastonCowanToR-LW"),
+             (135, 384, 21, "Transactionshavebeenprocessed"), (108, 477, 25, "2 new transactions"),
+             (156, 543, 23, "Jyri(Gwp)"), (153, 574, 21, "AnthonyStolarzToR-G"),
+             (97, 789, 24, "Nico's Groovy Team added Esa Lindell"), (150, 851, 21, "Esa Lindell DAL-D"),
+             (424, 947, 19, "Joakim,Thomas"),
+             (97, 982, 24, "Vantaa added Joey Daccord")]  # its card hidden by the poll tip: the sentence will do
+    monkeypatch.setattr(screenshot, "_icon_action", lambda *a: "add")
+    rows = _read(monkeypatch, lines, (590, 1280))["rows"]
+    assert [(r["teams"], [p["name"] for p in r["players"]]) for r in rows] == [
+        (["Vantaa"], ["Joey Daccord"]), (["Nico'sGroovyTeam"], ["Esa Lindell"]), (["Gwp"], ["Anthony Stolarz"]),
+        (["Viktorios"], ["Easton Cowan"])]
+    assert {r["when"] for r in rows} == {(9, 30, 10, 49)}  # sent together: the header's time for all
+
+
+def test_chat_dates():
+    now = dt.datetime(2026, 10, 2, 10, 18, tzinfo=ZoneInfo("Europe/Helsinki"))  # a Friday
+    assert screenshot._chat_when("hier à 18:48", now) == (10, 1, 18, 48)
+    assert screenshot._chat_when("avant-hier a13:16", now) == (9, 30, 13, 16)
+    assert screenshot._chat_when("13m ago", now) == (10, 2, 10, 5)
+    assert screenshot._chat_when("2h ago", now) == (10, 2, 8, 18)
+    assert screenshot._chat_when("Yesterday at 6:48 PM", now) == (10, 1, 18, 48)
+    assert screenshot._chat_when("lun. à 09:00", now) == (9, 28, 9, 0)
+    assert screenshot._chat_when("Not for everyone!", now) is None
+
+
+def test_player_lines_split_the_name_from_a_glued_team_code():
+    assert screenshot._player_line("KieferSherwoodsJ-LW,Rw") == {
+        "name": "Kiefer Sherwood", "team": "SJ", "positions": ["LW", "RW"]}
+    assert screenshot._player_line("JackMcBainUTA-C,LW")["name"] == "Jack McBain"
+    assert screenshot._player_line("JamieDrysdalePHl-D")["team"] == "PHI"
+    assert screenshot._player_line("Jean-Gabriel PageauNYI-C")["name"] == "Jean-Gabriel Pageau"
+    assert screenshot._player_line("Free Agent") is None

@@ -160,3 +160,10 @@ def test_the_add_ledger_starts_from_done_taps_and_counts_one_add_once(tmp_path):
     assert not gm_state.record_add(state, 7, "B", dt.date(2026, 10, 4), "transactions", already_mine=True)
     assert state["adds"][0] == {"id": 7, "name": "B", "source": "done", "date": "2026-10-04"}
     assert gm_state.record_add(state, 8, "C", dt.date(2026, 10, 4), "transactions", already_mine=True)
+
+
+def test_shown_names_match_full_names_even_run_together():
+    registry = [{"id": 1, "name": "Jack McBain", "team": "UTA", "position": "C"},
+                {"id": 2, "name": "JJ Peterka", "team": "UTA", "position": "R"}]
+    found = parse.match_shown_names([{"name": "Jack McBain"}, {"name": "JJPeterka"}], registry)
+    assert [p.id for p in found.players] == [1, 2] and not found.problems

@@ -1,6 +1,9 @@
-"""Read Yahoo app screenshots with free, offline OCR (RapidOCR).
+"""Read Yahoo screenshots with free, offline OCR (RapidOCR).
 
-League > Transactions: each add, drop and trade, with its date.
+Transactions, in three layouts, each add, drop and trade with its date: the
+app's League > Transactions tab, the website's Transactions page (full names,
+times in US Eastern), and the app's league chat ("Gwp added Elias Lindholm",
+dated "hier à 18:48" or "13m ago", so read against the time it was sent).
 
 Team tab: each row's slot, the name as shown ("M. SCHEIFELE"), team and
 positions. Matchup tab: the same for both teams side by side (the slot badge
@@ -19,9 +22,11 @@ league/parse.match_shown_names turns the rows into players.
 from __future__ import annotations
 
 import colorsys
+import datetime as dt
 import functools
 import io
 import re
+from zoneinfo import ZoneInfo
 
 import numpy as np
 from PIL import Image
@@ -45,6 +50,25 @@ _TX_DATE = re.compile(r"^[A-Za-zé]{3,4}\.?,?([A-Za-zéûô]{3,5})\.?(\d{1,2}),?
 _TX_PLAYER = re.compile(r"^([A-Z])\.\s*(.+?)\s*((?:LW|RW|C|D|G)(?:,(?:LW|RW|C|D|G))*)\s*(\(.*)?$")
 _MONTHS = {"jan": 1, "fev": 2, "feb": 2, "mar": 3, "avr": 4, "apr": 4, "mai": 5, "may": 5, "juin": 6, "jun": 6,
            "juil": 7, "jul": 7, "aou": 8, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+# The website: "Oct2,3:21am", in US Eastern (checked on 2026-10-02: its 18 rows
+# match the app's Helsinki times shifted by 7 h).
+_WEB_DATE = re.compile(r"^([A-Za-z]{3,4})\.?(\d{1,2}),(\d{1,2}):(\d{2})(am|pm)$", re.I)
+WEB_TIME = ZoneInfo("America/New_York")
+# "JackMcBainUTA-C,LW", "Elias Lindholm Bos-c目": a name glued to Yahoo's team and
+# positions (OCR drops spaces and mixes case).
+_PLAYER_TAIL = re.compile(r"([A-Za-z]{2,3})\s*-\s*((?:LW|RW|C|D|G)(?:\s*,\s*(?:LW|RW|C|D|G))*)", re.I)
+_TEAMS = {"ANA", "BOS", "BUF", "CGY", "CAR", "CHI", "COL", "CBJ", "DAL", "DET", "EDM", "FLA", "LA", "MIN", "MTL",
+          "NSH", "NJ", "NYI", "NYR", "OTT", "PHI", "PIT", "SJ", "SEA", "STL", "TB", "TOR", "UTA", "VAN", "VGK",
+          "WSH", "WPG"}
+# The league chat: "hier à 18:48" (OCR: "hiera18:48"), "13m ago", "Yesterday at 6:48 PM".
+_CHAT_AGO = re.compile(r"^(?:ilya)?(\d{1,2})(m|min|h)(?:ago)?$", re.I)
+_CHAT_DAY = re.compile(r"^(avant-?hier|hier|yesterday|aujourd'?hui|today|[a-z]{3,9}\.?)(?:à|a|at|,)?"
+                       r"(\d{1,2}):(\d{2})(am|pm)?$", re.I)
+_DAYS_AGO = {"avanthier": 2, "hier": 1, "yesterday": 1, "aujourdhui": 0, "today": 0}
+_WEEKDAYS = {"lun": 0, "mar": 1, "mer": 2, "jeu": 3, "ven": 4, "sam": 5, "dim": 6,
+             "mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
+_CLOCK = re.compile(r"^(\d{1,2}):(\d{2})")  # the phone's status bar
+_CHAT_MOVE = re.compile(r"^(.+?)(added|dropped)(.+?)(?:and(dropped)(.+))?$")
 
 
 class ScreenshotError(Exception):
@@ -60,11 +84,18 @@ def _ocr():
     return RapidOCR()
 
 
-def read(image: bytes) -> dict:
+def read(image: bytes, now: dt.datetime | None = None) -> dict:
     """{"kind": "team", "rows": [...]}, {"kind": "matchup", ...} (see _matchup)
-    or {"kind": "transactions", "rows": [...]} (see _transactions)."""
+    or {"kind": "transactions", "rows": [...]} (see _transactions). `now`, the
+    phone's local time when it was sent, dates the chat's "hier à 18:48" and
+    places the website's Eastern times on the phone's clock."""
+    now = now or dt.datetime.now().astimezone()
     img = _open(image)
     lines = _read_lines(img)
+    if any(_squash(t) == "yahoofantasy" for _, _, _, t in lines):
+        return {"kind": "transactions", "rows": _chat_transactions(img, lines, now)}
+    if any(x > 0.55 * img.width and _WEB_DATE.match(t.replace(" ", "")) for x, _, _, t in lines):
+        return {"kind": "transactions", "rows": _web_transactions(img, lines, now)}
     if any("transactions" in t.replace(" ", "").lower() for _, _, _, t in lines[:8]):
         return {"kind": "transactions", "rows": _transactions(img, lines)}
     if _is_matchup(lines, img.width):
@@ -192,10 +223,11 @@ def _tx_player(text: str) -> dict | None:
     return {"name": f"{m.group(1)}. {m.group(2).strip()}", "positions": m.group(3).split(",")}
 
 
-def _icon_action(img: Image.Image, y: float, h: float) -> str | None:
-    """"add" (a green +) or "drop" (a red -) from the icon mid-row."""
+def _icon_action(img: Image.Image, y: float, h: float, x0: float = 0.44, x1: float = 0.56) -> str | None:
+    """"add" (a green +) or "drop" (a red -) from the icon between x0 and x1
+    (shares of the width; the app's Transactions tab has it mid-row)."""
     w = img.width
-    crop = img.crop((int(0.44 * w), int(y - 0.3 * h), int(0.56 * w), int(y + 1.3 * h)))
+    crop = img.crop((int(x0 * w), int(y - 0.3 * h), int(x1 * w), int(y + 1.3 * h)))
     px = np.asarray(crop).reshape(-1, 3)[::2] / 255
     hsv = np.array([colorsys.rgb_to_hsv(*p) for p in px])
     vivid = hsv[(hsv[:, 1] > 0.35) & (hsv[:, 2] > 0.4)]
@@ -243,6 +275,219 @@ def _transactions(img: Image.Image, lines: list) -> list[dict]:
         if players and len(teams) == (2 if kind == "trade" else 1):
             blocks.append({"type": kind, "when": when, "teams": teams, "players": players})
     return blocks
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s", "", text).lower()
+
+
+def _split_name(name: str) -> str:
+    """"JackMcBain" -> "Jack McBain": OCR drops the space, so put it back at the
+    first lower-to-upper step (only there, so McBain keeps his capital B)."""
+    name = name.strip(" .,")
+    return name if " " in name else re.sub(r"(?<=[a-z])(?=[A-Z])", " ", name, count=1)
+
+
+def _team_code(letters: str) -> str | None:
+    up = letters.upper()
+    return next((t for t in (up, up.replace("L", "I"), up.replace("0", "O")) if t in _TEAMS), None)
+
+
+def _player_line(text: str) -> dict | None:
+    """{"name", "team", "positions"} from "VasilyPodkolzinEDM-LW,RW" (the website,
+    the chat's cards). The team code is 2-3 letters glued to the surname, so the
+    first split that gives a real team wins ("SherwoodsJ" is Sherwood of SJ)."""
+    fallback = None
+    for m in _PLAYER_TAIL.finditer(text):
+        letters, name = m.group(1), text[:m.start()]
+        team = _team_code(letters)
+        if not team and len(letters) == 3 and (team := _team_code(letters[1:])):
+            name += letters[0]
+        player = {"name": _split_name(name), "team": team or "",
+                  "positions": [p.strip().upper() for p in m.group(2).split(",")]}
+        if not re.search(r"[a-z]", player["name"]):
+            continue
+        if team:
+            return player
+        fallback = fallback or player
+    return fallback
+
+
+def _source_action(text: str) -> str | None:
+    """The website's line under a player: where he came from or went."""
+    t = _squash(text)
+    if t.startswith("to"):  # "To Waivers", "To Free Agents"
+        return "drop" if "waiver" in t or "freeagent" in t else None
+    return "add" if t in ("freeagent", "waiver", "waivers") else None
+
+
+def _web_transactions(img: Image.Image, lines: list, now: dt.datetime) -> list[dict]:
+    """The website's Transactions page: players on the left (each with "Free
+    Agent", "Waiver" or "To Waivers" under him), the team and its date on the
+    right. A trade is two rows, "Traded to" each team. Newest first; rows cut by
+    the screen's edge (a player above the team's line, or none level with the
+    date) are left out."""
+    w = img.width
+    right = [(y, h, t) for x, y, h, t in lines if x > 0.55 * w]
+    blocks = []
+    for y, h, t in right:
+        m = _WEB_DATE.match(t.replace(" ", ""))
+        month = m and _month(m.group(1))
+        if not month:
+            continue
+        hour = int(m.group(3)) % 12 + (12 if m.group(5).lower() == "pm" else 0)
+        when = _place(now, month, int(m.group(2)), hour, int(m.group(4)), WEB_TIME)
+        above = [(ty, tt) for ty, _, tt in right if y - 2.5 * h < ty < y - 0.3 * h
+                 and not _WEB_DATE.match(tt.replace(" ", "")) and _squash(tt) != "tradedto"]
+        if not above or not when:
+            continue
+        team_y, team = max(above)
+        trade = any(_squash(tt) == "tradedto" and team_y - h < ty < y + h for ty, _, tt in right)
+        blocks.append({"top": team_y, "date": y, "team": team.split("(")[0].strip(), "trade": trade,
+                       "when": when, "players": []})
+    left = [(y, h, t) for x, y, h, t in lines if 0.08 * w < x < 0.5 * w]
+    for i, (y, h, t) in enumerate(left):
+        if not blocks or not (p := _player_line(t)):
+            continue
+        block = min(blocks, key=lambda b: abs((b["top"] + b["date"]) / 2 - y))
+        if abs((block["top"] + block["date"]) / 2 - y) > 3 * h:
+            continue
+        below = [(ly, lt) for ly, _, lt in left[i + 1:] if 0 < ly - y < 1.8 * h]
+        source = below[0] if below and not _player_line(below[0][1]) else None
+        action = _source_action(source[1]) if source else None
+        if not block["trade"] and not action:
+            action = _icon_action(img, y, h, 0.04, 0.13)
+        block["players"].append({"y": y, "h": h, "last": source[0] if source else y, "action": action,
+                                 **{k: p[k] for k in ("name", "positions")}})
+
+    def complete(b: dict) -> bool:
+        ps = b["players"]
+        return bool(ps) and ps[0]["y"] <= b["top"] + 0.5 * ps[0]["h"] and ps[-1]["last"] >= b["date"] - ps[-1]["h"]
+
+    rows, k = [], 0
+    while k < len(blocks):
+        b = blocks[k]
+        if b["trade"]:
+            other = blocks[k + 1] if k + 1 < len(blocks) else None
+            if other and other["trade"] and other["when"] == b["when"] and complete(b) and complete(other):
+                # b's players went to b's team, from other's team: teams = [giver of b's players, ...]
+                players = [{"name": p["name"], "positions": p["positions"], "action": "from:0"} for p in b["players"]]
+                players += [{"name": p["name"], "positions": p["positions"], "action": "from:1"}
+                            for p in other["players"]]
+                rows.append({"type": "trade", "when": b["when"], "teams": [other["team"], b["team"]],
+                             "players": players})
+                k += 2
+                continue
+        elif complete(b) and all(p["action"] for p in b["players"]):
+            actions = {p["action"] for p in b["players"]}
+            rows.append({"type": "add/drop" if len(actions) == 2 else actions.pop(), "when": b["when"],
+                         "teams": [b["team"]], "players": [{"name": p["name"], "positions": p["positions"],
+                                                            "action": p["action"]} for p in b["players"]]})
+        k += 1
+    return rows
+
+
+def _place(now: dt.datetime, month: int, day: int, hour: int, minute: int,
+           tz: dt.tzinfo | None = None) -> tuple[int, int, int, int] | None:
+    """(month, day, hour, minute) on the phone's clock (now's zone) of a time
+    shown in `tz` (default: the phone's own), in the year that keeps it at or
+    before now."""
+    year = now.year - (1 if month > now.month + 1 else 0)
+    try:
+        at = dt.datetime(year, month, day, hour, minute, tzinfo=tz or now.tzinfo).astimezone(now.tzinfo)
+    except ValueError:  # a misread day
+        return None
+    return at.month, at.day, at.hour, at.minute
+
+
+def _chat_when(text: str, now: dt.datetime) -> tuple[int, int, int, int] | None:
+    """A league chat message's time: "13mago", "hiera18:48", "avant-hier a13:16"."""
+    t = _squash(text).replace("â", "a")
+    if t in ("now", "justnow", "alinstant", "àlinstant"):
+        at = now
+    elif m := _CHAT_AGO.match(t):
+        at = now - dt.timedelta(**{"hours" if m.group(2) == "h" else "minutes": int(m.group(1))})
+    elif m := _CHAT_DAY.match(t):
+        day = m.group(1).replace("-", "").replace("'", "").rstrip(".")
+        if day in _DAYS_AGO:
+            back = _DAYS_AGO[day]
+        elif day[:3] in _WEEKDAYS:
+            back = (now.weekday() - _WEEKDAYS[day[:3]]) % 7 or 7
+        else:
+            return None
+        hour = int(m.group(2)) % 12 + (12 if m.group(4) == "pm" else 0) if m.group(4) else int(m.group(2))
+        date = now.date() - dt.timedelta(days=back)
+        return date.month, date.day, hour, int(m.group(3))
+    else:
+        return None
+    return at.month, at.day, at.hour, at.minute
+
+
+def _chat_transactions(img: Image.Image, lines: list, now: dt.datetime) -> list[dict]:
+    """The app's league chat: each "Yahoo Fantasy" message dated beside its
+    header ("hier à 18:48"), "Gwp added Elias Lindholm" (maybe wrapped, maybe
+    "... and dropped ...") with a card per player below; messages sent together
+    share one header. "Transactions have been processed" lists waiver claims
+    under "Jyri (Gwp)". Messages above the first header have no date and are
+    left out. Newest first, like the other layouts. Trades aren't read here."""
+    w = img.width
+    if clock := next((m for x, y, _, t in lines if y < 0.05 * img.height and x < 0.3 * w
+                      and (m := _CLOCK.match(t.replace(" ", "")))), None):
+        shot = now.replace(hour=int(clock.group(1)) % 24, minute=int(clock.group(2)))
+        now = shot if shot <= now else shot - dt.timedelta(days=1)  # taken a bit before it was sent
+    messages, when, last = [], None, None  # last: the line a sentence may continue onto
+    for x, y, h, t in lines:
+        s = _squash(t)
+        if x < 0.12 * w or y < 0.05 * img.height:
+            continue  # the "create a poll" tip, the status bar
+        if s == "yahoofantasy":
+            when = next((d for x2, y2, _, t2 in lines if x2 > 0.35 * w and abs(y2 - y) < h
+                         and (d := _chat_when(t2, now))), None)
+            last = None
+            continue
+        if x < 0.22 * w:  # message text
+            if last and 0 < y - last < 1.6 * h and "text" in messages[-1]:
+                messages[-1]["text"] += t.replace(" ", "")  # a wrapped sentence
+            elif "added" in s or "dropped" in s:
+                messages.append({"when": when, "text": t.replace(" ", ""), "cards": []})
+            else:
+                last = None
+                continue
+            last = y
+            continue
+        last = None
+        if 0.22 * w <= x < 0.45 * w and (m := re.match(r"^[^(]*\((.+)\)$", t.strip())):
+            messages.append({"when": when, "team": m.group(1).strip(), "cards": []})  # a waiver claim
+        elif 0.22 * w <= x < 0.45 * w and messages and (p := _player_line(t)):
+            messages[-1]["cards"].append({**p, "action": _icon_action(img, y, h, 0.17, 0.25)})
+    rows = []
+    for msg in messages:
+        if msg["when"] is None:
+            continue
+        if "team" in msg:  # a processed claim: its cards, + or -
+            team, players = msg["team"], [{"name": c["name"], "positions": c["positions"],
+                                           "action": c["action"] or "add"} for c in msg["cards"]]
+        else:
+            m = _CHAT_MOVE.match(msg["text"])
+            if not m:
+                continue
+            team = m.group(1)
+            said = [(_split_name(m.group(3)), "add" if m.group(2) == "added" else "drop")]
+            if m.group(4):
+                said.append((_split_name(m.group(5)), "drop"))
+            cards = msg["cards"] if len(msg["cards"]) == len(said) else []
+            players = []
+            for i, (name, action) in enumerate(said):
+                card = next((c for c in msg["cards"] if _squash(c["name"]) == _squash(name)),
+                            cards[i] if cards else None)
+                players.append({"name": card["name"] if card else name,
+                                "positions": card["positions"] if card else [], "action": action})
+        if not players:
+            continue
+        actions = {p["action"] for p in players}
+        rows.append({"type": "add/drop" if len(actions) == 2 else actions.pop(), "when": msg["when"],
+                     "teams": [team], "players": players})  # the team as shown, spaces lost: matched squashed
+    return rows[::-1]
 
 
 def _read_lines(img: Image.Image) -> list[tuple[float, float, float, str]]:
