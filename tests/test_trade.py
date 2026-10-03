@@ -127,3 +127,26 @@ def test_balance_counts_the_injured():
     roster = [RosterPlayer(1, "Hurt Guy", "BOS", ["C"]), RosterPlayer(2, "Fine Guy", "BOS", ["D"])]
     lines = {"BOS": {"hurt guy": LineInfo(groups={"ir"}, injury="ir"), "fine guy": LineInfo(groups={"d1"})}}
     assert trade.balance(roster, lines) == "1F 1D 0G (1 hurt)"
+
+
+def test_a_hot_start_makes_an_undrafted_player_feel_like_an_early_pick():
+    from dataclasses import dataclass as _dc
+
+    @_dc
+    class _Log:
+        date: object
+        stats: dict
+
+    ctx = FakeContext()
+    ctx.today = WED
+    hot, star = RosterPlayer(1, "Hot Rookie", "BOS", ["C"]), RosterPlayer(2, "Cold Star", "NYR", ["C"])
+    others = [RosterPlayer(10 + i, f"Depth {i}", "PHI", ["C"]) for i in range(40)]
+    ctx.skater_games = {1: [_Log(MON, {"g": 3})] * 20, 2: [_Log(MON, {"sog": 1})] * 20,
+                        **{p.id: [_Log(MON, {"sog": 2})] * 20 for p in others}}
+    rounds = {"cold star": 1}
+    feel = trade.feel_rounds([hot, star, *others], rounds, ctx)
+    assert feel[1] == pytest.approx(0.5 * 16 + 0.5 * 1)  # 20 games in: half draft, half his rank (1st)
+    assert feel[2] == pytest.approx(0.5 * 1 + 0.5 * 3)  # ranked 42nd: a third-rounder now
+    assert trade.perceived([hot], rounds, feel) > trade.perceived([hot], rounds)
+    ctx.skater_games = {}
+    assert trade.feel_rounds([hot, star], rounds, ctx) == {1: 16, 2: 1}  # no games yet: the draft

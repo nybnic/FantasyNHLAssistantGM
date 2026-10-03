@@ -57,10 +57,10 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   refresh their roster. Other teams start from the draft results.
   `/taken Name` tells the bot that a suggested free agent has been taken.
 - `/trade Knight for Bouchard` (or `Knight, Tuch for Makar`) judges a trade:
-  points per week for you and for them over the two weeks after it clears,
+  points per week for you and for them over the 6 weeks after it clears,
   with open spots filled from free agents and at least two goalies kept, plus
   both rosters' F/D/G balance. `/trade` alone suggests 3-4 trades the other
-  manager could plausibly accept (takes about a minute).
+  manager could plausibly accept (takes a few minutes).
 - `/roster` in the chat shows the roster it thinks you have. If it's wrong,
   send screenshots of the Yahoo app's Team tab (scroll so every player is in
   one of them; overlap is fine), or `/myteam` and paste the page's text. It

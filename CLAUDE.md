@@ -37,7 +37,7 @@ python -m pytest                                  # all tests (fast, offline)
 python main.py --dry-run --force                  # tonight's lineup + this week's plan, sends nothing
 python main.py --dry-run --report 1               # week 1's result report (so far, if unfinished)
 python main.py --dry-run --trade "Knight for Bouchard"   # what /trade would reply
-python main.py --dry-run --trade                  # /trade alone: suggested trades (~1 min)
+python main.py --dry-run --trade                  # /trade alone: suggested trades (a few minutes)
 python -m scripts.explain_week                    # every add/drop the plan weighed, with verdicts
 python -m scripts.scorecard                       # how the add suggestions turned out, made or skipped
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
