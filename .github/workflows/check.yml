@@ -16,6 +16,7 @@ on:
           - trade-suggestions
           - backtest
           - check-sigma
+          - venue-backtest
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
@@ -65,4 +66,5 @@ jobs:
             trade-suggestions) time python main.py --dry-run --trade ;;
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
+            venue-backtest) python -m scripts.backtest_venue ;;
           esac
