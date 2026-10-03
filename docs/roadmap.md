@@ -13,7 +13,8 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 review.
 Nico, each Monday: League > Transactions, Standings and All Matchups screenshots.
 1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
-   (`league_weeks`) done; the DFO line archive starts once Nico adds the `ARCHIVE_DEPLOY_KEY` secret.
+   (`league_weeks`) done; the DFO line archive's key works (the 2026-10-03 06:46 UTC run checked the private repo out
+   with it); its first push is due at 13:00 ET on 2026-10-03, which proves write access.
 2. Projection accuracy. Role blend (no change), the age curve (youth boost removed) and opponent/arena
    effects (no gain, not modeled) done, see the log. Left: margins realize at 0.84 (projected
    differences a bit too wide), and healthy availability (0.96 -> 0.89 over six weeks). Done when:
