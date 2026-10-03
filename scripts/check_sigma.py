@@ -19,6 +19,7 @@ lineup actually got. Skaters who didn't play in the week before count as out
     python -m scripts.check_sigma --leagues 20
     python -m scripts.check_sigma --availability old   # skaters who played last week
         certain to play, the others left out (the replay before the return curves)
+    python -m scripts.check_sigma --no-age             # priors not aged (replays before 2026-10-03)
 
 Default `--availability bot`: a skater who played his team's last game plays at
 availability.HEALTHY_PLAY; one who missed it returns along the curve for how
@@ -38,7 +39,7 @@ from clients import nhl_stats
 from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
 from engine import availability, lineup
 from engine.matchup import GOALIE_START_VARIANCE, MODEL_SD_SHARE, SKATER_VARIANCE_PER_XFP, _at_least
-from model.projections import goalie_priors, project_goalie, project_skater, skater_priors
+from model.projections import aged, goalie_priors, project_goalie, project_skater, skater_priors
 
 TARGET = 20252026
 HISTORY = (20242025, 20232024)
@@ -81,8 +82,16 @@ def main_() -> None:
     parser.add_argument("--leagues", type=int, default=8)
     parser.add_argument("--seed", type=int, default=11)
     parser.add_argument("--availability", choices=("bot", "old"), default="bot")
+    parser.add_argument("--no-age", action="store_true", help="skater priors not aged (the bot ages them)")
     args = parser.parse_args()
     s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load()
+    if not args.no_age:
+        born = {}
+        for season_id in (TARGET, *HISTORY):
+            born.update(nhl_stats.skater_birth_dates(season_id))
+        start = dt.date(TARGET // 10_000, 10, 1)
+        s_priors = {pid: aged(p, (start - born[pid]).days / 365.25 if pid in born else None)
+                    for pid, p in s_priors.items()}
 
     by_skater, by_goalie = defaultdict(list), defaultdict(list)
     for g in skaters:

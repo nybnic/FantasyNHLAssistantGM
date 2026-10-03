@@ -24,6 +24,7 @@ matchup, so start odds live in `engine/availability.py`.
 | `SKATER_K` doubled | Backtest: flat optimum at 2-3x the original |
 | Role blend: ice-time half-life 6 games, prior 3 games (`scripts/backtest.py --role-grid`, 2026-10-03) | Half-lives 2-9 x prior 0.5-3, scored on 2024-25 and 2025-26, next week and next 4 weeks: none beats 6 / 3 on MAE and pairwise in both seasons (differences <= 0.003 MAE, 0.2 pp). A separate PP half-life changed nothing. After a role jump (last 3 games 3+ min above the 10 before), every skater (`--all-players`), the model under-projects relative to everyone else by ~0.25-0.3 pts/game next week (2024-25: -0.19 vs +0.13 overall; 2025-26: -0.17 vs +0.07) and ~0.15 over 4 weeks, but faster settings remove that bias only by chasing noise (MAE worse). Half of it in the top-400 pool was selection on the season's outcome. So box-score ice time is too noisy to act on faster; a cleaner signal (DFO line charts, archived since 2026-10-03) is the next test |
 | Age curve | Fit on 2024-25, checked on 2025-26: season-level MAE 0.628 -> 0.580, age bias mostly gone. In-season backtest 1.599 -> 1.595 (partly in-sample) |
+| Age curve, young side removed (2026-10-03) | The 20+ GP fit saw only young players who stuck. On every skater (`scripts/backtest.py --all-players`) it over-projected under-24s by +0.09 (2024-25) / +0.18 (2025-26) pts/game. A young-side slope of 0 had the best MAE in both seasons, next week and next 4 weeks, on all skaters, the projected top 450 and under-24s (e.g. all, next week: 1.466 -> 1.461, 1.452 -> 1.445), pairwise equal or better; under-24 bias -0.09 / -0.01. Top-400 backtest (outcome-picked, favors young risers) still 1.595 -> 1.593. The old side stays: unaged, 34+ were +0.25 to +0.31 over. `check_sigma` now ages priors like the bot: teams' mean error -0.13 sigma unaged, -0.04 old curve, -0.01 new |
 | A goalie's track record barely predicts his points per start | Backtest pairwise 51% (a coin flip), so the game model dominates |
 | Per-game variance: skater ~2.5 x xFP, goalie start ~21 | 2025-26 game logs (used by `engine/matchup.py`). They set P(win)'s spread, so also what a point is worth in win odds and the add price (`engine/addprice.py`); `MODEL_SD_SHARE` 0.08 on top is a guess |
 | P(win) spread (`scripts/check_sigma.py`, 2026-10-01) | 2025-26, 20 simulated leagues, 3520 matchups projected as the bot does: error / sigma has SD 1.01 per team-week, actual margin spread 42.9 vs model 44.7 pts, calibration within ~3 pts except 80-100% (88% predicted, 83% won). Sigma is right. But a projected margin point shows up as 0.87 in results, and teams score 0.46 sigma below projection (overprojection; it cancels between two teams) |
@@ -42,10 +43,11 @@ matchup, so start odds live in `engine/availability.py`.
 - Durability = DFO projected GP / (82 x 0.97). It is only used for long-run value.
 
 ## Known weaknesses / open questions
-- Fringe skaters look over-projected: every skater +0.07 to +0.13 pts/game (2025-26 / 2024-25,
-  `backtest --role-grid --all-players`) vs -0.06 to +0.02 for the top 400. Suspect: thin histories
-  regressed up toward the position average (`PRIOR_REGRESSION_GAMES`). Free agents come from this
-  pool, so add gains may be overstated. Next to test (roadmap).
+- Players with no NHL history get the position fallback prior, which over-projects them by
+  +0.05 to +0.33 pts/game (2026-10-03, every skater). The bot gives most of them DFO's projection
+  whole, so it matters only for call-ups DFO doesn't project. Unfixed.
+- Margins still realize at 0.84 in `check_sigma` (aged priors), so projected differences between
+  players are a little too wide, even with teams now unbiased (-0.01 sigma).
 - Return curves are fit on skaters; injured goalies use them too (times their start share).
   Day-to-day / game-time decisions (0.6 tonight, 0.85 tomorrow, then healthy) are a judgment
   call: DFO statuses aren't archived.

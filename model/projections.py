@@ -51,7 +51,14 @@ PRIOR_REGRESSION_GAMES = 20  # pulls thin histories toward the position average
 # on 2025-26 - it cut per-game error 0.628 -> 0.580 and removed most of the
 # bias (history had overrated D over 30 by ~0.4 pts/game, underrated F under
 # 22 by ~0.65).
-AGE_CURVES: dict[str, tuple[float, float, float]] = {"F": (26.0, 0.032, 0.009), "D": (23.5, 0.019, 0.0114)}
+#
+# The young side was refit on every skater (2026-10-03): the 20+ GP fit only
+# saw young players who stuck, so applied to all it over-projected under-24s
+# by +0.09 (2024-25) and +0.18 (2025-26) pts/game. No youth boost had the best
+# MAE in both seasons, next week and next 4 weeks, every pool (all, projected
+# top 450, under 24), pairwise equal or better; under-24 bias -0.09 / -0.01.
+# The old side is kept: it removes most of the veterans' over-projection.
+AGE_CURVES: dict[str, tuple[float, float, float]] = {"F": (26.0, 0.0, 0.009), "D": (23.5, 0.0, 0.0114)}
 AGE_FACTOR_RANGE = (0.8, 1.25)
 PRIOR_REGRESSION_STARTS = 15
 

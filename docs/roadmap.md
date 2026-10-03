@@ -13,11 +13,10 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 1. Logging: weekly xFP snapshot and the DFO line archive (private repo) done; the archive
    starts once Nico adds the `ARCHIVE_DEPLOY_KEY` secret. Nico: a Transactions screenshot each week.
-2. Projection accuracy. Role blend done: no change (see the log). Next: fringe skaters look
-   over-projected (+0.07 to +0.13 pts/game on every skater vs ~0 on the top 400), likely thin
-   histories regressed up; free agents come from there, so add gains may be overstated. Then
-   healthy availability. Done when: MAE, pairwise and bias by pool tier in `scripts/backtest.py`,
-   `check_sigma` re-run.
+2. Projection accuracy. Role blend (no change) and the age curve (youth boost removed) done,
+   see the log. Left: margins realize at 0.84 (projected differences a bit too wide), and healthy
+   availability (0.96 -> 0.89 over six weeks). Done when: backtested on both seasons, `check_sigma`
+   re-run.
 3. Message layer out of `engine/matchup.py`, with a whole-message consistency test.
 4. Opponent streaming (needs 3-4 weeks of transactions).
 5. Add-price calibration (mid-November).
@@ -34,10 +33,9 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
   (points-for matters for the add price, which values only wins), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
-- Projections run high and overstate differences (`scripts/check_sigma.py`: margins
-  realize at 0.87; teams 0.13 sigma under projection, down from 0.36 with the return
-  curves): healthy skaters' falling availability (0.96 -> 0.89 over six weeks) and
-  goalie shares are the next suspects, before shrinking add gains.
+- Projections overstate differences (`scripts/check_sigma.py`, aged priors since 2026-10-03:
+  margins realize at 0.84; teams now -0.01 sigma, unbiased): healthy skaters' falling
+  availability (0.96 -> 0.89 over six weeks) is the next suspect, before shrinking add gains.
 - Calibrate `MODEL_SD_SHARE`, the streaming-spot counts and the add price once 4-6
   weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
 - IR: read Yahoo's own injury tag (IR, IR-LT, O, DTD) from screenshots instead of
@@ -114,6 +112,7 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 | 2026-10-02 | Fix: with this week's adds spent, free agents join Monday: the streamers (text, chart) and every move count only next week's games, and a deferred add's drop (also a waiver claim's) keeps playing until the add joins. Staal for Stamkos had shown +4.6 this week from 6 open-slot games he couldn't play | (this commit) |
 | 2026-10-02 | Goalie streamers show expected starts next to games in open slots (Silovs: 3 games, ~1.9 starts); the points were already weighted by start odds, the game count read as if he'd play all 3 | (this commit) |
 | 2026-10-03 | Goalie start odds use the team's last result: after a loss the same goalie's odds x0.62, after a blowout (5+ GA or pulled) x0.32, a win x1.0, for the team's next game (`scripts/fit_goalie_starts.py`: fit 2023-25, 2025-26 0.96/0.63/0.35, log loss 0.651 -> 0.625). Back-to-back repeat 0.35 -> 0.15 (data: 0.09/0.13/0.16). Knight after Soderblom's blowout: 62% -> 81%. sim_goalies rerun: by value still +0.03 vs always-3 (+/- 0.14), always-2 -0.81 | (this commit) |
+| 2026-10-03 | Age curve: youth boost removed (fit on 20+ GP survivors, it over-projected under-24s by +0.09 / +0.18 pts/game on every skater); best MAE in both seasons and horizons, pairwise equal or better. `check_sigma` ages priors like the bot: teams -0.13 sigma unaged -> -0.01. Celebrini 9.0 -> 8.3, Bedard 6.5 -> 6.1 | (this commit) |
 | 2026-10-03 | Role blend backtested (`backtest --season --horizon --role-grid --all-players`): half-life 6 / prior 3 kept, nothing beats it in both seasons; after an ice-time jump the model under-projects ~0.25 pts/game next week, but reacting faster only chases noise. Found: fringe skaters over-projected | (this commit) |
 | 2026-10-03 | DFO line archive: all 32 charts once a game day (~1,300 rows) to the private `nybnic/FantasyNHLAssistantGM-data`; skips until the deploy key secret exists | (this commit) |
 | 2026-10-03 | Logging: each fantasy week's first run appends every NHL roster player's projection and owner to `state/xfp_log.csv` (~54 KB a week); the league-moves log keeps a season (3000, was 300) | (this commit) |
