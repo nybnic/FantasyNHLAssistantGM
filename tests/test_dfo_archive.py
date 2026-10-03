@@ -74,3 +74,12 @@ def test_an_archive_the_bot_cant_push_to_is_reported_in_the_data_check(tmp_path,
     assert not dfo_archive.writable(tmp_path)
     assert "deploy key needs write access" in health.problems()["Data archive"][0]
     health.clear()
+
+
+def test_the_archive_readme_lists_what_it_holds(tmp_path, monkeypatch):
+    (tmp_path / ".git").mkdir()
+    (tmp_path / "README.md").write_text("old", encoding="utf-8")
+    monkeypatch.setattr(dfo_archive.nhl_client, "games_on", lambda d: [])
+    dfo_archive.archive_step({"dfo_archived": None}, dt.datetime(2026, 10, 3, 12, tzinfo=dt.timezone.utc), False,
+                             tmp_path)
+    assert "yahoo_matchup/" in (tmp_path / "README.md").read_text(encoding="utf-8")

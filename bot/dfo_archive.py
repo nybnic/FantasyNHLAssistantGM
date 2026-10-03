@@ -27,6 +27,17 @@ ARCHIVE_DIR = Path("archive")
 SNAPSHOT_TIME = dt.time(13, 0)
 BEFORE_FIRST_PUCK = dt.timedelta(minutes=30)
 COLUMNS = ["date", "team", "name", "id", "group", "slot", "injury", "gtd"]
+# The archive's README, kept current by the bot (its first write proved the
+# deploy key can push, 2026-10-03).
+README = """# FantasyNHLAssistantGM-data
+Private data archive for FantasyNHLAssistantGM: third-party data, never in the public repo.
+Written by the bot's GitHub Actions run; don't edit by hand.
+
+- `dfo_lines/YYYY/DATE.csv`: DailyFaceoff line charts, all 32 teams, once a game day
+  (bot/dfo_archive.py)
+- `yahoo_matchup/YYYY/TIME.csv`: every player row of Nico's Yahoo matchup screenshots,
+  with Yahoo's week projection, both teams (bot/ingest.archive_matchup)
+"""
 
 
 def due(now: dt.datetime, games: list, archived: str | None) -> bool:
@@ -74,6 +85,9 @@ def archive_step(state: dict, now: dt.datetime, dry_run: bool, root: Path = ARCH
     writable(root)
     if not (root / ".git").exists() and not dry_run:
         return  # the private repo isn't checked out here
+    readme = root / "README.md"
+    if not dry_run and (not readme.exists() or readme.read_text(encoding="utf-8") != README):
+        readme.write_text(README, encoding="utf-8")
     date = now.astimezone(NHL_TIME).date()
     if not due(now, nhl_client.games_on(date), state["dfo_archived"]):
         return
