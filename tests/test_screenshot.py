@@ -291,3 +291,19 @@ def test_the_week_label_survives_the_pickers_arrows():
     lines = lambda t: [(0, 0, 0, t)]
     assert screenshot._week_label(lines("Week 2 1")) == 2 and screenshot._week_label(lines("Week 19")) == 19
     assert screenshot._week_label(lines("Week 40")) is None and screenshot._week_label(lines("Weekly")) is None
+
+
+# OCR of the website's week 1 matchup header Nico sent (2026-10-03).
+WEB_MATCHUP_LINES = [
+    (502, 47, 19, "CompareManagers"), (440, 106, 23, "87.40"), (634, 106, 23, "114.25"), (565, 111, 14, "vs"),
+    (889, 120, 29, "BahelinBoys"), (16, 121, 28, "Nico'sGroovy Team"), (240, 154, 20, "Nico"),
+    (888, 155, 18, "Musse"), (788, 171, 11, "ACOUSCOU"), (188, 182, 17, "0-0-0/9th"), (888, 182, 17, "0-0-0/3rd"),
+    (451, 196, 18, "188.20"), (542, 196, 19, "Orig Proj"), (638, 196, 18, "165.01"), (542, 222, 19, "Live Proj"),
+    (452, 223, 16, "175.62"), (639, 223, 17, "166.68"),
+]
+
+
+def test_the_websites_matchup_header_reads_yahoos_original_projection(monkeypatch):
+    shot = _shot(monkeypatch, WEB_MATCHUP_LINES)
+    assert shot == {"kind": "web_matchup", "teams": ("Nico'sGroovy Team", "BahelinBoys"), "score": (87.4, 114.25),
+                    "orig": (188.2, 165.01), "live": (175.62, 166.68), "week": None}

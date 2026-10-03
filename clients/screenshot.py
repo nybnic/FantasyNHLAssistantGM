@@ -107,6 +107,8 @@ def read(image: bytes, now: dt.datetime | None = None) -> dict:
         return {"kind": "transactions", "rows": _web_transactions(img, lines, now)}
     if any(_squash(t) == "allmatchups" for _, _, _, t in lines[:8]):
         return {"kind": "scoreboard", **_scoreboard(lines, img.width)}
+    if any(_squash(t) == "origproj" for _, _, _, t in lines):
+        return {"kind": "web_matchup", **_web_matchup(lines, img.width)}
     if _standings(lines, img.width):
         return {"kind": "standings", "rows": _standings(lines, img.width)}
     if any("transactions" in t.replace(" ", "").lower() for _, _, _, t in lines[:8]):
@@ -358,6 +360,33 @@ def _scoreboard(lines: list, width: int) -> dict:
     for team in teams:
         del team["y"]
     return {"week": week, "teams": teams, "pairs": pairs}
+
+
+def _web_matchup(lines: list, width: int) -> dict:
+    """A matchup's header on Yahoo's website: {"teams": (left, right),
+    "score", "orig": Yahoo's projection from before the week ("Orig Proj"),
+    "live": its projection now ("Live Proj"), each (left, right) or None,
+    "week": the label if in view}. Yahoo keeps "Orig Proj" after the week,
+    so it can be sent any time."""
+    numbers = [(x, y, h, float(t)) for x, y, h, t in lines if _POINTS.match(t)]
+
+    def pair_at(y: float, h: float) -> tuple[float, float] | None:
+        level = sorted((x, v) for x, ny, nh, v in numbers if abs(ny - y) < max(h, nh))
+        return (level[0][1], level[-1][1]) if len(level) >= 2 else None
+
+    labels = {_squash(t): (y, h) for _, y, h, t in lines if _squash(t) in ("origproj", "liveproj")}
+    orig_y, orig_h = labels["origproj"]
+    above = sorted((y, h) for _, y, h, _ in numbers if y < orig_y - orig_h)
+    score = next((p for y, h in above if (p := pair_at(y, h))), None)
+
+    def name(side) -> str | None:
+        shown = [(h, t) for x, y, h, t in lines if side(x) and y < orig_y and not _POINTS.match(t)]
+        return max(shown)[1] if shown else None
+
+    return {"teams": (name(lambda x: x < 0.3 * width), name(lambda x: x > 0.7 * width)), "score": score,
+            "orig": pair_at(orig_y, orig_h),
+            "live": pair_at(*labels["liveproj"]) if "liveproj" in labels else None,
+            "week": _week_label(lines)}
 
 
 def _week_label(lines: list) -> int | None:

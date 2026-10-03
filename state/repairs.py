@@ -91,6 +91,16 @@ def _week_1_board(state: dict, players: list[RosterPlayer], league: dict) -> Non
                                         for row in WEEK_1_BOARD for t in (row[0], row[3])}}
 
 
+def _week_1_orig_proj(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-03: Nico sent the website's week 1 matchup header in chat: Yahoo's
+    # original projection, 188.20 - 165.01 (Live Proj 175.62 - 166.68).
+    state.setdefault("results", {}).setdefault("1", {"opponent": "Bahelin Boys"})["yahoo_orig"] = [188.20, 165.01]
+    scores = state.setdefault("league_weeks", {}).setdefault("1", {"pairs": [], "scores": {}})["scores"]
+    for team, orig, live in (("Nico's Groovy Team", 188.20, 175.62), ("Bahelin Boys", 165.01, 166.68)):
+        scores.setdefault(team, {}).update(orig_proj=orig, live_proj=live)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
-           ("2026-10-03 week 1 board and standings", _week_1_board)]
+           ("2026-10-03 week 1 board and standings", _week_1_board),
+           ("2026-10-03 week 1 orig proj", _week_1_orig_proj)]

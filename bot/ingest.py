@@ -200,6 +200,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
         finish_standings(state, league, outbox)
     if "scoreboard" in new_screenshots:
         finish_scoreboard(state, league, outbox)
+    if "web_matchup" in new_screenshots:
+        finish_web_matchups(state, league, outbox)
     return problem
 
 
@@ -262,6 +264,10 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     if shot["kind"] == "standings":
         state["standings_rows"] += shot["rows"]
         return "standings"
+    if shot["kind"] == "web_matchup":
+        state["web_matchups"].append({k: shot[k] for k in ("teams", "score", "orig", "live", "week")}
+                                     | {"at": at.isoformat()})
+        return "web_matchup"
     if shot["kind"] == "scoreboard":
         state["scoreboard_shots"].append({"week": shot["week"], "teams": shot["teams"], "pairs": shot["pairs"]})
         return "scoreboard"
@@ -482,6 +488,54 @@ def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:
         lines.append("Scroll down and send the rest, so the season odds see every team.")
     if problems:
         lines.append("Couldn't match: " + ", ".join(problems))
+    outbox.send("\n".join(lines))
+
+
+def _matchup_week(pair: list[str], state: dict, today: dt.date) -> int | None:
+    """The latest week up to today in which these two teams play each other:
+    my schedule for mine, else the pairings All Matchups screenshots saved."""
+    current = weeks.week_of(today) or 0
+    for week in range(current, 0, -1):
+        if MY_TEAM in pair:
+            other = pair[1 - pair.index(MY_TEAM)]
+            if (weeks.opponent(week) or state["opponents"].get(str(week))) == other:
+                return week
+        elif sorted(pair) in state["league_weeks"].get(str(week), {}).get("pairs", []):
+            return week
+    return None
+
+
+def finish_web_matchups(state: dict, league: dict, outbox: Outbox) -> None:
+    """Matchup headers from Yahoo's website into league_weeks[week]: each
+    team's "Orig Proj" (Yahoo's forecast from before the week, which the
+    website keeps) and "Live Proj"; for my matchup also results[week]
+    ("yahoo_orig", mine first). The week is the label if shown, else the
+    latest week the two teams meet."""
+    shots, state["web_matchups"] = state["web_matchups"], []
+    lines = []
+    for shot in shots:
+        pair = [_league_team(t or "", league) for t in shot["teams"]]
+        if None in pair or not shot["orig"]:
+            lines.append(f"Couldn't read the teams or Orig Proj in that matchup ({' vs '.join(map(str, shot['teams']))}).")
+            continue
+        week = shot["week"] or _matchup_week(pair, state, common.nhl_today())
+        if not week:
+            lines.append(f"Couldn't tell which week {pair[0]} vs {pair[1]} is.")
+            continue
+        entry = state["league_weeks"].setdefault(str(week), {"pairs": [], "scores": {}})
+        for i, team in enumerate(pair):
+            row = entry["scores"].setdefault(team, {})
+            row["orig_proj"] = shot["orig"][i]
+            if shot["live"]:
+                row["live_proj"] = shot["live"][i]
+        if sorted(pair) not in entry["pairs"]:
+            entry["pairs"].append(sorted(pair))
+        if MY_TEAM in pair:
+            mine = pair.index(MY_TEAM)
+            state["results"].setdefault(str(week), {"opponent": pair[1 - mine]})["yahoo_orig"] = [
+                shot["orig"][mine], shot["orig"][1 - mine]]
+        lines.append(f"Week {week}: Yahoo's original projection saved, {pair[0]} {shot['orig'][0]:.2f} - "
+                     f"{pair[1]} {shot['orig'][1]:.2f}.")
     outbox.send("\n".join(lines))
 
 

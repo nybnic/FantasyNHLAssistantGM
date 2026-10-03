@@ -1005,7 +1005,7 @@ def test_the_week_1_board_repair_names_every_team_once(tmp_path):
     from config.league import MY_TEAM, SCHEDULE
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")
-    state["repairs_done"] = [name for name, _ in repairs.REPAIRS[:-1]]
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-03 week 1 board and standings"]
     repairs.apply(state, [], {"teams": {}, "taken": []})
     assert {t for pair in state["league_weeks"]["1"]["pairs"] for t in pair} == set(SCHEDULE) | {MY_TEAM}
     assert len(state["league_weeks"]["1"]["scores"]) == 16 and state["standings"]["week"] == 0
@@ -1106,3 +1106,22 @@ def test_a_team_page_sent_without_opp_goes_to_the_team_whose_players_it_shows(mo
     ingest.process_updates(settings, state, players, league, common.Outbox(settings))
     assert [p.id for p in players] == [1, 2]  # mine untouched
     assert len(league["teams"]["Bahelin Boys"]["players"]) == 12 and state["adds"] == []
+
+
+def test_the_websites_orig_proj_is_saved_for_its_week_any_time(monkeypatch, tmp_path):
+    shot = {"kind": "web_matchup", "teams": ("Nico'sGroovy Team", "BahelinBoys"), "score": (87.4, 114.25),
+            "orig": (188.2, 165.01), "live": (175.62, 166.68), "week": None}
+    monkeypatch.setattr(common, "nhl_today", lambda: dt.date(2026, 10, 6))  # week 2: Bahelin Boys were week 1's
+    state, sent = _league_shots(monkeypatch, tmp_path, {"w": shot})
+    assert state["results"]["1"]["yahoo_orig"] == [188.2, 165.01]
+    assert state["league_weeks"]["1"]["scores"]["Bahelin Boys"] == {"orig_proj": 165.01, "live_proj": 166.68}
+    assert sent == ["Week 1: Yahoo's original projection saved, Nico's Groovy Team 188.20 - Bahelin Boys 165.01."]
+
+
+def test_the_week_1_orig_proj_repair(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-03 week 1 orig proj"]
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["results"]["1"]["yahoo_orig"] == [188.2, 165.01]
+    assert state["league_weeks"]["1"]["scores"]["Nico's Groovy Team"]["orig_proj"] == 188.2

@@ -10,7 +10,8 @@ stored field changes.
 | When | What | Feeds |
 |---|---|---|
 | Every recommendation | Done / Other drop / Taken / Skip | My roster, the add budget (36 a season, 2 a week), the add scorecard |
-| **Monday, before the first game** | League > **All Matchups**, scrolled through all 8 matchups (the new week at 0.00) | Yahoo's forecast for all 16 teams (kept to check against ours), the week's pairings (season odds) |
+| Any time, any week | A matchup page header on Yahoo's **website** (the one with "Orig Proj" and "Live Proj") | Yahoo's forecast from before the week ("Orig Proj": Yahoo keeps it, so no need to beat the first game), for both teams; mine also in `results[w].yahoo_orig`. Each of the 8 matchups has its page |
+| **Monday, before the first game** | League > **All Matchups** in the app, scrolled through all 8 matchups (the new week at 0.00) | Yahoo's forecast for all 16 teams in one go (the app has no "Orig Proj"), the week's pairings (season odds) |
 | Monday (optional) | The same, with the week picker on last week | Yahoo's final for every team: the results both forecasts are checked against |
 | Monday | League > **Standings** | Playoff and title odds |
 | Monday, and when the plan asks | League > **Transactions**, back to the date the plan names | The other 15 rosters, free agents, how much each team streams |
@@ -27,6 +28,8 @@ Duplicates and extras are safe; each kind is checked before it changes anything:
   ("Games Played 0/43" for both).
 - **All Matchups**: each team's latest score replaces the previous one, and the first one seen is kept
   (`first`). Unlabeled scrolled screenshots take the week of the labeled one before them.
+- **Website matchup headers**: the week is the label if in view, else the latest week those two teams meet;
+  sending one again just rewrites the same numbers.
 - **Standings**: older standings (fewer weeks played) never replace newer ones; the same week's add up.
 - **Team pages**: without `/opp`, a page goes to the roster sharing at least half its players, else mine
   (a full reset of my own roster counts no adds when most players are new).
@@ -48,7 +51,7 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 | `roster.json`, `league.json`, `positions.json` | All 16 rosters, waivers, how current league moves are, Yahoo eligibility | Every lineup, add and trade decision |
 | `gm_state.json` `adds`, `decisions` | Every add made, every tap | The add budget; how suggested adds turned out (`scripts/scorecard.py`) |
 | `results[week]` | Our plan's forecast of my matchup (first and latest), the final, live checks (Yahoo's score and projection vs box scores), `yahoo_first`, `yahoo_final` | Checking P(win) and its spread (`scripts/check_sigma.py`) |
-| `league_weeks[week]` | Pairings; each team's Yahoo score and projection (latest, and `first`); `ours`: our forecast of all 16 teams at the week's first plan | Season odds; scoring our forecasts against Yahoo's, 16 team-weeks a week (roadmap item 7) |
+| `league_weeks[week]` | Pairings; each team's Yahoo score and projection (latest, and `first`), and from the website `orig_proj` / `live_proj`; `ours`: our forecast of all 16 teams at the week's first plan | Season odds; scoring our forecasts against Yahoo's, 16 team-weeks a week (roadmap item 7) |
 | `standings` | W-L-T and points for | Playoff and title odds (`engine/season.py`) |
 | `add_pools` | Every add candidate each plan weighed | Solving the add price that paces 36 adds (`engine/addprice.py`) |
 | `league_adds` | Other teams' pickups | Opponent streaming profiles (roadmap item 5) |
@@ -68,4 +71,5 @@ Not stored: the screenshot images (only what's read from them).
 From week 2 on, each week has, before any games: our forecast of all 16 teams and of every player, and
 Yahoo's forecast of all 16 teams (All Matchups) and of my matchup's players. The results come from box
 scores, and from Yahoo's finals where screenshots give them. Not built yet: the script that scores both
-forecasts (roadmap item 7, after 3-4 weeks). Week 1 has no pre-game Yahoo numbers.
+forecasts (roadmap item 7, after 3-4 weeks). Week 1: Yahoo's original projection of my matchup only
+(188.20 - 165.01, from the website), and no forecast of ours for the other teams.

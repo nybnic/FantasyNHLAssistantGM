@@ -39,7 +39,8 @@
   {score, goalie_min, at, source}) and, for plans built on a matchup screenshot,
   Yahoo's score next to the box scores' best-lineup one ("live": [{through,
   yahoo, box, yahoo_projected}]), and Yahoo's first forecast of the week from a
-  matchup screenshot ("yahoo_first": {at, through, score, projected});
+  matchup screenshot ("yahoo_first": {at, through, score, projected}), Yahoo's
+  original projection from the website ("yahoo_orig": [mine, theirs]);
   what calibrating the model is checked on
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
@@ -54,11 +55,12 @@
 - trade_request: the text after /trade, judged on this run
 - standings: the latest League > Standings ({week: the last week they include,
   teams: {team: {w, l, t, pf}}, at}), where the season simulation starts (engine/season.py)
-- standings_rows, scoreboard_shots: rows read from those screenshots this run, not yet saved
+- standings_rows, scoreboard_shots, web_matchups: rows read from those screenshots this run, not yet saved
 - league_weeks: per fantasy week, from All Matchups screenshots: the league's
   pairings (each a sorted pair of team names) and each team's latest score and
   Yahoo projection ({score, projected, date, first: the first ones seen, Yahoo's
-  forecast when sent before Monday's games}); and our projection of all 16 teams
+  forecast when sent before Monday's games, orig_proj / live_proj: Yahoo's
+  original and live projections from its website's matchup page}); and our projection of all 16 teams
   at the week's first plan ("ours": {at, moves_through, teams: {team: {expected,
   sd, so_far}}}), to check both forecasts against the results
 """
@@ -154,6 +156,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("standings_rows", [])
     state.setdefault("scoreboard_shots", [])
     state.setdefault("league_weeks", {})
+    state.setdefault("web_matchups", [])
     return state
 
 
