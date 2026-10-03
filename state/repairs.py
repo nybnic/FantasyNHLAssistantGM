@@ -5,6 +5,7 @@ what the incident did.
 from __future__ import annotations
 
 import datetime as dt
+import math
 from zoneinfo import ZoneInfo
 
 from clients.names import normalize_name
@@ -100,7 +101,37 @@ def _week_1_orig_proj(state: dict, players: list[RosterPlayer], league: dict) ->
         scores.setdefault(team, {}).update(orig_proj=orig, live_proj=live)
 
 
+# scripts/retro_forecast.py, run 2026-10-03 (Check workflow): week 1 from the
+# drafted rosters as of Sep 29, no injury report or confirmed goalies.
+# Team: (expected, sd, P(goalie minimum)).
+WEEK_1_RETRO = {
+    "Pastasauce": (160.11, 28.14, 0.578), "Vanilla Thunder": (152.44, 27.79, 0.606),
+    "Nico's Groovy Team": (160.91, 28.15, 0.928), "Viktorios": (166.93, 28.9, 0.617),
+    "HAN-NES": (169.67, 29.16, 0.92), "Gwp": (142.47, 25.87, 0.45), "Löllöt Höntsääjät": (140.31, 25.63, 0.408),
+    "Vantaa": (161.63, 27.84, 0.489), "Bottom three": (159.89, 28.39, 0.858), "Lazy Lew": (145.24, 25.06, 0.326),
+    "Randy": (167.67, 28.71, 0.589), "HC Bulju": (157.21, 27.9, 0.545), "Bellova": (158.35, 28.22, 0.625),
+    "Bahelin Boys": (160.01, 29.08, 0.782), "Jättiläisentie Giants": (162.35, 29.45, 0.708),
+    "Retrot Chicken Wings": (174.54, 30.01, 0.728),
+}
+
+
+def _week_1_retro_forecast(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-03: week 1's first plan came mid-week (Thu Oct 1), so our forecast
+    # from before its games is rebuilt (Nico asked): marked "retro", so it's
+    # never mistaken for one made at the time.
+    week = state.setdefault("league_weeks", {}).setdefault("1", {"pairs": [], "scores": {}})
+    week["ours"] = {"at": "2026-09-29", "retro": "rebuilt 2026-10-03 by scripts/retro_forecast.py: drafted "
+                    "rosters, no injury report or confirmed goalies", "moves_through": "2026-09-28",
+                    "teams": {t: {"expected": e, "sd": sd, "so_far": 0.0, "goalie_min": g}
+                              for t, (e, sd, g) in WEEK_1_RETRO.items()}}
+    (me, me_sd, _), (them, them_sd, _) = WEEK_1_RETRO["Nico's Groovy Team"], WEEK_1_RETRO["Bahelin Boys"]
+    win = 0.5 * (1 + math.erf((me - them) / math.sqrt(2 * (me_sd ** 2 + them_sd ** 2))))
+    state.setdefault("results", {}).setdefault("1", {"opponent": "Bahelin Boys"})["retro"] = {
+        "expected": [me, them], "sd": [me_sd, them_sd], "win": round(win, 4)}
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
-           ("2026-10-03 week 1 orig proj", _week_1_orig_proj)]
+           ("2026-10-03 week 1 orig proj", _week_1_orig_proj),
+           ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast)]

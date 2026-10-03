@@ -1125,3 +1125,14 @@ def test_the_week_1_orig_proj_repair(tmp_path):
     repairs.apply(state, [], {"teams": {}, "taken": []})
     assert state["results"]["1"]["yahoo_orig"] == [188.2, 165.01]
     assert state["league_weeks"]["1"]["scores"]["Nico's Groovy Team"]["orig_proj"] == 188.2
+
+
+def test_week_1s_rebuilt_forecast_is_marked_retro(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-03 week 1 retro forecast"]
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    ours = state["league_weeks"]["1"]["ours"]
+    assert len(ours["teams"]) == 16 and ours["retro"].startswith("rebuilt")
+    assert ours["teams"]["Nico's Groovy Team"]["expected"] == 160.91
+    assert state["results"]["1"]["retro"]["win"] == pytest.approx(0.509, abs=0.001)

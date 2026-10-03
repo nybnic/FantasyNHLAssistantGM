@@ -72,4 +72,6 @@ From week 2 on, each week has, before any games: our forecast of all 16 teams an
 Yahoo's forecast of all 16 teams (All Matchups) and of my matchup's players. The results come from box
 scores, and from Yahoo's finals where screenshots give them. Not built yet: the script that scores both
 forecasts (roadmap item 7, after 3-4 weeks). Week 1: Yahoo's original projection of my matchup only
-(188.20 - 165.01, from the website), and no forecast of ours for the other teams.
+(188.20 - 165.01, from the website); ours for all 16 teams is rebuilt after the fact
+(`scripts/retro_forecast.py`: drafted rosters as of Sep 29, no injury report or confirmed goalies),
+marked `retro`.
