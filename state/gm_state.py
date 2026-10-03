@@ -40,6 +40,7 @@
   yahoo, box}]); what calibrating the model is checked on
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
+- dfo_archived: the last NHL date whose DFO line charts went to the private archive (bot/dfo_archive.py)
 - xfp_logged: the last fantasy week whose projections bot/xfp_log.py appended to state/xfp_log.csv
 - health_alerts: per data source, the day its trouble was last reported
 - repairs_done: the one-time repairs already applied (state/repairs.py)
@@ -131,6 +132,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("seen_mine", {})
     state.setdefault("league_adds", {})
     state.setdefault("xfp_logged", None)  # the last week bot/xfp_log.py logged
+    state.setdefault("dfo_archived", None)  # the last NHL date bot/dfo_archive.py saved
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)

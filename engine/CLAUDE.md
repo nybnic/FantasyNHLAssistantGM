@@ -69,6 +69,8 @@
 | 2026-10-01 | This week's adds go to moves that pay this week; a keeper gaining < 1 pt this week waits for Monday's adds and is named as such (Nico) | Silovs (+0 this week) took the last weekly add while McBain (+10, win 48% -> 59%) was labelled "not recommended". Extends "upgrades that cost this week wait". Risk: the keeper gets claimed meanwhile |
 | 2026-10-01 | Free agents take Yahoo's position eligibility, seeded from Nico's export (positions only, Nico OK'd committing them) and learned from every Yahoo screenshot (`league/positions.py`) | NHL data gives one position; 37% of 560 skaters differ on Yahoo (Guentzel: NHL C, Yahoo LW/RW) |
 | 2026-10-01 | No goalie-minimum alerts beyond the weekly line (Nico) | Yahoo already warns; the model still counts the minimum in P(win) |
+| 2026-10-03 | DFO line charts are archived daily in a private repo, not this public one (Nico) | DFO keeps no history, and role/stash signals can only be tested on an archive; republishing their charts publicly risks the source the live bot depends on (`bot/dfo_archive.py`) |
+| 2026-10-03 | No fixed bonus for young players (Nico) | Unbacked, and it double-counts the age curve and option value. Stash plan P0 tests whether young, low-sample players are under-projected; if so the fix goes into the model |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)

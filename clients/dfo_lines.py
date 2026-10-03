@@ -56,11 +56,12 @@ def teams() -> list[dict]:
     return cached_json("dfo_teams", 30 * DAY, fetch)
 
 
-def team_lines(team: str) -> dict[str, LineInfo]:
-    """Normalized player name -> LineInfo for one NHL team code."""
+def rows(team: str) -> list[dict]:
+    """One NHL team's chart as DFO lists it: {name, group, slot, injury, gtd},
+    a row per group a player is in ([] for an unknown team)."""
     slug = next((t["slug"] for t in teams() if t["code"] == team), None)
     if not slug:
-        return {}
+        return []
 
     def fetch() -> list[dict]:
         combos = _page_props(f"/teams/{slug}/line-combinations")["combinations"]
@@ -75,8 +76,13 @@ def team_lines(team: str) -> dict[str, LineInfo]:
             for p in combos["players"]
         ]
 
+    return cached_json(f"dfo_lines/{team}", 3 * HOUR, fetch)
+
+
+def team_lines(team: str) -> dict[str, LineInfo]:
+    """Normalized player name -> LineInfo for one NHL team code."""
     out: dict[str, LineInfo] = {}
-    for row in cached_json(f"dfo_lines/{team}", 3 * HOUR, fetch):
+    for row in rows(team):
         info = out.setdefault(normalize_name(row["name"]), LineInfo())
         info.groups.add(row["group"])
         if row["group"] == "g" and row["slot"] in ("g1", "g2"):

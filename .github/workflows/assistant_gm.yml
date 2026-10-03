@@ -29,6 +29,8 @@ jobs:
       RELAY_URL: ${{ secrets.RELAY_URL }}
       RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      # The private data repo's deploy key exists (the key itself stays in its step).
+      HAS_ARCHIVE: ${{ secrets.ARCHIVE_DEPLOY_KEY != '' }}
     steps:
       # The latest main, not the commit this run was queued on: runs started
       # seconds apart (e.g. by two quick Telegram messages) must each see the
@@ -36,6 +38,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+
+      # DFO line charts are third-party data: archived in a private repo
+      # (bot/dfo_archive.py), never here. Its failure mustn't stop the run.
+      - name: Check out the private data archive
+        if: env.HAS_ARCHIVE == 'true'
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: nybnic/FantasyNHLAssistantGM-data
+          ssh-key: ${{ secrets.ARCHIVE_DEPLOY_KEY }}
+          path: archive
 
       - uses: actions/setup-python@v5
         with:
@@ -69,6 +82,21 @@ jobs:
           git add state/ site/
           if ! git diff --cached --quiet; then
             git commit -m "Assistant GM: update roster and state"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Push the data archive
+        if: always() && env.HAS_ARCHIVE == 'true'
+        continue-on-error: true
+        run: |
+          [ -d archive/.git ] || exit 0
+          cd archive
+          git config user.name "assistant-gm-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "DFO line charts"
             git pull --rebase
             git push
           fi

@@ -5,6 +5,8 @@ oauth2.json
 .venv/
 venv/
 data/cache/
+# The private data repo (DFO line archive), checked out here by the workflow
+archive/
 # Charts a dry run draws (main.Outbox.send_photo)
 data/charts/
 data/xfp.csv
