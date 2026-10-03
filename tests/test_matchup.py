@@ -533,3 +533,10 @@ def test_injured_free_agents_are_shortlisted_as_stashes():
     pool = [star] + [RosterPlayer(300 + i, f"Healthy {i}", "BOS", ["C"]) for i in range(30)]
     assert matchup.stash_pool(pool, ctx, lines) == [star]
     assert star in matchup.shortlist(pool, ctx, schedule, lines, {})
+
+
+def test_a_stash_is_not_offered_as_a_streamer():
+    ctx, future, schedule, lines, star, opponent = _stash_setup()
+    ranked = [m for m in matchup.candidate_moves(_full_roster(), opponent, [star], ctx, schedule, lines, {}, future, 10)
+              if m.ir_slot]
+    assert ranked and matchup.streamers(_full_roster(), ranked, ctx, schedule, future, lines, {}) == []

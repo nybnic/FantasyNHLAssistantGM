@@ -763,7 +763,7 @@ def streamers(
     for position in STREAMER_POSITIONS:
         best: dict[int, Move] = {}
         for m in ranked:
-            if m.add.positions[0] != position or m.add.id in used:
+            if m.add.positions[0] != position or m.add.id in used or m.ir_slot:  # a stash is no streamer
                 continue
             if m.add.id not in best or m.week_gain + m.next_weeks / 2 > best[m.add.id].week_gain + best[m.add.id].next_weeks / 2:
                 best[m.add.id] = m

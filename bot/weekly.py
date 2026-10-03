@@ -418,7 +418,7 @@ def _wait_text(keeper) -> str:
         return ""
     swap = (f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop
             else f"{keeper.add.name} into your empty {keeper.ir_slot} slot" if keeper.ir_slot else keeper.add.name)
-    return (f"\n\nCan wait until Monday, when your adds reset: {swap} ({keeper.week_gain:+.1f} pts this week, "
+    return (f"\n\nCan wait for next week's adds: {swap} ({keeper.week_gain:+.1f} pts this week, "
             f"{keeper.next_weeks:+.1f} over the next two). The risk: someone claims him first.")
 
 
