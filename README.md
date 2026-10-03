@@ -60,7 +60,7 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   points per week for you and for them over the 6 weeks after it clears,
   with open spots filled from free agents and at least two goalies kept, plus
   both rosters' F/D/G balance. `/trade` alone suggests 3-4 trades the other
-  manager could plausibly accept (takes a few minutes).
+  manager could plausibly accept (takes about half a minute).
 - `/roster` in the chat shows the roster it thinks you have. If it's wrong,
   send screenshots of the Yahoo app's Team tab (scroll so every player is in
   one of them; overlap is fine), or `/myteam` and paste the page's text. It
