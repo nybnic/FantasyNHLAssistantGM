@@ -23,10 +23,11 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 6. Stash candidates (P0 evidence -> P1 role-aware projection -> P2 candidates with option
    value, plus "Watch" heads-ups (Nico: yes) -> P3 scorecard). No youth bonus (decision log).
 
-7. Season layer, step 2: read League > Standings screenshots (needs a sample screenshot from Nico to
-   build the OCR on). Weighting adds by leverage or playoff-week points was simulated and lost title
-   odds (`scripts/sim_leverage.py`, results in its docstring): the add price stays as it is. Re-run
-   the sim with 6+ logged weeks and real standings before revisiting.
+7. Season layer: Standings and All Matchups screenshots are read (done). Weighting adds by leverage
+   or playoff-week points was simulated and lost title odds (`scripts/sim_leverage.py`): the add
+   price stays as it is. Re-run the sim with 6+ logged weeks and real standings before revisiting.
+   Next: compare Yahoo's projected weekly totals (`league_weeks` scores) with our team strengths,
+   once 3-4 weeks are logged.
 
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
@@ -129,3 +130,4 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 
 | 2026-10-03 | Simulated (`scripts/sim_leverage.py`, whole league, paired seasons): leverage-weighted adds raise playoff odds +0.6-1.6 pts but cut title odds 0.3-1.0 (on P(title): -1.0-2.6); playoff-week points x2: title -0.4-0.9. All disturb the even late-season spending whose adds carry into the playoffs. Add price unchanged | (this commit) |
 | 2026-10-03 | Opponent and arena effects on skaters backtested (`scripts/backtest_venue.py`, both seasons): no gain beyond noise (2025-26 slightly worse), so not in the model | (this commit) |
+| 2026-10-03 | Standings and All Matchups screenshots read (League tab, OCR checked on Nico's): standings start the season odds, the week's pairings replace random ones, every team's score and Yahoo projection logged (`league_weeks`); today's screenshots recorded by a repair | (this commit) |

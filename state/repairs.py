@@ -62,5 +62,35 @@ def _league_adds_from_log(state: dict, players: list[RosterPlayer], league: dict
         league["moves_through"] = max(state["transactions_seen"].values())
 
 
+# Nico's League > Standings and All Matchups screenshots of 2026-10-03 10:53
+# Helsinki, sent in a development session before the bot could read them:
+# week 1's pairings, and each team's score and Yahoo projection then (through
+# Oct 2's games).
+WEEK_1_BOARD = [
+    ("Nico's Groovy Team", 87.40, 175.62, "Bahelin Boys", 114.25, 166.68),
+    ("HAN-NES", 96.35, 174.62, "HC Bulju", 114.95, 204.09),
+    ("Viktorios", 99.25, 178.96, "Bottom three", 145.15, 215.92),
+    ("Gwp", 101.20, 170.36, "Vanilla Thunder", 86.00, 150.76),
+    ("Retrot Chicken Wings", 93.80, 174.75, "Pastasauce", 94.55, 176.29),
+    ("Lazy Lew", 119.20, 207.19, "Löllöt Höntsääjät", 86.85, 156.30),
+    ("Randy", 80.65, 162.98, "Vantaa", 134.85, 206.77),
+    ("Bellova", 65.45, 142.92, "Jättiläisentie Giants", 85.15, 139.48),
+]
+
+
+def _week_1_board(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    week = state.setdefault("league_weeks", {}).setdefault("1", {"pairs": [], "scores": {}})
+    for a, a_score, a_proj, b, b_score, b_proj in WEEK_1_BOARD:
+        if sorted((a, b)) not in week["pairs"]:
+            week["pairs"].append(sorted((a, b)))
+        for team, score, proj in ((a, a_score, a_proj), (b, b_score, b_proj)):
+            week["scores"].setdefault(team, {"score": score, "projected": proj, "date": "2026-10-03"})
+    if not state.get("standings"):  # everyone 0-0-0 before week 1 ends
+        state["standings"] = {"week": 0, "at": "2026-10-03",
+                              "teams": {t: {"w": 0, "l": 0, "t": 0, "pf": 0.0}
+                                        for row in WEEK_1_BOARD for t in (row[0], row[3])}}
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
-           ("2026-10-03 league adds from the log", _league_adds_from_log)]
+           ("2026-10-03 league adds from the log", _league_adds_from_log),
+           ("2026-10-03 week 1 board and standings", _week_1_board)]

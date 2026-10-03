@@ -82,6 +82,10 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   opponent's roster and the live score at once, then the bot replans the week.
   Taken before the day's first puck, Yahoo's score replaces the bot's own
   box-score tally. Ideal on Monday and again mid-week.
+- **Standings and All Matchups screenshots** (League tab) feed the season
+  odds in the plan (playoffs, title, how much this week's win matters): the
+  real W-L-T and points for, and this week's pairings. Monday, with the
+  Transactions screenshot, is enough.
 - If a run fails, you get one alert that day.
 
 From Wednesday the plan comes again with a stance: chase when behind (with the

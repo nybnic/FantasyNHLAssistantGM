@@ -206,3 +206,63 @@ def test_player_lines_split_the_name_from_a_glued_team_code():
     assert screenshot._player_line("JamieDrysdalePHl-D")["team"] == "PHI"
     assert screenshot._player_line("Jean-Gabriel PageauNYI-C")["name"] == "Jean-Gabriel Pageau"
     assert screenshot._player_line("Free Agent") is None
+
+
+def _shot(monkeypatch, lines, width=1179):
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    buf = io.BytesIO()
+    Image.new("RGB", (width, 2556)).save(buf, "PNG")
+    return screenshot.read(buf.getvalue())
+
+
+# OCR lines from Nico's League tab screenshot (2026-10-03, 1179 px wide): the
+# rank digits 1-9 are missed, umlauts dropped, a logo's text read too.
+STANDINGS_LINES = [
+    (122.0, 67.0, 44.0, "10:524"), (390.0, 226.0, 40.0, "Not for everyone! ^"), (344.0, 369.0, 54.0, "Matchup"),
+    (892.0, 371.0, 54.0, "League"), (252.0, 467.0, 42.0, "Bottom three"), (820.0, 468.0, 41.0, "0-0-0"),
+    (997.0, 469.0, 38.0, "0.00"), (251.0, 708.0, 47.0, "Bahelin Boys"), (820.0, 709.0, 41.0, "2-1-0"),
+    (999.0, 710.0, 39.0, "512.30"), (165.0, 739.0, 15.0, "ACouScou"),
+    (251.0, 1431.0, 40.0, "Nico's Groovy Team"), (997.0, 1428.0, 42.0, "430.15"), (820.0, 1429.0, 41.0, "1-2-0"),
+    (70.0, 1668.0, 44.0, "11"), (820.0, 1668.0, 41.0, "0-0-0"), (997.0, 1668.0, 42.0, "0.00"),
+    (254.0, 1670.0, 38.0, "Jattilaisentie Giants"), (930.0, 2353.0, 53.0, "012"), (414.0, 2427.0, 33.0, "Games"),
+]
+
+
+def test_standings_rows_pair_each_team_with_its_record_and_points_for(monkeypatch):
+    shot = _shot(monkeypatch, STANDINGS_LINES)
+    assert shot["kind"] == "standings"
+    assert shot["rows"] == [
+        {"team": "Bottom three", "w": 0, "l": 0, "t": 0, "pf": 0.0},
+        {"team": "Bahelin Boys", "w": 2, "l": 1, "t": 0, "pf": 512.3},
+        {"team": "Nico's Groovy Team", "w": 1, "l": 2, "t": 0, "pf": 430.15},
+        {"team": "Jattilaisentie Giants", "w": 0, "l": 0, "t": 0, "pf": 0.0},
+    ]
+
+
+# From Nico's All Matchups screenshot (week 1): Lazy Lew is cut off at the bottom.
+SCOREBOARD_LINES = [
+    (461.0, 203.0, 42.0, "All Matchups"), (441.0, 253.0, 37.0, "Not for everyone!"), (200.0, 398.0, 41.0, "Week 1"),
+    (969.0, 501.0, 38.0, "87.40"), (265.0, 511.0, 39.0, "Nico's Groovy Team"), (981.0, 561.0, 34.0, "175.62"),
+    (262.0, 566.0, 34.0, "Nico ·0-0-0"), (961.0, 645.0, 36.0, "114.25"), (263.0, 654.0, 43.0, "Bahelin Boys"),
+    (972.0, 705.0, 34.0, "166.68"), (264.0, 712.0, 33.0, "Musse ·0-0-0"), (147.0, 716.0, 17.0, "ACOUSCOU"),
+    (969.0, 897.0, 38.0, "96.35"), (263.0, 910.0, 33.0, "HAN-NES"), (980.0, 955.0, 38.0, "174.62"),
+    (262.0, 961.0, 37.0, "Klaus · 0-0-0"), (961.0, 1042.0, 35.0, "114.95"), (261.0, 1050.0, 44.0, "HC Bulju"),
+    (73.0, 1079.0, 36.0, "14"), (962.0, 1101.0, 34.0, "204.09"), (264.0, 1108.0, 33.0, "Johannes ·O-0-0"),
+    (388.0, 1652.0, 35.0, "MATCHUP OF.THE WEEK"),
+    (955.0, 1729.0, 35.0, "80.65"), (273.0, 1733.0, 50.0, "Randy"), (962.0, 1788.0, 34.0, "162.98"),
+    (275.0, 1794.0, 34.0, "Kalle ·0-0-0"), (940.0, 1872.0, 37.0, "134.85"), (275.0, 1882.0, 40.0, "Vantaa"),
+    (957.0, 1934.0, 31.0, "206.77"), (274.0, 1936.0, 38.0, "Thomas · 0-0-0"),
+    (955.0, 2278.0, 37.0, "119.20"), (262.0, 2289.0, 41.0, "Lazy Lew"), (979.0, 2338.0, 34.0, "207.19"),
+    (262.0, 2344.0, 35.0, "Jere"), (357.0, 2344.0, 34.0, "0-0-0"),
+]
+
+
+def test_a_scoreboard_reads_each_matchup_with_scores_and_projections(monkeypatch):
+    shot = _shot(monkeypatch, SCOREBOARD_LINES)
+    assert shot["kind"] == "scoreboard" and shot["week"] == 1
+    teams = shot["teams"]
+    assert teams[0] == {"team": "Nico's Groovy Team", "score": 87.4, "projected": 175.62}
+    assert teams[3] == {"team": "HC Bulju", "score": 114.95, "projected": 204.09}  # "O-0-0": a manager line
+    assert [(teams[i]["team"], teams[j]["team"]) for i, j in shot["pairs"]] == [
+        ("Nico's Groovy Team", "Bahelin Boys"), ("HAN-NES", "HC Bulju"), ("Randy", "Vantaa")]
+    assert teams[-1] == {"team": "Lazy Lew", "score": 119.2, "projected": 207.19}  # its opponent is off screen

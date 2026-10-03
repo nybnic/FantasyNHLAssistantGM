@@ -5,6 +5,10 @@ app's League > Transactions tab, the website's Transactions page (full names,
 times in US Eastern), and the app's league chat ("Gwp added Elias Lindholm",
 dated "hier à 18:48" or "13m ago", so read against the time it was sent).
 
+League tab's standings: each team's W-L-T and points for. All Matchups (the
+week's scoreboard): every pairing, with each team's score and Yahoo's
+projected total.
+
 Team tab: each row's slot, the name as shown ("M. SCHEIFELE"), team and
 positions. Matchup tab: the same for both teams side by side (the slot badge
 sits between them), each player's points and Yahoo projection, and the
@@ -68,6 +72,8 @@ _DAYS_AGO = {"avanthier": 2, "hier": 1, "yesterday": 1, "aujourdhui": 0, "today"
 _WEEKDAYS = {"lun": 0, "mar": 1, "mer": 2, "jeu": 3, "ven": 4, "sam": 5, "dim": 6,
              "mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
 _CLOCK = re.compile(r"^(\d{1,2}):(\d{2})")  # the phone's status bar
+_RECORD = re.compile(r"(\d+)-(\d+)-(\d+)$")  # "0-0-0", also at the end of "Nico · 0-0-0"
+_WEEK = re.compile(r"^week(\d+)$")
 _CHAT_MOVE = re.compile(r"^(.+?)(added|dropped)(.+?)(?:and(dropped)(.+))?$")
 
 
@@ -85,8 +91,9 @@ def _ocr():
 
 
 def read(image: bytes, now: dt.datetime | None = None) -> dict:
-    """{"kind": "team", "rows": [...]}, {"kind": "matchup", ...} (see _matchup)
-    or {"kind": "transactions", "rows": [...]} (see _transactions). `now`, the
+    """{"kind": "team", "rows": [...]}, {"kind": "matchup", ...} (see _matchup),
+    {"kind": "transactions", "rows": [...]} (see _transactions), {"kind":
+    "standings", "rows": [...]} (_standings) or {"kind": "scoreboard", ...} (_scoreboard). `now`, the
     phone's local time when it was sent, dates the chat's "hier à 18:48" and
     places the website's Eastern times on the phone's clock."""
     now = now or dt.datetime.now().astimezone()
@@ -96,6 +103,10 @@ def read(image: bytes, now: dt.datetime | None = None) -> dict:
         return {"kind": "transactions", "rows": _chat_transactions(img, lines, now)}
     if any(x > 0.55 * img.width and _WEB_DATE.match(t.replace(" ", "")) for x, _, _, t in lines):
         return {"kind": "transactions", "rows": _web_transactions(img, lines, now)}
+    if any(_squash(t) == "allmatchups" for _, _, _, t in lines[:8]):
+        return {"kind": "scoreboard", **_scoreboard(lines, img.width)}
+    if _standings(lines, img.width):
+        return {"kind": "standings", "rows": _standings(lines, img.width)}
     if any("transactions" in t.replace(" ", "").lower() for _, _, _, t in lines[:8]):
         return {"kind": "transactions", "rows": _transactions(img, lines)}
     if _is_matchup(lines, img.width):
@@ -275,6 +286,66 @@ def _transactions(img: Image.Image, lines: list) -> list[dict]:
         if players and len(teams) == (2 if kind == "trade" else 1):
             blocks.append({"type": kind, "when": when, "teams": teams, "players": players})
     return blocks
+
+
+def _record(text: str) -> tuple[int, int, int] | None:
+    """(W, L, T) from "0-0-0" or "Nico · 0-0-0" (OCR reads some zeros as O)."""
+    m = _RECORD.search(text.replace("O", "0").replace(" ", ""))
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
+
+
+def _standings(lines: list, width: int) -> list[dict]:
+    """League tab: [{"team", "w", "l", "t", "pf"}], one per row whose record
+    (mid-right) and points for (far right) sit level with a team name; empty
+    when fewer than 3 rows read (not a standings screen)."""
+    rows = []
+    for rx, ry, rh, rt in lines:
+        if not 0.6 * width < rx < 0.8 * width or not _record(rt) or not _RECORD.fullmatch(rt.replace("O", "0")):
+            continue
+        name = next((t for x, y, h, t in lines if 0.15 * width < x < 0.5 * width and abs(y - ry) < rh
+                     and not _record(t)), None)
+        pf = next((t for x, y, h, t in lines if x > 0.8 * width and abs(y - ry) < rh and _POINTS.match(t)), None)
+        if name and pf:
+            w, l, t = _record(rt)
+            rows.append({"team": name, "w": w, "l": l, "t": t, "pf": float(pf)})
+    return rows if len(rows) >= 3 else []
+
+
+def _scoreboard(lines: list, width: int) -> dict:
+    """All Matchups: {"week": n or None, "teams": [{"team", "score", "projected"}],
+    "pairs": [(i, j)]} (indexes into teams). A card is two team lines, each
+    with its score at the right and, on the manager line below it ("Nico ·
+    0-0-0"), Yahoo's projected total. Cards are told apart by the gap
+    between them; a team cut off by the screen's edge is left unpaired."""
+    week = next((int(m.group(1)) for _, _, _, t in lines if (m := _WEEK.match(_squash(t)))), None)
+    numbers = [(y, h, float(t)) for x, y, h, t in lines if x > 0.7 * width and _POINTS.match(t)]
+    left = [(x, y, h, t) for x, y, h, t in lines if 0.18 * width < x < 0.6 * width]
+    manager = {y for x, y, h, t in left
+               if _record(t) or any(abs(y2 - y) < h / 2 and _record(t2) for x2, y2, _, t2 in left if x2 != x)}
+
+    def number_at(y: float, h: float) -> float | None:
+        near = [(abs(ny - y), v) for ny, nh, v in numbers if abs(ny - y) < max(h, nh)]
+        return min(near)[1] if near else None
+
+    teams = []
+    for x, y, h, t in left:
+        if y in manager or _record(t):
+            continue
+        score = number_at(y, h)
+        if score is None:
+            continue
+        below = next((my for my in sorted(manager) if 0 < my - y < 3 * h), None)
+        teams.append({"team": t, "score": score, "projected": number_at(below, h) if below else None, "y": y})
+    pairs, i = [], 0
+    while i + 1 < len(teams):
+        if teams[i + 1]["y"] - teams[i]["y"] < 0.16 * width:
+            pairs.append((i, i + 1))
+            i += 2
+        else:
+            i += 1
+    for team in teams:
+        del team["y"]
+    return {"week": week, "teams": teams, "pairs": pairs}
 
 
 def _squash(text: str) -> str:

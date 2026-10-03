@@ -168,9 +168,11 @@ def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
 def season_line(state: dict, wk: WeekInputs, week: int) -> str | None:
     """Playoff and title odds and this week's leverage (engine/season.py),
     from the latest standings (state["standings"], League > Standings
-    screenshots), else from an even start."""
+    screenshots), else from an even start, with this week's pairings when an
+    All Matchups screenshot gave them."""
     odds = season.simulate(wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
-                           (state.get("standings") or {}).get("teams"))
+                           (state.get("standings") or {}).get("teams"),
+                           pairs=state.get("league_weeks", {}).get(str(week), {}).get("pairs"))
     if odds is None:
         return None
     through = (state.get("standings") or {}).get("week")

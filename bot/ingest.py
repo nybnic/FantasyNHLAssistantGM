@@ -31,6 +31,8 @@ HELP = (
     "then an updated plan\n"
     "Transactions screenshots (League > Transactions in the app or website, or the league chat) - every team's "
     "adds, drops and trades, so suggested free agents are free\n"
+    "Standings and All Matchups screenshots (League tab) - the season odds start from the real standings and "
+    "this week's pairings\n"
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
@@ -191,6 +193,10 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
         finish_matchup(state, players, league, outbox)
     if "transactions" in new_screenshots:
         finish_transactions(state, players, league, outbox)
+    if "standings" in new_screenshots:
+        finish_standings(state, league, outbox)
+    if "scoreboard" in new_screenshots:
+        finish_scoreboard(state, league, outbox)
     return problem
 
 
@@ -250,6 +256,12 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
         sent = at.astimezone(briefing.LOCAL).strftime("%Y-%m-%dT%H:%M")
         state["transaction_rows_at"] = max(state.get("transaction_rows_at") or "", sent)
         return "transactions"
+    if shot["kind"] == "standings":
+        state["standings_rows"] += shot["rows"]
+        return "standings"
+    if shot["kind"] == "scoreboard":
+        state["scoreboard_shots"].append({"week": shot["week"], "teams": shot["teams"], "pairs": shot["pairs"]})
+        return "scoreboard"
     if shot["kind"] == "matchup":
         draft = state["matchup_shots"] if _fresh(state["matchup_shots"], at) else {"rows": [], "labels": []}
         draft["rows"] += shot["rows"]
@@ -422,6 +434,76 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                      "scroll down and send the older ones too.")
     if problems:
         lines.append("Couldn't place: " + "; ".join(problems))
+    outbox.send("\n".join(lines))
+
+
+def _league_team(shown: str, league: dict) -> str | None:
+    """The league's name for a team as a screenshot shows it ("Jattilaisentie
+    Giants": OCR drops the umlauts)."""
+    names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
+    return names.get(normalize_name(shown).replace(" ", ""))
+
+
+def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:
+    """League > Standings rows into state["standings"]: the season simulation
+    starts from them (engine/season.py). The weeks they include are the most
+    games any team has played; rows for the same weeks add up across screenshots."""
+    rows, state["standings_rows"] = state["standings_rows"], []
+    teams_, problems = {}, []
+    for row in rows:
+        team = _league_team(row["team"], league)
+        if team:
+            teams_[team] = {k: row[k] for k in ("w", "l", "t", "pf")}
+        else:
+            problems.append(row["team"])
+    if not teams_:
+        outbox.send("I couldn't match any team in those standings." + (f" Read: {', '.join(problems)}" if problems else ""))
+        return
+    week = max(r["w"] + r["l"] + r["t"] for r in teams_.values())
+    old = state["standings"] or {}
+    if old.get("week") == week:
+        teams_ = {**old["teams"], **teams_}
+    state["standings"] = {"week": week, "teams": teams_, "at": common.nhl_today().isoformat()}
+    mine = teams_.get(MY_TEAM)
+    lines = [f"Standings saved: {len(teams_)} of 16 teams, {week} week{'' if week == 1 else 's'} played."
+             + (f" You: {mine['w']}-{mine['l']}-{mine['t']}, {mine['pf']:.2f} points for." if mine else "")]
+    if len(teams_) < 16:
+        lines.append("Scroll down and send the rest, so the season odds see every team.")
+    if problems:
+        lines.append("Couldn't match: " + ", ".join(problems))
+    outbox.send("\n".join(lines))
+
+
+def finish_scoreboard(state: dict, league: dict, outbox: Outbox) -> None:
+    """All Matchups screenshots into state["league_weeks"][week]: the week's
+    pairings (the season simulation plays them instead of random ones) and each
+    team's score and Yahoo projection, as of today."""
+    shots, state["scoreboard_shots"] = state["scoreboard_shots"], []
+    today = common.nhl_today()
+    weeks_seen, problems = set(), []
+    for shot in shots:
+        week = shot["week"] or weeks.week_of(today)
+        if not week:
+            continue
+        entry = state["league_weeks"].setdefault(str(week), {"pairs": [], "scores": {}})
+        names = [_league_team(t["team"], league) for t in shot["teams"]]
+        problems += [t["team"] for t, n in zip(shot["teams"], names) if n is None]
+        for team, row in zip(names, shot["teams"]):
+            if team:
+                entry["scores"][team] = {"score": row["score"], "projected": row["projected"],
+                                         "date": today.isoformat()}
+        for i, j in shot["pairs"]:
+            pair = sorted((names[i], names[j])) if names[i] and names[j] else None
+            if pair and pair not in entry["pairs"]:
+                entry["pairs"].append(pair)
+        weeks_seen.add(week)
+    if not weeks_seen:
+        outbox.send("I couldn't tell which week those matchups are.")
+        return
+    lines = [f"Week {w} matchups: {len(state['league_weeks'][str(w)]['pairs'])} of 8 pairings, "
+             f"{len(state['league_weeks'][str(w)]['scores'])} of 16 scores saved." for w in sorted(weeks_seen)]
+    if problems:
+        lines.append("Couldn't match: " + ", ".join(problems))
     outbox.send("\n".join(lines))
 
 

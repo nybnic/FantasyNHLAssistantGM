@@ -945,3 +945,48 @@ def test_the_plan_gives_the_season_odds_and_how_old_the_standings_are():
     state["standings"]["week"] = 2
     assert "Standings" not in weekly.season_line(state, wk, 3)
     assert weekly.season_line(state, SimpleNamespace(strengths={}, me=team, them=team), 3) is None
+
+
+def _league_shots(monkeypatch, tmp_path, shots):
+    updates = [_photo(name, 70 + i, WEEK1 + i) for i, name in enumerate(shots)]
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, updates)
+    monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
+    monkeypatch.setattr(screenshot, "read", lambda image, now=None: shots[image.decode()])
+    league = {"teams": {t: {"updated": "2026-09-29", "players": []}
+                        for t in ("Bahelin Boys", "Jättiläisentie Giants", "HAN-NES", "HC Bulju")}, "taken": []}
+    ingest.process_updates(settings, state, players, league, common.Outbox(settings))
+    return state, sent
+
+
+def test_standings_screenshots_are_saved_for_the_season_odds(monkeypatch, tmp_path):
+    rows = [{"team": "Jattilaisentie Giants", "w": 2, "l": 1, "t": 0, "pf": 512.3},
+            {"team": "Nico's Groovy Team", "w": 1, "l": 2, "t": 0, "pf": 430.15},
+            {"team": "Nobody", "w": 0, "l": 3, "t": 0, "pf": 1.0}]
+    state, sent = _league_shots(monkeypatch, tmp_path, {"s": {"kind": "standings", "rows": rows}})
+    assert state["standings"]["week"] == 3
+    assert state["standings"]["teams"]["Jättiläisentie Giants"] == {"w": 2, "l": 1, "t": 0, "pf": 512.3}
+    assert sent[0].startswith("Standings saved: 2 of 16 teams, 3 weeks played. You: 1-2-0, 430.15 points for.")
+    assert "Scroll down and send the rest" in sent[0] and "Couldn't match: Nobody" in sent[0]
+
+
+def test_all_matchups_screenshots_save_the_weeks_pairings_and_scores(monkeypatch, tmp_path):
+    def shot(teams, pairs):
+        return {"kind": "scoreboard", "week": 1, "pairs": pairs,
+                "teams": [{"team": t, "score": 90.0 + i, "projected": 170.0} for i, t in enumerate(teams)]}
+    shots = {"a": shot(["Nico's Groovy Team", "Bahelin Boys", "HAN-NES"], [(0, 1)]),
+             "b": shot(["HAN-NES", "HC Bulju"], [(0, 1)])}  # scrolled on: HAN-NES paired now
+    state, sent = _league_shots(monkeypatch, tmp_path, shots)
+    week = state["league_weeks"]["1"]
+    assert week["pairs"] == [["Bahelin Boys", "Nico's Groovy Team"], ["HAN-NES", "HC Bulju"]]
+    assert week["scores"]["HC Bulju"]["score"] == 91.0 and len(week["scores"]) == 4
+    assert sent == ["Week 1 matchups: 2 of 8 pairings, 4 of 16 scores saved."]
+
+
+def test_the_week_1_board_repair_names_every_team_once(tmp_path):
+    from config.league import MY_TEAM, SCHEDULE
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS[:-1]]
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert {t for pair in state["league_weeks"]["1"]["pairs"] for t in pair} == set(SCHEDULE) | {MY_TEAM}
+    assert len(state["league_weeks"]["1"]["scores"]) == 16 and state["standings"]["week"] == 0

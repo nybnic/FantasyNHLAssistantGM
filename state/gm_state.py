@@ -51,7 +51,11 @@
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
 - standings: the latest League > Standings ({week: the last week they include,
-  teams: {team: {w, l, t, pf}}}), where the season simulation starts (engine/season.py)
+  teams: {team: {w, l, t, pf}}, at}), where the season simulation starts (engine/season.py)
+- standings_rows, scoreboard_shots: rows read from those screenshots this run, not yet saved
+- league_weeks: per fantasy week, from All Matchups screenshots: the league's
+  pairings (each a sorted pair of team names) and each team's latest score and
+  Yahoo projection ({score, projected, date})
 """
 from __future__ import annotations
 
@@ -142,6 +146,9 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
     state.setdefault("standings", None)
+    state.setdefault("standings_rows", [])
+    state.setdefault("scoreboard_shots", [])
+    state.setdefault("league_weeks", {})
     return state
 
 

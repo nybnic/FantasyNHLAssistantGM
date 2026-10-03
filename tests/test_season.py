@@ -49,3 +49,14 @@ def test_the_plan_line_reads_naturally():
     odds = season.SeasonOdds(playoffs=0.62, title=0.09, leverage=0.18, typical=0.12, seed=4.2)
     assert season.text(odds) == ("Season: playoffs 62% (seed ~4), title 9%. "
                                  "A win this week: playoffs +18 pts, 1.5x a typical week left.")
+
+
+def test_this_weeks_known_pairings_are_played_when_they_cover_everyone():
+    strengths = _even()
+    others = [t for t in TEAMS if t not in (MY_TEAM, SCHEDULE[1])]
+    pairs = [[others[i], others[i + 1]] for i in range(0, len(others), 2)]
+    plain = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=2000)
+    partial = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=2000, pairs=pairs[:3])
+    assert partial == plain  # incomplete: random pairings as before
+    known = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=2000, pairs=pairs)
+    assert known != plain and 0.4 < known.playoffs < 0.6

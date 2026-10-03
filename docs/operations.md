@@ -94,6 +94,11 @@ roster names one of them.
   when it was sent (`league.json` `moves_through`); the weekly plan asks for
   Transactions screenshots once that is 2+ days old (`LEAGUE_MOVES_STALE_DAYS`). Then there's the Taken
   button on an add, or `/taken`.
+- Standings and the league's matchups: League tab screenshots. Standings
+  (`state["standings"]`: W-L-T and points for; the weeks they include are the most
+  games any team has played) and All Matchups (`state["league_weeks"]`: the
+  week's pairings, each team's score and Yahoo projection) feed the season odds
+  (`engine/season.py`, `bot/ingest.finish_standings` / `finish_scoreboard`).
 - Waivers: every drop the bot learns of (a Transactions row, a Done tap's drop)
   puts the player on waivers in `state/league.json` (`waivers`): an add of him is
   a claim that plays from 2 days after the drop (assumed from "1 day" waivers;
