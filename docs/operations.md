@@ -40,7 +40,7 @@ to the NHL and DailyFaceoff APIs.
 |---|---|---|
 | GitHub | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Sending, reading |
 | GitHub | `RELAY_URL`, `RELAY_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` | Relay (optional) |
-| GitHub | `ARCHIVE_DEPLOY_KEY` (SSH private key; its public half is a write deploy key on the private `nybnic/FantasyNHLAssistantGM-data`) | The DFO line archive (optional: without it the step skips) |
+| GitHub | `ARCHIVE_DEPLOY_KEY` (SSH private key; its public half is a write deploy key on the private `nybnic/FantasyNHLAssistantGM-data`) | The data archive: DFO line charts, Yahoo matchup rows (optional: without it the steps skip). The key needs **write access**; each run checks with a dry-run push and the data check reports a no |
 | Cloudflare | `GITHUB_TOKEN` (fine-grained, Actions r/w), `RELAY_TOKEN`, `WEBHOOK_SECRET` | Relay |
 
 GitHub masks secrets in logs, but anything the bot *sends to Telegram* isn't

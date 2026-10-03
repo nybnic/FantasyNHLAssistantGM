@@ -50,6 +50,18 @@ jobs:
           ssh-key: ${{ secrets.ARCHIVE_DEPLOY_KEY }}
           path: archive
 
+      # A deploy key can be read-only: then the checkout works but every push
+      # fails, quietly (that step can't stop the run). A dry-run push asks
+      # GitHub for write access without changing anything; main.py reports a "no".
+      - name: Can the bot push to the data archive?
+        id: archive_push
+        if: env.HAS_ARCHIVE == 'true'
+        continue-on-error: true
+        run: |
+          [ -d archive/.git ] || exit 1
+          cd archive
+          git push --dry-run origin "HEAD:refs/heads/$(git branch --show-current)"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -72,6 +84,8 @@ jobs:
       - name: Run Assistant GM
         # Until the Telegram secrets exist there's nothing to send: skip quietly.
         if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        env:
+          ARCHIVE_WRITABLE: ${{ steps.archive_push.outcome == 'success' }}
         run: python main.py
 
       - name: Commit roster and state

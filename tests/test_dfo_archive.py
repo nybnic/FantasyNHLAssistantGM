@@ -62,3 +62,15 @@ def test_a_mostly_failed_fetch_isnt_saved(tmp_path, monkeypatch):
     state = {"dfo_archived": None}
     dfo_archive.archive_step(state, _at(13), dry_run=False, root=tmp_path)
     assert state["dfo_archived"] is None and not (tmp_path / "dfo_lines").exists()
+
+
+def test_an_archive_the_bot_cant_push_to_is_reported_in_the_data_check(tmp_path, monkeypatch):
+    from clients import health
+    (tmp_path / ".git").mkdir()
+    health.clear()
+    monkeypatch.setenv("ARCHIVE_WRITABLE", "true")
+    assert dfo_archive.writable(tmp_path) and not health.problems()
+    monkeypatch.setenv("ARCHIVE_WRITABLE", "false")
+    assert not dfo_archive.writable(tmp_path)
+    assert "deploy key needs write access" in health.problems()["Data archive"][0]
+    health.clear()

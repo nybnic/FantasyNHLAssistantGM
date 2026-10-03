@@ -12,9 +12,10 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import logging
+import os
 from pathlib import Path
 
-from clients import dfo_lines, nhl_client
+from clients import dfo_lines, health, nhl_client
 from clients.names import normalize_name
 from bot.common import NHL_TIME, _safe
 
@@ -59,7 +60,18 @@ def write(date: dt.date, new_rows: list[dict], root: Path) -> Path:
     return path
 
 
+def writable(root: Path = ARCHIVE_DIR) -> bool:
+    """False when the workflow found it can't push to the checked-out archive
+    (ARCHIVE_WRITABLE, from a dry-run push): reported in the run's data check."""
+    if (root / ".git").exists() and os.environ.get("ARCHIVE_WRITABLE") == "false":
+        health.report("archive", "can't push: its deploy key needs write access "
+                                 "(FantasyNHLAssistantGM-data > Settings > Deploy keys)")
+        return False
+    return True
+
+
 def archive_step(state: dict, now: dt.datetime, dry_run: bool, root: Path = ARCHIVE_DIR) -> None:
+    writable(root)
     if not (root / ".git").exists() and not dry_run:
         return  # the private repo isn't checked out here
     date = now.astimezone(NHL_TIME).date()

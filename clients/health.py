@@ -13,6 +13,7 @@ SOURCES = {
     "NHL schedule": "game days may be out of date",
     "NHL rosters": "free agents and players' teams may be out of date",
     "NHL stats": "this season's games may be missing from the projections",
+    "Data archive": "DFO line charts and Yahoo matchup rows aren't being saved",
 }
 # Disk-cache names (clients/cache.py) and fetch functions (main._safe) -> source.
 _BY_NAME = {
@@ -23,6 +24,7 @@ _BY_NAME = {
     "schedule/": "NHL schedule", "games_on": "NHL schedule",
     "rosters_current": "NHL rosters", "current_teams": "NHL rosters", "current_rosters": "NHL rosters",
     "nhl_stats/": "NHL stats",
+    "archive": "Data archive",
 }
 
 _problems: dict[str, list[str]] = {}
