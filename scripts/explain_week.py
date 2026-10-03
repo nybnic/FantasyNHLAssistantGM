@@ -49,6 +49,11 @@ def main_() -> None:
               f"lineup games {t.player_games:3}  goalie min {t.goalie_min_prob:.0%}")
     for name, roster, team in ((wk.me.name, players, wk.me), (opponent, teams.players(league, opponent), wk.them)):
         print_players(name, roster_mod.active(roster), team, wk)
+    copy = {"league_weeks": {}}  # what the week's first plan records (state["league_weeks"][week]["ours"])
+    weekly.record_league(copy, league, week, opponent, wk, now)
+    print("\n  Every team's week, as the first plan logs it (expected +/- sd):")
+    for team, t in sorted(copy["league_weeks"][str(week)]["ours"]["teams"].items(), key=lambda kv: -kv[1]["expected"]):
+        print(f"    {team[:24]:24} {t['expected']:6.1f} +/- {t['sd']:4.1f}")
     candidates = weekly.add_candidates(wk, weekly.next_week(week, players, wk))
     by_name = {normalize_name(p.name): p for p in wk.pool}
     for name in args.add:
@@ -89,6 +94,7 @@ def print_players(name: str, roster: list, team: matchup.TeamWeek, wk) -> None:
     starts in the best daily lineup (what the team total counts)."""
     print(f"\n  {name}: player, games, expected pts (all games / in the lineup)")
     rows = []
+    first = matchup._first_games(wk.schedule, wk.ctx.today)
     for p in roster:
         games = all_pts = lineup_pts = 0.0
         for date in (d for d in sorted(wk.schedule) if d >= wk.ctx.today):
@@ -96,7 +102,8 @@ def print_players(name: str, roster: list, team: matchup.TeamWeek, wk) -> None:
             if not game:
                 continue
             yesterday = matchup._game_of(wk.schedule.get(date - dt.timedelta(days=1), []))
-            mean, _, _ = matchup._player_day(p, wk.ctx, date, game, p.team in yesterday, wk.lines, wk.starters)
+            mean, _, _ = matchup._player_day(p, wk.ctx, date, game, p.team in yesterday, wk.lines, wk.starters,
+                                             next_game=first.get(p.team) == date)
             games += 1
             all_pts += mean
             slot = team.lineups.get(date, {}).get(p.id, ("G" if p.is_goalie else "BN", 1.0))[0]
