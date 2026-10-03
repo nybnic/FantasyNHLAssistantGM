@@ -1165,88 +1165,105 @@
   "league_weeks": {
     "1": {
       "ours": {
-        "at": "2026-10-03T10:40+00:00",
-        "moves_through": "2026-10-02",
+        "at": "2026-09-29",
+        "moves_through": "2026-09-28",
+        "retro": "rebuilt 2026-10-03 by scripts/retro_forecast.py: drafted rosters, no injury report or confirmed goalies",
         "teams": {
           "Bahelin Boys": {
-            "expected": 173.41,
-            "sd": 14.26,
-            "so_far": 114.25
+            "expected": 160.01,
+            "goalie_min": 0.782,
+            "sd": 29.08,
+            "so_far": 0.0
           },
           "Bellova": {
-            "expected": 133.85,
-            "sd": 15.83,
-            "so_far": 61.0
+            "expected": 158.35,
+            "goalie_min": 0.625,
+            "sd": 28.22,
+            "so_far": 0.0
           },
           "Bottom three": {
-            "expected": 195.22,
-            "sd": 18.63,
-            "so_far": 132.45
+            "expected": 159.89,
+            "goalie_min": 0.858,
+            "sd": 28.39,
+            "so_far": 0.0
           },
           "Gwp": {
-            "expected": 144.49,
-            "sd": 17.26,
-            "so_far": 88.7
+            "expected": 142.47,
+            "goalie_min": 0.45,
+            "sd": 25.87,
+            "so_far": 0.0
           },
           "HAN-NES": {
-            "expected": 164.27,
-            "sd": 16.9,
-            "so_far": 89.15
+            "expected": 169.67,
+            "goalie_min": 0.92,
+            "sd": 29.16,
+            "so_far": 0.0
           },
           "HC Bulju": {
-            "expected": 182.79,
-            "sd": 19.22,
-            "so_far": 104.8
+            "expected": 157.21,
+            "goalie_min": 0.545,
+            "sd": 27.9,
+            "so_far": 0.0
           },
           "J\u00e4ttil\u00e4isentie Giants": {
-            "expected": 145.78,
-            "sd": 15.08,
-            "so_far": 84.55
+            "expected": 162.35,
+            "goalie_min": 0.708,
+            "sd": 29.45,
+            "so_far": 0.0
           },
           "Lazy Lew": {
-            "expected": 206.99,
-            "sd": 18.72,
-            "so_far": 133.0
+            "expected": 145.24,
+            "goalie_min": 0.326,
+            "sd": 25.06,
+            "so_far": 0.0
           },
           "L\u00f6ll\u00f6t H\u00f6nts\u00e4\u00e4j\u00e4t": {
-            "expected": 147.77,
-            "sd": 18.48,
-            "so_far": 86.85
+            "expected": 140.31,
+            "goalie_min": 0.408,
+            "sd": 25.63,
+            "so_far": 0.0
           },
           "Nico's Groovy Team": {
-            "expected": 173.48,
-            "sd": 18.74,
-            "so_far": 87.4
+            "expected": 160.91,
+            "goalie_min": 0.928,
+            "sd": 28.15,
+            "so_far": 0.0
           },
           "Pastasauce": {
-            "expected": 176.24,
-            "sd": 18.63,
-            "so_far": 103.0
+            "expected": 160.11,
+            "goalie_min": 0.578,
+            "sd": 28.14,
+            "so_far": 0.0
           },
           "Randy": {
-            "expected": 150.53,
-            "sd": 18.16,
-            "so_far": 77.95
+            "expected": 167.67,
+            "goalie_min": 0.589,
+            "sd": 28.71,
+            "so_far": 0.0
           },
           "Retrot Chicken Wings": {
-            "expected": 163.8,
-            "sd": 16.87,
-            "so_far": 86.4
+            "expected": 174.54,
+            "goalie_min": 0.728,
+            "sd": 30.01,
+            "so_far": 0.0
           },
           "Vanilla Thunder": {
-            "expected": 152.8,
-            "sd": 16.04,
-            "so_far": 91.45
+            "expected": 152.44,
+            "goalie_min": 0.606,
+            "sd": 27.79,
+            "so_far": 0.0
           },
           "Vantaa": {
-            "expected": 211.86,
-            "sd": 22.87,
-            "so_far": 140.0
+            "expected": 161.63,
+            "goalie_min": 0.489,
+            "sd": 27.84,
+            "so_far": 0.0
           },
           "Viktorios": {
-            "expected": 154.33,
-            "sd": 14.38,
-            "so_far": 90.7
+            "expected": 166.93,
+            "goalie_min": 0.617,
+            "sd": 28.9,
+            "so_far": 0.0
           }
         }
       },
@@ -1422,7 +1439,8 @@
     "2026-10-01 murashov dropped",
     "2026-10-03 league adds from the log",
     "2026-10-03 week 1 board and standings",
-    "2026-10-03 week 1 orig proj"
+    "2026-10-03 week 1 orig proj",
+    "2026-10-03 week 1 retro forecast"
   ],
   "results": {
     "1": {
@@ -1487,6 +1505,17 @@
         }
       ],
       "opponent": "Bahelin Boys",
+      "retro": {
+        "expected": [
+          160.91,
+          160.01
+        ],
+        "sd": [
+          28.15,
+          29.08
+        ],
+        "win": 0.5089
+      },
       "yahoo_orig": [
         188.2,
         165.01
