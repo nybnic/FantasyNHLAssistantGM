@@ -24,7 +24,7 @@
   projected, goalies: points from G slots per team})
 - transaction_rows: transactions read from screenshots this run, not yet applied
 - transactions_seen: each applied transaction's key -> its time, so overlapping
-  screenshots apply nothing twice (the newest 300 kept)
+  screenshots apply nothing twice; also the season's log of league moves (the newest 3000 kept)
 - add_pools: per fantasy week, the candidate adds the plan weighed (full-week
   gain, later points, add id, drop id) with sigma and tau: the add price is
   solved over them (engine/addprice.py), the newest 12 weeks kept
@@ -40,6 +40,7 @@
   yahoo, box}]); what calibrating the model is checked on
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
+- xfp_logged: the last fantasy week whose projections bot/xfp_log.py appended to state/xfp_log.csv
 - health_alerts: per data source, the day its trouble was last reported
 - repairs_done: the one-time repairs already applied (state/repairs.py)
 - seen_mine: player id -> the last NHL date he was on my roster (a player back
@@ -60,7 +61,7 @@ NHL_TIME = ZoneInfo("America/New_York")
 STATE_FILE = Path("state/gm_state.json")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
-KEEP_TRANSACTIONS = 300
+KEEP_TRANSACTIONS = 3000  # a season of league moves (who, when) is the opponent and stash evidence
 KEEP_POOL_WEEKS = 12
 # Judgment call: re-adding a player you dropped within a week is rare, while
 # learning of one add twice (Done, then a screenshot) is common.
@@ -129,6 +130,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("health_alerts", {})
     state.setdefault("seen_mine", {})
     state.setdefault("league_adds", {})
+    state.setdefault("xfp_logged", None)  # the last week bot/xfp_log.py logged
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
