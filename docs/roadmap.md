@@ -128,3 +128,4 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 | 2026-10-03 | Season odds (`engine/season.py`): playoffs, title, and this week's leverage vs a typical week left, simulated from team projections and standings (even until Standings screenshots are read); a line in the plan. Leverage on P(playoffs), paired: on the title it was noise (0.76-1.12x for one setup) | (this commit) |
 
 | 2026-10-03 | Simulated (`scripts/sim_leverage.py`, whole league, paired seasons): leverage-weighted adds raise playoff odds +0.6-1.6 pts but cut title odds 0.3-1.0 (on P(title): -1.0-2.6); playoff-week points x2: title -0.4-0.9. All disturb the even late-season spending whose adds carry into the playoffs. Add price unchanged | (this commit) |
+| 2026-10-03 | Opponent and arena effects on skaters backtested (`scripts/backtest_venue.py`, both seasons): no gain beyond noise (2025-26 slightly worse), so not in the model | (this commit) |

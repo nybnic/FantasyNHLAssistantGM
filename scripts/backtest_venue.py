@@ -24,6 +24,9 @@ independent units), and how big the adjustment is.
 
 Decision rule (CLAUDE.md, evidence over intuition): implement only if it beats
 the plain model on MAE and pairwise in both seasons by more than its noise.
+Result (2026-10-03, Check workflow): it doesn't. 2025-26 all three variants
+are slightly worse (both: +0.006 +/- 0.002 MAE), 2024-25 within noise;
+pairwise unchanged. Not implemented (model/CLAUDE.md, evidence table).
 """
 from __future__ import annotations
 
