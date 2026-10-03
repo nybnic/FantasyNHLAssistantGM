@@ -14,8 +14,8 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 re
 Nico, each Monday: League > Transactions, Standings and All Matchups screenshots (All Matchups
 before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
-   (`league_weeks`) done; the DFO line archive's key works (the 2026-10-03 06:46 UTC run checked the private repo out
-   with it); its first push is due at 13:00 ET on 2026-10-03, which proves write access.
+   (`league_weeks`), our forecast for all 16 teams, Yahoo's first forecasts: done. The private data
+   archive takes writes (the bot's first push, a19b7a4, 2026-10-03), checked every run by a dry-run push.
 2. Projection accuracy. Role blend (no change), the age curve (youth boost removed) and opponent/arena
    effects (no gain, not modeled) done, see the log. Left: margins realize at 0.84 (projected
    differences a bit too wide), and healthy availability (0.96 -> 0.89 over six weeks). Done when:
@@ -140,3 +140,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-03 | /trade relabeled: "typical week's win odds +7%" and "pts/week over the next 6 weeks" instead of "win 50% -> 57%", which read as this week's odds (Nico). A season-long horizon was pushed and reverted the same hour: Nico asked for the label only | (this commit) |
 | 2026-10-03 | Keepers that do nothing this week wait for Wednesday's plan (Mon/Tue adds stay free to chase with); streamer caption leads with "You're favored (77%): no stream is worth an add"; `explain_week` lists every player's week (all games / in the lineup) to compare with Yahoo's matchup page | (this commit) |
 | 2026-10-03 | Forecasts logged for checking: Yahoo's first projection per team and week kept (All Matchups `first`, matchup `yahoo_first`, `live` with Yahoo's projection); our projection of all 16 teams at the week's first plan (`league_weeks[w].ours`); `xfp_log.csv` adds goalie points per start and each player's expected week (`week_games`, `week_xfp`); Yahoo's per-player projections from matchup screenshots go to the private archive (Nico) | (this commit) |
+| 2026-10-03 | The private data archive proven writable: the bot's first push (its README, a19b7a4); every run now checks with a dry-run push and the data check reports a "no" | (this commit) |
