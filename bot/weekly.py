@@ -120,7 +120,8 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         me=me, them=them, tau=tau, strengths=strengths, later_weight=addprice.later_weight(sigma_week, tau),
         pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
         so_far=mine, live=is_live, yahoo_projected=projected,
-        live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box} if is_live else None,
+        live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box,
+                    "yahoo_projected": list(live["projected"] or [])} if is_live else None,
         hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
                       - sum(d >= date for d in days)),
         pool=pool,
@@ -460,6 +461,26 @@ def record_plan(state: dict, week: int, opponent: str, me: matchup.TeamWeek, the
     entry["last"] = plan
 
 
+def record_league(state: dict, league: dict, week: int, opponent: str, wk: WeekInputs, now: dt.datetime) -> None:
+    """Our projection of all 16 teams' weeks at the week's first plan, kept
+    next to Yahoo's from All Matchups screenshots (league_weeks), so both can
+    be checked against the results: 16 team-weeks a week, not 2."""
+    entry = state["league_weeks"].setdefault(str(week), {"pairs": [], "scores": {}})
+    if "ours" in entry:
+        return
+    projected = {MY_TEAM: wk.me, opponent: wk.them}
+    for team in league["teams"]:
+        if team not in projected:
+            projected[team] = matchup.project(team, teams.players(league, team), wk.ctx, wk.schedule, wk.lines,
+                                              wk.starters)
+    through = teams.moves_through(league)
+    entry["ours"] = {
+        "at": now.isoformat(timespec="minutes"), "moves_through": through.isoformat() if through else None,
+        "teams": {t: {"expected": round(w.expected, 2), "sd": round(math.sqrt(w.variance), 2),
+                      "so_far": round(w.so_far, 2)} for t, w in projected.items()},
+    }
+
+
 def _plan_sent(state: dict, key: str, now: dt.datetime, midweek: bool) -> None:
     stamp = now.isoformat(timespec="minutes")
     record = state["weeks"].setdefault(key, {"sent": stamp})
@@ -518,6 +539,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
     record_plan(state, week, opponent, wk.me, wk.them, now)
+    _safe(record_league, state, league, week, opponent, wk, now)
     if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
         entry = state["results"][str(week)]
         entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]

@@ -18,7 +18,7 @@
 - screenshots: rows read from recent team-page screenshots, collected until
   they make a whole roster ({team, rows, at})
 - matchup_shots: rows and score read from recent matchup screenshots, collected
-  until my side makes a whole roster ({rows, labels, score, projected, at})
+  until my side makes a whole roster ({rows, labels, score, projected, at, first_at})
 - live_score: the latest matchup screenshot's score ({week, opponent, at,
   through: the day it was taken if before that day's first puck, score,
   projected, goalies: points from G slots per team})
@@ -38,7 +38,9 @@
   so_far, sd per team, win}) and, once the week is over, the result ("final":
   {score, goalie_min, at, source}) and, for plans built on a matchup screenshot,
   Yahoo's score next to the box scores' best-lineup one ("live": [{through,
-  yahoo, box}]); what calibrating the model is checked on
+  yahoo, box, yahoo_projected}]), and Yahoo's first forecast of the week from a
+  matchup screenshot ("yahoo_first": {at, through, score, projected});
+  what calibrating the model is checked on
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
 - dfo_archived: the last NHL date whose DFO line charts went to the private archive (bot/dfo_archive.py)
@@ -55,7 +57,10 @@
 - standings_rows, scoreboard_shots: rows read from those screenshots this run, not yet saved
 - league_weeks: per fantasy week, from All Matchups screenshots: the league's
   pairings (each a sorted pair of team names) and each team's latest score and
-  Yahoo projection ({score, projected, date})
+  Yahoo projection ({score, projected, date, first: the first ones seen, Yahoo's
+  forecast when sent before Monday's games}); and our projection of all 16 teams
+  at the week's first plan ("ours": {at, moves_through, teams: {team: {expected,
+  sd, so_far}}}), to check both forecasts against the results
 """
 from __future__ import annotations
 

@@ -63,7 +63,8 @@ Live runs need network. First runs fill `data/cache/` and take a few minutes.
   projection snapshots stay gitignored). One approved exception (Nico,
   2026-10-01): Yahoo position eligibility only, in `state/positions.json`
   (`scripts/seed_positions.py`). Third-party data we need to keep (DFO line charts)
-  goes to the private `nybnic/FantasyNHLAssistantGM-data` (Nico, 2026-10-03).
+  goes to the private `nybnic/FantasyNHLAssistantGM-data` (Nico, 2026-10-03),
+  as do the per-player Yahoo projections read from matchup screenshots (Nico, 2026-10-03).
   Error text must never contain the bot token.
 - **Deploy = push to `main`.** The workflow runs from `main`. Nico has approved
   this flow: implement, run tests, dry run, then commit and push. Ask before

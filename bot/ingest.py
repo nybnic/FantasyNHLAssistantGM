@@ -3,8 +3,10 @@
 """
 from __future__ import annotations
 
+import csv
 import datetime as dt
 import logging
+from pathlib import Path
 
 import requests
 
@@ -19,6 +21,7 @@ from notify import telegram
 from state import gm_state
 from bot import common
 from bot.common import NHL_TIME, Outbox, _safe, current_opponent, learn_positions
+from bot.dfo_archive import ARCHIVE_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +266,8 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
         state["scoreboard_shots"].append({"week": shot["week"], "teams": shot["teams"], "pairs": shot["pairs"]})
         return "scoreboard"
     if shot["kind"] == "matchup":
-        draft = state["matchup_shots"] if _fresh(state["matchup_shots"], at) else {"rows": [], "labels": []}
+        draft = (state["matchup_shots"] if _fresh(state["matchup_shots"], at)
+                 else {"rows": [], "labels": [], "first_at": at.isoformat()})
         draft["rows"] += shot["rows"]
         draft["labels"] += shot["labels"][1]  # the opponent's side of the header
         draft["score"] = shot["score"] or draft.get("score")
@@ -477,7 +481,8 @@ def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:
 def finish_scoreboard(state: dict, league: dict, outbox: Outbox) -> None:
     """All Matchups screenshots into state["league_weeks"][week]: the week's
     pairings (the season simulation plays them instead of random ones) and each
-    team's score and Yahoo projection, as of today."""
+    team's score and Yahoo projection, as of today, plus the first ones seen
+    ("first": before any games when sent on Monday, Yahoo's forecast to check)."""
     shots, state["scoreboard_shots"] = state["scoreboard_shots"], []
     today = common.nhl_today()
     weeks_seen, problems = set(), []
@@ -490,8 +495,9 @@ def finish_scoreboard(state: dict, league: dict, outbox: Outbox) -> None:
         problems += [t["team"] for t, n in zip(shot["teams"], names) if n is None]
         for team, row in zip(names, shot["teams"]):
             if team:
-                entry["scores"][team] = {"score": row["score"], "projected": row["projected"],
-                                         "date": today.isoformat()}
+                now = {"score": row["score"], "projected": row["projected"], "date": today.isoformat()}
+                first = entry["scores"].get(team, {}).get("first") or dict(now)
+                entry["scores"][team] = {**now, "first": first}
         for i, j in shot["pairs"]:
             pair = sorted((names[i], names[j])) if names[i] and names[j] else None
             if pair and pair not in entry["pairs"]:
@@ -530,6 +536,36 @@ def _goalie_points(rows: list[dict]) -> float | None:
     return sum(goalies) if goalies else None
 
 
+MATCHUP_COLUMNS = ["at", "week", "side", "fantasy_team", "slot", "name", "team", "positions", "points", "projected"]
+
+
+def archive_matchup(draft: dict, week: int, opponent: str | None, root: Path | None = None) -> Path | None:
+    """Every player row a matchup screenshot shows, Yahoo's week projection
+    included, to the private data archive (third-party data, Nico 2026-10-03):
+    one file per set of screenshots, rewritten as more of the set arrives."""
+    root = root or ARCHIVE_DIR
+    if not (root / ".git").exists() or not draft.get("rows"):
+        return None
+    first = dt.datetime.fromisoformat(draft.get("first_at") or draft["at"])
+    path = root / "yahoo_matchup" / str(first.year) / f"{first.astimezone(dt.timezone.utc):%Y-%m-%dT%H%M}Z.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    seen, out = set(), []
+    for row in draft["rows"]:
+        for side, team in (("mine", MY_TEAM), ("theirs", opponent or "")):
+            p = row.get(side)
+            if p and (side, p["name"]) not in seen:
+                seen.add((side, p["name"]))
+                out.append({"at": draft["at"], "week": week, "side": side, "fantasy_team": team,
+                            "slot": row.get("slot") or "", "name": p["name"], "team": p.get("team", ""),
+                            "positions": "/".join(p.get("positions") or []), "points": p.get("points"),
+                            "projected": p.get("projected")})
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=MATCHUP_COLUMNS)
+        writer.writeheader()
+        writer.writerows(out)
+    return path
+
+
 def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
     """Save what matchup screenshots show: the live score at once, and both
     rosters once my side looks whole (at most one player short) or on /save.
@@ -552,6 +588,10 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
             "score": list(draft["score"]), "projected": list(draft["projected"] or []),
             "goalies": [_goalie_points(mine), _goalie_points(theirs)],
         }
+        if draft.get("projected"):  # Yahoo's first forecast of the week, kept for checking
+            state["results"].setdefault(str(week), {"opponent": opponent}).setdefault("yahoo_first", {
+                k: state["live_score"][k] for k in ("at", "through", "score", "projected")})
+        _safe(archive_matchup, draft, week, opponent)
         line = f"Week {week} vs {opponent or '?'}: {draft['score'][0]:.2f} - {draft['score'][1]:.2f}"
         if draft.get("projected"):
             line += f" (Yahoo projects {draft['projected'][0]:.0f} - {draft['projected'][1]:.0f})"

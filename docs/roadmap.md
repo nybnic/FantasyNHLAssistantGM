@@ -11,7 +11,8 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
 From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 review.
-Nico, each Monday: League > Transactions, Standings and All Matchups screenshots.
+Nico, each Monday: League > Transactions, Standings and All Matchups screenshots (All Matchups
+before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
    (`league_weeks`) done; the DFO line archive's key works (the 2026-10-03 06:46 UTC run checked the private repo out
    with it); its first push is due at 13:00 ET on 2026-10-03, which proves write access.
@@ -138,3 +139,4 @@ Nico, each Monday: League > Transactions, Standings and All Matchups screenshots
 | 2026-10-03 | /trade: `PICK_DECAY` 0.85 -> 0.8, stars feel worth more (Nico); a 1st now outweighs a 4th + 6th. Points-for value measured: 0.022 pts of playoff odds per point vs 0.12 through wins (roadmap item 4) | (this commit) |
 | 2026-10-03 | /trade relabeled: "typical week's win odds +7%" and "pts/week over the next 6 weeks" instead of "win 50% -> 57%", which read as this week's odds (Nico). A season-long horizon was pushed and reverted the same hour: Nico asked for the label only | (this commit) |
 | 2026-10-03 | Keepers that do nothing this week wait for Wednesday's plan (Mon/Tue adds stay free to chase with); streamer caption leads with "You're favored (77%): no stream is worth an add"; `explain_week` lists every player's week (all games / in the lineup) to compare with Yahoo's matchup page | (this commit) |
+| 2026-10-03 | Forecasts logged for checking: Yahoo's first projection per team and week kept (All Matchups `first`, matchup `yahoo_first`, `live` with Yahoo's projection); our projection of all 16 teams at the week's first plan (`league_weeks[w].ours`); `xfp_log.csv` adds goalie points per start and each player's expected week (`week_games`, `week_xfp`); Yahoo's per-player projections from matchup screenshots go to the private archive (Nico) | (this commit) |

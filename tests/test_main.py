@@ -356,6 +356,22 @@ def test_matchup_screenshots_update_both_rosters_and_the_live_score(monkeypatch,
     assert "new: Rick Lo; gone: Old Guy" in sent[0]
 
 
+def test_matchup_screenshots_keep_yahoos_first_forecast_and_archive_every_players(monkeypatch, tmp_path):
+    import csv
+    (tmp_path / "archive" / ".git").mkdir(parents=True)
+    monkeypatch.setattr(ingest, "ARCHIVE_DIR", tmp_path / "archive")
+    shots = {"top": _matchup_shot([_row(i) for i in range(7)]),
+             "bottom": _matchup_shot([_row(i, points=0.0) for i in range(6, 12)])}
+    state, _, _, _ = _matchup(monkeypatch, tmp_path, shots)
+    first = state["results"]["1"]["yahoo_first"]
+    assert first["projected"] == [159.79, 164.52] and first["through"] == "2026-10-01"
+    [path] = (tmp_path / "archive" / "yahoo_matchup" / "2026").iterdir()
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    assert len(rows) == 24  # 12 a side, each once
+    assert {r["fantasy_team"] for r in rows} == {"Nico's Groovy Team", "Bahelin Boys"}
+    assert rows[0]["projected"] == "9.0" and rows[0]["slot"] == "C"
+
+
 def test_a_partial_matchup_saves_the_score_and_waits_for_the_rest(monkeypatch, tmp_path):
     state, players, league, sent = _matchup(monkeypatch, tmp_path, {"top": _matchup_shot([_row(i) for i in range(7)])})
     assert state["live_score"]["score"] == [13.4, 51.5]
@@ -815,7 +831,8 @@ def test_a_plan_on_a_matchup_screenshot_logs_yahoos_score_next_to_the_box_scores
         today = dt.date(2026, 10, 1)
     league = {"teams": {}, "taken": []}
     wk = weekly.week_inputs(dt.date(2026, 10, 1), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
-    assert wk.live and wk.live_check == {"through": "2026-10-01", "yahoo": [13.4, 51.5], "box": [12.0, 12.0]}
+    assert wk.live and wk.live_check == {"through": "2026-10-01", "yahoo": [13.4, 51.5], "box": [12.0, 12.0],
+                                         "yahoo_projected": [160.0, 165.0]}
 
 
 def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_path):
@@ -979,6 +996,8 @@ def test_all_matchups_screenshots_save_the_weeks_pairings_and_scores(monkeypatch
     week = state["league_weeks"]["1"]
     assert week["pairs"] == [["Bahelin Boys", "Nico's Groovy Team"], ["HAN-NES", "HC Bulju"]]
     assert week["scores"]["HC Bulju"]["score"] == 91.0 and len(week["scores"]) == 4
+    # The latest score, and the first one seen kept for checking Yahoo's forecast.
+    assert week["scores"]["HAN-NES"]["score"] == 90.0 and week["scores"]["HAN-NES"]["first"]["score"] == 92.0
     assert sent == ["Week 1 matchups: 2 of 8 pairings, 4 of 16 scores saved."]
 
 
@@ -1014,3 +1033,23 @@ def test_the_streamer_caption_says_when_youre_favored_and_streams_arent_worth_an
         "Best streamer per position")
     row["recommended"] = True
     assert "only the one marked recommended" in weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.77)
+
+
+def test_the_weeks_first_plan_records_our_projection_of_every_team_once(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    team_week = lambda name, e: matchup.TeamWeek(name=name, so_far=0.0, expected=e, variance=400.0, player_games=40,
+                                                  goalie_games_so_far=0, goalie_starts_left=5.0,
+                                                  goalie_min_prob=0.9, by_day={}, lineups={})
+    monkeypatch.setattr(matchup, "project", lambda name, *a, **k: team_week(name, 180.0))
+    wk = SimpleNamespace(me=team_week("me", 227.1), them=team_week("Retrot Chicken Wings", 194.0), ctx=None,
+                         schedule={}, lines={}, starters={})
+    league = {"teams": {"Retrot Chicken Wings": {"players": []}, "Gwp": {"players": []}}, "taken": []}
+    state = gm_state.load(tmp_path / "s.json")
+    now = dt.datetime(2026, 10, 5, 9, 0, tzinfo=dt.timezone.utc)
+    weekly.record_league(state, league, 2, "Retrot Chicken Wings", wk, now)
+    ours = state["league_weeks"]["2"]["ours"]
+    assert ours["teams"]["Nico's Groovy Team"] == {"expected": 227.1, "sd": 20.0, "so_far": 0.0}
+    assert ours["teams"]["Retrot Chicken Wings"]["expected"] == 194.0 and ours["teams"]["Gwp"]["expected"] == 180.0
+    wk.me = team_week("me", 250.0)  # Wednesday's plan doesn't overwrite Monday's forecast
+    weekly.record_league(state, league, 2, "Retrot Chicken Wings", wk, now + dt.timedelta(days=2))
+    assert state["league_weeks"]["2"]["ours"]["teams"]["Nico's Groovy Team"]["expected"] == 227.1
