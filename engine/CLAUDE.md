@@ -3,7 +3,7 @@
 | File | Decides |
 |---|---|
 | `lineup.py` | The best slot assignment for one day. Exact DP; a move must gain `KEEP_SLOT_BONUS` |
-| `availability.py` | Who plays: skater injury/lineup status tonight, fading on later days along return curves fit from game logs (slower the more games missed), goalie start odds (DFO confirmations > recent share > prior; back-to-backs) |
+| `availability.py` | Who plays: skater injury/lineup status tonight, fading on later days along return curves fit from game logs (slower the more games missed), goalie start odds (DFO confirmations > recent share > prior; back-to-backs; the team's last result moves its next game: a loss sits the goalie who lost) |
 | `briefing.py` | The evening lineup message, as a diff against Yahoo's Start Active (simulated: everyone with a game, overflow by season value): one line when it's fine, else the benches and starts that beat it, with why. Timing (19:30-20:30 local, or 1h before first puck), quiet hours, when an update is worth sending |
 | `ir.py` | The IR and IR+ slots: an injured active player who fits an empty one (DFO status standing in for Yahoo's tag), and an IR'd player back in his team's lineup. The weekly plan's adds assume the IR moves are made, so an add can be drop-free; Done applies the IR move too |
 | `scorecard.py` | How the add suggestions turned out: the add's raw points vs the drop's over the 14 days after, made or not (a line in Monday's result; `scripts/scorecard.py` lists them) |
@@ -73,4 +73,4 @@
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
-`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 (wording only), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.85 (how a draft round "feels" to a manager). Revisit when we have in-season results.

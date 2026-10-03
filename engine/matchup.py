@@ -99,6 +99,9 @@ KEEPER_LONG_RUN = 5.0  # long-run points above which an add is called a keeper, 
 # The add price needs no cut-off: an add barely moves a decided week's odds.
 CONCEDE_BELOW = 0.10
 COAST_ABOVE = 0.90
+# Within this of 50% the week is called even, not "ahead" or "behind" (wording
+# only, a judgment call): "ahead (50%), 0 points up" read as a contradiction.
+EVEN_WITHIN = 0.03
 
 
 @dataclass
@@ -152,18 +155,20 @@ def _game_of(games: list[ScheduledGame]) -> dict[str, ScheduledGame]:
 
 
 def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
-                long_run: bool = False) -> tuple[float, float, float]:
+                long_run: bool = False, next_game: bool = False) -> tuple[float, float, float]:
     """(expected points, variance, start probability) for one game. Start
     probability is 1 for skaters; goalies' counts toward the minimum.
     `long_run` also discounts skaters by their projected games played, which
-    today's injury report can't show for games weeks away."""
+    today's injury report can't show for games weeks away. `next_game`: his
+    team's first game from today (its last start's result moves who starts it)."""
     team_lines = lines.get(p.team, {})
     info = team_lines.get(normalize_name(p.name))
     days_ahead = (date - ctx.today).days
     if p.is_goalie:
         team_starts, prior = ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id)
         avail = availability.goalie(p.id, p.name, date, info, starters.get(p.team) if date == ctx.today else None,
-                                    team_starts, prior, days_ahead)
+                                    team_starts, prior, days_ahead,
+                                    ctx.last_results.get(p.team) if next_game else None)
         prob = avail.prob
         if date > ctx.today and played_yesterday and prob and avail.note not in ("IR", "out"):
             # Who starts the night before isn't known yet.
@@ -261,6 +266,18 @@ def _goalie_states(goalies: list[RosterPlayer], keep: dict[int, float]) -> list[
     return states
 
 
+def _first_games(schedule: dict[dt.date, list[ScheduledGame]], today: dt.date) -> dict[str, dt.date]:
+    """Team -> its next game's date, when `schedule` starts by today (a later
+    week's schedule doesn't hold anyone's next game)."""
+    first: dict[str, dt.date] = {}
+    if not schedule or min(schedule) > today:
+        return first
+    for date in sorted(d for d in schedule if d >= today):
+        for team in _game_of(schedule[date]):
+            first.setdefault(team, date)
+    return first
+
+
 def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far, leaves=None) -> TeamWeek:
     joins, leaves = joins or {}, leaves or {}
     roster = active(roster)
@@ -273,6 +290,7 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
     lineups: dict[dt.date, dict[int, tuple[str, float]]] = {}
     goalies = [p for p in roster if p.is_goalie]
     upcoming = [d for d in days if d >= ctx.today]
+    first_game = _first_games(schedule, ctx.today)
     for date in upcoming:
         game_of = _game_of(schedule[date])
         yesterday = _game_of(schedule.get(date - dt.timedelta(days=1), []))
@@ -280,7 +298,8 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         for p in roster:
             game = game_of.get(p.team)
             if game and joins.get(p.id, date) <= date < leaves.get(p.id, date + dt.timedelta(days=1)):
-                values[p.id] = _player_day(p, ctx, date, game, p.team in yesterday, lines, starters, long_run)
+                values[p.id] = _player_day(p, ctx, date, game, p.team in yesterday, lines, starters, long_run,
+                                           first_game.get(p.team) == date)
         # Only goalies fill G slots, so skaters and goalies are set apart.
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
                       for p in roster if p.id in values and not p.is_goalie]
@@ -360,7 +379,9 @@ def decided(p_win: float) -> str | None:
 
 def stance(p_win: float) -> str:
     """How to play the rest of the week: "lost" or "won" (save adds),
-    "chase" when behind, "protect" when ahead."""
+    "even" in a toss-up, "chase" when behind, "protect" when ahead."""
+    if abs(p_win - 0.5) < EVEN_WITHIN:
+        return "even"
     return decided(p_win) or ("chase" if p_win < 0.5 else "protect")
 
 
@@ -695,19 +716,32 @@ def why_not(move: Move, price: AddPrice | None, chosen: list[Move] = ()) -> str:
 
 def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, price: AddPrice | None,
                  recommended: bool, chosen: list[Move] = ()) -> str | None:
-    """The mid-week stance in a few lines; None in a decided week (text() covers it)."""
+    """The mid-week stance in a few lines; None in a decided week (text() covers it).
+    `price` is None when no adds are left this week (the plan's first line says so)."""
     p_win = win_prob(me, them)
     gap = me.expected - them.expected
     st = stance(p_win)
     if st == "protect":
-        return (f"Mid-week: ahead ({_pct(p_win)}), protect the lead: you're {gap:.0f} expected points up. "
-                "No need to chase; make only the adds listed below, if any.")
-    if st != "chase":
+        lead = f"Rest of the week: ahead ({_pct(p_win)}), protect the lead: you're {gap:.0f} expected points up."
+        if price is None:
+            return lead + " No need to chase."
+        if not chosen:
+            return lead + " No need to chase, and no add is worth it right now."
+        return lead + " No need to chase; make only the adds below."
+    if st == "even":
+        lines = [f"Rest of the week: dead even ({_pct(p_win)}), every point counts."]
+    elif st == "chase":
+        if price is None:
+            return (f"Rest of the week: behind ({_pct(p_win)}) but close: you trail by {-gap:.0f} expected points, "
+                    "with no adds left to chase with.")
+        lines = [f"Rest of the week: behind ({_pct(p_win)}) but close, so chase: "
+                 f"you trail by {-gap:.0f} expected points."]
+    else:
         return None
-    lines = [f"Mid-week: behind ({_pct(p_win)}) but close, so chase: you trail by {-gap:.0f} expected points."]
+    if price is None:  # nothing to add with, and the plan's first line says so
+        return lines[0]
     if chase is None:
-        lines.append("No adds left this week, so there's nothing to chase with." if price is None
-                     else "No free agent moves your odds much, so there's nothing to chase with.")
+        lines.append("No free agent moves your odds much.")
         return "\n".join(lines)
     swing = (f"Biggest swing: add {chase.add.name} ({_games(chase.games)} left)"
              + (f" for {chase.drop.name}" if chase.drop else "")

@@ -37,6 +37,7 @@ class _Proj:
 
 class FakeContext:
     team_starts: dict = {}
+    last_results: dict = {}
 
     def skater(self, pid, position):
         return _Proj({1: 6.0, 2: 3.0, 3: 5.0}.get(pid, 2.0))

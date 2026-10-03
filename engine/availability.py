@@ -59,7 +59,19 @@ RECENT_STARTS = 10
 SHARE_PRIOR_GAMES = 4
 DEPTH_SHARE = {1: 0.65, 2: 0.35}
 UNKNOWN_SHARE = 0.3
-BACK_TO_BACK_REPEAT = 0.35  # relative odds of starting both ends of a back-to-back
+# The goalie who started last night starts tonight at this share of his usual
+# rate. scripts/fit_goalie_starts.py: 0.09 in 2023-24, 0.13 in 2024-25, 0.16 in
+# 2025-26 (rising); 0.15 = 2024-26 pooled. Was 0.35, a judgment call.
+BACK_TO_BACK_REPEAT = 0.15
+# How the team's last start went moves the odds he starts its next game
+# (odds multiplier): coaches go back to a winner and sit a goalie after a loss,
+# most after a blowout (5+ goals against, or pulled). Next game only, and not
+# on back-to-backs (too few to fit). scripts/fit_goalie_starts.py, fit 2023-25:
+# W 1.01, L 0.62, L bad 0.32; 2025-26 alone 0.96 / 0.63 / 0.35; log loss
+# 0.651 -> 0.625 on 2025-26. Two games on it's mixed (W 1.34, L 1.22, L bad
+# 0.74: the benched goalie returns) and not modeled.
+LAST_RESULT_ODDS = {"W": 1.0, "L": 0.62, "L bad": 0.32}
+BAD_START_GA = 5
 
 
 @dataclass
@@ -118,12 +130,14 @@ def goalie(
     team_starts: list[tuple[dt.date, int]],
     prior_share: float | None,
     days_ahead: int = 0,
+    last_result: str | None = None,
 ) -> Availability:
     """`dfo_starter` is DailyFaceoff's pick for his team tonight
     ({"goalie_name", "confirmed"}) or None; `team_starts` is his team's
     (date, starter id) history this season, oldest first. An injured goalie
     `days_ahead` from tonight starts at his usual share once back (the skater
-    return curves; goalies' weren't fit separately)."""
+    return curves; goalies' weren't fit separately). `last_result` is how the
+    team's last start went (`start_result`), given only for the team's next game."""
     injured = _injured(info)
     if injured:
         back = ahead(_curve(injured, 0), days_ahead, 0.0)
@@ -146,7 +160,36 @@ def goalie(
             return Availability(share * BACK_TO_BACK_REPEAT, f"~{share * BACK_TO_BACK_REPEAT:.0%} to start (started last night)")
         p = 1 - (1 - share) * BACK_TO_BACK_REPEAT
         return Availability(p, f"~{p:.0%} to start (back-to-back, other goalie started last night)")
+    if past and last_result in LAST_RESULT_ODDS and LAST_RESULT_ODDS[last_result] != 1.0:
+        last_id, odds = past[-1][1], LAST_RESULT_ODDS[last_result]
+        how = "a blowout loss" if last_result == "L bad" else "a loss"
+        if last_id == player_id:
+            p = with_odds(share, odds)
+            return Availability(p, f"~{p:.0%} to start (after {how})")
+        # The starts he gives up go to the others in proportion to their shares.
+        # His share: of the last 10, at most what this goalie's leaves (early in
+        # the season 1 start of 2 isn't a 50% share).
+        recent = [pid for _, pid in past][-RECENT_STARTS:]
+        theirs = min(recent.count(last_id) / len(recent), 1 - share, 0.95)
+        p = min(share * (1 - with_odds(theirs, odds)) / (1 - theirs), CONFIRMED_START)
+        return Availability(p, f"~{p:.0%} to start (other goalie after {how})")
     return Availability(share, f"~{share:.0%} to start (not confirmed yet)")
+
+
+def with_odds(p: float, multiplier: float) -> float:
+    """`p` with its odds multiplied."""
+    if p <= 0 or p >= 1:
+        return p
+    odds = p / (1 - p) * multiplier
+    return odds / (1 + odds)
+
+
+def start_result(start, relieved: bool) -> str:
+    """How a start went, as LAST_RESULT_ODDS keys it: "W", "L", or "L bad"
+    (5+ goals against, or pulled); overtime losses are losses. `start` is a GoalieGame."""
+    if start.stats["w"]:
+        return "W"
+    return "L bad" if relieved or start.stats["ga"] >= BAD_START_GA else "L"
 
 
 def start_share(

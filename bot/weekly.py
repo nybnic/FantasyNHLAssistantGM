@@ -452,7 +452,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     midweek = None
     if is_midweek or wk.live:
         chase = None
-        if matchup.stance(matchup.win_prob(wk.me, wk.them)) == "chase":
+        if matchup.stance(matchup.win_prob(wk.me, wk.them)) in ("chase", "even"):
             chase = matchup.biggest_swing(ranked)
         recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
         midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.price if wk.max_moves else None, recommended,

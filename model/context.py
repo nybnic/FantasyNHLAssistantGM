@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 
 from clients import dfo_projections, nhl_client, nhl_stats
 from clients.nhl_stats import GoalieGame, SkaterGame
+from engine import availability
 from model import games as games_model
 from model.projections import SkaterPrior, SkaterProjection, project_skater, season_skater_priors
 
@@ -36,6 +37,7 @@ class ModelContext:
     league: games_model.League
     projected_starts: dict[int, float] = field(default_factory=dict)  # DFO season GS
     projected_gp: dict[int, float] = field(default_factory=dict)  # DFO season GP, skaters
+    last_results: dict[str, str] = field(default_factory=dict)  # team -> its last start's availability.start_result
 
     def skater(self, player_id: int, position: str) -> SkaterProjection:
         group = "D" if position == "D" else "F"
@@ -106,10 +108,17 @@ def build(today: dt.date) -> ModelContext:
     this_goalies = nhl_stats.goalie_games(season, today=today)
     goalie_games: dict[int, list[GoalieGame]] = defaultdict(list)
     team_starts: dict[str, list[tuple[dt.date, int]]] = defaultdict(list)
+    appearances: dict[tuple[str, int], int] = defaultdict(int)
+    last_start: dict[str, GoalieGame] = {}
     for g in this_goalies:
         goalie_games[g.player_id].append(g)
-        if g.started and g.date < today:
-            team_starts[g.team].append((g.date, g.player_id))
+        if g.date < today:
+            appearances[(g.team, g.game_id)] += 1
+            if g.started:
+                team_starts[g.team].append((g.date, g.player_id))
+                last_start[g.team] = g  # games come sorted by date
+    last_results = {team: availability.start_result(g, appearances[(team, g.game_id)] > 1)
+                    for team, g in last_start.items()}
 
     last = past_goalies[0]
     league_sv = sum(g.stats["sv"] for g in last) / sum(g.shots_against for g in last)
@@ -134,4 +143,5 @@ def build(today: dt.date) -> ModelContext:
         league=league,
         projected_starts={pid: row["gs"] for pid, row in goalie_rows.items()},
         projected_gp={pid: row["gp"] for pid, row in skater_rows.items()},
+        last_results=last_results,
     )

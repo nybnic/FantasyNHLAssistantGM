@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pytest
 
 from clients.nhl_client import ScheduledGame
-from engine import matchup
+from engine import availability, matchup
 from engine.addprice import AddPrice
 from league.roster import RosterPlayer
 
@@ -27,6 +27,7 @@ class _Proj:
 class FakeContext:
     today = MON
     team_starts: dict = {}
+    last_results: dict = {}
     skater_games: dict = {}
     goalie_games: dict = {}
     xfp = {1: 4.0, 2: 2.0, 9: 3.0, 11: 4.0}
@@ -180,6 +181,27 @@ def _team(expected):
 def test_midweek_ahead_protects_the_lead():
     text = matchup.midweek_text(_team(160), _team(150), None, 3.0, recommended=False)
     assert "protect the lead" in text and "10 expected points up" in text
+
+
+def test_midweek_ahead_with_no_adds_left_doesnt_point_to_adds():
+    text = matchup.midweek_text(_team(160), _team(150), None, None, recommended=False)
+    assert text.endswith("No need to chase.") and "adds below" not in text
+
+
+def test_midweek_behind_with_no_adds_left_doesnt_say_chase():
+    text = matchup.midweek_text(_team(150), _team(155), None, None, recommended=False)
+    assert "so chase" not in text and text.endswith("with no adds left to chase with.")
+
+
+def test_midweek_even_week_is_called_even_not_ahead():
+    # 173 - 173 read "ahead (50%), protect the lead: you're 0 expected points up".
+    assert matchup.stance(0.505) == "even" and matchup.stance(0.495) == "even"
+    text = matchup.midweek_text(_team(173.2), _team(173), None, None, recommended=False)
+    assert text == "Rest of the week: dead even (50%), every point counts."
+    chase = matchup.Move(RosterPlayer(9, "Streamer", "NYR", ["C"]), None, week_gain=4.0, long_term=0.0,
+                         next_weeks=0.0, games=3, win_before=0.50, win_after=0.56)
+    assert "Biggest swing: add Streamer" in matchup.midweek_text(_team(173), _team(173), chase, _price(0.08),
+                                                                recommended=False)
 
 
 def test_midweek_close_behind_chases_and_names_the_biggest_swing():
@@ -415,8 +437,8 @@ def test_a_third_goalie_is_insurance_in_the_long_run_only():
     two = [_goalie(20, "BOS"), _goalie(21, "TOR")]
     three = two + [_goalie(22, "NJD")]
     later = {MON + dt.timedelta(days=d): [_game(MON + dt.timedelta(days=d), "BOS", "TOR"),
-                                          _game(MON + dt.timedelta(days=d), "NJD", "PHI")] for d in (14, 15)}
-    this_week = {MON: later[MON + dt.timedelta(days=14)], TUE: later[MON + dt.timedelta(days=15)]}
+                                          _game(MON + dt.timedelta(days=d), "NJD", "PHI")] for d in (14, 16)}
+    this_week = {MON: later[MON + dt.timedelta(days=14)], WED: later[MON + dt.timedelta(days=16)]}
     # This week everyone is there: the third goalie sits behind the two starters, worth nothing.
     assert matchup.project("me", three, ctx, this_week, {}, {}).expected == \
         pytest.approx(matchup.project("me", two, ctx, this_week, {}, {}).expected)
@@ -424,3 +446,20 @@ def test_a_third_goalie_is_insurance_in_the_long_run_only():
     gain = matchup.project("me", three, ctx, later, {}, {}, long_run=True).expected \
         - matchup.project("me", two, ctx, later, {}, {}, long_run=True).expected
     assert gain > 1.0
+
+
+def test_a_lost_last_start_moves_the_teams_next_game_only():
+    ctx = FakeContext()
+    ctx.prior_start_share = lambda pid: 0.6
+    ctx.team_starts = {"BOS": [(MON - dt.timedelta(days=2), 20)]}
+    ctx.last_results = {"BOS": "L bad"}
+    goalie = _goalie(20, "BOS")
+    schedule = {d: [_game(d, "BOS", "TOR")] for d in (MON, WED)}
+    assert matchup._first_games(schedule, MON) == {"BOS": MON, "TOR": MON}
+    assert matchup._first_games(schedule, MON - dt.timedelta(days=7)) == {}  # a later week holds no next game
+    share = (4 * 0.6 + 1) / 5
+
+    def start_prob(date, next_game):
+        return matchup._player_day(goalie, ctx, date, schedule[date][0], False, {}, {}, next_game=next_game)[2]
+    assert start_prob(MON, True) == pytest.approx(availability.with_odds(share, 0.32))
+    assert start_prob(WED, False) == pytest.approx(share)

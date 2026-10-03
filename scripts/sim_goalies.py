@@ -55,6 +55,7 @@ class ReplayContext:
         self.today, self._s, self._g = today, s_proj, g_proj
         self.team_starts = {t: [(d, p) for d, p in seq if d < today] for t, seq in team_starts.items()}
         self.skater_games, self.goalie_games = by_skater, by_goalie
+        self.last_results = {}  # the last start's result isn't replayed
 
     def skater(self, pid, position):
         return type("P", (), {"xfp": self._s.get(pid, 0.0)})()

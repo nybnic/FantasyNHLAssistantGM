@@ -39,6 +39,42 @@ def test_back_to_back_flips_the_odds():
     assert backup.prob > 0.6
 
 
+def test_a_backup_blown_out_last_game_hands_the_next_start_back():
+    # Knight started 7 of 10, then his backup gave up 6: Knight's odds rise, the backup's fall.
+    starters = [1, 1, 1, 2, 1, 1, 2, 1, 1, 2]  # every other day, the last two days ago
+    starts = [(TONIGHT - dt.timedelta(days=2 * (10 - i)), pid) for i, pid in enumerate(starters)]
+    plain_knight = availability.goalie(1, "Knight", TONIGHT, None, None, starts, 0.65)
+    plain_backup = availability.goalie(2, "Backup", TONIGHT, None, None, starts, 0.35)
+    knight = availability.goalie(1, "Knight", TONIGHT, None, None, starts, 0.65, last_result="L bad")
+    backup = availability.goalie(2, "Backup", TONIGHT, None, None, starts, 0.35, last_result="L bad")
+    assert backup.prob == pytest.approx(availability.with_odds(plain_backup.prob, 0.32))
+    assert backup.prob < plain_backup.prob and "after a blowout loss" in backup.note
+    assert knight.prob > plain_knight.prob and "other goalie after a blowout loss" in knight.note
+    # A win changes nothing; DailyFaceoff's pick still beats it all.
+    assert availability.goalie(2, "Backup", TONIGHT, None, None, starts, 0.35, last_result="W").prob == plain_backup.prob
+    assert availability.goalie(2, "Backup", TONIGHT, None, {"goalie_name": "Backup", "confirmed": True}, starts, 0.35,
+                               last_result="L bad").prob == availability.CONFIRMED_START
+
+
+def test_after_a_loss_the_pair_still_sums_to_one_early_in_the_season():
+    # Two starts so far, one each (a raw 50%); the backup lost the last one badly.
+    starts = [(TONIGHT - dt.timedelta(days=4), 1), (TONIGHT - dt.timedelta(days=2), 2)]
+    knight = availability.goalie(1, "Knight", TONIGHT, None, None, starts, 0.62, last_result="L bad").prob
+    backup = availability.goalie(2, "Backup", TONIGHT, None, None, starts, 0.38, last_result="L bad").prob
+    assert knight + backup == pytest.approx(1.0, abs=0.02)
+
+
+def test_start_result_reads_a_goalie_game():
+    from clients.nhl_stats import GoalieGame
+
+    def start(w, ga):
+        return GoalieGame(1, "A", "BOS", "TOR", TONIGHT, 1, True, True, {"w": w, "ga": ga})
+    assert availability.start_result(start(1, 5), relieved=False) == "W"
+    assert availability.start_result(start(0, 3), relieved=False) == "L"
+    assert availability.start_result(start(0, 5), relieved=False) == "L bad"
+    assert availability.start_result(start(0, 2), relieved=True) == "L bad"
+
+
 def test_injured_goalie_never_starts():
     info = LineInfo(groups={"g"}, goalie_depth=1, injury="out")
     assert availability.goalie(1, "A", TONIGHT, info, None, [], 0.7).prob == 0.0
