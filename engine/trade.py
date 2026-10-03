@@ -1,8 +1,9 @@
 """/trade: what a proposed trade does to your team and to theirs.
 
-Judged like the weekly plan judges a long-run add: the whole-lineup
-projection over the 6 weeks after the trade clears (with durability), per
-week, before and after. Both teams play from the same free-agent pool, so:
+A trade is for good, so it's judged on the rest of the regular season
+(Nico, 2026-10-03): the whole-lineup projection from when the trade clears
+to the last regular-season week (with durability), per week, before and
+after. Nothing about this week's matchup enters it. Both teams play from the same free-agent pool, so:
 - a team left with an open roster spot fills it with its best free agent
   (that costs an add), and one left over the limit drops its lowest-value
   players;
@@ -13,8 +14,9 @@ week, before and after. Both teams play from the same free-agent pool, so:
   gets accepted because they value players differently (names, "starting
   goalie"), which the numbers here don't try to model.
 
-To give the gain context, it is also shown as win odds against a team as
-good as yours is now (50% before the trade, by definition).
+To give the gain context, it is also shown as wins over the rest of the
+season: each week's win odds against a team as good as yours is now (50%
+before the trade, by definition), summed over the matchups left.
 
 Positional balance is in the numbers already (each day's best lineup, by
 Yahoo eligibility). It is also shown (F/D/G counts), and a trade that leaves
@@ -42,16 +44,21 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 from clients.names import normalize_name
-from config.league import GOALIE_WEIGHTS, LEAGUE_TEAMS, SKATER_WEIGHTS, STARTERS, fantasy_points
+from config.league import (GOALIE_WEIGHTS, LEAGUE_TEAMS, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
+                           fantasy_points)
 from engine import matchup
+from league import weeks
 from league.roster import BENCH, RosterPlayer, active
 
 # The commissioner can reject a trade for two days (league settings). A trade
-# is for good, so it's judged like an add's long run: over 6 weeks
-# (matchup.LONG_RUN_WEEKS), since a 2-week window turned one week's schedule
-# into the verdict (decision log, 2026-10-01).
+# is for good, so it's judged from then to the end of the regular season
+# (Nico, 2026-10-03; was 6 weeks, an add's long run). Past the 6 weeks the
+# injury-return curves were fit on, they hold their last value (untested).
 REVIEW_DAYS = 2
-HORIZON_DAYS = 7 * matchup.LONG_RUN_WEEKS
+# The free agent filling an open spot is a streaming spot, recycled within a
+# few weeks (decision log, 2026-10-01), so he's picked on the next 6 weeks
+# only; that also keeps /trade's run time near what it was.
+PICK_DAYS = 7 * matchup.LONG_RUN_WEEKS
 # Below this, a trade is noise next to the model's error (a judgment call).
 MIN_GAIN_PER_WEEK = 1.0
 FORWARD_SLOTS = ("C", "LW", "RW")
@@ -92,14 +99,33 @@ class Result:
     get: list[RosterPlayer]
     me: Side
     them: Side
-    win_even: float  # P(win) after the trade vs a team as good as yours before it
+    win_even: float  # a week's P(win) after the trade vs a team as good as yours before it
+    matchups: float = 0.0  # regular-season matchups left in the horizon (the first one partly)
     give_rounds: list[int] = field(default_factory=list)  # draft rounds, UNDRAFTED_ROUND if none
     get_rounds: list[int] = field(default_factory=list)
 
 
+    @property
+    def wins(self) -> float:
+        """Expected extra wins over the rest of the regular season."""
+        return (self.win_even - 0.5) * self.matchups
+
+
 def horizon(today: dt.date) -> list[dt.date]:
+    """From when the trade clears to the regular season's last day."""
     start = today + dt.timedelta(days=REVIEW_DAYS)
-    return [start + dt.timedelta(days=i) for i in range(HORIZON_DAYS)]
+    end = weeks.week_span(REGULAR_SEASON_WEEKS)[1]
+    return [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
+
+
+def matchups(schedule) -> float:
+    """Regular-season matchups `schedule` covers, a partly covered week as its share of days."""
+    by_week: dict[int, int] = {}
+    for d in schedule:
+        w = weeks.week_of(d)
+        if w and w <= REGULAR_SEASON_WEEKS:
+            by_week[w] = by_week.get(w, 0) + 1
+    return sum(n / len(weeks.days(w)) for w, n in by_week.items())
 
 
 def _split(side: str) -> list[str]:
@@ -158,7 +184,8 @@ def _settle(roster: list[RosterPlayer], pool: list[RosterPlayer], min_goalies: i
     def goalies() -> int:
         return sum(p.is_goalie for p in active(roster))
 
-    shortlist = matchup.shortlist(pool, ctx, schedule, lines, starters)
+    near = {d: g for d, g in schedule.items() if d < min(schedule) + dt.timedelta(days=PICK_DAYS)}
+    shortlist = matchup.shortlist(pool, ctx, near, lines, starters)
     goalie_room = min(max(min_goalies - goalies(), 0), sum(p.is_goalie for p in shortlist))
     while len(active(roster)) > matchup.ACTIVE_SPOTS - goalie_room:
         can_go = [p for p in active(roster) if not (p.is_goalie and goalies() <= min_goalies)]
@@ -171,7 +198,7 @@ def _settle(roster: list[RosterPlayer], pool: list[RosterPlayer], min_goalies: i
         options = [p for p in shortlist if p.is_goalie or not need_goalie]
         if not options:
             break
-        add = max(options, key=lambda p: _long_run(matchup._swap(roster, p, None), ctx, schedule, lines,
+        add = max(options, key=lambda p: _long_run(matchup._swap(roster, p, None), ctx, near, lines,
                                                    starters).expected)
         adds.append(add)
         shortlist = [p for p in shortlist if p.id != add.id]
@@ -295,7 +322,7 @@ def evaluate(mine: list[RosterPlayer], theirs: list[RosterPlayer], partner: str,
     """`schedule` is the horizon's games (see `horizon`); `pool` the free agents.
     Open spots are filled before the trade too, so a trade gets no credit
     for a hole the weekly plan would fill anyway."""
-    weeks = len(schedule) / 7
+    n_weeks = len(schedule) / 7
 
     def both(roster, pool, min_goalies):
         settled_before, adds_before, _ = _settle(roster(False), pool, min_goalies, ctx, schedule, lines, starters)
@@ -312,11 +339,12 @@ def evaluate(mine: list[RosterPlayer], theirs: list[RosterPlayer], partner: str,
     rounds = rounds or {}
     return Result(
         partner=partner, give=give, get=get,
-        me=Side("you", (my_after.expected - my_before.expected) / weeks, my_adds, my_usual, my_drops,
+        me=Side("you", (my_after.expected - my_before.expected) / n_weeks, my_adds, my_usual, my_drops,
                 (balance(mine, lines), balance(my_traded, lines)), _new_short(mine, my_traded)),
-        them=Side(partner, (their_after.expected - their_before.expected) / weeks, their_adds, their_usual,
+        them=Side(partner, (their_after.expected - their_before.expected) / n_weeks, their_adds, their_usual,
                   their_drops, (balance(theirs, lines), balance(their_traded, lines)), _new_short(theirs, their_traded)),
-        win_even=matchup.win_prob(_per_week(my_after, weeks), _per_week(my_before, weeks)),
+        win_even=matchup.win_prob(_per_week(my_after, n_weeks), _per_week(my_before, n_weeks)),
+        matchups=matchups(schedule),
         give_rounds=[draft_round(p, rounds) for p in give],
         get_rounds=[draft_round(p, rounds) for p in get],
     )
@@ -366,6 +394,10 @@ def suggest(mine: list[RosterPlayer], others: dict[str, list[RosterPlayer]], poo
     return list(best.values())[:MAX_SUGGESTIONS]
 
 
+def _wins(r: Result) -> str:
+    return f"{r.wins:+.1f} win{'' if abs(round(r.wins, 1)) == 1 else 's'}"
+
+
 def _names(players: list[RosterPlayer]) -> str:
     return ", ".join(p.name for p in players)
 
@@ -397,10 +429,11 @@ def suggestions_text(results: list[Result]) -> str:
     if not results:
         return ("No trade I'd expect them to accept gains you 1+ pts/week. "
                 "Try one yourself: /trade Your Player for Their Player")
-    lines = [f"{len(results)} trade{'s' if len(results) > 1 else ''} to propose (pts/week, you / them):"]
+    lines = [f"{len(results)} trade{'s' if len(results) > 1 else ''} to propose "
+             "(pts/week for the rest of the season, you / them):"]
     for i, r in enumerate(results, 1):
         lines.append(f"{i}. {_names(r.give)} for {_names(r.get)} ({r.partner}): "
-                     f"{r.me.per_week:+.1f} / {r.them.per_week:+.1f}, win 50% -> {matchup._pct(r.win_even)}")
+                     f"{r.me.per_week:+.1f} / {r.them.per_week:+.1f}, {_wins(r)}")
         lines.append(f"   Drafted {_rounds(r.give_rounds)} for {_rounds(r.get_rounds)}; "
                      f"they go {r.them.balance[0]} -> {r.them.balance[1]}")
         lines += ["   " + line for line in _adds_text(r.me, "You")]
@@ -419,8 +452,7 @@ def text(r: Result) -> str:
         verdict = "Don't: it makes you worse"
     lines = [
         f"{verdict}. {_names(r.give)} for {_names(r.get)} ({r.partner})",
-        f"You: {r.me.per_week:+.1f} pts/week, win {matchup._pct(0.5)} -> {matchup._pct(r.win_even)} "
-        "vs a team as good as yours now",
+        f"You: {r.me.per_week:+.1f} pts/week, {_wins(r)} in the {r.matchups:.0f} weeks left",
         f"Them: {r.them.per_week:+.1f} pts/week",
     ]
     lines.append(f"Rosters: you {r.me.balance[0]} -> {r.me.balance[1]}, "
@@ -431,6 +463,7 @@ def text(r: Result) -> str:
         lines.append(f"Drafted: you give {_rounds(r.give_rounds)}, get {_rounds(r.get_rounds)}")
     for side, who in ((r.me, "You"), (r.them, "They")):
         lines += _adds_text(side, who)
-    lines.append(f"Per week over the {HORIZON_DAYS // 7} weeks after the 2-day review; open spots filled from "
-                 "free agents either way.")
+    lines.append("Per week from the end of the 2-day review to the end of the regular season (this week's "
+                 "matchup doesn't count); wins vs a team as good as yours now; open spots filled from free agents "
+                 "either way.")
     return "\n".join(lines)
