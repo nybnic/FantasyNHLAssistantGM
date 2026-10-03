@@ -14,7 +14,7 @@ from pathlib import Path
 from clients import dfo_lines, goalie_client, nhl_client
 from config.league import (MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SEASON_END)
-from engine import addprice, briefing, ir, matchup, report, scorecard
+from engine import addprice, briefing, ir, matchup, report, scorecard, season
 from league import teams, weeks
 from league import roster as roster_mod
 from model import context
@@ -73,6 +73,7 @@ class WeekInputs:
     hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
+    strengths: dict | None = None  # team -> (mean, sd) of a typical week's points (team_strengths)
 
 
 def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
@@ -111,11 +112,12 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     available_from = waiver_days(pool, league, date)
     if not max_moves:
         available_from = after_this_week(available_from, pool, days)
-    tau = league_tau(players, league, ctx, future, lines, starters)
+    strengths = team_strengths(players, league, ctx, future, lines, starters)
+    tau = league_tau(strengths)
     sigma_week = math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1))
     return WeekInputs(
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
-        me=me, them=them, tau=tau, later_weight=addprice.later_weight(sigma_week, tau),
+        me=me, them=them, tau=tau, strengths=strengths, later_weight=addprice.later_weight(sigma_week, tau),
         pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
         so_far=mine, live=is_live, yahoo_projected=projected,
         live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box} if is_live else None,
@@ -136,18 +138,45 @@ def after_this_week(available_from: dict, pool: list, days: list[dt.date]) -> di
     return {p.id: max(available_from.get(p.id, monday), monday) for p in pool}
 
 
-def league_tau(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict) -> float:
-    """The spread of matchup margins: how far apart two of the league's teams
-    usually project in a week (each team's best lineup over the next full
-    week; the margin's spread is sqrt(2) times the teams')."""
+def team_strengths(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict
+                   ) -> dict[str, tuple[float, float]]:
+    """Team -> (mean, sd) of its points in a typical week: its best lineup over
+    the next full week (long run: durability in), for every team whose roster
+    is known (MIN_KNOWN_ROSTER players), mine included."""
     week = {d: future[d] for d in sorted(future)[:7]}
-    rosters = [players] + [teams.players(league, t) for t in league["teams"]]
-    totals = [matchup.project("t", r, ctx, week, lines, starters, True).expected
-              for r in rosters if len(roster_mod.active(r)) >= MIN_KNOWN_ROSTER]
-    if len(totals) < 4 or len(week) < 7:
+    if len(week) < 7:
+        return {}
+    rosters = {MY_TEAM: players} | {t: teams.players(league, t) for t in league["teams"]}
+    out = {}
+    for team, roster in rosters.items():
+        if len(roster_mod.active(roster)) >= MIN_KNOWN_ROSTER:
+            projected = matchup.project(team, roster, ctx, week, lines, starters, True)
+            out[team] = (projected.expected, math.sqrt(projected.variance))
+    return out
+
+
+def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
+    """The spread of matchup margins: how far apart two of the league's teams
+    usually project in a week (the margin's spread is sqrt(2) times the teams')."""
+    totals = [mean for mean, _ in strengths.values()]
+    if len(totals) < 4:
         return addprice.DEFAULT_TAU
     mean = sum(totals) / len(totals)
     return math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
+
+
+def season_line(state: dict, wk: WeekInputs, week: int) -> str | None:
+    """Playoff and title odds and this week's leverage (engine/season.py),
+    from the latest standings (state["standings"], League > Standings
+    screenshots), else from an even start."""
+    odds = season.simulate(wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
+                           (state.get("standings") or {}).get("teams"))
+    if odds is None:
+        return None
+    through = (state.get("standings") or {}).get("week")
+    note = (" (No standings yet: everyone starts even.)" if through is None
+            else f" (Standings through week {through}: send a new screenshot.)" if through < week - 1 else "")
+    return season.text(odds) + note
 
 
 def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
@@ -462,6 +491,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                 + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                                wk.week_used, date, wk.yahoo_projected, teams.moves_through(league))
                 + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
+                + (f"\n{line}" if (line := _safe(season_line, state, wk, week)) else "")
                 + (f"\n\n{midweek}" if midweek else "")
                 + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))
                 + (f"\n\n{ir_text}" if ir_text else ""))

@@ -50,6 +50,8 @@
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran
 - week_requested: /week was sent; plan the week on this run
 - trade_request: the text after /trade, judged on this run
+- standings: the latest League > Standings ({week: the last week they include,
+  teams: {team: {w, l, t, pf}}}), where the season simulation starts (engine/season.py)
 """
 from __future__ import annotations
 
@@ -139,6 +141,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
     state.setdefault("trade_request", None)
+    state.setdefault("standings", None)
     return state
 
 

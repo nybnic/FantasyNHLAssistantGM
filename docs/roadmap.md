@@ -23,6 +23,10 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 6. Stash candidates (P0 evidence -> P1 role-aware projection -> P2 candidates with option
    value, plus "Watch" heads-ups (Nico: yes) -> P3 scorecard). No youth bonus (decision log).
 
+7. Season layer, step 2: read League > Standings screenshots (needs a sample screenshot from Nico to
+   build the OCR on), then (Nico to decide) let this week's leverage weigh the add value, and value
+   points in playoff weeks 24-26 by their title leverage.
+
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
 - Verify in Yahoo: what Start Active does with injured players and on an overflow night
@@ -120,3 +124,4 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 | 2026-10-03 | League freshness from Transactions: `moves_through` dates every roster (they had kept the draft date, so the plan asked for /opp after Transactions had updated them); the plan asks for Transactions screenshots when moves are 2+ days old; other teams' adds before Oct 1 backfilled into `league_adds` (4 -> 13) | (this commit) |
 | 2026-10-03 | IR stashes: an injured free agent straight into an empty IR/IR+ slot (Yahoo allows it), valued on the return curves less the later drop weighted by his odds of being back; priced like any add; Done puts him in the slot | (this commit) |
 | 2026-10-03 | /trade judged over 6 weeks (was 2: one week's schedule could decide it), like an add's long run; suggestions guess acceptance by a "feel" round that blends the draft round toward this season's fantasy-point rank (`PERCEPTION_GAMES` 20, a judgment call). Runtime ~3x, unmeasured until a dry run | (this commit) |
+| 2026-10-03 | Season odds (`engine/season.py`): playoffs, title, and this week's leverage vs a typical week left, simulated from team projections and standings (even until Standings screenshots are read); a line in the plan. Leverage on P(playoffs), paired: on the title it was noise (0.76-1.12x for one setup) | (this commit) |

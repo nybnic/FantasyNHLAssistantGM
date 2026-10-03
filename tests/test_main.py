@@ -930,3 +930,18 @@ def test_done_on_a_stash_puts_him_in_his_ir_slot():
     ingest.apply_add(players, {"add": {"id": 12, "name": "Streamer", "team": "NYR", "positions": ["C"]},
                                "drop": None})
     assert players[-1].slot == "BN"
+
+
+def test_the_plan_gives_the_season_odds_and_how_old_the_standings_are():
+    from types import SimpleNamespace
+    from config.league import MY_TEAM, SCHEDULE
+    team = matchup.TeamWeek("t", 0, 200.0, 900.0, 40, 0, 4, 1.0)
+    wk = SimpleNamespace(strengths={t: (200.0, 30.0) for t in [*set(SCHEDULE), MY_TEAM]}, me=team, them=team)
+    state = {"standings": None}
+    line = weekly.season_line(state, wk, 3)
+    assert line.startswith("Season: playoffs") and "No standings yet: everyone starts even" in line
+    state["standings"] = {"week": 1, "teams": {MY_TEAM: {"w": 1, "l": 0, "t": 0, "pf": 210.0}}}
+    assert "Standings through week 1: send a new screenshot" in weekly.season_line(state, wk, 3)
+    state["standings"]["week"] = 2
+    assert "Standings" not in weekly.season_line(state, wk, 3)
+    assert weekly.season_line(state, SimpleNamespace(strengths={}, me=team, them=team), 3) is None
