@@ -23,6 +23,7 @@
   through: the day it was taken if before that day's first puck, score,
   projected, goalies: points from G slots per team})
 - transaction_rows: transactions read from screenshots this run, not yet applied
+- transaction_rows_at: when the newest of those screenshots was sent (Helsinki time)
 - transactions_seen: each applied transaction's key -> its time, so overlapping
   screenshots apply nothing twice; also the season's log of league moves (the newest 3000 kept)
 - add_pools: per fantasy week, the candidate adds the plan weighed (full-week
@@ -124,6 +125,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("matchup_shots", None)
     state.setdefault("live_score", None)
     state.setdefault("transaction_rows", [])
+    state.setdefault("transaction_rows_at", None)
     state.setdefault("transactions_seen", {})
     state.setdefault("add_pools", {})
     state.setdefault("day_rosters", {})

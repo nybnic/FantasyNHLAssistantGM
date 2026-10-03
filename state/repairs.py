@@ -5,7 +5,10 @@ what the incident did.
 from __future__ import annotations
 
 import datetime as dt
+from zoneinfo import ZoneInfo
 
+from clients.names import normalize_name
+from config.league import TIMEZONE
 from league import teams
 from league.roster import RosterPlayer
 
@@ -40,4 +43,24 @@ def _murashov_dropped(state: dict, players: list[RosterPlayer], league: dict) ->
     teams.put_on_waivers(league, MURASHOV, dt.date(2026, 10, 1))
 
 
-REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped)]
+def _league_adds_from_log(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-03: other teams' adds were logged only from 2026-10-01 (4 of 13
+    # seen), though every Transactions screenshot since Sep 30 was applied.
+    # Rebuild the log from transactions_seen, and date the rosters by the
+    # newest move seen (when it was sent isn't recorded: a lower bound).
+    names = {normalize_name(t).replace(" ", ""): t for t in league["teams"]}
+    adds: dict[str, list[str]] = {}
+    for key, when in sorted(state["transactions_seen"].items(), key=lambda kv: kv[1]):
+        _, kind, team, who = key.split("|")
+        if kind not in ("add", "add/drop") or team not in names:
+            continue
+        nhl_date = (dt.datetime.fromisoformat(when).replace(tzinfo=ZoneInfo(TIMEZONE))
+                    .astimezone(ZoneInfo("America/New_York")).date().isoformat())
+        adds.setdefault(names[team], []).extend([nhl_date] * (len(who.split(",")) if kind == "add" else 1))
+    state["league_adds"] = adds
+    if state["transactions_seen"] and not league.get("moves_through"):
+        league["moves_through"] = max(state["transactions_seen"].values())
+
+
+REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
+           ("2026-10-03 league adds from the log", _league_adds_from_log)]

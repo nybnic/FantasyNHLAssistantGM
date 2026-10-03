@@ -115,7 +115,7 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     updated = teams.updated(league, partner)
     if updated and (date - dt.date.fromisoformat(updated)).days >= 1:
         note = (f"\n{partner}'s roster is from {dt.date.fromisoformat(updated):%d %b}: "
-                f"send /opp {partner} with their Yahoo page if it has changed.")
+                "send League > Transactions screenshots (or /opp with their page) if it has changed.")
     outbox.send(trade.text(result) + note)
 
 

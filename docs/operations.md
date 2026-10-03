@@ -51,7 +51,7 @@ noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/
 |---|---|---|
 | `state/roster.json` | My players and Yahoo slots | Done taps (lineups, adds), `/myteam` pastes and screenshots, matchup screenshots, `scripts/seed_roster.py` |
 | `state/positions.json` | Yahoo position eligibility per player (free agents use it) | Every Yahoo screenshot or paste; seeded once by `scripts/seed_positions.py` |
-| `state/league.json` | The other 15 rosters + a `taken` list | `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
+| `state/league.json` | The other 15 rosters + a `taken` list, waivers, and `moves_through` (the time every league move is known through) | Transactions screenshots, `/opp` pastes, matchup screenshots, `/taken`, `scripts/seed_league.py` |
 | `archive/dfo_lines/YYYY/DATE.csv` in the **private** `nybnic/FantasyNHLAssistantGM-data` | DFO's line charts, all 32 teams, once a game day (13:00 ET, or 30 min before an earlier first puck): line, PP/PK unit, slot, injury, game-time decision, NHL id. Third-party data, so never in this repo | The workflow checks it out into `archive/` (gitignored) and pushes; `bot/dfo_archive.py` writes |
 | `state/xfp_log.csv` | Every NHL roster player's projection (xFP, TOI, PP TOI, games, durability; goalies: start share, save %) and owner, at each fantasy week's first run: what the model believed, for in-season checks | The week's first run (`bot/xfp_log.py`), appended |
 | `state/gm_state.json` | Telegram offset, pending recs, decisions, the adds ledger (`adds`: what the add budget counts), each day's rosters before its first puck (`day_rosters`: banked points), each week's plans and result (`results`), sent briefings/plans, the latest matchup score, transactions applied, and each week's add candidates (`add_pools`, which the add price is solved over) | Every run |
@@ -81,7 +81,10 @@ roster names one of them.
   together share the first one's time). `bot/ingest.finish_transactions` applies
   them oldest first, each once: the same team, type and players within 12 h of a
   move already seen is that move (`TX_SAME_MOVE`). It warns when new screenshots
-  don't reach back to the last ones seen. Then there's the Taken
+  don't reach back to the last ones seen. A set that reaches back to the moves already seen
+  and shows the newest of them (the list's top) makes every roster current as of
+  when it was sent (`league.json` `moves_through`); the weekly plan asks for
+  Transactions screenshots once that is 2+ days old (`LEAGUE_MOVES_STALE_DAYS`). Then there's the Taken
   button on an add, or `/taken`.
 - Waivers: every drop the bot learns of (a Transactions row, a Done tap's drop)
   puts the player on waivers in `state/league.json` (`waivers`): an add of him is

@@ -102,6 +102,11 @@ COAST_ABOVE = 0.90
 # Within this of 50% the week is called even, not "ahead" or "behind" (wording
 # only, a judgment call): "ahead (50%), 0 points up" read as a contradiction.
 EVEN_WITHIN = 0.03
+# Free agents are everyone not on a known roster, so league moves unseen for
+# this long make suggestions go stale: the plan asks for Transactions
+# screenshots, as it does when the opponent's roster is this old (a judgment
+# call; Nico sends them weekly).
+LEAGUE_MOVES_STALE_DAYS = 2
 
 
 @dataclass
@@ -774,7 +779,10 @@ def _pct(p: float) -> str:
 
 
 def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_updated: str | None,
-         season_used: int, week_used: int, today: dt.date, yahoo_projected: list | None = None) -> str:
+         season_used: int, week_used: int, today: dt.date, yahoo_projected: list | None = None,
+         league_through: dt.date | None = None) -> str:
+    """`opponent_updated`: the date their roster is known as of; `league_through`:
+    the day every league move is known through (Transactions screenshots)."""
     span = f"{days[0]:%a %d %b} - {days[-1]:%a %d %b}"
     lines = [f"Week {week} ({span}) vs {them.name}"]
     if me.so_far or them.so_far:
@@ -794,12 +802,14 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
                  f"{_pct(me.goalie_min_prob)} to make it: {status}")
     lines.append(f"Adds: {MAX_ADDS_PER_SEASON - season_used} left this season, "
                  f"{max_moves(season_used, week_used)} this week")
-    if opponent_updated:
-        age = (today - dt.date.fromisoformat(opponent_updated)).days
-        if age >= 1:
-            lines.append("")
-            lines.append(f"Their roster is from {dt.date.fromisoformat(opponent_updated):%d %b}. If they've "
-                         "made moves, send /opp with their Yahoo team page pasted after it.")
+    if league_through and (today - league_through).days >= LEAGUE_MOVES_STALE_DAYS:
+        lines.append("")
+        lines.append(f"League moves known through {league_through:%a %d %b}: send League > Transactions "
+                     "screenshots back to then, so free agents and their roster are current.")
+    elif opponent_updated and (today - dt.date.fromisoformat(opponent_updated)).days >= LEAGUE_MOVES_STALE_DAYS:
+        lines.append("")
+        lines.append(f"Their roster is from {dt.date.fromisoformat(opponent_updated):%d %b}. If they've "
+                     "made moves, send League > Transactions screenshots (or /opp with their team page).")
     return "\n".join(lines)
 
 

@@ -1,7 +1,9 @@
 """The other 15 teams' rosters, as far as the Assistant GM knows them.
 
-Seeded from the draft results (scripts/seed_league.py), then refreshed by
-pasting a team's Yahoo page into Telegram (/opp). Everyone on a current NHL
+Seeded from the draft results (scripts/seed_league.py), then kept current
+by League > Transactions screenshots (every team's adds, drops and trades;
+`moves_through` says how far they reach), and refreshed by a team's Yahoo
+page (/opp) or a matchup screenshot. Everyone on a current NHL
 roster who isn't on a fantasy roster here, on yours, or in `taken` (/taken)
 counts as a free agent. Players dropped in the last day or so are on waivers
 (`waivers`): a claim, not an instant add.
@@ -40,8 +42,19 @@ def players(data: dict, team: str) -> list[RosterPlayer]:
     return [RosterPlayer(**p) for p in data["teams"].get(team, {}).get("players", [])]
 
 
+def moves_through(data: dict) -> dt.date | None:
+    """The day through which every league move is known from Transactions
+    screenshots (`moves_through`, a Helsinki time; bot/ingest.finish_transactions)."""
+    through = data.get("moves_through")
+    return dt.date.fromisoformat(through[:10]) if through else None
+
+
 def updated(data: dict, team: str) -> str | None:
-    return data["teams"].get(team, {}).get("updated")
+    """The date a team's roster is known as of: its last page or matchup
+    screenshot, or later when Transactions screenshots carry it forward."""
+    own = data["teams"].get(team, {}).get("updated")
+    through = moves_through(data)
+    return max(own, through.isoformat()) if own and through else own
 
 
 def set_team(data: dict, team: str, roster: list[RosterPlayer], date: dt.date) -> None:

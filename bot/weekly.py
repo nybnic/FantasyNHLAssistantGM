@@ -459,7 +459,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                                        moves)
     outbox.send(_action_line(moves, ir_text, wk.max_moves) + "\n\n"
                 + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
-                               wk.week_used, date, wk.yahoo_projected)
+                               wk.week_used, date, wk.yahoo_projected, teams.moves_through(league))
                 + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
                 + (f"\n\n{midweek}" if midweek else "")
                 + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))

@@ -458,6 +458,38 @@ def test_transactions_already_applied_are_skipped_and_a_gap_is_flagged(monkeypat
     assert "may be missing" in sent[-1] and 700 not in _ids(league, "Pastasauce")
 
 
+def test_transactions_reaching_back_carry_every_roster_forward(monkeypatch, tmp_path):
+    old = [_tx("add", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": old})
+    assert league["moves_through"] == "2026-10-01T10:00"  # sent Thu 1 Oct 03:00 New York
+    assert teams.updated(league, "Vanilla Thunder") == "2026-10-01" and state["transaction_rows_at"] is None
+
+    def send(rows, date):
+        monkeypatch.setattr(telegram, "get_updates", lambda token, offset: [_photo("c", 60 + date, date)])
+        monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "transactions", "rows": rows})
+        settings = load_settings()
+        ingest.process_updates(settings, state, players, league, common.Outbox(settings))
+
+    later = [_tx("drop", (10, 3, 9, 0), ["Pastasauce"], [("J. McCann", "drop")])]
+    send(later, WEEK1 + 3 * 86400)  # doesn't reach back: moves in between may be missing
+    assert league["moves_through"] == "2026-10-01T10:00"
+    send(later + old, WEEK1 + 4 * 86400)  # now it does, from the top of the list
+    assert league["moves_through"] == "2026-10-05T10:00"
+    send(old, WEEK1 + 5 * 86400)  # only older moves: the newest aren't in view
+    assert league["moves_through"] == "2026-10-05T10:00"
+
+
+def test_the_plan_asks_for_transactions_when_league_moves_are_old():
+    me = matchup.TeamWeek("me", 0, 150.0, 400.0, 20, 0, 3, 1.0)
+    them = matchup.TeamWeek("them", 0, 150.0, 400.0, 20, 0, 3, 1.0)
+    days, mon = [dt.date(2026, 10, 5), dt.date(2026, 10, 11)], dt.date(2026, 10, 5)
+    stale = matchup.text(2, days, me, them, "2026-10-02", 2, 0, mon, None, dt.date(2026, 10, 2))
+    assert "League moves known through Fri 02 Oct: send League > Transactions" in stale
+    fresh = matchup.text(2, days, me, them, "2026-10-04", 2, 0, mon, None, dt.date(2026, 10, 4))
+    assert "Transactions" not in fresh
+    assert "Their roster is from 29 Sep" in matchup.text(2, days, me, them, "2026-09-29", 2, 0, mon)
+
+
 def test_a_move_seen_in_the_app_then_the_website_or_chat_is_applied_once(monkeypatch, tmp_path):
     app = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")])]
     state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": app})
@@ -854,7 +886,7 @@ def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
     repairs.apply(state, players, league)  # each repair runs once
     assert [a["id"] for a in state["adds"]] == [None]
     assert [(p.name, p.slot) for p in players] == [("Jack McBain", "C"), ("Sergei Murashov", "BN")]
-    assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == 2
+    assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == len(repairs.REPAIRS)
 
 
 def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():
@@ -868,3 +900,23 @@ def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():
                     "two are enough for now.")
     assert "worth an add" in weekly.goalie_line(two, [third], AddPrice(0.01, 0.002, 1.2))
     assert "(no adds left this week)" in weekly.goalie_line(two, [third], None)
+
+
+def test_the_2026_10_03_repair_rebuilds_other_teams_adds_from_the_log(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = ["2026-10-01 totals view", "2026-10-01 murashov dropped"]
+    state["transactions_seen"] = {
+        "2026-09-30T22:30|add|bottomthree|anikishin": "2026-09-30T22:30",
+        "2026-10-02T10:21|add/drop|lazylew|vpodkolzin,mwood": "2026-10-02T10:21",
+        "2026-10-01T18:48|add/drop|nicosgroovyteam|jmcbain,bschenn": "2026-10-01T18:48",
+        "2026-09-30T14:04|trade|pastasauce,vanillathunder|dcozens,jtavares": "2026-09-30T14:04",
+        "2026-10-02T11:31|drop|bottomthree|ichernyshov": "2026-10-02T11:31",
+        "2026-10-03T03:00|add|bottomthree|lcagnoni": "2026-10-03T03:00",  # Helsinki night: NHL date the 2nd
+    }
+    state["league_adds"] = {"Lazy Lew": ["2026-10-02"]}
+    league = {"teams": {t: {"updated": "2026-09-29", "players": []} for t in ("Bottom three", "Lazy Lew")},
+              "taken": []}
+    repairs.apply(state, [], league)
+    assert state["league_adds"] == {"Bottom three": ["2026-09-30", "2026-10-02"], "Lazy Lew": ["2026-10-02"]}
+    assert league["moves_through"] == "2026-10-03T03:00" and teams.updated(league, "Lazy Lew") == "2026-10-03"

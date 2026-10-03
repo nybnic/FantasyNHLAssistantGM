@@ -247,6 +247,8 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
                         "(app or website) or the league chat, with each move's date in view.")
             return None
         state["transaction_rows"] += shot["rows"]
+        sent = at.astimezone(briefing.LOCAL).strftime("%Y-%m-%dT%H:%M")
+        state["transaction_rows_at"] = max(state.get("transaction_rows_at") or "", sent)
         return "transactions"
     if shot["kind"] == "matchup":
         draft = state["matchup_shots"] if _fresh(state["matchup_shots"], at) else {"rows": [], "labels": []}
@@ -313,9 +315,14 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     and claims put a player on that team (off the free agents), drops free him,
     trades swap rosters; my own team's moves update my roster too. Says what
     changed, and warns when the screenshots may not reach back to the last ones seen.
-    A move already seen in another layout, at a time within TX_SAME_MOVE, is the same move."""
+    A move already seen in another layout, at a time within TX_SAME_MOVE, is the same move.
+    A set that reaches back to the moves already seen and up to the newest of
+    them (the list's top, as it is scrolled first) makes every roster current
+    as of when it was sent: league["moves_through"]."""
     rows, state["transaction_rows"] = state["transaction_rows"], []
+    sent_at, state["transaction_rows_at"] = state.get("transaction_rows_at"), None
     seen = state["transactions_seen"]
+    newest_seen = max(seen.values(), default=None)
     names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
     had_seen = bool(seen)
     moves: dict[str, list[dt.datetime]] = {}
@@ -395,6 +402,11 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                     add(teams_[1 - side], p)
         seen[key] = when
 
+    newest_shown = max((_tx_time(row["when"]) for row in rows), default=None)
+    top_in_view = newest_shown is not None and (newest_seen is None or dt.datetime.fromisoformat(newest_shown)
+                                                + TX_SAME_MOVE >= dt.datetime.fromisoformat(newest_seen))
+    if sent_at and (overlap or not had_seen) and top_in_view and not problems:
+        league["moves_through"] = max(league.get("moves_through") or "", sent_at)
     if not fresh:
         outbox.send("Those transactions are all ones I already have.")
         return
