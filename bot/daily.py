@@ -10,7 +10,7 @@ import logging
 from clients import dfo_lines, goalie_client, health, nhl_client
 from config.league import (MY_TEAM, TRADE_DEADLINE)
 from engine import briefing, ir, trade
-from league import draft, teams
+from league import draft, teams, weeks
 from league import roster as roster_mod
 from model import context
 from bot.common import NHL_TIME, Outbox, _safe, free_agents, _weakest
@@ -100,8 +100,7 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     if isinstance(parsed, str):
         outbox.send(parsed)
         return
-    days = trade.horizon(date)
-    schedule = nhl_client.games_between(days[0], days[-1]) if days else {}
+    schedule = {d: nhl_client.games_on(d) for d in trade.horizon(date) if weeks.week_of(d)}
     if not schedule:
         outbox.send("No regular-season games left to judge a trade on.")
         return

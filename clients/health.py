@@ -20,8 +20,7 @@ _BY_NAME = {
     "team_lines": "DailyFaceoff line charts",
     "dfo_starters/": "DailyFaceoff starting goalies", "get_starters": "DailyFaceoff starting goalies",
     "dfo_projections": "DailyFaceoff projections",
-    "schedule/": "NHL schedule", "schedule_week/": "NHL schedule", "games_on": "NHL schedule",
-    "games_between": "NHL schedule",
+    "schedule/": "NHL schedule", "games_on": "NHL schedule",
     "rosters_current": "NHL rosters", "current_teams": "NHL rosters", "current_rosters": "NHL rosters",
     "nhl_stats/": "NHL stats",
 }

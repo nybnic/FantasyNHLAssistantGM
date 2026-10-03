@@ -56,52 +56,25 @@ class ScheduledGame:
     away: str
 
 
-def _rows(day: dict) -> list[dict]:
-    return [
-        {
-            "id": g["id"],
-            "start": g["startTimeUTC"],
-            "home": g["homeTeam"]["abbrev"],
-            "away": g["awayTeam"]["abbrev"],
-        }
-        for g in day.get("games", [])
-        if g.get("gameType") == REGULAR_SEASON
-    ]
-
-
 def games_on(date: dt.date) -> list[ScheduledGame]:
     """Regular-season games on `date` (the NHL's own, Eastern-time date)."""
 
     def fetch() -> list[dict]:
         for day in get(f"{BASE_URL}/schedule/{date.isoformat()}").json().get("gameWeek", []):
             if day.get("date") == date.isoformat():
-                return _rows(day)
+                return [
+                    {
+                        "id": g["id"],
+                        "start": g["startTimeUTC"],
+                        "home": g["homeTeam"]["abbrev"],
+                        "away": g["awayTeam"]["abbrev"],
+                    }
+                    for g in day.get("games", [])
+                    if g.get("gameType") == REGULAR_SEASON
+                ]
         return []
 
-    return _games(cached_json(f"schedule/{date.isoformat()}", 3 * HOUR, fetch))
-
-
-def games_between(first: dt.date, last: dt.date) -> dict[dt.date, list[ScheduledGame]]:
-    """Every day from `first` to `last` -> its regular-season games, a week
-    per request (the season's rest is ~25 requests, not ~170)."""
-
-    def fetch(start: dt.date) -> dict[str, list[dict]]:
-        return {day["date"]: _rows(day) for day in get(f"{BASE_URL}/schedule/{start.isoformat()}").json()
-                .get("gameWeek", []) if day.get("date", "") >= start.isoformat()}
-
-    out: dict[dt.date, list[ScheduledGame]] = {}
-    start = first
-    while start <= last:
-        week = cached_json(f"schedule_week/{start.isoformat()}", 3 * HOUR, lambda: fetch(start))
-        dates = [dt.date.fromisoformat(d) for d in week] or [start + dt.timedelta(days=6)]
-        out |= {dt.date.fromisoformat(d): _games(rows) for d, rows in week.items()
-                if dt.date.fromisoformat(d) <= last}
-        start = max(dates) + dt.timedelta(days=1)
-    return {first + dt.timedelta(days=i): out.get(first + dt.timedelta(days=i), [])
-            for i in range((last - first).days + 1)}
-
-
-def _games(rows: list[dict]) -> list[ScheduledGame]:
+    rows = cached_json(f"schedule/{date.isoformat()}", 3 * HOUR, fetch)
     return sorted(
         (
             ScheduledGame(

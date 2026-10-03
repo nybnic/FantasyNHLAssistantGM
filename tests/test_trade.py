@@ -1,10 +1,6 @@
-import datetime as dt
-
 import pytest
 
-from config.league import REGULAR_SEASON_WEEKS
 from engine import matchup, trade
-from league import weeks
 from league.roster import RosterPlayer
 from tests.test_matchup import MON, WED, FakeContext, _game
 
@@ -164,46 +160,12 @@ def test_a_first_rounder_outweighs_a_fourth_and_a_sixth_but_not_a_second_and_a_t
     assert trade.perceived([second, third], rounds) > trade.perceived([star], rounds)
 
 
-def test_a_trade_is_judged_to_the_end_of_the_regular_season_not_this_week():
-    days = trade.horizon(dt.date(2026, 10, 3))
-    assert days[0] == dt.date(2026, 10, 5)  # after the 2-day review
-    assert days[-1] == weeks.week_span(REGULAR_SEASON_WEEKS)[1]
-    # Weeks 2-23, with week 19 the double week: still one matchup.
-    assert trade.matchups({d: [] for d in days}) == pytest.approx(REGULAR_SEASON_WEEKS - 1)
-    assert trade.matchups({d: [] for d in weeks.days(2)[3:]}) == pytest.approx(4 / 7)
-
-
-def test_the_gain_is_shown_as_wins_over_the_season_not_a_weeks_win_odds():
+def test_the_gain_reads_as_a_typical_weeks_win_odds_not_this_weeks():
     mine, theirs = _full("BOS", 100, 3), _full("NYR", 300, 3)
     theirs[0] = RosterPlayer(11, "Star", "NYR", ["C"])
     schedule = {MON: [_game(MON, "BOS", "NYR")], WED: [_game(WED, "BOS", "NYR")]}
     result = trade.evaluate(mine, theirs, "Them", [mine[0]], [theirs[0]], [], FakeContext(), schedule, {}, {})
-    result.matchups = 20
-    assert result.wins == pytest.approx((result.win_even - 0.5) * 20) and result.wins > 0
+    result.win_even = 0.57
     for text in (trade.text(result), trade.suggestions_text([result])):
-        assert f"{result.wins:+.1f} wins" in text and "win 50%" not in text
-
-
-def test_the_schedule_is_fetched_a_week_at_a_time(monkeypatch, tmp_path):
-    from clients import cache, nhl_client
-    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
-    asked = []
-
-    class Response:
-        def __init__(self, start):
-            self.start = start
-
-        def json(self):
-            game = {"id": 1, "startTimeUTC": "2026-10-10T23:00:00Z", "gameType": 2,
-                    "homeTeam": {"abbrev": "BOS"}, "awayTeam": {"abbrev": "TOR"}}
-            return {"gameWeek": [{"date": (self.start + dt.timedelta(days=i)).isoformat(),
-                                  "games": [game] if i == 2 else []} for i in range(7)]}
-
-    def get(url):
-        asked.append(start := dt.date.fromisoformat(url.rsplit("/", 1)[1]))
-        return Response(start)
-    monkeypatch.setattr(nhl_client, "get", get)
-    games = nhl_client.games_between(dt.date(2026, 10, 5), dt.date(2026, 10, 20))
-    assert asked == [dt.date(2026, 10, 5), dt.date(2026, 10, 12), dt.date(2026, 10, 19)]
-    assert sorted(games) == [dt.date(2026, 10, 5) + dt.timedelta(days=i) for i in range(16)]
-    assert [d.day for d, g in games.items() if g] == [7, 14]
+        assert "typical week's win odds +7%" in text and "win 50%" not in text
+    assert "next 6 weeks" in trade.suggestions_text([result])
