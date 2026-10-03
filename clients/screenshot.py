@@ -73,7 +73,9 @@ _WEEKDAYS = {"lun": 0, "mar": 1, "mer": 2, "jeu": 3, "ven": 4, "sam": 5, "dim": 
              "mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
 _CLOCK = re.compile(r"^(\d{1,2}):(\d{2})")  # the phone's status bar
 _RECORD = re.compile(r"(\d+)-(\d+)-(\d+)$")  # "0-0-0", also at the end of "Nico · 0-0-0"
-_WEEK = re.compile(r"^week(\d+)$")
+# "Week 2", also with the week picker's arrows read as text: "Week 2 1" is week 2.
+_WEEK = re.compile(r"^week\s*(\d{1,2})\b", re.I)
+_GAMES_PLAYED = re.compile(r"^(\d+)/(\d+)$")
 _CHAT_MOVE = re.compile(r"^(.+?)(added|dropped)(.+?)(?:and(dropped)(.+))?$")
 
 
@@ -155,7 +157,9 @@ def _is_matchup(lines: list, width: int) -> bool:
 
 def _matchup(img: Image.Image, lines: list) -> dict:
     """{"score": (mine, theirs) or None, "projected": (mine, theirs) or None,
-    "labels": (left header texts, right header texts),
+    "labels": (left header texts, right header texts), "week": the week picker's
+    week or None (scrolled out of view), "totals": the Matchup Totals view
+    (each player's numbers are the week's, not a day's),
     "rows": [{"slot", "mine": player or None, "theirs": player or None}]},
     a player being {"name", "team", "positions", "points", "projected"}.
     Mine is the left column: the app puts your team first."""
@@ -209,8 +213,16 @@ def _matchup(img: Image.Image, lines: list) -> dict:
         score, pairs = pairs[0], pairs[1:]
     if pairs:
         projected = pairs[0]
+    # Before the week's first game the top card shows dashes for the score and
+    # only Yahoo's projections, which would read as the score: "Games Played
+    # 0/43" for both says it's 0 - 0.
+    played = [int(m.group(1)) for _, _, t in header if (m := _GAMES_PLAYED.match(t.replace(" ", "")))]
+    if len(played) == 2 and not any(played) and score and any(score):
+        score, projected = (0.0, 0.0), projected or score
     labels = ([t for x, _, t in header if x < 0.5 * w], [t for x, _, t in header if x >= 0.5 * w])
-    return {"score": score, "projected": projected, "labels": labels, "rows": rows}
+    header_lines = [(x, y, 0.0, t) for x, y, t in header]
+    return {"score": score, "projected": projected, "labels": labels, "rows": rows,
+            "week": _week_label(header_lines), "totals": any(_squash(t) == "matchuptotals" for _, _, t in header)}
 
 
 def _month(text: str) -> int | None:
@@ -317,7 +329,7 @@ def _scoreboard(lines: list, width: int) -> dict:
     with its score at the right and, on the manager line below it ("Nico ·
     0-0-0"), Yahoo's projected total. Cards are told apart by the gap
     between them; a team cut off by the screen's edge is left unpaired."""
-    week = next((int(m.group(1)) for _, _, _, t in lines if (m := _WEEK.match(_squash(t)))), None)
+    week = _week_label(lines)
     numbers = [(y, h, float(t)) for x, y, h, t in lines if x > 0.7 * width and _POINTS.match(t)]
     left = [(x, y, h, t) for x, y, h, t in lines if 0.18 * width < x < 0.6 * width]
     manager = {y for x, y, h, t in left
@@ -346,6 +358,12 @@ def _scoreboard(lines: list, width: int) -> dict:
     for team in teams:
         del team["y"]
     return {"week": week, "teams": teams, "pairs": pairs}
+
+
+def _week_label(lines: list) -> int | None:
+    """The fantasy week a screen shows ("Week 2"), or None when it's out of view."""
+    return next((int(m.group(1)) for _, _, _, t in lines if (m := _WEEK.match(t.strip()))
+                 and 1 <= int(m.group(1)) <= 26), None)
 
 
 def _squash(text: str) -> str:

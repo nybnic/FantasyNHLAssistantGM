@@ -266,3 +266,28 @@ def test_a_scoreboard_reads_each_matchup_with_scores_and_projections(monkeypatch
     assert [(teams[i]["team"], teams[j]["team"]) for i, j in shot["pairs"]] == [
         ("Nico's Groovy Team", "Bahelin Boys"), ("HAN-NES", "HC Bulju"), ("Randy", "Vantaa")]
     assert teams[-1] == {"team": "Lazy Lew", "score": 119.2, "projected": 207.19}  # its opponent is off screen
+
+
+# OCR of Nico's week 2 matchup, top of the page, before any games (Oct 3).
+PREGAME_LINES = [
+    (996, 67, 43, "75"), (108, 68, 42, "12:20"), (335, 225, 42, "Not for everyone! ^"), (633, 369, 55, "Players"),
+    (343, 370, 52, "Matchup"), (126, 372, 47, "Team"), (891, 373, 50, "League"),
+    (111, 519, 30, "NICO'S GROOVY TEAM"), (714, 519, 30, "RETROT CHICKEN WINGS"), (298, 689, 39, "247.58"),
+    (781, 689, 39, "188.96"), (105, 762, 45, "0/43"), (998, 764, 41, "0/35"), (474, 768, 36, "Games Played"),
+    (975, 903, 41, "All Matchu"), (518, 904, 44, "Matchup Totals"), (180, 907, 34, "Week 2 1"),
+    (416, 1034, 41, "0.00"), (683, 1035, 40, "0.00"), (1023, 1035, 39, "S. AHO"), (49, 1038, 33, "M. SCHEIFELE"),
+    (405, 1085, 39, "20.38"), (683, 1085, 39, "26.25"),
+]
+
+
+def test_before_any_games_the_top_card_is_yahoos_projection_not_the_score(monkeypatch):
+    shot = _shot(monkeypatch, PREGAME_LINES)
+    assert shot["kind"] == "matchup"
+    assert shot["score"] == (0.0, 0.0) and shot["projected"] == (247.58, 188.96)
+    assert shot["week"] == 2 and shot["totals"]  # "Week 2 1": the picker's arrow read as a 1
+
+
+def test_the_week_label_survives_the_pickers_arrows():
+    lines = lambda t: [(0, 0, 0, t)]
+    assert screenshot._week_label(lines("Week 2 1")) == 2 and screenshot._week_label(lines("Week 19")) == 19
+    assert screenshot._week_label(lines("Week 40")) is None and screenshot._week_label(lines("Weekly")) is None

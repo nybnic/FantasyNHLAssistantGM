@@ -29,6 +29,7 @@ screenshots (team pages, matchups, transactions from the app, website or league 
 | `relay/` | Cloudflare Worker for instant Telegram replies |
 | `docs/league-rules.md` | Full scoring and league rules, worked examples, where the points come from |
 | `docs/operations.md` | Runtime, secrets, state ownership, past incidents |
+| `docs/data.md` | What Nico sends, what's fetched, what's stored where, and what uses it |
 | `docs/roadmap.md` | Prioritized backlog. Start a session here |
 
 ## Commands

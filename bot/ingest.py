@@ -272,15 +272,18 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
         draft["labels"] += shot["labels"][1]  # the opponent's side of the header
         draft["score"] = shot["score"] or draft.get("score")
         draft["projected"] = shot["projected"] or draft.get("projected")
+        draft["week"] = shot.get("week") or draft.get("week")  # scrolled ones don't show it
+        draft["totals"] = draft.get("totals") or shot.get("totals", False)
         draft["at"] = at.isoformat()
         state["matchup_shots"] = draft
         return "matchup"
     draft = state["screenshots"]
     fresh = _fresh(draft, at)
-    team = state["awaiting"] or (draft["team"] if fresh else MY_TEAM)
+    named = state["awaiting"]
+    team = named or (draft["team"] if fresh else MY_TEAM)
     state["awaiting"] = None
     if not fresh or draft["team"] != team:
-        draft = {"team": team, "rows": []}
+        draft = {"team": team, "rows": [], "named": bool(named)}
     if not shot["rows"]:
         outbox.send("I couldn't find any players in that screenshot. Send the Team or Matchup tab of the Yahoo app.")
         return None
@@ -465,6 +468,10 @@ def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:
         return
     week = max(r["w"] + r["l"] + r["t"] for r in teams_.values())
     old = state["standings"] or {}
+    if old.get("week", 0) > week:
+        outbox.send(f"Those standings are older ({week} weeks played) than the ones saved ({old['week']}): "
+                    "kept the newer ones.")
+        return
     if old.get("week") == week:
         teams_ = {**old["teams"], **teams_}
     state["standings"] = {"week": week, "teams": teams_, "at": common.nhl_today().isoformat()}
@@ -486,8 +493,10 @@ def finish_scoreboard(state: dict, league: dict, outbox: Outbox) -> None:
     shots, state["scoreboard_shots"] = state["scoreboard_shots"], []
     today = common.nhl_today()
     weeks_seen, problems = set(), []
-    for shot in shots:
-        week = shot["week"] or weeks.week_of(today)
+    labeled = next((s["week"] for s in shots if s["week"]), None)
+    for shot in shots:  # a scrolled screenshot has no week label: it's the week of the one before it
+        labeled = shot["week"] or labeled
+        week = labeled or weeks.week_of(today)
         if not week:
             continue
         entry = state["league_weeks"].setdefault(str(week), {"pairs": [], "scores": {}})
@@ -536,7 +545,8 @@ def _goalie_points(rows: list[dict]) -> float | None:
     return sum(goalies) if goalies else None
 
 
-MATCHUP_COLUMNS = ["at", "week", "side", "fantasy_team", "slot", "name", "team", "positions", "points", "projected"]
+MATCHUP_COLUMNS = ["at", "week", "view", "side", "fantasy_team", "slot", "name", "team", "positions", "points",
+                   "projected"]
 
 
 def archive_matchup(draft: dict, week: int, opponent: str | None, root: Path | None = None) -> Path | None:
@@ -556,6 +566,7 @@ def archive_matchup(draft: dict, week: int, opponent: str | None, root: Path | N
             if p and (side, p["name"]) not in seen:
                 seen.add((side, p["name"]))
                 out.append({"at": draft["at"], "week": week, "side": side, "fantasy_team": team,
+                            "view": "totals" if draft.get("totals") else "",
                             "slot": row.get("slot") or "", "name": p["name"], "team": p.get("team", ""),
                             "positions": "/".join(p.get("positions") or []), "points": p.get("points"),
                             "projected": p.get("projected")})
@@ -564,6 +575,24 @@ def archive_matchup(draft: dict, week: int, opponent: str | None, root: Path | N
         writer.writeheader()
         writer.writerows(out)
     return path
+
+
+def other_week(state: dict, draft: dict, opponent: str | None, current: int, outbox: Outbox) -> None:
+    """Matchup screenshots of a week other than this one (the week picker):
+    their rows are archived, a past week's score is kept as Yahoo's final, and
+    nothing else changes: those rosters and slots were that week's."""
+    week = draft["week"]
+    state["matchup_shots"] = None
+    names = {normalize_name(t): t for t in SCHEDULE}
+    opponent = next((names[n] for n in map(normalize_name, draft["labels"]) if n in names), opponent)
+    _safe(archive_matchup, draft, week, opponent)
+    if week < current and draft.get("score"):
+        state["results"].setdefault(str(week), {"opponent": opponent})["yahoo_final"] = {
+            "score": list(draft["score"]), "at": draft["at"]}
+        outbox.send(f"Week {week} (a past week): {draft['score'][0]:.2f} - {draft['score'][1]:.2f} saved as "
+                    "Yahoo's final. Rosters unchanged: that view shows that week's.")
+    else:
+        outbox.send(f"Those screenshots show week {week}, not this week ({current}): rosters and score unchanged.")
 
 
 def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
@@ -578,6 +607,9 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     named = [names[n] for n in map(normalize_name, draft["labels"]) if n in names and names[n] != MY_TEAM]
     opponent = named[0] if named else current_opponent(state, week) if week else None
     mine, theirs = _side(draft["rows"], "mine"), _side(draft["rows"], "theirs")
+    if draft.get("week") and week and draft["week"] != week:
+        other_week(state, draft, opponent, week, outbox)
+        return
     lines = []
     if draft.get("score") and week:
         games = _safe(nhl_client.games_on, date, default=[])
@@ -639,10 +671,23 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     outbox.send("\n".join(lines + ["Updated plan below."]))
 
 
+def _whose(rows: list[dict], players: list, league: dict) -> str:
+    """The team whose page these rows are when no /opp named it: the roster
+    sharing at least half the players read, else mine (a page of my own
+    team that the saved roster doesn't match, e.g. after many moves)."""
+    shown = {p.id for p in parse.match_shown_names(rows, parse.registry()).players}
+    rosters = {MY_TEAM: {p.id for p in players},
+               **{t: {p["id"] for p in entry["players"]} for t, entry in league["teams"].items()}}
+    best = max(rosters, key=lambda t: len(shown & rosters[t]))
+    return best if shown and 2 * len(shown & rosters[best]) >= len(shown) else MY_TEAM
+
+
 def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
     """Save the screenshot draft once it looks like the whole roster (at most
     one player short of what I had), or on /save."""
     team = state["screenshots"]["team"]
+    if not state["screenshots"].get("named", True):
+        team = state["screenshots"]["team"] = _whose(state["screenshots"]["rows"], players, league)
     current = players if team == MY_TEAM else teams.players(league, team)
     found = parse.match_shown_names(state["screenshots"]["rows"], parse.registry(), {p.id for p in current})
     n = len(found.players)

@@ -1053,3 +1053,56 @@ def test_the_weeks_first_plan_records_our_projection_of_every_team_once(monkeypa
     wk.me = team_week("me", 250.0)  # Wednesday's plan doesn't overwrite Monday's forecast
     weekly.record_league(state, league, 2, "Retrot Chicken Wings", wk, now + dt.timedelta(days=2))
     assert state["league_weeks"]["2"]["ours"]["teams"]["Nico's Groovy Team"]["expected"] == 227.1
+
+
+def test_a_matchup_of_another_week_changes_no_roster_or_score(monkeypatch, tmp_path):
+    shot = {**_matchup_shot([_row(i) for i in range(12)]), "week": 2}  # the picker on next week
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, {"top": shot})
+    assert all(p.slot == "BN" for p in players) and state["live_score"] is None
+    assert sent == ["Those screenshots show week 2, not this week (1): rosters and score unchanged."]
+
+
+def test_a_past_weeks_matchup_is_kept_as_yahoos_final_only(monkeypatch):
+    from types import SimpleNamespace
+    state = {"results": {}, "matchup_shots": {}}
+    sent = []
+    draft = {"week": 1, "labels": ["BAHELIN BOYS"], "score": (62.0, 118.0), "at": "2026-10-05T07:00:00+00:00",
+             "rows": []}
+    ingest.other_week(state, draft, None, 2, SimpleNamespace(send=sent.append))
+    assert state["results"]["1"]["yahoo_final"]["score"] == [62.0, 118.0]
+    assert state["results"]["1"]["opponent"] == "Bahelin Boys" and state["matchup_shots"] is None
+    assert sent[0].startswith("Week 1 (a past week): 62.00 - 118.00 saved as Yahoo's final.")
+
+
+def test_scrolled_all_matchups_take_the_week_of_the_labeled_one(monkeypatch, tmp_path):
+    def shot(week, teams):
+        return {"kind": "scoreboard", "week": week, "pairs": [(0, 1)],
+                "teams": [{"team": t, "score": 100.0, "projected": 170.0} for t in teams]}
+    shots = {"a": shot(1, ["Nico's Groovy Team", "Bahelin Boys"]), "b": shot(None, ["HAN-NES", "HC Bulju"])}
+    monkeypatch.setattr(common, "nhl_today", lambda: dt.date(2026, 10, 6))  # week 2 now; these are week 1
+    state, _ = _league_shots(monkeypatch, tmp_path, shots)
+    assert set(state["league_weeks"]["1"]["scores"]) == {"Nico's Groovy Team", "Bahelin Boys", "HAN-NES", "HC Bulju"}
+    assert "2" not in state["league_weeks"]
+
+
+def test_older_standings_dont_replace_newer_ones(monkeypatch, tmp_path):
+    rows = [{"team": "Bahelin Boys", "w": 1, "l": 0, "t": 0, "pf": 200.0},
+            {"team": "HAN-NES", "w": 0, "l": 1, "t": 0, "pf": 150.0},
+            {"team": "HC Bulju", "w": 1, "l": 0, "t": 0, "pf": 180.0}]
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    state["standings"] = {"week": 2, "teams": {"Bahelin Boys": {"w": 2, "l": 0, "t": 0, "pf": 400.0}}, "at": "x"}
+    state["standings_rows"] = rows
+    ingest.finish_standings(state, {"teams": {t: {} for t in ("Bahelin Boys", "HAN-NES", "HC Bulju")}},
+                            common.Outbox(settings))
+    assert state["standings"]["week"] == 2 and "kept the newer ones" in sent[0]
+
+
+def test_a_team_page_sent_without_opp_goes_to_the_team_whose_players_it_shows(monkeypatch, tmp_path):
+    settings, state, players, sent = _screenshots(monkeypatch, tmp_path, [_photo("top", 9), _photo("bottom", 10)])
+    shown = {p["id"] for p in SHOT_REGISTRY}
+    league = {"teams": {"Bahelin Boys": {"updated": "2026-09-29", "players": [
+        {"id": i, "name": "x", "team": "BOS", "positions": ["C"], "slot": None} for i in sorted(shown)[:10]]}},
+        "taken": []}
+    ingest.process_updates(settings, state, players, league, common.Outbox(settings))
+    assert [p.id for p in players] == [1, 2]  # mine untouched
+    assert len(league["teams"]["Bahelin Boys"]["players"]) == 12 and state["adds"] == []

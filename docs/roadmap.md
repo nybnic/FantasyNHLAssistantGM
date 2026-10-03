@@ -12,7 +12,7 @@ over the season. Input is mobile screenshots; output is Telegram plus charts.
 ## Next
 From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 review.
 Nico, each Monday: League > Transactions, Standings and All Matchups screenshots (All Matchups
-before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
+before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams). See `docs/data.md`.
 1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
    (`league_weeks`), our forecast for all 16 teams, Yahoo's first forecasts: done. The private data
    archive takes writes (the bot's first push, a19b7a4, 2026-10-03), checked every run by a dry-run push.
@@ -141,3 +141,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-03 | Keepers that do nothing this week wait for Wednesday's plan (Mon/Tue adds stay free to chase with); streamer caption leads with "You're favored (77%): no stream is worth an add"; `explain_week` lists every player's week (all games / in the lineup) to compare with Yahoo's matchup page | (this commit) |
 | 2026-10-03 | Forecasts logged for checking: Yahoo's first projection per team and week kept (All Matchups `first`, matchup `yahoo_first`, `live` with Yahoo's projection); our projection of all 16 teams at the week's first plan (`league_weeks[w].ours`); `xfp_log.csv` adds goalie points per start and each player's expected week (`week_games`, `week_xfp`); Yahoo's per-player projections from matchup screenshots go to the private archive (Nico) | (this commit) |
 | 2026-10-03 | The private data archive proven writable: the bot's first push (its README, a19b7a4); every run now checks with a dry-run push and the data check reports a "no" | (this commit) |
+| 2026-10-03 | Screenshots safe to send freely: a pre-game matchup's top card read the projections as the score (247.58 - 188.96; now 0 - 0 from "Games Played 0/43"); the week label ("Week 2 1" had read as 21) decides the week, another week's matchup changes nothing but Yahoo's final and the archive; scrolled All Matchups take their batch's week; older standings never replace newer; a team page without /opp goes to the roster it matches. `docs/data.md` describes all data | (this commit) |
