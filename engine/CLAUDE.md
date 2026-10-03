@@ -47,7 +47,8 @@
   that bar, at most 2 a week, uses adds at the budget's pace, simulated over
   this and earlier weeks' candidates (`state["add_pools"]`). Close weeks with
   good streamers clear it twice, lopsided weeks not at all. This week's adds go
-  to moves that pay this week; a keeper gaining < 1 pt waits for Monday.
+  to moves that pay this week; a keeper gaining < 1 pt waits for Monday, and before
+  Wednesday's plan it takes no add even alone (`holds_keepers`), unless the week is decided.
 - `scripts/sim_add_policy.py` compares the price with the old points rule over
   simulated seasons.
 - `scripts/explain_week.py` prints every candidate with its verdict. Use it
@@ -77,6 +78,7 @@
 | 2026-10-01 | No goalie-minimum alerts beyond the weekly line (Nico) | Yahoo already warns; the model still counts the minimum in P(win) |
 | 2026-10-03 | DFO line charts are archived daily in a private repo, not this public one (Nico) | DFO keeps no history, and role/stash signals can only be tested on an archive; republishing their charts publicly risks the source the live bot depends on (`bot/dfo_archive.py`) |
 | 2026-10-03 | No fixed bonus for young players (Nico) | Unbacked, and it double-counts the age curve and option value. Stash plan P0 tests whether young, low-sample players are under-projected; if so the fix goes into the model |
+| 2026-10-03 | Before Wednesday's plan, a keeper gaining < 1 pt this week holds the add instead of taking it, unless the week is decided; the streamer caption says when you're favored (Nico) | Week 2 (77%): Parayko (-0.1 pts this week) took the 2nd Monday add, leaving none to chase with if the week turned. Waiting costs nothing this week; the risk is a claim before Wednesday. Whether a stream in a close week should wait for mid-week information is untested (needs a season sim) |
 | 2026-10-03 | /trade shows a trade's gain as "typical week's win odds +7%", not "win 50% -> 57%" (Nico) | It read as this week's matchup odds; it is the 6-week points gain as a typical week's odds vs a team as good as yours. Horizon unchanged (6 weeks) |
 | 2026-10-03 | /trade guesses acceptance with stars feeling worth more: `PICK_DECAY` 0.85 -> 0.8 (Nico) | At 0.85 a 4th + 6th-rounder "felt" like a 1st (Knight + Dobson for MacKinnon was suggested); at 0.8 a 1st outweighs a 4th + 6th, not a 2nd + 3rd. Judgment call: no acceptance data |
 | 2026-10-03 | The add price stays blind to standings leverage and playoff-week points | `scripts/sim_leverage.py` (whole league, paired seasons): leverage weighting +0.6-1.6 pts playoff odds but -0.3-1.0 title odds; playoff points x2 -0.4-0.9 title. Even spending to week 23 carries the most points into the playoffs. Revisit with 6+ logged weeks |

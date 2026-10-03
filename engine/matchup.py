@@ -699,10 +699,13 @@ def best_moves(
     candidates: list[RosterPlayer] | None = None,
     ranked: list[Move] | None = None,
     hold_days: int = 7 * STREAM_WEEKS,
+    hold_keepers: bool = False,
 ) -> list[Move]:
     """Up to `max_moves` add/drops worth making, best first; each one is
     judged with the previous ones already made. `candidates` and `ranked`
-    (their moves on the current roster) save recomputing them."""
+    (their moves on the current roster) save recomputing them.
+    `hold_keepers` (see `holds_keepers`): a keeper that does nothing this
+    week takes no add now, even with nothing else passing."""
     if candidates is None:
         candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
     so_far = so_far or _so_far(active(roster), ctx, sorted(schedule))  # banked before any move
@@ -714,7 +717,9 @@ def best_moves(
         passing = [m for m in ranked if not rejection(m, price)]
         if not passing:
             break
-        best = next((m for m in passing if not waits(m)), passing[0])
+        best = next((m for m in passing if not waits(m)), None if hold_keepers else passing[0])
+        if best is None:
+            break
         moves.append(best)
         candidates = [p for p in candidates if p.id != best.add.id]
         roster = _swap(roster, best.add, best.drop, best.ir_slot or BENCH)
@@ -726,13 +731,22 @@ def waits(move: Move) -> bool:
     return move.week_gain < KEEPER_WAITS_BELOW and move.next_weeks > 0
 
 
-def can_wait(ranked: list[Move], moves: list[Move], price: AddPrice | None) -> Move | None:
-    """The best keeper passed over for this week's adds, to make next week."""
+def holds_keepers(date: dt.date, week: int, p_win: float) -> bool:
+    """Before the mid-week plan, a keeper that does nothing this week waits
+    for it, so the add stays free to chase with if the week turns; it costs
+    nothing this week (Nico, 2026-10-03). Not in a decided week: nothing to
+    chase or protect. The risk: someone claims him meanwhile."""
+    return date < weeks.midweek(week) and decided(p_win) is None
+
+
+def can_wait(ranked: list[Move], moves: list[Move], price: AddPrice | None, held: bool = False) -> Move | None:
+    """The best keeper passed over for this week's adds (or, `held`, held
+    for the mid-week plan), to make later."""
     if price is None:
         return None
     taken = {m.add.id for m in moves}
     best = next((m for m in ranked if m.add.id not in taken and waits(m) and not rejection(m, price)), None)
-    return best if best and moves else None
+    return best if best and (moves or held) else None
 
 
 def biggest_swing(ranked: list[Move]) -> Move | None:
@@ -784,11 +798,14 @@ def streamers(
     return out
 
 
-def why_not(move: Move, price: AddPrice | None, chosen: list[Move] = ()) -> str:
-    """Why a move isn't a recommended add, in words Nico can weigh."""
+def why_not(move: Move, price: AddPrice | None, chosen: list[Move] = (), held: bool = False) -> str:
+    """Why a move isn't a recommended add, in words Nico can weigh. `held`:
+    keepers that do nothing this week wait for the mid-week plan."""
     if price is None:
         return "no adds left"
     reason = rejection(move, price)
+    if reason is None and held and waits(move):
+        return "worth an add, but it does nothing this week: Wednesday's plan, if the week holds"
     if reason is None:
         names = " and ".join(m.add.name for m in chosen)
         return f"worth an add, but this week's go to {names}" if names else "worth an add, but you have none left this week"

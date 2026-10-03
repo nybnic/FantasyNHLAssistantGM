@@ -333,9 +333,12 @@ def _slot_games(row: dict) -> str:
     return text + (f", ~{row['slot_starts']:.1f} expected starts" if row.get("slot_starts") is not None else "")
 
 
-def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), adds_left: int = 1) -> str:
+def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), adds_left: int = 1,
+                  p_win: float = 0.5, held: bool = False) -> str:
     """The schedule chart's caption. With this week's adds spent, a pickup
-    plays from Monday, so only next week's games count."""
+    plays from Monday, so only next week's games count. When you're favored
+    it says so first: a stream's points move your odds less then, which is
+    why streams fail the add price."""
     if not adds_left:
         if not streams:
             return "This week's adds are used. No free agent adds points in your open slots next week."
@@ -348,10 +351,17 @@ def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), add
     if not streams:
         return "No free agent adds points in your open slots this week or next."
     lines = ["Best streamer per position, this week + next:"]
+    if matchup.stance(p_win) in ("protect", "won"):
+        if any(row["recommended"] for row in view["streamers"]):
+            lines = [f"You're favored ({matchup._pct(p_win)}): a stream's points barely move your odds, so only the "
+                     "one marked recommended is worth an add. Best per position, this week + next:"]
+        else:
+            lines = [f"You're favored ({matchup._pct(p_win)}): no stream is worth an add, so save them. If the week "
+                     "turns, the best per position, this week + next:"]
     for row, st in zip(view["streamers"], streams):
         m = st["move"]
         verdict = ("recommended, see below" if row["recommended"]
-                   else f"not recommended: {matchup.why_not(m, price, chosen)}")
+                   else f"not recommended: {matchup.why_not(m, price, chosen, held)}")
         lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
                      + f": {_slot_games(row)}; net of the drop {m.week_gain:+.1f} pts this "
                      f"week, {st['next_gain']:+.1f} next ({verdict}).")
@@ -359,7 +369,7 @@ def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), add
 
 
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
-               ranked: list, moves: list) -> dict:
+               ranked: list, moves: list, held: bool = False) -> dict:
     """Every number the charts and the dashboard show, computed once: the
     decision map, the schedule grid with streamers, the add budget, and each
     shown add's week-by-week gain (keyed by report.move_key)."""
@@ -383,11 +393,12 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     adds = {}
     for key in dict.fromkeys(keys):
         m = by_key[key]
-        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, price, moves)
+        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, price, moves, held)
         gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
         adds[key] = report.add_view(m, week, gains, budget, verdict)
     return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
-            "streamer_text": streamer_text(schedule, streams, price, moves, wk.max_moves)}
+            "streamer_text": streamer_text(schedule, streams, price, moves, wk.max_moves,
+                                           matchup.win_prob(wk.me, wk.them), held)}
 
 
 def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
@@ -415,13 +426,17 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
     return path
 
 
-def _wait_text(keeper) -> str:
+def _wait_text(keeper, wednesday: bool = False) -> str:
+    """A keeper worth an add later: at the mid-week plan (`wednesday`), else next week."""
     if not keeper:
         return ""
     swap = (f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop
             else f"{keeper.add.name} into your empty {keeper.ir_slot} slot" if keeper.ir_slot else keeper.add.name)
-    return (f"\n\nCan wait for next week's adds: {swap} ({keeper.week_gain:+.1f} pts this week, "
-            f"{keeper.next_weeks:+.1f} over the next two). The risk: someone claims him first.")
+    gains = f"({keeper.week_gain:+.1f} pts this week, {keeper.next_weeks:+.1f} over the next two)"
+    if wednesday:
+        return (f"\n\nWednesday, if the week holds: {swap} {gains}. He does nothing for this week, so the add "
+                "stays free until then in case you need to chase. The risk: someone claims him first.")
+    return f"\n\nCan wait for next week's adds: {swap} {gains}. The risk: someone claims him first."
 
 
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
@@ -489,13 +504,15 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
         midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.price if wk.max_moves else None, recommended,
                                        moves)
-    outbox.send(_action_line(moves, ir_text, wk.max_moves) + "\n\n"
+    keeper = matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None, p.held)
+    wednesday = p.held and len(moves) < wk.max_moves
+    outbox.send(_action_line(moves, ir_text, wk.max_moves, wednesday and keeper is not None) + "\n\n"
                 + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                                wk.week_used, date, wk.yahoo_projected, teams.moves_through(league))
                 + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
                 + (f"\n{line}" if (line := _safe(season_line, state, wk, week)) else "")
                 + (f"\n\n{midweek}" if midweek else "")
-                + _wait_text(matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None))
+                + _wait_text(keeper, wednesday)
                 + (f"\n\n{ir_text}" if ir_text else ""))
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
@@ -504,7 +521,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
         entry = state["results"][str(week)]
         entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]
-    views = _safe(week_views, state, p.planned, league, week, wk, nxt, ranked, moves)
+    views = _safe(week_views, state, p.planned, league, week, wk, nxt, ranked, moves, p.held)
     if views:
         png = _safe(charts.decision_chart, views["decision"])
         if png:
@@ -529,6 +546,7 @@ class PlanMoves:
     ir_moves: list  # IR moves the adds assume (each frees a spot)
     planned: list  # the roster with them made
     open_spots: int  # spots open before any IR move
+    held: bool = False  # keepers that do nothing this week wait for the mid-week plan
 
 
 def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: int, opponent: str,
@@ -543,12 +561,13 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
                                      wk.later_weight)
     wk.price = add_price(state, week, wk, ranked, date)
     moves = []
+    held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
     if wk.max_moves and wk.price is not None:
         moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                    wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
-                                   candidates, ranked, wk.hold_days)
+                                   candidates, ranked, wk.hold_days, held)
     return PlanMoves(wk, nxt, ranked, moves, ir_moves, planned,
-                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))))
+                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
 
 
 def goalie_line(players: list, ranked: list, price) -> str:
@@ -573,10 +592,11 @@ def goalie_line(players: list, ranked: list, price) -> str:
             f"{100 * price.lam:.1f} an add costs: {verdict}.")
 
 
-def _action_line(moves: list, ir_text: str, adds_left: int = 1) -> str:
+def _action_line(moves: list, ir_text: str, adds_left: int = 1, keeper_waits: bool = False) -> str:
     """The plan's first line: what to do now."""
     if not moves:
         head = ("No adds left this week (they reset Monday)." if not adds_left
+                else "Nothing to add now: a keeper waits for Wednesday, see below." if keeper_waits
                 else "No add is worth one of yours right now.")
         return head + (" See the IR note below." if ir_text else "")
     adds = "; ".join(f"add {m.add.name}" + (f" for {m.drop.name}" if m.drop else "")

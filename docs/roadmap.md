@@ -33,6 +33,8 @@ Nico, each Monday: League > Transactions, Standings and All Matchups screenshots
    value, plus "Watch" heads-ups (Nico: yes) -> P3 scorecard). No youth bonus (decision log).
 
 ## Later
+- Stream timing in close weeks: add Monday (more games) or wait for Wednesday (you know the score)?
+  Simulate both policies over 2025-26 weeks before changing the rule (Nico asked, 2026-10-03).
 - Verify in Yahoo: what Start Active does with injured players and on an overflow night
   (the briefing assumes it starts anyone with a game, the better season value first);
   when a claim of a player dropped today can play (the bot assumes 2 days
@@ -135,3 +137,4 @@ Nico, each Monday: League > Transactions, Standings and All Matchups screenshots
 | 2026-10-03 | Standings and All Matchups screenshots read (League tab, OCR checked on Nico's): standings start the season odds, the week's pairings replace random ones, every team's score and Yahoo projection logged (`league_weeks`); today's screenshots recorded by a repair | (this commit) |
 | 2026-10-03 | /trade: `PICK_DECAY` 0.85 -> 0.8, stars feel worth more (Nico); a 1st now outweighs a 4th + 6th. Points-for value measured: 0.022 pts of playoff odds per point vs 0.12 through wins (roadmap item 4) | (this commit) |
 | 2026-10-03 | /trade relabeled: "typical week's win odds +7%" and "pts/week over the next 6 weeks" instead of "win 50% -> 57%", which read as this week's odds (Nico). A season-long horizon was pushed and reverted the same hour: Nico asked for the label only | (this commit) |
+| 2026-10-03 | Keepers that do nothing this week wait for Wednesday's plan (Mon/Tue adds stay free to chase with); streamer caption leads with "You're favored (77%): no stream is worth an add"; `explain_week` lists every player's week (all games / in the lineup) to compare with Yahoo's matchup page | (this commit) |

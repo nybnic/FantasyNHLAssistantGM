@@ -990,3 +990,27 @@ def test_the_week_1_board_repair_names_every_team_once(tmp_path):
     repairs.apply(state, [], {"teams": {}, "taken": []})
     assert {t for pair in state["league_weeks"]["1"]["pairs"] for t in pair} == set(SCHEDULE) | {MY_TEAM}
     assert len(state["league_weeks"]["1"]["scores"]) == 16 and state["standings"]["week"] == 0
+
+
+def test_a_held_keeper_is_named_for_wednesday_and_the_plan_says_nothing_to_add_now():
+    keeper = _move(10, "Colton Parayko", RosterPlayer(2, "Mattias Samuelsson", "BUF", ["D"]))
+    assert weekly._action_line([], "", 2, keeper_waits=True) == \
+        "Nothing to add now: a keeper waits for Wednesday, see below."
+    text = weekly._wait_text(keeper, wednesday=True)
+    assert text.startswith("\n\nWednesday, if the week holds: Colton Parayko for Mattias Samuelsson")
+    assert "in case you need to chase" in text
+    assert "next week's adds" in weekly._wait_text(keeper)
+
+
+def test_the_streamer_caption_says_when_youre_favored_and_streams_arent_worth_an_add():
+    move = _move(10, "Jordan Staal", RosterPlayer(2, "Esa Lindell", "DAL", ["D"]))
+    stream = {"position": "C", "move": move, "next_gain": 0.5}
+    row = {"recommended": False, "slot_games": 5}
+    from engine.addprice import AddPrice
+    price = AddPrice(lam=0.089, later_weight=0.008, pace=1.27)
+    favored = weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.77)
+    assert favored.startswith("You're favored (77%): no stream is worth an add, so save them.")
+    assert weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.5).startswith(
+        "Best streamer per position")
+    row["recommended"] = True
+    assert "only the one marked recommended" in weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.77)

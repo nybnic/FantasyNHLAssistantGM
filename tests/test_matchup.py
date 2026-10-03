@@ -540,3 +540,21 @@ def test_a_stash_is_not_offered_as_a_streamer():
     ranked = [m for m in matchup.candidate_moves(_full_roster(), opponent, [star], ctx, schedule, lines, {}, future, 10)
               if m.ir_slot]
     assert ranked and matchup.streamers(_full_roster(), ranked, ctx, schedule, future, lines, {}) == []
+
+
+def test_before_wednesday_a_keeper_that_does_nothing_this_week_holds_the_add_for_a_chase():
+    samuelsson = RosterPlayer(6, "Mattias Samuelsson", "BUF", ["D"])
+    keeper = matchup.Move(RosterPlayer(1, "Colton Parayko", "STL", ["D"]), samuelsson, week_gain=-0.1,
+                          long_term=28.0, next_weeks=4.4, games=3, win_before=0.81, win_after=0.81,
+                          later_weight=0.003)
+    price = _price(0.05, 0.003)
+    held = matchup.best_moves([], None, [], FakeContext(), {}, {}, {}, {}, 20, max_moves=1, price=price,
+                              so_far=(0.0, 0.0, 0), candidates=[], ranked=[keeper], hold_keepers=True)
+    assert held == []
+    assert matchup.can_wait([keeper], held, price, held=True) is keeper
+    assert "Wednesday's plan" in matchup.why_not(keeper, price, held, held=True)
+    # Week 2: Monday 5 Oct holds at 77%; not from Wednesday, nor in a decided week.
+    monday, wednesday = dt.date(2026, 10, 5), dt.date(2026, 10, 7)
+    assert matchup.holds_keepers(monday, 2, 0.77)
+    assert not matchup.holds_keepers(wednesday, 2, 0.77)
+    assert not matchup.holds_keepers(monday, 2, 0.95)

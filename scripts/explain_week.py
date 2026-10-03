@@ -47,6 +47,8 @@ def main_() -> None:
     for t in (wk.me, wk.them):
         print(f"  {t.name:24} so far {t.so_far:6.1f}  expected {t.expected:6.1f} +/- {t.variance ** 0.5:4.1f}  "
               f"lineup games {t.player_games:3}  goalie min {t.goalie_min_prob:.0%}")
+    for name, roster, team in ((wk.me.name, players, wk.me), (opponent, teams.players(league, opponent), wk.them)):
+        print_players(name, roster_mod.active(roster), team, wk)
     candidates = weekly.add_candidates(wk, weekly.next_week(week, players, wk))
     by_name = {normalize_name(p.name): p for p in wk.pool}
     for name in args.add:
@@ -79,6 +81,31 @@ def main_() -> None:
               f"{m.games:6} {m.week_gain:+6.1f} {m.long_term:+6.1f} {100 * (m.win_after - m.win_before):+5.1f} "
               f"{100 * m.later_value:+6.1f} {100 * m.value:+6.1f}  "
               f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'WORTH AN ADD'}")
+
+
+def print_players(name: str, roster: list, team: matchup.TeamWeek, wk) -> None:
+    """Each player's week from today: games, expected points over all of them
+    (what a per-player projection like Yahoo's shows) and over the games he
+    starts in the best daily lineup (what the team total counts)."""
+    print(f"\n  {name}: player, games, expected pts (all games / in the lineup)")
+    rows = []
+    for p in roster:
+        games = all_pts = lineup_pts = 0.0
+        for date in (d for d in sorted(wk.schedule) if d >= wk.ctx.today):
+            game = matchup._game_of(wk.schedule[date]).get(p.team)
+            if not game:
+                continue
+            yesterday = matchup._game_of(wk.schedule.get(date - dt.timedelta(days=1), []))
+            mean, _, _ = matchup._player_day(p, wk.ctx, date, game, p.team in yesterday, wk.lines, wk.starters)
+            games += 1
+            all_pts += mean
+            slot = team.lineups.get(date, {}).get(p.id, ("G" if p.is_goalie else "BN", 1.0))[0]
+            lineup_pts += mean if slot != roster_mod.BENCH else 0.0
+        rows.append((p, games, all_pts, lineup_pts))
+    for p, games, all_pts, lineup_pts in sorted(rows, key=lambda r: -r[2]):
+        print(f"    {p.name[:22]:22} {'/'.join(p.positions):8} {games:2.0f}  {all_pts:6.1f} / {lineup_pts:6.1f}")
+    print(f"    {'sum':22} {'':8} {sum(r[1] for r in rows):2.0f}  {sum(r[2] for r in rows):6.1f} / "
+          f"{sum(r[3] for r in rows):6.1f}  (team expected {team.expected:.1f}: goalies x P(minimum))")
 
 
 if __name__ == "__main__":
