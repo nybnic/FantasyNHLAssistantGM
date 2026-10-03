@@ -75,7 +75,7 @@ def main_() -> None:
           f"{'value':>6}  win     verdict")
     for m in ranked[:args.top]:
         verdict = matchup.rejection(m, price) if price else "no adds left"
-        print(f"  {m.add.name[:22]:22} {'/'.join(m.add.positions):5} {(m.drop.name if m.drop else '(open spot)')[:18]:18} "
+        print(f"  {m.add.name[:22]:22} {'/'.join(m.add.positions):5} {(m.drop.name if m.drop else f'({m.ir_slot} stash)' if m.ir_slot else '(open spot)')[:18]:18} "
               f"{m.games:6} {m.week_gain:+6.1f} {m.long_term:+6.1f} {100 * (m.win_after - m.win_before):+5.1f} "
               f"{100 * m.later_value:+6.1f} {100 * m.value:+6.1f}  "
               f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'WORTH AN ADD'}")

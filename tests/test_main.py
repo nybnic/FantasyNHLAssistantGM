@@ -920,3 +920,13 @@ def test_the_2026_10_03_repair_rebuilds_other_teams_adds_from_the_log(tmp_path):
     repairs.apply(state, [], league)
     assert state["league_adds"] == {"Bottom three": ["2026-09-30", "2026-10-02"], "Lazy Lew": ["2026-10-02"]}
     assert league["moves_through"] == "2026-10-03T03:00" and teams.updated(league, "Lazy Lew") == "2026-10-03"
+
+
+def test_done_on_a_stash_puts_him_in_his_ir_slot():
+    players = [RosterPlayer(1, "Starter", "BOS", ["C"], "C")]
+    rec = {"add": {"id": 11, "name": "Star", "team": "PIT", "positions": ["C"]}, "drop": None, "add_slot": "IR"}
+    ingest.apply_add(players, rec)
+    assert [(p.id, p.slot) for p in players] == [(1, "C"), (11, "IR")]
+    ingest.apply_add(players, {"add": {"id": 12, "name": "Streamer", "team": "NYR", "positions": ["C"]},
+                               "drop": None})
+    assert players[-1].slot == "BN"

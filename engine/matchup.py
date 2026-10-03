@@ -27,6 +27,7 @@ what they do to P(win):
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import math
 from dataclasses import dataclass, field
@@ -37,7 +38,7 @@ from clients.nhl_client import ScheduledGame
 from config.league import (PLAYOFF_WEEKS, BENCH_SLOTS, GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK,
                            MIN_GOALIE_GAMES_PER_WEEK, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
                            fantasy_points)
-from engine import availability, lineup
+from engine import availability, ir, lineup
 from engine.addprice import PLAYOFF_RESERVE, AddPrice
 from league import weeks
 from league.roster import BENCH, RosterPlayer, active
@@ -85,6 +86,9 @@ POOL_LONG_TERM_PER_POSITION = 3
 POOL_FIT_PER_POSITION = 4
 STREAMER_POSITIONS = ("C", "LW", "RW", "D", "G")  # a goalie fits the nights a G slot is open
 STREAMER_SHORTLIST = 4  # per position, judged on next week's lineup too
+# Injured free agents weighed as IR stashes (straight into an empty IR or IR+
+# slot, Yahoo allows it): the best few by season value (a judgment call).
+STASH_CANDIDATES = 6
 # Display only: the smallest win-odds lift worth naming as "the biggest swing".
 # Whether a move is worth an add is engine/addprice.py's call.
 MIN_WIN_GAIN = 0.02
@@ -137,6 +141,8 @@ class Move:
     win_after: float
     later_weight: float = 0.0  # win probability per later point (addprice.later_weight)
     plays_from: dt.date | None = None  # on waivers: the first day a claim of him plays
+    ir_slot: str | None = None  # an injured add stashed straight into this empty IR slot (no drop now)
+    later_drop: RosterPlayer | None = None  # a stash's drop once he's back: the cheapest to lose
 
     @property
     def later_value(self) -> float:
@@ -508,7 +514,19 @@ def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[Schedu
             group = [p for p in pool if position in p.positions]
             for p in sorted(group, key=fit, reverse=True)[:POOL_FIT_PER_POSITION]:
                 picked[p.id] = p
+    for p in stash_pool(pool, ctx, lines):
+        picked[p.id] = p
     return list(picked.values())
+
+
+def _ir_status(p: RosterPlayer, lines: dict[str, dict[str, LineInfo]]) -> str | None:
+    return ir.likely_status(lines.get(p.team, {}).get(normalize_name(p.name)))
+
+
+def stash_pool(pool: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:
+    """The STASH_CANDIDATES best injured free agents by season value: IR stashes."""
+    injured = [p for p in pool if _ir_status(p, lines)]
+    return sorted(injured, key=lambda p: season_value(p, ctx, lines), reverse=True)[:STASH_CANDIDATES]
 
 
 def candidate_moves(
@@ -575,8 +593,68 @@ def candidate_moves(
                 later_weight=later_weight,
                 plays_from=plays_from,
             ))
+    stashes = [p for p in candidates if _ir_status(p, lines)]
+    if stashes and current_future and ir.free_slots(roster):
+        moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
+                              available_from, so_far, current, current_future, later_weight, team_games)
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
+
+
+def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after, available_from,
+                 so_far, current: TeamWeek, current_future: TeamWeek, later_weight, team_games) -> list[Move]:
+    """Injured free agents added straight into an empty IR or IR+ slot: no drop
+    now; once he's back, the player cheapest to lose goes. Valued as an extra
+    player whose games follow the return curves, less that drop's points on
+    each day times the odds the stash is back by then. Slightly conservative:
+    the drop's points are counted as they are without the stash competing for
+    his slot."""
+    free = ir.free_slots(roster)
+    mine = active(roster)
+    goalies = sum(p.is_goalie for p in mine)
+    before = win_prob(current, opponent)
+    future_weeks = len(future) / 7 or 1.0
+    soon = sorted(future)[:7 * STREAM_WEEKS]
+    without = {}
+    for d in drop_candidates(mine, ctx, lines):
+        rest = [p for p in roster if p.id != d.id]
+        without[d.id] = (d, project("me", rest, ctx, schedule, lines, starters, so_far=so_far),
+                         project("me", rest, ctx, future, lines, starters, True))
+    moves = []
+    for add in stashes:
+        slot = ir.slot_for(_ir_status(add, lines), free)
+        if not slot:
+            continue
+        info = lines.get(add.team, {}).get(normalize_name(add.name))
+        missed = ctx.games_missed(add.id, add.team)
+
+        def back(day: dt.date) -> float:
+            return availability.skater(info, True, (day - ctx.today).days, missed).prob
+
+        def cost(base: TeamWeek, alt: TeamWeek, days) -> float:
+            return sum(back(d) * (base.by_day.get(d, 0.0) - alt.by_day.get(d, 0.0)) for d in days)
+
+        options = [(d, w, f) for d, w, f in without.values()
+                   if not (d.is_goalie and not add.is_goalie and goalies <= MIN_GOALIES)]
+        if not options:
+            continue
+        drop, week_without, future_without = min(options, key=lambda o: cost(current_future, o[2], future))
+        trial = roster + [RosterPlayer(add.id, add.name, add.team, add.positions, BENCH)]
+        plays_from = (available_from or {}).get(add.id)
+        week = project("me", trial, ctx, schedule, lines, starters, joins={add.id: plays_from} if plays_from else None,
+                       so_far=so_far)
+        later = project("me", trial, ctx, future, lines, starters, True)
+        week = dataclasses.replace(week, expected=week.expected - cost(current, week_without, current.by_day))
+        later_gain = later.expected - current_future.expected - cost(current_future, future_without, future)
+        soon_gain = (sum(later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in soon)
+                     - cost(current_future, future_without, soon))
+        moves.append(Move(
+            add=add, drop=None, week_gain=week.expected - current.expected,
+            long_term=LONG_RUN_DISCOUNT * later_gain / future_weeks * weeks_after, next_weeks=soon_gain,
+            games=team_games.get(add.team, 0), win_before=before, win_after=win_prob(week, opponent),
+            later_weight=later_weight, plays_from=plays_from, ir_slot=slot, later_drop=drop,
+        ))
+    return moves
 
 
 def rejection(move: Move, price: AddPrice) -> str | None:
@@ -587,9 +665,10 @@ def rejection(move: Move, price: AddPrice) -> str | None:
     return None
 
 
-def _swap(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None) -> list[RosterPlayer]:
+def _swap(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None,
+          slot: str = BENCH) -> list[RosterPlayer]:
     return [p for p in roster if drop is None or p.id != drop.id] + [
-        RosterPlayer(add.id, add.name, add.team, add.positions, BENCH)]
+        RosterPlayer(add.id, add.name, add.team, add.positions, slot)]
 
 
 def _deferred(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None,
@@ -638,7 +717,7 @@ def best_moves(
         best = next((m for m in passing if not waits(m)), passing[0])
         moves.append(best)
         candidates = [p for p in candidates if p.id != best.add.id]
-        roster = _swap(roster, best.add, best.drop)
+        roster = _swap(roster, best.add, best.drop, best.ir_slot or BENCH)
     return moves
 
 
@@ -816,6 +895,8 @@ def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_
 def move_text(move: Move, opened_by: str | None = None) -> str:
     """The add as a message. `opened_by`: whose IR move opens the spot it fills."""
     p = move.add
+    if move.ir_slot:
+        return stash_text(move)
     head = f"Add {p.name} ({p.team}, {'/'.join(p.positions)}, {_games(move.games)} left this week)"
     if move.plays_from:
         head += (f". He's on waivers: claim him, he plays from {move.plays_from:%a %d %b}, "
@@ -832,3 +913,17 @@ def move_text(move: Move, opened_by: str | None = None) -> str:
         detail.append("a streamer: drop him again when his games are done")
     return f"{head}, {drop}.\n" + "; ".join(detail) + (
         ".\nTap Done once it's made in Yahoo (Other drop if you dropped someone else), or Taken if someone has him.")
+
+
+def stash_text(move: Move) -> str:
+    """An IR stash as a message: into the empty slot now, who goes once he's back."""
+    p = move.add
+    tag = "IR" if move.ir_slot == "IR" else "IR or O"
+    head = (f"Stash {p.name} ({p.team}, {'/'.join(p.positions)}, injured): add him straight into your empty "
+            f"{move.ir_slot} slot, no drop now (Yahoo must tag him {tag}; check before you add)")
+    if move.plays_from:
+        head += f". He's on waivers: a claim, and it puts you last in waiver priority"
+    later = (f"once he's back, he needs an active spot: drop {move.later_drop.name} then"
+             if move.later_drop else "once he's back, he needs an active spot")
+    return (f"{head}.\n{later}; long run {move.long_term:+.0f} pts, net of that drop.\n"
+            "Tap Done once it's made in Yahoo, or Taken if someone has him.")

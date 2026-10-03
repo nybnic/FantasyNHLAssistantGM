@@ -547,7 +547,8 @@ def apply_add(players: list, rec: dict) -> None:
     if rec["drop"] is not None:
         players[:] = [p for p in players if p.id != rec["drop"]]
     if all(p.id != rec["add"]["id"] for p in players):
-        players.append(roster_mod.RosterPlayer(**{**rec["add"], "slot": roster_mod.BENCH if known else None}))
+        slot = rec.get("add_slot") or (roster_mod.BENCH if known else None)  # an IR stash goes to his IR slot
+        players.append(roster_mod.RosterPlayer(**{**rec["add"], "slot": slot}))
 
 
 def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Outbox) -> None:

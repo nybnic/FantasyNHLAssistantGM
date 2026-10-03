@@ -463,3 +463,73 @@ def test_a_lost_last_start_moves_the_teams_next_game_only():
         return matchup._player_day(goalie, ctx, date, schedule[date][0], False, {}, {}, next_game=next_game)[2]
     assert start_prob(MON, True) == pytest.approx(availability.with_odds(share, 0.32))
     assert start_prob(WED, False) == pytest.approx(share)
+
+
+def _full_roster(ir_taken: tuple[str, ...] = ()) -> list[RosterPlayer]:
+    """14 active (no open spot): 10 skaters who fill every skater slot on BOS
+    nights, 2 goalies, and 2 who play the other nights, 113 my weakest; plus
+    whoever fills the IR slots."""
+    positions = ["C", "C", "LW", "LW", "RW", "RW", "D", "D", "D", "D", "G", "G", "LW", "RW"]
+    roster = [RosterPlayer(100 + i, f"Player {i}", "NYR" if i >= 12 else "BOS", [pos], "BN")
+              for i, pos in enumerate(positions)]
+    return roster + [RosterPlayer(200 + i, f"Hurt {i}", "BOS", ["C"], slot) for i, slot in enumerate(ir_taken)]
+
+
+def _stash_setup(injury="ir"):
+    from clients.dfo_lines import LineInfo
+    ctx = FakeContext()
+    ctx.xfp = {11: 4.0, 113: 0.5}  # the injured star, my weakest
+    future = {MON + dt.timedelta(days=d): [_game(MON + dt.timedelta(days=d), *(("BOS", "PIT") if d % 2 else ("NYR", "SEA")))]
+              for d in range(7, 49)}
+    schedule = {MON: [_game(MON, "BOS", "PIT")]}
+    lines = {"PIT": {"star": LineInfo(groups={"f1"}, injury=injury)}, "BOS": {}}
+    star = RosterPlayer(11, "Star", "PIT", ["C"])
+    opponent = matchup.TeamWeek("them", 0, 15.0, 30.0, 12, 3, 0, 1.0)
+    return ctx, future, schedule, lines, star, opponent
+
+
+def test_an_injured_free_agent_is_stashed_in_an_empty_ir_slot_and_the_drop_waits():
+    ctx, future, schedule, lines, star, opponent = _stash_setup()
+    moves = matchup.candidate_moves(_full_roster(), opponent, [star], ctx, schedule, lines, {}, future, 10,
+                                    later_weight=0.01)
+    stash = next(m for m in moves if m.ir_slot)
+    assert stash.ir_slot == "IR" and stash.drop is None and stash.later_drop.id == 113
+    assert stash.long_term > 0 and abs(stash.week_gain) < 0.5  # out this week, worth it later
+    # The drop is charged only once he's likely back: the netted gain sits below
+    # an extra player's, above an immediate swap's.
+    swap = next(m for m in moves if not m.ir_slot and m.drop and m.drop.id == 113)
+    trial = _full_roster() + [RosterPlayer(11, "Star", "PIT", ["C"], "BN")]
+    extra = (matchup.project("me", trial, ctx, future, lines, {}, True).expected
+             - matchup.project("me", _full_roster(), ctx, future, lines, {}, True).expected)
+    assert swap.long_term < stash.long_term < matchup.LONG_RUN_DISCOUNT * extra / 6 * 10
+    assert "Stash Star (PIT, C, injured): add him straight into your empty IR slot, no drop now" in \
+        matchup.move_text(stash)
+    assert "drop Player 13 then" in matchup.move_text(stash)
+
+
+def test_no_stash_without_a_free_slot_that_takes_his_injury():
+    ctx, future, schedule, lines, star, opponent = _stash_setup()
+    full = matchup.candidate_moves(_full_roster(("IR", "IR+")), opponent, [star], ctx, schedule, lines, {}, future, 10)
+    assert not any(m.ir_slot for m in full)
+    ctx, future, schedule, lines, star, opponent = _stash_setup(injury="out")  # Yahoo's O: IR+ only
+    only_ir = matchup.candidate_moves(_full_roster(("IR+",)), opponent, [star], ctx, schedule, lines, {}, future, 10)
+    assert not any(m.ir_slot for m in only_ir)
+    plus = matchup.candidate_moves(_full_roster(("IR",)), opponent, [star], ctx, schedule, lines, {}, future, 10)
+    assert [m.ir_slot for m in plus if m.ir_slot] == ["IR+"]
+
+
+def test_a_stash_fills_its_ir_slot_so_the_next_add_cant_use_it():
+    ctx, future, schedule, lines, star, opponent = _stash_setup()
+    other = RosterPlayer(12, "Also Hurt", "PIT", ["C"])
+    lines["PIT"]["also hurt"] = lines["PIT"]["star"]
+    ctx.xfp[12] = 3.5
+    moves = matchup.best_moves(_full_roster(("IR+",)), opponent, [star, other], ctx, schedule, lines, {}, future, 10,
+                               max_moves=2, price=_price(0.0, 0.01), candidates=[star, other])
+    assert [m.ir_slot for m in moves].count("IR") <= 1
+
+
+def test_injured_free_agents_are_shortlisted_as_stashes():
+    ctx, future, schedule, lines, star, opponent = _stash_setup()
+    pool = [star] + [RosterPlayer(300 + i, f"Healthy {i}", "BOS", ["C"]) for i in range(30)]
+    assert matchup.stash_pool(pool, ctx, lines) == [star]
+    assert star in matchup.shortlist(pool, ctx, schedule, lines, {})

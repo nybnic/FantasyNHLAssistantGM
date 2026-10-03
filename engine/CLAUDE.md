@@ -26,6 +26,11 @@
   forwards, D, goalies). An add who can't play yet (waivers, or this week's adds
   spent: everyone joins Monday) counts from that day, and his drop plays until
   then (`_deferred`): Yahoo makes both at once.
+- **IR stashes:** with an IR or IR+ slot empty, the best injured free agents
+  (`STASH_CANDIDATES`, by season value; DFO's status standing in for Yahoo's tag)
+  can go straight into it: no drop now. Valued as an extra player whose games
+  follow the return curves, less the cheapest drop's points on each day times
+  the odds he's back by then (`_stash_moves`), against the same add price.
 - **Later points** = the long run. Long run = the whole-lineup
   projection over the next 6 weeks (`LONG_RUN_WEEKS`, with durability), per
   week, times the weeks left, x `LONG_RUN_DISCOUNT` 0.5. Dropping one of my

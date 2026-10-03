@@ -26,11 +26,13 @@ def _last(name: str) -> str:
 
 
 def move_key(m: matchup.Move) -> str:
-    """A move's id across views: "add id:drop id" (0 for an open spot)."""
-    return f"{m.add.id}:{m.drop.id if m.drop else 0}"
+    """A move's id across views: "add id:drop id" (0 for an open spot; ":IR" for an IR stash)."""
+    return f"{m.add.id}:{m.drop.id if m.drop else 0}" + (":IR" if m.ir_slot else "")
 
 
 def _move_label(m: matchup.Move) -> str:
+    if m.ir_slot:
+        return f"{_last(m.add.name)} (IR stash)"
     return f"{_last(m.add.name)} for {_last(m.drop.name)}" if m.drop else f"{_last(m.add.name)} (open spot)"
 
 
@@ -121,8 +123,9 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
 def weekly_gains(roster: list[RosterPlayer], move: matchup.Move, ctx, week_schedules: dict[int, dict],
                  lines: dict, starters: dict) -> list[tuple[int, float]]:
     """The add's points gain in each later week (`week_schedules`: week ->
-    that week's schedule), judged like the long run: durability included."""
-    trial = matchup._swap(roster, move.add, move.drop)
+    that week's schedule), judged like the long run: durability included.
+    An IR stash is shown with his later drop made (a lower bound while he's out)."""
+    trial = matchup._swap(roster, move.add, move.drop or move.later_drop)
     gains = []
     for week, schedule in sorted(week_schedules.items()):
         before = matchup.project("me", roster, ctx, schedule, lines, starters, True).expected
@@ -138,7 +141,8 @@ def add_view(move: matchup.Move, week: int, later: list[tuple[int, float]], budg
     rows = [{"week": week, "gain": move.week_gain, "confident": True}]
     rows += [{"week": w, "gain": g, "confident": w - week <= CONFIDENT_WEEKS} for w, g in later]
     return {"key": move_key(move),
-            "label": f"Add {_short(move.add.name)}" + (f", drop {_short(move.drop.name)}" if move.drop else ""),
+            "label": (f"Stash {_short(move.add.name)} in {move.ir_slot}" if move.ir_slot
+                      else f"Add {_short(move.add.name)}" + (f", drop {_short(move.drop.name)}" if move.drop else "")),
             "add": {"name": move.add.name, "team": move.add.team, "positions": "/".join(move.add.positions)},
             "drop": move.drop.name if move.drop else None, "games": move.games,
             "weeks": rows, "win": [move.win_before, move.win_after], "next_two_weeks": move.next_weeks,

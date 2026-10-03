@@ -38,14 +38,25 @@ def likely_status(info: LineInfo | None) -> str | None:
     return "O" if info.injury == "out" else None
 
 
+def free_slots(players: list[RosterPlayer]) -> list[str]:
+    """The empty IR and IR+ slots, IR first."""
+    return [s for s in IR_SLOTS for _ in range(SLOT_CAPACITY[s] - sum(p.slot == s for p in players))]
+
+
+def slot_for(status: str | None, free: list[str]) -> str | None:
+    """The free slot a player with Yahoo's likely tag `status` can go to: IR
+    first, so IR+ stays free for an "O"."""
+    return next((s for s in free if status in IR_SLOT_STATUSES[s]), None) if status else None
+
+
 def moves(players: list[RosterPlayer], lines: dict[str, dict[str, LineInfo]]) -> list[IrMove]:
     """Injured active players who fit an empty IR slot, one per slot. IR goes
     to the IR slot first, so IR+ stays free for an "O"."""
-    free = [s for s in IR_SLOTS for _ in range(SLOT_CAPACITY[s] - sum(p.slot == s for p in players))]
+    free = free_slots(players)
     injured = [(p, likely_status(_info(p, lines))) for p in active(players)]
     out = []
     for p, status in sorted(((p, s) for p, s in injured if s), key=lambda ps: ps[1] != "IR"):
-        slot = next((s for s in free if status in IR_SLOT_STATUSES[s]), None)
+        slot = slot_for(status, free)
         if slot:
             free.remove(slot)
             out.append(IrMove(p, slot, status))

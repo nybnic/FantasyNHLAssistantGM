@@ -387,7 +387,8 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
 def _wait_text(keeper) -> str:
     if not keeper:
         return ""
-    swap = f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop else keeper.add.name
+    swap = (f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop
+            else f"{keeper.add.name} into your empty {keeper.ir_slot} slot" if keeper.ir_slot else keeper.add.name)
     return (f"\n\nCan wait until Monday, when your adds reset: {swap} ({keeper.week_gain:+.1f} pts this week, "
             f"{keeper.next_weeks:+.1f} over the next two). The risk: someone claims him first.")
 
@@ -558,17 +559,22 @@ def send_adds(state: dict, p: PlanMoves, moves: list, views: dict | None, date: 
         rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
         buttons = [("Done", f"done:{rec_id}"), ("Other drop", f"other:{rec_id}"), ("Taken", f"taken:{rec_id}"),
                    ("Skip", f"skip:{rec_id}")]
+        if move.ir_slot:  # a stash drops nobody now
+            buttons = [b for b in buttons if b[0] != "Other drop"]
         view = views and views["adds"].get(report.move_key(move))
         png = _safe(charts.add_chart, view) if view else None
-        # An add without a drop fills a spot already open, else the next IR move's.
-        k = sum(m.drop is None for m in moves[:i]) - p.open_spots
-        opens = p.ir_moves[k] if move.drop is None and 0 <= k < len(p.ir_moves) else None
+        # An add without a drop fills a spot already open, else the next IR move's
+        # (an IR stash fills his IR slot instead).
+        k = sum(m.drop is None and not m.ir_slot for m in moves[:i]) - p.open_spots
+        opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
+                 else None)
         text = matchup.move_text(move, opens.player.name if opens else None)
         message_id = (outbox.send_photo(png, text, buttons) if png else outbox.send(text, buttons))
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None,
                                     "drop_name": move.drop.name if move.drop else None, "message_id": message_id,
-                                    "ir": {str(opens.player.id): opens.slot} if opens else {}}
+                                    "ir": {str(opens.player.id): opens.slot} if opens else {},
+                                    "add_slot": move.ir_slot}
 
 
 def news_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,

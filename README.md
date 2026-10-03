@@ -49,6 +49,8 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   a keeper that adds nothing now is flagged to make on Monday. Your streaming
   spots (the 3 skaters nearest waiver level, plus your weakest goalie) are
   valued only for the ~3 weeks a streamer stays, not the season.
+  An injured free agent worth holding can be stashed straight into an empty
+  IR slot: no drop until he's back.
   `python -m scripts.explain_week` shows every candidate with its value and
   verdict.
 - `/opp`, then paste your opponent's Yahoo team page (any copy works), to
