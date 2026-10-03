@@ -150,3 +150,11 @@ def test_a_hot_start_makes_an_undrafted_player_feel_like_an_early_pick():
     assert trade.perceived([hot], rounds, feel) > trade.perceived([hot], rounds)
     ctx.skater_games = {}
     assert trade.feel_rounds([hot, star], rounds, ctx) == {1: 16, 2: 1}  # no games yet: the draft
+
+
+def test_a_first_rounder_outweighs_a_fourth_and_a_sixth_but_not_a_second_and_a_third():
+    star, mid, late, second, third = (RosterPlayer(i, n, "BOS", ["C"]) for i, n in
+                                      enumerate(["Star", "Mid", "Late", "Second", "Third"]))
+    rounds = {"star": 1, "mid": 4, "late": 6, "second": 2, "third": 3}
+    assert trade.perceived([mid, late], rounds) < trade.perceived([star], rounds)
+    assert trade.perceived([second, third], rounds) > trade.perceived([star], rounds)

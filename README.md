@@ -104,7 +104,7 @@ The same numbers are on a phone-first web dashboard (GitHub Pages, rebuilt with
 each plan): tap any add on the decision map, the grid or the table for its
 week-by-week gain and what it does to the add budget.
 
-Coming next: IR management and a Sunday report.
+Coming next: see `docs/roadmap.md`.
 
 ## Setup
 

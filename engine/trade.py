@@ -57,9 +57,11 @@ MIN_GAIN_PER_WEEK = 1.0
 FORWARD_SLOTS = ("C", "LW", "RW")
 
 # Suggestions (judgment calls, untested). How much a pick "feels" worth to a
-# manager by round: a first-rounder ~ two fifth-rounders. Undrafted players
-# count as a round past the last.
-PICK_DECAY = 0.85
+# manager by round: 0.8 a round, so a first-rounder outweighs a 4th + 6th
+# (0.84) but not a 2nd + 3rd (1.44). Was 0.85, which offered Knight (R4) +
+# Dobson (R6) for MacKinnon (R1); Nico (2026-10-03): stars feel worth more.
+# Undrafted players count as a round past the last.
+PICK_DECAY = 0.8
 UNDRAFTED_ROUND = 16
 # Once the season runs, managers judge a player more by his fantasy points so
 # far (Yahoo ranks players by them) than by where he went in the draft: his

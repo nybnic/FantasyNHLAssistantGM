@@ -10,33 +10,34 @@ week's result, save them where they don't, and show that trade-off this week and
 over the season. Input is mobile screenshots; output is Telegram plus charts.
 
 ## Next
-From `docs/plan-2026-10-03.md` (Nico: order as proposed).
-1. Logging: weekly xFP snapshot and the DFO line archive (private repo) done; the archive
-   starts once Nico adds the `ARCHIVE_DEPLOY_KEY` secret. Nico: a Transactions screenshot each week.
-2. Projection accuracy. Role blend (no change) and the age curve (youth boost removed) done,
-   see the log. Left: margins realize at 0.84 (projected differences a bit too wide), and healthy
-   availability (0.96 -> 0.89 over six weeks). Done when: backtested on both seasons, `check_sigma`
-   re-run.
+From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 review.
+Nico, each Monday: League > Transactions, Standings and All Matchups screenshots.
+1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
+   (`league_weeks`) done; the DFO line archive starts once Nico adds the `ARCHIVE_DEPLOY_KEY` secret.
+2. Projection accuracy. Role blend (no change), the age curve (youth boost removed) and opponent/arena
+   effects (no gain, not modeled) done, see the log. Left: margins realize at 0.84 (projected
+   differences a bit too wide), and healthy availability (0.96 -> 0.89 over six weeks). Done when:
+   backtested on both seasons, `check_sigma` re-run.
 3. Message layer out of `engine/matchup.py`, with a whole-message consistency test.
-4. Opponent streaming (needs 3-4 weeks of transactions).
-5. Add-price calibration (mid-November).
-6. Stash candidates (P0 evidence -> P1 role-aware projection -> P2 candidates with option
+4. Points for: Nico to check in Yahoo whether points for breaks standings ties. If it does, a point
+   in a decided week is worth ~1/5 of one in a typical week (0.022 vs 0.12 pts of playoff odds per
+   point, simulated 2026-10-03), not zero as the add price counts it. Then add that term to the add
+   value and keep it only if `scripts/sim_leverage.py` shows title odds rising.
+5. Opponent streaming (needs 3-4 weeks of transactions).
+6. Add-price calibration (mid-November): `sim_add_policy --logged`, and re-run `sim_leverage` with the
+   logged weeks and real standings (the leverage verdict rests on one week of candidates).
+7. Season layer: check our team strengths against Yahoo's weekly projections (`league_weeks`, 3-4
+   weeks in); then show a trade's effect on playoff and title odds in /trade.
+8. Stash candidates (P0 evidence -> P1 role-aware projection -> P2 candidates with option
    value, plus "Watch" heads-ups (Nico: yes) -> P3 scorecard). No youth bonus (decision log).
 
-7. Season layer: Standings and All Matchups screenshots are read (done). Weighting adds by leverage
-   or playoff-week points was simulated and lost title odds (`scripts/sim_leverage.py`): the add
-   price stays as it is. Re-run the sim with 6+ logged weeks and real standings before revisiting.
-   Next: compare Yahoo's projected weekly totals (`league_weeks` scores) with our team strengths,
-   once 3-4 weeks are logged.
-
 ## Later
-- Playoff odds (needs all 16 rosters fresh).
 - Verify in Yahoo: what Start Active does with injured players and on an overflow night
   (the briefing assumes it starts anyone with a game, the better season value first);
   when a claim of a player dropped today can play (the bot assumes 2 days
   later: the "W (date)" next to him), the add limit and goalie minimum in the week-19 double week
   (dates confirmed 2026-10-01), regular-season ties and standings tiebreakers
-  (points-for matters for the add price, which values only wins), the consolation bracket.
+  (Next, item 4), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
 - Projections overstate differences (`scripts/check_sigma.py`, aged priors since 2026-10-03:
@@ -131,3 +132,4 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 | 2026-10-03 | Simulated (`scripts/sim_leverage.py`, whole league, paired seasons): leverage-weighted adds raise playoff odds +0.6-1.6 pts but cut title odds 0.3-1.0 (on P(title): -1.0-2.6); playoff-week points x2: title -0.4-0.9. All disturb the even late-season spending whose adds carry into the playoffs. Add price unchanged | (this commit) |
 | 2026-10-03 | Opponent and arena effects on skaters backtested (`scripts/backtest_venue.py`, both seasons): no gain beyond noise (2025-26 slightly worse), so not in the model | (this commit) |
 | 2026-10-03 | Standings and All Matchups screenshots read (League tab, OCR checked on Nico's): standings start the season odds, the week's pairings replace random ones, every team's score and Yahoo projection logged (`league_weeks`); today's screenshots recorded by a repair | (this commit) |
+| 2026-10-03 | /trade: `PICK_DECAY` 0.85 -> 0.8, stars feel worth more (Nico); a 1st now outweighs a 4th + 6th. Points-for value measured: 0.022 pts of playoff odds per point vs 0.12 through wins (roadmap item 4) | (this commit) |
