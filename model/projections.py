@@ -60,6 +60,8 @@ PRIOR_REGRESSION_STARTS = 15
 class Params:
     k_scale: float = 1.0  # multiplies every SKATER_K / GOALIE_K
     toi_prior_games: float = 3.0
+    # Kept after the role-blend grid (scripts/backtest.py --role-grid, 2026-10-03):
+    # no half-life (2-9) or prior weight (0.5-3) beat 6 / 3 on both seasons.
     toi_halflife_games: float = 6.0
 
 
