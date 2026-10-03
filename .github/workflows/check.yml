@@ -1,0 +1,68 @@
+name: Check
+
+# Read-only runs on demand, for checking a change against live data where a
+# development sandbox has no network: a dry run, explain_week, backtests.
+# Sends nothing, commits nothing, and gets no secrets. Its log is public like
+# the repo: it shows what the dashboard and state/ already show.
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: What to run
+        type: choice
+        options:
+          - dry-run
+          - explain-week
+          - trade-suggestions
+          - backtest
+          - check-sigma
+      now:
+        description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # The bot's NHL data cache, read only: this job never saves it.
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/cache/gm
+          key: nhl-data-check
+          restore-keys: nhl-data-
+
+      - name: Run
+        env:
+          COMMAND: ${{ inputs.command }}
+          NOW: ${{ inputs.now }}
+        run: |
+          if [ -n "$NOW" ] && ! [[ "$NOW" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+([+-][0-9:]+)?$ ]]; then
+            echo "now must be an ISO time like 2026-10-05T12:30:00+03:00"; exit 1
+          fi
+          case "$COMMAND" in
+            dry-run) python main.py --dry-run --force ${NOW:+--now "$NOW"} ;;
+            explain-week) python -m scripts.explain_week ${NOW:+--now "$NOW"} ;;
+            trade-suggestions) time python main.py --dry-run --trade ;;
+            backtest) python -m scripts.backtest ;;
+            check-sigma) python -m scripts.check_sigma ;;
+          esac

@@ -27,6 +27,14 @@
   gets one Telegram line a day, with what it means for the advice
   (`clients/health.py`, `bot/daily.alert_health`). The run itself stays green.
 
+## Checking a change against live data
+`.github/workflows/check.yml` ("Check", run by hand: Actions > Check > Run
+workflow, or the API) runs a dry run, `explain_week`, `/trade` suggestions or
+a backtest on GitHub's runners, with the bot's NHL data cache (read only).
+It sends nothing, commits nothing and gets no secrets; the output is the job
+log (public, like the repo). For a development sandbox without network access
+to the NHL and DailyFaceoff APIs.
+
 ## Secrets
 | Where | Name | Used for |
 |---|---|---|
