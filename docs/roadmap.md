@@ -24,8 +24,9 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
    value, plus "Watch" heads-ups (Nico: yes) -> P3 scorecard). No youth bonus (decision log).
 
 7. Season layer, step 2: read League > Standings screenshots (needs a sample screenshot from Nico to
-   build the OCR on), then (Nico to decide) let this week's leverage weigh the add value, and value
-   points in playoff weeks 24-26 by their title leverage.
+   build the OCR on). Weighting adds by leverage or playoff-week points was simulated and lost title
+   odds (`scripts/sim_leverage.py`, results in its docstring): the add price stays as it is. Re-run
+   the sim with 6+ logged weeks and real standings before revisiting.
 
 ## Later
 - Playoff odds (needs all 16 rosters fresh).
@@ -125,3 +126,5 @@ From `docs/plan-2026-10-03.md` (Nico: order as proposed).
 | 2026-10-03 | IR stashes: an injured free agent straight into an empty IR/IR+ slot (Yahoo allows it), valued on the return curves less the later drop weighted by his odds of being back; priced like any add; Done puts him in the slot | (this commit) |
 | 2026-10-03 | /trade judged over 6 weeks (was 2: one week's schedule could decide it), like an add's long run; suggestions guess acceptance by a "feel" round that blends the draft round toward this season's fantasy-point rank (`PERCEPTION_GAMES` 20, a judgment call). Runtime ~3x, unmeasured until a dry run | (this commit) |
 | 2026-10-03 | Season odds (`engine/season.py`): playoffs, title, and this week's leverage vs a typical week left, simulated from team projections and standings (even until Standings screenshots are read); a line in the plan. Leverage on P(playoffs), paired: on the title it was noise (0.76-1.12x for one setup) | (this commit) |
+
+| 2026-10-03 | Simulated (`scripts/sim_leverage.py`, whole league, paired seasons): leverage-weighted adds raise playoff odds +0.6-1.6 pts but cut title odds 0.3-1.0 (on P(title): -1.0-2.6); playoff-week points x2: title -0.4-0.9. All disturb the even late-season spending whose adds carry into the playoffs. Add price unchanged | (this commit) |
