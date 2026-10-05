@@ -314,16 +314,21 @@ def _record(text: str) -> tuple[int, int, int] | None:
 
 
 def _standings(lines: list, width: int) -> list[dict]:
-    """League tab: [{"team", "w", "l", "t", "pf"}], one per row whose record
-    (mid-right) and points for (far right) sit level with a team name; empty
-    when fewer than 3 rows read (not a standings screen)."""
+    """Standings: [{"team", "w", "l", "t", "pf"}], one per row whose record
+    sits level with a team name left of it and points for right of it; empty
+    when fewer than 3 rows read (not a standings screen). The app's League
+    tab has the record mid-right and points for at the far right; the
+    website's Standings table has W-L-T mid-page, then Pct ("1.000", three
+    decimals, so never points), Pts, Waiver and Moves."""
     rows = []
     for rx, ry, rh, rt in lines:
-        if not 0.6 * width < rx < 0.8 * width or not _record(rt) or not _RECORD.fullmatch(rt.replace("O", "0")):
+        if not 0.35 * width < rx < 0.85 * width or not _RECORD.fullmatch(rt.replace("O", "0").replace(" ", "")):
             continue
-        name = next((t for x, y, h, t in lines if 0.15 * width < x < 0.5 * width and abs(y - ry) < rh
-                     and not _record(t)), None)
-        pf = next((t for x, y, h, t in lines if x > 0.8 * width and abs(y - ry) < rh and _POINTS.match(t)), None)
+        level = [(x, t) for x, y, h, t in lines if abs(y - ry) < rh]
+        # The text nearest the record on its left: a logo's text ("ACouScou") sits further left.
+        names = [(x, t) for x, t in level if 0.1 * width < x < rx and not _record(t) and re.search(r"[A-Za-z]", t)]
+        name = max(names)[1] if names else None
+        pf = min(((x, t) for x, t in level if x > rx and _POINTS.match(t)), default=(0, None))[1]
         if name and pf:
             w, l, t = _record(rt)
             rows.append({"team": name, "w": w, "l": l, "t": t, "pf": float(pf)})

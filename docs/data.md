@@ -13,7 +13,7 @@ stored field changes.
 | Any time, any week | A matchup page header on Yahoo's **website** (the one with "Orig Proj" and "Live Proj") | Yahoo's forecast from before the week ("Orig Proj": Yahoo keeps it, so no need to beat the first game), for both teams; mine also in `results[w].yahoo_orig`. Each of the 8 matchups has its page |
 | **Monday, before the first game** | League > **All Matchups** in the app, scrolled through all 8 matchups (the new week at 0.00) | Yahoo's forecast for all 16 teams in one go (the app has no "Orig Proj"), the week's pairings (season odds) |
 | Monday (optional) | The same, with the week picker on last week | Yahoo's final for every team: the results both forecasts are checked against |
-| Monday | League > **Standings** | Playoff and title odds |
+| Monday | League > **Standings** (the app, or the website's Standings table) | Playoff and title odds |
 | Monday, and when the plan asks | League > **Transactions**, back to the date the plan names | The other 15 rosters, free agents, how much each team streams |
 | Monday before games, then any time | My **Matchup** tab, scrolled through both rosters | Both rosters and slots, the live score (sharper P(win)), Yahoo's first forecast of my matchup, Yahoo's per-player projections |
 | Playoffs (weeks 24-26) | `/opp Team Name` | Who I'm playing |

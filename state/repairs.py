@@ -167,9 +167,30 @@ def _stolarz_misread(state: dict, players: list[RosterPlayer], league: dict) -> 
         state["transactions_seen"].pop(key, None)
 
 
+
+# Nico's screenshot of the website's Standings, sent in a development session
+# on 2026-10-05 after week 1: team, W, L, T, points for.
+WEEK_1_STANDINGS = [
+    ("Lazy Lew", 1, 0, 0, 244.50), ("Vantaa", 1, 0, 0, 205.90), ("Bottom three", 1, 0, 0, 198.80),
+    ("HC Bulju", 1, 0, 0, 196.45), ("Retrot Chicken Wings", 1, 0, 0, 192.00), ("Bahelin Boys", 1, 0, 0, 189.40),
+    ("Gwp", 1, 0, 0, 175.15), ("Jättiläisentie Giants", 1, 0, 0, 153.25), ("Randy", 0, 1, 0, 191.40),
+    ("Pastasauce", 0, 1, 0, 187.90), ("Viktorios", 0, 1, 0, 186.50), ("HAN-NES", 0, 1, 0, 182.40),
+    ("Nico's Groovy Team", 0, 1, 0, 163.85), ("Löllöt Höntsääjät", 0, 1, 0, 150.05),
+    ("Vanilla Thunder", 0, 1, 0, 146.75), ("Bellova", 0, 1, 0, 143.80),
+]
+
+
+def _week_1_standings(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    if (state.get("standings") or {}).get("week", 0) < 1:
+        state["standings"] = {"week": 1, "at": "2026-10-05",
+                              "teams": {t: {"w": w, "l": l, "t": tie, "pf": pf} for t, w, l, tie, pf in WEEK_1_STANDINGS}}
+    state.setdefault("results", {}).setdefault("1", {"opponent": "Bahelin Boys"}).setdefault(
+        "yahoo_final", {"score": [163.85, 189.40], "at": "2026-10-05T12:00+00:00"})
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
            ("2026-10-03 week 1 orig proj", _week_1_orig_proj),
            ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast),
-           ("2026-10-05 stolarz misread", _stolarz_misread)]
+           ("2026-10-05 stolarz misread", _stolarz_misread),
+           ("2026-10-05 week 1 standings", _week_1_standings)]

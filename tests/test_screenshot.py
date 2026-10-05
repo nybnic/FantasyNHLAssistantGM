@@ -275,6 +275,31 @@ def test_standings_rows_pair_each_team_with_its_record_and_points_for(monkeypatc
     ]
 
 
+# OCR lines from the website's Standings table (Nico's screenshot after week 1,
+# 949 px wide): Rank, Team, W-L-T, Pct, Pts, Waiver, Moves.
+WEB_STANDINGS_LINES = [
+    (20, 10, 22, "Standings"), (181, 10, 20, "Playoffs"), (39, 77, 22, "Rank"), (453, 77, 21, "W-L-T"),
+    (748, 77, 21, "Waiver"), (108, 78, 21, "Team"), (554, 78, 20, "Pct"), (653, 78, 20, "Pts"),
+    (856, 78, 21, "Moves"),
+    (454, 119, 22, "1-0-0"), (527, 119, 22, "1.000"), (640, 119, 21, "244.50"), (145, 120, 21, "Lazy Lew"),
+    (453, 211, 22, "1-0-0"), (526, 211, 21, "1.000"), (642, 211, 21, "198.80"), (147, 214, 17, "Bottom three"),
+    (147, 394, 26, "Gwp"), (453, 395, 22, "1-0-0"), (526, 395, 22, "1.000"), (641, 395, 22, "175.15"),
+    (763, 396, 21, "16"),
+    (453, 671, 22, "0-1-0"), (527, 671, 22, ".000"), (763, 671, 22, "12"), (47, 672, 21, "13"),
+    (641, 672, 18, "163.85"), (147, 673, 20, "Nico's Groovy Team"),
+    (527, 716, 22, ".000"), (47, 717, 21, "14"), (453, 717, 21, "0-1-0"), (642, 717, 21, "150.05"),
+    (763, 717, 21, "15"), (147, 718, 20, "Lollot Hontsaajat"),
+]
+
+
+def test_the_websites_standings_table_reads_too(monkeypatch):
+    shot = _read(monkeypatch, WEB_STANDINGS_LINES, (949, 855))
+    assert shot["kind"] == "standings"
+    assert [(r["team"], r["w"], r["l"], r["t"], r["pf"]) for r in shot["rows"]] == [
+        ("Lazy Lew", 1, 0, 0, 244.5), ("Bottom three", 1, 0, 0, 198.8), ("Gwp", 1, 0, 0, 175.15),
+        ("Nico's Groovy Team", 0, 1, 0, 163.85), ("Lollot Hontsaajat", 0, 1, 0, 150.05)]
+
+
 # From Nico's All Matchups screenshot (week 1): Lazy Lew is cut off at the bottom.
 SCOREBOARD_LINES = [
     (461.0, 203.0, 42.0, "All Matchups"), (441.0, 253.0, 37.0, "Not for everyone!"), (200.0, 398.0, 41.0, "Week 1"),

@@ -980,6 +980,21 @@ def test_the_2026_10_05_repair_takes_stolarz_off_and_puts_misread_moves_back(tmp
         "Gwp": [8477496], "Lazy Lew": [], "Bottom three": [8482100]}
 
 
+def test_the_2026_10_05_repair_saves_week_1_standings_unless_newer_ones_came(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-05 week 1 standings"]
+    state["standings"] = {"week": 0, "at": "2026-10-03", "teams": {}}
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["standings"]["week"] == 1 and len(state["standings"]["teams"]) == 16
+    assert state["standings"]["teams"]["Lazy Lew"] == {"w": 1, "l": 0, "t": 0, "pf": 244.5}
+    assert state["results"]["1"]["yahoo_final"]["score"] == [163.85, 189.40]
+    newer = {"week": 2, "at": "2026-10-12", "teams": {}}
+    state["standings"], state["repairs_done"] = newer, state["repairs_done"][:-1]
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["standings"] is newer
+
+
 def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():
     from engine.addprice import AddPrice
     two = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(20, "Knight", "CHI", ["G"], "G"),
