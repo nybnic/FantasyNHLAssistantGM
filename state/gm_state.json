@@ -1518,22 +1518,23 @@
     "2026-10-05": {
       "me": [
         {
+          "id": 8480855,
+          "name": "Jack McBain",
+          "positions": [
+            "C",
+            "LW"
+          ],
+          "slot": null,
+          "team": "UTA"
+        },
+        {
           "id": 8476460,
           "name": "Mark Scheifele",
           "positions": [
             "C"
           ],
-          "slot": "C",
+          "slot": null,
           "team": "WPG"
-        },
-        {
-          "id": 8484801,
-          "name": "Macklin Celebrini",
-          "positions": [
-            "C"
-          ],
-          "slot": "C",
-          "team": "SJS"
         },
         {
           "id": 8476887,
@@ -1541,7 +1542,7 @@
           "positions": [
             "LW"
           ],
-          "slot": "LW",
+          "slot": null,
           "team": "NSH"
         },
         {
@@ -1551,7 +1552,7 @@
             "LW",
             "RW"
           ],
-          "slot": "LW",
+          "slot": null,
           "team": "WSH"
         },
         {
@@ -1560,7 +1561,7 @@
           "positions": [
             "RW"
           ],
-          "slot": "RW",
+          "slot": null,
           "team": "PHI"
         },
         {
@@ -1570,7 +1571,7 @@
             "C",
             "RW"
           ],
-          "slot": "RW",
+          "slot": null,
           "team": "NSH"
         },
         {
@@ -1579,7 +1580,7 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": null,
           "team": "SEA"
         },
         {
@@ -1588,7 +1589,7 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": null,
           "team": "DAL"
         },
         {
@@ -1597,8 +1598,17 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": null,
           "team": "MTL"
+        },
+        {
+          "id": 8484801,
+          "name": "Macklin Celebrini",
+          "positions": [
+            "C"
+          ],
+          "slot": null,
+          "team": "SJS"
         },
         {
           "id": 8480145,
@@ -1606,8 +1616,17 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": null,
           "team": "WPG"
+        },
+        {
+          "id": 8480807,
+          "name": "Mattias Samuelsson",
+          "positions": [
+            "D"
+          ],
+          "slot": null,
+          "team": "BUF"
         },
         {
           "id": 8481519,
@@ -1615,7 +1634,7 @@
           "positions": [
             "G"
           ],
-          "slot": "G",
+          "slot": null,
           "team": "CHI"
         },
         {
@@ -1624,27 +1643,8 @@
           "positions": [
             "G"
           ],
-          "slot": "G",
+          "slot": null,
           "team": "UTA"
-        },
-        {
-          "id": 8480855,
-          "name": "Jack McBain",
-          "positions": [
-            "C",
-            "LW"
-          ],
-          "slot": "BN",
-          "team": "UTA"
-        },
-        {
-          "id": 8480807,
-          "name": "Mattias Samuelsson",
-          "positions": [
-            "D"
-          ],
-          "slot": "BN",
-          "team": "BUF"
         },
         {
           "id": 8476932,
@@ -1652,7 +1652,7 @@
           "positions": [
             "G"
           ],
-          "slot": "BN",
+          "slot": null,
           "team": "TOR"
         }
       ],
@@ -2552,18 +2552,17 @@
   },
   "scoreboard_shots": [],
   "screenshots": {
-    "at": "2026-10-01T05:52:04+00:00",
+    "at": "2026-10-05T05:25:07+00:00",
+    "named": false,
     "rows": [
       {
-        "name": "M. SCHEIFELE",
-        "positions": [
-          "C"
-        ],
+        "name": "J. MCBAIN",
+        "positions": [],
         "slot": "C",
-        "team": "WPG"
+        "team": ""
       },
       {
-        "name": "B. SCHENN",
+        "name": "M. SCHEIFELE",
         "positions": [],
         "slot": null,
         "team": ""
@@ -2573,7 +2572,7 @@
         "positions": [
           "LW"
         ],
-        "slot": "LW",
+        "slot": null,
         "team": "NSH"
       },
       {
@@ -2587,9 +2586,11 @@
       },
       {
         "name": "P. MARTONE",
-        "positions": [],
+        "positions": [
+          "RW"
+        ],
         "slot": "RW",
-        "team": ""
+        "team": "PHI"
       },
       {
         "name": "S. STAMKOS",
@@ -2601,6 +2602,34 @@
         "team": "NSH"
       },
       {
+        "name": "A. LARSSON",
+        "positions": [],
+        "slot": "D",
+        "team": ""
+      },
+      {
+        "name": "E. LINDELL",
+        "positions": [
+          "D"
+        ],
+        "slot": "D",
+        "team": "DAL"
+      },
+      {
+        "name": "N. DOBSON",
+        "positions": [
+          "D"
+        ],
+        "slot": "D",
+        "team": "MTL"
+      },
+      {
+        "name": "M. CELEBRINI",
+        "positions": [],
+        "slot": null,
+        "team": ""
+      },
+      {
         "name": "N. DOBSON",
         "positions": [
           "D"
@@ -2610,35 +2639,9 @@
       },
       {
         "name": "N. PIONK",
-        "positions": [
-          "D"
-        ],
+        "positions": [],
         "slot": "D",
-        "team": "WPG"
-      },
-      {
-        "name": "A. LARSSON",
-        "positions": [
-          "D"
-        ],
-        "slot": "D",
-        "team": "SEA"
-      },
-      {
-        "name": "E. LINDELL",
-        "positions": [
-          "D"
-        ],
-        "slot": "D",
-        "team": "DAL"
-      },
-      {
-        "name": "E. LINDELL",
-        "positions": [
-          "D"
-        ],
-        "slot": "D",
-        "team": "DAL"
+        "team": ""
       },
       {
         "name": "M. CELEBRINI",
@@ -2653,7 +2656,7 @@
         "positions": [
           "D"
         ],
-        "slot": "IR+",
+        "slot": "BN",
         "team": "BUF"
       },
       {
@@ -2665,18 +2668,10 @@
         "team": "CHI"
       },
       {
-        "name": "S. MURASHOV",
-        "positions": [],
-        "slot": null,
-        "team": ""
-      },
-      {
         "name": "K. VEJMELKA",
-        "positions": [
-          "G"
-        ],
-        "slot": "BN",
-        "team": "UTA"
+        "positions": [],
+        "slot": "G",
+        "team": ""
       }
     ],
     "team": "Nico's Groovy Team"
@@ -2801,7 +2796,7 @@
     "week": 0
   },
   "standings_rows": [],
-  "telegram_offset": 929784580,
+  "telegram_offset": 929784582,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
