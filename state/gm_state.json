@@ -322,9 +322,15 @@
     },
     {
       "date": "2026-10-01",
-      "id": null,
-      "name": null,
+      "id": 8476902,
+      "name": "Esa Lindell",
       "source": "done"
+    },
+    {
+      "date": "2026-09-30",
+      "id": 8476932,
+      "name": "Anthony Stolarz",
+      "source": "transactions"
     }
   ],
   "awaiting": null,
@@ -1639,6 +1645,15 @@
           ],
           "slot": "BN",
           "team": "BUF"
+        },
+        {
+          "id": 8476932,
+          "name": "Anthony Stolarz",
+          "positions": [
+            "G"
+          ],
+          "slot": "BN",
+          "team": "TOR"
         }
       ],
       "them": {
@@ -1884,9 +1899,11 @@
     ],
     "Gwp": [
       "2026-09-30",
-      "2026-10-02"
+      "2026-10-02",
+      "2026-10-01"
     ],
     "Lazy Lew": [
+      "2026-10-02",
       "2026-10-02"
     ],
     "L\u00f6ll\u00f6t H\u00f6nts\u00e4\u00e4j\u00e4t": [
@@ -1895,6 +1912,9 @@
     "Pastasauce": [
       "2026-09-30",
       "2026-09-30"
+    ],
+    "Randy": [
+      "2026-10-04"
     ],
     "Vanilla Thunder": [
       "2026-09-30",
@@ -2631,6 +2651,7 @@
     "8476460": "2026-10-05",
     "8476887": "2026-10-05",
     "8476902": "2026-10-05",
+    "8476932": "2026-10-05",
     "8477949": "2026-10-05",
     "8478872": "2026-10-05",
     "8480145": "2026-10-05",
@@ -2744,7 +2765,7 @@
     "week": 0
   },
   "standings_rows": [],
-  "telegram_offset": 929784576,
+  "telegram_offset": 929784577,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -2753,6 +2774,7 @@
     "2026-09-30T10:58|add|gwp|astolarz": "2026-09-30T10:58",
     "2026-09-30T10:58|add|lollothontsaajat|jdrysdale": "2026-09-30T10:58",
     "2026-09-30T10:59|add|nicosgroovyteam|elindell": "2026-09-30T10:59",
+    "2026-09-30T10:59|add|nicosgroovyteam|elindell,astolarz": "2026-09-30T10:59",
     "2026-09-30T11:04|add|vantaa|jdaccord": "2026-09-30T11:04",
     "2026-09-30T13:16|add|pastasauce|jfaulk": "2026-09-30T13:16",
     "2026-09-30T14:03|add|pastasauce|jmccann": "2026-09-30T14:03",
@@ -2760,16 +2782,20 @@
     "2026-09-30T14:06|add|bahelinboys|oekmanlarsson": "2026-09-30T14:06",
     "2026-09-30T15:38|add|vanillathunder|nehlers": "2026-09-30T15:38",
     "2026-09-30T22:30|add|bottomthree|anikishin": "2026-09-30T22:30",
+    "2026-10-01T10:32|add/drop|gwp|astolarz,anikishin": "2026-10-01T10:32",
     "2026-10-01T10:32|drop|gwp|astolarz": "2026-10-01T10:32",
     "2026-10-01T18:48|add/drop|nicosgroovyteam|jmcbain,bschenn": "2026-10-01T18:48",
     "2026-10-01T19:50|add|vanillathunder|gforsling": "2026-10-01T19:50",
     "2026-10-01T20:18|drop|nicosgroovyteam|smurashov": "2026-10-01T20:18",
     "2026-10-02T10:04|add|gwp|elindholm": "2026-10-02T10:04",
     "2026-10-02T10:21|add/drop|lazylew|vpodkolzin,mwood": "2026-10-02T10:21",
+    "2026-10-02T10:21|add/drop|lazylew|vpodlkolzin,mwood,elindholm": "2026-10-02T10:21",
     "2026-10-02T11:31|drop|bottomthree|ichernyshov": "2026-10-02T11:31",
     "2026-10-02T11:52|add|bottomthree|lcagnoni": "2026-10-02T11:52",
+    "2026-10-04T16:44|drop|bellova|ytreni": "2026-10-04T16:44",
     "2026-10-04T16:44|drop|bellova|ytrenin,ibarbashev": "2026-10-04T16:44",
-    "2026-10-04T16:45|add|bellova|kkakko": "2026-10-04T16:45"
+    "2026-10-04T16:45|add|bellova|kkakko": "2026-10-04T16:45",
+    "2026-10-04T19:35|add|randy|jstaal": "2026-10-04T19:35"
   },
   "web_matchups": [],
   "week_requested": false,
