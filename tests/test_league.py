@@ -144,6 +144,14 @@ def test_overlapping_screenshots_count_a_player_once():
     assert len(parse.match_shown_names(rows, SHOWN).players) == 1
 
 
+def test_a_row_cut_off_in_one_screenshot_takes_its_slot_from_the_other():
+    # 2026-10-05: Celebrini at the bottom of one screenshot (no slot, no tag) and
+    # on the bench in the next; the first copy kept his old C slot, three Cs.
+    rows = [_row("M. SCHEIFELE", slot=None), _row("M. SCHEIFELE", "WPG", ["C"], "BN")]
+    found = parse.match_shown_names(rows, SHOWN)
+    assert [(p.id, p.slot, p.positions) for p in found.players] == [(20, "BN", ["C"])] and found.tagged == {20}
+
+
 def test_the_add_ledger_starts_from_done_taps_and_counts_one_add_once(tmp_path):
     from state import gm_state
     path = tmp_path / "state.json"

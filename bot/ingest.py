@@ -39,6 +39,7 @@ HELP = (
     "/opp - then paste your opponent's Yahoo team page, to update their roster "
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
+    "/notmine Name - a player I have on your roster who was never yours: removed, and any add I counted undone\n"
     "/trade - trades worth proposing. /trade Knight for Bouchard - what one trade does to you and to them "
     "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo (on an add: Other drop if you dropped "
@@ -174,6 +175,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 state["trade_request"] = (rest + "\n" + body).strip()
             elif command == "/taken":
                 taken_command(rest + "\n" + body, league, outbox)
+            elif command == "/notmine":
+                notmine_command(rest + "\n" + body, state, players, outbox)
             elif command == "/save":
                 if state["matchup_shots"]:
                     finish_matchup(state, players, league, outbox, save=True)
@@ -338,7 +341,9 @@ def _seen_move(key: str, moves: dict[str, list[dt.datetime]]) -> bool:
 def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox) -> None:
     """Apply League > Transactions rows not seen before, oldest first: adds
     and claims put a player on that team (off the free agents), drops free him,
-    trades swap rosters; my own team's moves update my roster too. Says what
+    trades swap rosters; my own team's moves update my roster too. A move
+    already made (he's on that team, or off it) changes nothing, and an add of
+    a player another team holds is a misread, left out and said. Says what
     changed, and warns when the screenshots may not reach back to the last ones seen.
     A move already seen in another layout, at a time within TX_SAME_MOVE, is the same move.
     A set that reaches back to the moves already seen and up to the newest of
@@ -377,7 +382,11 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
         return found.players[0]
 
     def on_team(team: str) -> set[int]:
-        return mine_ids if team == MY_TEAM else {p.id for p in teams.players(league, team)}
+        return {p.id for p in players} if team == MY_TEAM else {p.id for p in teams.players(league, team)}
+
+    def holder(player_id: int) -> str | None:
+        """The team that has him now, moves applied so far included."""
+        return next((t for t in (MY_TEAM, *league["teams"]) if player_id in on_team(t)), None)
 
     def add(team: str, p, when: str | None = None) -> None:
         """`when` (the row's time) for an add or claim; None for a trade, which costs no add."""
@@ -390,6 +399,8 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                 players.append(p)
             if when:
                 gm_state.record_add(state, p.id, p.name, _tx_nhl_date(when), "transactions", already_mine)
+            if already_mine:
+                return
         elif when:  # how much each team streams (opponent profiles, logged before they're used)
             state["league_adds"].setdefault(team, []).append(_tx_nhl_date(when).isoformat())
         changes.setdefault(team, []).append(f"+{p.name}")
@@ -413,12 +424,20 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
             action = shown["action"]
             if action == "add":
                 p = find(shown, {q["id"] for q in registry} - rostered)
-                if p:
+                owner = p and holder(p.id)
+                if owner and owner != teams_[0]:  # a misread: no one adds a player another team holds
+                    problems.append(f"{p.name}: {teams_[0]}'s add, but I have him on {owner}")
+                elif p and (owner != teams_[0] or owner == MY_TEAM):  # mine: may name a Done tap's add
                     add(teams_[0], p, when)
             elif action == "drop":
                 p = find(shown, on_team(teams_[0]))
-                if p:
+                owner = p and holder(p.id)
+                if owner == teams_[0]:
                     drop(teams_[0], p, when)
+                elif owner:
+                    problems.append(f"{p.name}: {teams_[0]}'s drop, but I have him on {owner}")
+                elif p:  # already applied, or a roster I had wrong: on waivers either way
+                    teams.put_on_waivers(league, p.id, _tx_nhl_date(when))
             else:  # traded away by teams_[side] to the other
                 side = int(action.split(":")[1])
                 p = find(shown, on_team(teams_[side]))
@@ -702,8 +721,7 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     changes = roster_mod.replace(players, shown, found.tagged)
     lines.append("Your roster: " + ("; ".join(changes) if changes else "same as I had."))
     if kept:
-        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}. If you dropped "
-                     f"{'him' if len(kept) == 1 else 'them'}, send League > Transactions screenshots.")
+        lines.append(kept_line(kept))
     lines += count_new_players(state, league, before, players, date)
     if opponent and theirs:
         before = {p.id: p.name for p in teams.players(league, opponent)}
@@ -830,12 +848,18 @@ def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict
     changes = roster_mod.replace(players, shown, found.tagged)
     lines = [f"Roster saved: {len(shown)} players."] + (changes or ["Same as I had."])
     if kept:
-        lines.append(f"Not in these screenshots, so kept: {', '.join(kept)}. If you dropped "
-                     f"{'him' if len(kept) == 1 else 'them'}, send League > Transactions screenshots.")
+        lines.append(kept_line(kept))
     lines += count_new_players(state, league, before, players, common.nhl_today())
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
+
+
+def kept_line(kept: list[str]) -> str:
+    them = "him" if len(kept) == 1 else "them"
+    return (f"Not in these screenshots, so kept: {', '.join(kept)}. If you dropped {them}, send League > "
+            f"Transactions screenshots; if {'he was' if len(kept) == 1 else 'they were'} never yours, "
+            f"send /notmine {kept[0].split()[-1]}.")
 
 
 def with_unseen(shown: list, players: list) -> tuple[list, list[str]]:
@@ -913,6 +937,31 @@ def taken_command(text: str, league: dict, outbox: Outbox) -> None:
         return
     teams.mark_taken(league, [p.id for p in found.players])
     outbox.send("Noted, not a free agent: " + ", ".join(p.name for p in found.players))
+
+
+def notmine_command(text: str, state: dict, players: list, outbox: Outbox) -> None:
+    """/notmine Name: a player the bot put on my roster by mistake (a misread
+    screenshot). Off the roster, and an add counted for him is undone; no
+    waivers, since nobody dropped him."""
+    if not text.strip():
+        outbox.send("Who? Send /notmine followed by the player's name.")
+        return
+    words = " " + " ".join(normalize_name(text.replace(",", " ")).split()) + " "
+    mine = {p.id: p.name for p in players}
+    full = [pid for pid, name in mine.items() if f" {normalize_name(name)} " in words]
+    ids = full or [pid for pid, name in mine.items() if f" {normalize_name(name).split()[-1]} " in words]
+    if not ids:
+        outbox.send(f"{text.strip()}: not on the roster I have. Send /roster to see it.")
+        return
+    players[:] = [p for p in players if p.id not in ids]
+    undone = [a for a in state["adds"] if a["id"] in ids]
+    state["adds"] = [a for a in state["adds"] if a["id"] not in ids]
+    for pid in ids:
+        common.forget_mine(state, pid)
+    line = f"Removed from your roster: {', '.join(mine[pid] for pid in ids)}."
+    if undone:
+        line += f" Add{'s' if len(undone) > 1 else ''} undone: {MAX_ADDS_PER_SEASON - len(state['adds'])} left."
+    outbox.send(line)
 
 
 def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:

@@ -109,6 +109,42 @@ def test_transactions_read_adds_drops_and_trades_with_their_dates(monkeypatch):
         ("J. McCann", ["C", "LW"], "add"), ("J. Faulk", ["D"], "drop")]
 
 
+def test_a_transactions_row_without_its_header_doesnt_join_the_row_above(monkeypatch):
+    # 2026-10-05: rows took the player of the row below when its header wasn't
+    # read, and Stolarz (Gwp's add) went on Nico's roster.
+    lines = [(194, 102, 21, "LeagueTransactions"),
+             (22, 191, 27, "Add"), (404, 195, 17, "mer.sept.3010:59AM"), (22, 233, 28, "Nico's Groovy Team"),
+             (423, 236, 21, "E. Lindell D (FA)"),
+             (22, 303, 21, "Add"), (374, 305, 18, "mer.sept.3O10:58AM"), (24, 346, 20, "Gwp"),  # date misread
+             (412, 347, 19, "A. Stolarz G (FA)"),
+             (22, 529, 21, "Add/Drop"), (374, 531, 18, "mer.sept.3009:00AM"), (24, 572, 20, "Bottomthree"),
+             (412, 573, 19, "A. Nikishin D (FA)"), (412, 600, 19, "J. Faulk D"), (412, 640, 19, "J. McCann C")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_icon_action", lambda img, y, h: "add" if y < 590 else "drop")
+    buf = io.BytesIO()
+    Image.new("RGB", (590, 1280)).save(buf, "PNG")
+    rows = screenshot.read(buf.getvalue())["rows"]
+    assert [(r["teams"], [(p["name"], p["action"]) for p in r["players"]]) for r in rows] == [
+        (["Nico's Groovy Team"], [("E. Lindell", "add")]),  # the undated header still ends the row
+        (["Bottomthree"], [("A. Nikishin", "add"), ("J. Faulk", "drop")])]  # McCann: a second drop, a lost row
+
+
+def test_a_website_row_keeps_the_players_level_with_it(monkeypatch):
+    # Gwp's row (Lindholm) has no date read, so its player is nearest Lazy Lew's
+    # row; Bellova's two drops at one minute are two rows, one unread.
+    lines = [(57, 43, 27, "Transactions"),
+             (123, 184, 17, "VasilyPodkolzinEDM-LW,RW"), (124, 202, 17, "Free Agent"), (827, 205, 17, "Lazy Lew"),
+             (796, 221, 17, "Oct2,3:21am"), (124, 223, 17, "MatthewWoodNSH-C,Rw"), (123, 241, 17, "To Waivers"),
+             (122, 266, 19, "Elias Lindholm Bos-c"), (851, 270, 18, "GWp"), (122, 284, 20, "Free Agent"),
+             (124, 330, 17, "YakovTreninMIN-C"), (123, 348, 17, "To Waivers"), (827, 334, 17, "Bellova"),
+             (796, 350, 17, "Oct4,9:44am"),
+             (124, 372, 17, "IvanBarbashevVGK-C,LW"), (123, 390, 17, "To Waivers")]
+    rows = _read(monkeypatch, lines, (974, 900), dt.datetime(2026, 10, 5, 8, 0, tzinfo=ZoneInfo("Europe/Helsinki")))["rows"]
+    assert [(r["teams"], [(p["name"], p["action"]) for p in r["players"]]) for r in rows] == [
+        (["Lazy Lew"], [("Vasily Podkolzin", "add"), ("Matthew Wood", "drop")]),
+        (["Bellova"], [("Yakov Trenin", "drop")])]
+
+
 HELSINKI_NOW = dt.datetime(2026, 10, 2, 10, 30, tzinfo=ZoneInfo("Europe/Helsinki"))
 
 

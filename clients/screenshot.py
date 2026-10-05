@@ -272,11 +272,13 @@ def _transactions(img: Image.Image, lines: list) -> list[dict]:
     headers = []
     for i, (x, y, h, t) in enumerate(lines):
         if x < 0.15 * w and (m := _TX_TYPE.match(t.replace(" ", ""))):
-            when = next((_tx_when(t2) for x2, y2, _, t2 in lines if x2 > 0.4 * w and abs(y2 - y) < h), None)
-            if when:
-                headers.append((y, h, m.group(1).lower(), when))
+            when = next((d for x2, y2, _, t2 in lines if x2 > 0.4 * w and abs(y2 - y) < h
+                         and (d := _tx_when(t2))), None)
+            headers.append((y, h, m.group(1).lower(), when))  # undated still ends the block above
     blocks = []
     for k, (y, h, kind, when) in enumerate(headers):
+        if not when:
+            continue
         end = headers[k + 1][0] if k + 1 < len(headers) else img.height
         body = [(x, ly, lh, t) for x, ly, lh, t in lines if y + 0.8 * h < ly < end - 0.5 * h]
         left = [(ly, lh, t) for x, ly, lh, t in body if x < 0.3 * w]
@@ -297,6 +299,9 @@ def _transactions(img: Image.Image, lines: list) -> list[dict]:
                     action = kind if kind in ("add", "drop") else _icon_action(img, ly, lh)
                     if action:
                         players.append({**p, "action": action})
+            # More than one move's players: the block below lost its header and
+            # ran into this one, so its players come after this block's own.
+            players = next((players[:n] for n in range(len(players), 0, -1) if _one_move(players[:n])), [])
         if players and len(teams) == (2 if kind == "trade" else 1):
             blocks.append({"type": kind, "when": when, "teams": teams, "players": players})
     return blocks
@@ -496,13 +501,36 @@ def _web_transactions(img: Image.Image, lines: list, now: dt.datetime) -> list[d
                              "players": players})
                 k += 2
                 continue
-        elif complete(b) and all(p["action"] for p in b["players"]):
+        elif (b := _own_players(b)) and complete(b) and all(p["action"] for p in b["players"]):
             actions = {p["action"] for p in b["players"]}
             rows.append({"type": "add/drop" if len(actions) == 2 else actions.pop(), "when": b["when"],
                          "teams": [b["team"]], "players": [{"name": p["name"], "positions": p["positions"],
                                                             "action": p["action"]} for p in b["players"]]})
         k += 1
     return rows
+
+
+def _one_move(players: list[dict]) -> bool:
+    """Whether these are one Yahoo move: an add, a drop, or an add then its
+    drop (both layouts list the added player first). Two adds or two drops are
+    two moves read as one."""
+    return [p["action"] for p in players] in (["add"], ["drop"], ["add", "drop"])
+
+
+def _own_players(block: dict) -> dict | None:
+    """A website row with the players of one move: when a neighbour's team or
+    date wasn't read, its players join the nearest row, so a row holding more
+    than one move keeps the run of players centred on its team and date (none
+    if no run is one move)."""
+    ps = block["players"]
+    if _one_move(ps) or not all(p["action"] for p in ps):
+        return block
+    centre = (block["top"] + block["date"]) / 2
+    runs = [ps[i:j] for i in range(len(ps)) for j in range(i + 1, len(ps) + 1) if _one_move(ps[i:j])]
+    if not runs:
+        return None
+    best = min(runs, key=lambda r: (abs((r[0]["y"] + r[-1]["last"]) / 2 - centre), -len(r)))
+    return {**block, "players": best}
 
 
 def _place(now: dt.datetime, month: int, day: int, hour: int, minute: int,

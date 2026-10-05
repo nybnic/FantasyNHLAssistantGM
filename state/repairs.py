@@ -14,6 +14,7 @@ from league import teams
 from league.roster import RosterPlayer
 
 SCHENN, MURASHOV = 8475170, 8483703
+STOLARZ, NIKISHIN, LINDHOLM = 8476932, 8482100, 8477496
 
 
 def apply(state: dict, players: list[RosterPlayer], league: dict) -> None:
@@ -130,8 +131,45 @@ def _week_1_retro_forecast(state: dict, players: list[RosterPlayer], league: dic
         "expected": [me, them], "sd": [me_sd, them_sd], "win": round(win, 4)}
 
 
+# Nico's lineup in his team screenshots of 2026-10-05 08:25 Helsinki, as the
+# fixed reader reads them (Celebrini's slot was in the second screenshot).
+LINEUP_OCT_5 = {8480855: "C", 8476460: "C", 8476887: "LW", 8477949: "LW", 8485406: "RW", 8474564: "RW",
+                8476457: "D", 8476902: "D", 8480865: "D", 8480145: "D", 8484801: "BN", 8480807: "BN",
+                8481519: "G", 8478872: "G"}
+MISREAD_MOVES = ["2026-09-30T10:59|add|nicosgroovyteam|elindell,astolarz",
+                 "2026-10-01T10:32|add/drop|gwp|astolarz,anikishin",
+                 "2026-10-02T10:21|add/drop|lazylew|vpodlkolzin,mwood,elindholm"]
+
+
+def _stolarz_misread(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-05: in a website Transactions screenshot, three rows took the
+    # player of the row below them (its team or date unread): Nico's Lindell
+    # add took Gwp's Stolarz add, Gwp's Stolarz drop took Bottom three's
+    # Nikishin add, Lazy Lew's add/drop took Gwp's Lindholm add. Stolarz went
+    # on my roster as an add, and Nikishin and Lindholm moved teams. Then
+    # team screenshots read Celebrini twice, the first without his slot, so
+    # every slot was cleared. Nico never had Stolarz.
+    players[:] = [p for p in players if p.id != STOLARZ]
+    state["adds"] = [a for a in state["adds"] if not (a["id"] == STOLARZ and a["source"] == "transactions")]
+    state["seen_mine"].pop(str(STOLARZ), None)
+    if {p.id for p in players} == set(LINEUP_OCT_5) and all(p.slot is None for p in players):
+        for p in players:
+            p.slot = LINEUP_OCT_5[p.id]
+    for pid, wrong, right in ((NIKISHIN, "Gwp", "Bottom three"), (LINDHOLM, "Lazy Lew", "Gwp")):
+        entry = next((q for q in league["teams"].get(wrong, {}).get("players", []) if q["id"] == pid), None)
+        if entry and right in league["teams"]:
+            teams.add_player(league, right, RosterPlayer(**{**entry, "slot": None}))
+    for team, date, real in (("Gwp", "2026-10-01", 0), ("Lazy Lew", "2026-10-02", 1)):  # adds logged twice
+        logged = state["league_adds"].get(team, [])
+        if logged.count(date) > real:
+            logged.remove(date)
+    for key in MISREAD_MOVES:
+        state["transactions_seen"].pop(key, None)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
            ("2026-10-03 week 1 orig proj", _week_1_orig_proj),
-           ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast)]
+           ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast),
+           ("2026-10-05 stolarz misread", _stolarz_misread)]

@@ -495,6 +495,29 @@ def test_transactions_reaching_back_carry_every_roster_forward(monkeypatch, tmp_
     assert league["moves_through"] == "2026-10-05T10:00"
 
 
+def test_transactions_that_cant_be_right_change_nothing(monkeypatch, tmp_path):
+    shot = [_tx("add", (9, 30, 14, 3), ["Vanilla Thunder"], [("J. Faulk", "add")]),  # Pastasauce has him
+            _tx("add", (9, 30, 14, 2), ["Pastasauce"], [("D. Cozens", "add")]),  # already theirs
+            _tx("drop", (9, 30, 14, 1), ["Vanilla Thunder"], [("J. McCann", "drop")])]  # never theirs
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot})
+    assert _ids(league, "Pastasauce") == {701, 702} and _ids(league, "Vanilla Thunder") == {703}
+    assert state["league_adds"] == {} and league["waivers"] == {"700": "2026-10-02"}
+    assert "Couldn't place: Justin Faulk: Vanilla Thunder's add, but I have him on Pastasauce" in sent[0]
+    assert "+Dylan Cozens" not in sent[0] and "-Jared McCann" not in sent[0]
+
+
+def test_notmine_takes_a_misread_player_off_my_roster_and_undoes_his_add(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/notmine Lindell", 9),
+                                                                       _message("/notmine Tavares", 10)])
+    monkeypatch.setattr(parse, "registry", lambda: TX_REGISTRY)
+    players.append(RosterPlayer(704, "Esa Lindell", "TOR", ["D"], "BN"))
+    state["adds"] = [{"id": 704, "name": "Esa Lindell", "date": "2026-09-30", "source": "transactions"}]
+    ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
+    assert [p.id for p in players] == [1, 2] and state["adds"] == []
+    assert sent == ["Removed from your roster: Esa Lindell. Add undone: 36 left.",
+                    "Tavares: not on the roster I have. Send /roster to see it."]
+
+
 def test_the_plan_asks_for_transactions_when_league_moves_are_old():
     me = matchup.TeamWeek("me", 0, 150.0, 400.0, 20, 0, 3, 1.0)
     them = matchup.TeamWeek("them", 0, 150.0, 400.0, 20, 0, 3, 1.0)
@@ -904,6 +927,28 @@ def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
     assert [a["id"] for a in state["adds"]] == [None]
     assert [(p.name, p.slot) for p in players] == [("Jack McBain", "C"), ("Sergei Murashov", "BN")]
     assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == len(repairs.REPAIRS)
+
+
+def test_the_2026_10_05_repair_takes_stolarz_off_and_puts_misread_moves_back(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-05 stolarz misread"]
+    state["adds"] = [{"id": 8476902, "name": "Esa Lindell", "date": "2026-10-01", "source": "done"},
+                     {"id": 8476932, "name": "Anthony Stolarz", "date": "2026-09-30", "source": "transactions"}]
+    state["league_adds"] = {"Gwp": ["2026-09-30", "2026-10-02", "2026-10-01"], "Lazy Lew": ["2026-10-02"] * 2}
+    state["transactions_seen"] = {k: k[:16] for k in repairs.MISREAD_MOVES + ["2026-10-01T10:32|drop|gwp|astolarz"]}
+    players = [RosterPlayer(pid, str(pid), "TOR", ["C"], None) for pid in repairs.LINEUP_OCT_5]
+    players.append(RosterPlayer(8476932, "Anthony Stolarz", "TOR", ["G"], None))
+    entry = lambda pid: {"id": pid, "name": str(pid), "team": "CAR", "positions": ["D"], "slot": None}
+    league = {"teams": {"Gwp": {"players": [entry(8482100)]}, "Lazy Lew": {"players": [entry(8477496)]},
+                        "Bottom three": {"players": []}}, "taken": []}
+    repairs.apply(state, players, league)
+    assert {p.id: p.slot for p in players} == repairs.LINEUP_OCT_5
+    assert [a["name"] for a in state["adds"]] == ["Esa Lindell"]
+    assert state["league_adds"] == {"Gwp": ["2026-09-30", "2026-10-02"], "Lazy Lew": ["2026-10-02"]}
+    assert list(state["transactions_seen"]) == ["2026-10-01T10:32|drop|gwp|astolarz"]
+    assert {t: [p["id"] for p in e["players"]] for t, e in league["teams"].items()} == {
+        "Gwp": [8477496], "Lazy Lew": [], "Bottom three": [8482100]}
 
 
 def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():

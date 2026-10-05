@@ -144,8 +144,13 @@ def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = 
             found.problems.append(f"{row['name']} ({team or '?'}): {why}")
             continue
         c = candidates[0]
-        if any(p.id == c["id"] for p in found.players):
-            continue  # the same row in two overlapping screenshots
+        if seen := next((p for p in found.players if p.id == c["id"]), None):
+            # The same row in two overlapping screenshots: one cut off at the edge may lack its slot or tag.
+            seen.slot = seen.slot or row.get("slot") or None
+            if positions and c["id"] not in found.tagged:
+                seen.positions = positions
+                found.tagged.add(c["id"])
+            continue
         if positions:
             found.tagged.add(c["id"])
         found.players.append(RosterPlayer(
