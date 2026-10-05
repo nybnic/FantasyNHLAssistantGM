@@ -37,6 +37,8 @@ Written by the bot's GitHub Actions run; don't edit by hand.
   (bot/dfo_archive.py)
 - `yahoo_matchup/YYYY/TIME.csv`: every player row of Nico's Yahoo matchup screenshots,
   with Yahoo's week projection, both teams (bot/ingest.archive_matchup)
+- `screenshots/YYYY/TIME_MESSAGE_KIND.jpg|png` + `.json`: every screenshot Nico sends, as
+  Telegram delivered it, and what the bot read from it (bot/ingest.archive_screenshot)
 """
 
 

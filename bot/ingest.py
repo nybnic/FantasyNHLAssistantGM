@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import difflib
+import json
 import logging
 from pathlib import Path
 
@@ -247,14 +249,20 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     named by /opp or /myteam, else the draft's, else mine."""
     at = dt.datetime.fromtimestamp(message["date"], dt.timezone.utc)
     try:
-        shot = screenshot.read(telegram.download_file(settings.telegram_bot_token, _image(message)),
-                               now=at.astimezone(briefing.LOCAL))
-    except (screenshot.ScreenshotError, telegram.TelegramError) as e:
+        image = telegram.download_file(settings.telegram_bot_token, _image(message))
+    except telegram.TelegramError as e:
         outbox.send(f"Couldn't read that screenshot: {e}")
         return None
     except requests.RequestException:  # its text can hold the download URL, which holds the token
         outbox.send("Couldn't download that screenshot from Telegram; try again.")
         return None
+    try:
+        shot = screenshot.read(image, now=at.astimezone(briefing.LOCAL))
+    except screenshot.ScreenshotError as e:
+        _safe(archive_screenshot, image, message, None)
+        outbox.send(f"Couldn't read that screenshot: {e}")
+        return None
+    _safe(archive_screenshot, image, message, shot)
     if shot["kind"] == "transactions":
         if not shot["rows"]:
             outbox.send("I couldn't read any transactions in that screenshot. Send League > Transactions "
@@ -300,6 +308,25 @@ def add_screenshot(message: dict, settings: Settings, state: dict, outbox: Outbo
     draft["at"] = at.isoformat()
     state["screenshots"] = draft
     return "team"
+
+
+def archive_screenshot(image: bytes, message: dict, shot: dict | None, root: Path | None = None) -> Path | None:
+    """Every screenshot Nico sends, as Telegram delivered it, with what was
+    read from it (kind "unread" if nothing), to the private data archive:
+    Yahoo's data, so not here (Nico, 2026-10-05: so misreads can be checked)."""
+    root = root or ARCHIVE_DIR
+    if not (root / ".git").exists():
+        return None
+    at = dt.datetime.fromtimestamp(message["date"], dt.timezone.utc)
+    kind = shot["kind"] if shot else "unread"
+    stem = f"{at:%Y-%m-%dT%H%M%S}Z_{message.get('message_id', 0)}_{kind}"
+    ext = "png" if image.startswith(b"\x89PNG") else "jpg"  # photos come as JPEG, files as sent
+    path = root / "screenshots" / str(at.year) / f"{stem}.{ext}"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(image)
+    read = {"sent": at.isoformat(), "kind": kind, "as_file": "document" in message, "read": shot}
+    path.with_suffix(".json").write_text(json.dumps(read, indent=1, default=str), encoding="utf-8")
+    return path
 
 
 def _tx_time(when: list) -> str:
@@ -353,7 +380,6 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     sent_at, state["transaction_rows_at"] = state.get("transaction_rows_at"), None
     seen = state["transactions_seen"]
     newest_seen = max(seen.values(), default=None)
-    names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
     had_seen = bool(seen)
     moves: dict[str, list[dt.datetime]] = {}
     for key in seen:
@@ -416,7 +442,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
         changes.setdefault(team, []).append(f"-{p.name}")
 
     for when, _, key, row in sorted(fresh):
-        teams_ = [names.get(normalize_name(t).replace(" ", "")) for t in row["teams"]]
+        teams_ = [_league_team(t, league) for t in row["teams"]]
         if None in teams_:
             problems.append(f"team {row['teams'][teams_.index(None)]!r}")
             continue
@@ -466,14 +492,30 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                      "scroll down and send the older ones too.")
     if problems:
         lines.append("Couldn't place: " + "; ".join(problems))
+        lines.append(SMALL_TEXT_TIP)
     outbox.send("\n".join(lines))
+
+
+SMALL_TEXT_TIP = ("Small text gets misread: zoom in so the list fills the screen's width, or send the "
+                  "screenshot as a file (Telegram shrinks photos).")
+# The 16 names are at most 0.50 alike (difflib ratio, 2026-10-05); OCR's
+# misreads of them in a small website screenshot ("Pastasau", "Bahein Boys",
+# "Belova", "Beliora") 0.71-0.95 like the right one.
+TEAM_LIKE = 0.7
+TEAM_MARGIN = 0.15
 
 
 def _league_team(shown: str, league: dict) -> str | None:
     """The league's name for a team as a screenshot shows it ("Jattilaisentie
-    Giants": OCR drops the umlauts)."""
+    Giants": OCR drops the umlauts), else the one name it's clearly closest to
+    (OCR misread letters)."""
     names = {normalize_name(t).replace(" ", ""): t for t in (*SCHEDULE, *league["teams"], MY_TEAM)}
-    return names.get(normalize_name(shown).replace(" ", ""))
+    squashed = normalize_name(shown).replace(" ", "")
+    if squashed in names or not squashed:
+        return names.get(squashed)
+    (best, name), (second, _) = sorted(((difflib.SequenceMatcher(None, squashed, n).ratio(), n) for n in names),
+                                       reverse=True)[:2]
+    return names[name] if best >= TEAM_LIKE and best - second >= TEAM_MARGIN else None
 
 
 def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:

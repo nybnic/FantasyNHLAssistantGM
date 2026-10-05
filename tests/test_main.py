@@ -518,6 +518,35 @@ def test_notmine_takes_a_misread_player_off_my_roster_and_undoes_his_add(monkeyp
                     "Tavares: not on the roster I have. Send /roster to see it."]
 
 
+def test_team_names_misread_in_small_text_still_find_their_team():
+    league = {"teams": {t: {"players": []} for t in ("Pastasauce", "Bahelin Boys", "Bellova", "Vantaa")}}
+    # As read from Nico's zoomed-out website screenshot of 2026-10-05.
+    assert [ingest._league_team(t, league) for t in ("Pastasau", "Bahein Boys", "Belova", "Beliora")] == [
+        "Pastasauce", "Bahelin Boys", "Bellova", "Bellova"]
+    assert ingest._league_team("Jattilaisentie Giants", league) == "Jättiläisentie Giants"
+    assert ingest._league_team("Free Agent", league) is None and ingest._league_team("Waivers", league) is None
+
+
+def test_every_screenshot_is_archived_with_what_was_read(monkeypatch, tmp_path):
+    import json
+    (tmp_path / "archive" / ".git").mkdir(parents=True)
+    monkeypatch.setattr(ingest, "ARCHIVE_DIR", tmp_path / "archive")
+    rows = [_tx("add", (9, 30, 14, 3), ["Pastasau"], [("J. McCann", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": rows})
+    assert 700 in _ids(league, "Pastasauce")
+    [image, read] = sorted((tmp_path / "archive" / "screenshots" / "2026").iterdir())
+    assert image.name == "2026-10-01T070000Z_0_transactions.jpg" and image.read_bytes() == b"t"
+    assert json.loads(read.read_text(encoding="utf-8"))["read"]["rows"][0]["teams"] == ["Pastasau"]
+
+    def unreadable(image, now=None):
+        raise screenshot.ScreenshotError("that isn't an image I can open")
+    monkeypatch.setattr(screenshot, "read", unreadable)
+    monkeypatch.setattr(telegram, "get_updates", lambda token, offset: [_photo("u", 70, WEEK1 + 9)])
+    settings = load_settings()
+    ingest.process_updates(settings, state, players, league, common.Outbox(settings))
+    assert (tmp_path / "archive" / "screenshots" / "2026" / "2026-10-01T070009Z_0_unread.jpg").exists()
+
+
 def test_the_plan_asks_for_transactions_when_league_moves_are_old():
     me = matchup.TeamWeek("me", 0, 150.0, 400.0, 20, 0, 3, 1.0)
     them = matchup.TeamWeek("them", 0, 150.0, 400.0, 20, 0, 3, 1.0)

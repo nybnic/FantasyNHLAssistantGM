@@ -64,8 +64,10 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 |---|---|---|
 | `dfo_lines/YYYY/DATE.csv` | DFO line charts, all 32 teams, once a game day | Whether line and PP roles predict points; stash candidates (roadmap item 8) |
 | `yahoo_matchup/YYYY/TIME.csv` | Every player row of my matchup screenshots: view, slot, points so far, Yahoo's projection, both teams | Yahoo's player projections against ours and the results |
+| `screenshots/YYYY/TIME_MESSAGE_KIND.jpg` + `.json` | Every screenshot Nico sends, as Telegram delivered it (kind `unread` if nothing could be read), and what the bot read from it | Checking misreads, and turning real screenshots into tests (Nico, 2026-10-05) |
 
-Not stored: the screenshot images (only what's read from them).
+Screenshots are kept from 2026-10-05 on. Telegram shrinks a photo to 1280 px on its long side, so a
+zoomed-out page reads badly: zoom in, or send it as a file (kept as sent).
 
 ## 4. Checking forecasts after the fact
 From week 2 on, each week has, before any games: our forecast of all 16 teams and of every player, and
