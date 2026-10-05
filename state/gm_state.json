@@ -155,6 +155,162 @@
       ],
       "sigma": 47.39,
       "tau": 22.15
+    },
+    "2": {
+      "moves": [
+        [
+          8.96,
+          67.26,
+          8481668,
+          8476457
+        ],
+        [
+          3.87,
+          30.92,
+          8484390,
+          8476457
+        ],
+        [
+          -0.08,
+          26.48,
+          8476892,
+          8476457
+        ],
+        [
+          1.94,
+          15.28,
+          8476372,
+          8476457
+        ],
+        [
+          3.72,
+          11.39,
+          8481596,
+          8476457
+        ],
+        [
+          4.22,
+          10.36,
+          8473512,
+          8476457
+        ],
+        [
+          0.06,
+          13.41,
+          8477451,
+          8476457
+        ],
+        [
+          1.78,
+          11.32,
+          8481546,
+          8476457
+        ],
+        [
+          0.19,
+          11.75,
+          8482122,
+          null
+        ],
+        [
+          0.3,
+          11.3,
+          8478498,
+          null
+        ],
+        [
+          4.05,
+          7.2,
+          8482159,
+          8476457
+        ],
+        [
+          -0.88,
+          11.81,
+          8476456,
+          null
+        ],
+        [
+          2.64,
+          8.0,
+          8471724,
+          8476457
+        ],
+        [
+          1.5,
+          8.46,
+          8478042,
+          8476457
+        ],
+        [
+          0.19,
+          8.68,
+          8474716,
+          8476902
+        ],
+        [
+          4.65,
+          3.79,
+          8482475,
+          8476457
+        ],
+        [
+          -0.7,
+          7.24,
+          8479292,
+          8476457
+        ],
+        [
+          4.21,
+          1.98,
+          8482809,
+          8476457
+        ],
+        [
+          3.11,
+          1.69,
+          8482095,
+          8476902
+        ],
+        [
+          -0.72,
+          4.82,
+          8479361,
+          8476902
+        ],
+        [
+          -0.91,
+          4.92,
+          8477942,
+          null
+        ],
+        [
+          1.46,
+          1.53,
+          8481014,
+          8476902
+        ],
+        [
+          1.12,
+          1.53,
+          8479400,
+          8476457
+        ],
+        [
+          2.14,
+          0.5,
+          8481606,
+          8476902
+        ],
+        [
+          2.15,
+          -1.73,
+          8476958,
+          8476902
+        ]
+      ],
+      "sigma": 45.98,
+      "tau": 20.61
     }
   },
   "adds": [
@@ -1356,14 +1512,13 @@
     "2026-10-05": {
       "me": [
         {
-          "id": 8480855,
-          "name": "Jack McBain",
+          "id": 8476460,
+          "name": "Mark Scheifele",
           "positions": [
-            "C",
-            "LW"
+            "C"
           ],
-          "slot": null,
-          "team": "UTA"
+          "slot": "C",
+          "team": "WPG"
         },
         {
           "id": 8484801,
@@ -1371,7 +1526,7 @@
           "positions": [
             "C"
           ],
-          "slot": null,
+          "slot": "C",
           "team": "SJS"
         },
         {
@@ -1380,7 +1535,7 @@
           "positions": [
             "LW"
           ],
-          "slot": null,
+          "slot": "LW",
           "team": "NSH"
         },
         {
@@ -1390,7 +1545,7 @@
             "LW",
             "RW"
           ],
-          "slot": null,
+          "slot": "LW",
           "team": "WSH"
         },
         {
@@ -1399,7 +1554,7 @@
           "positions": [
             "RW"
           ],
-          "slot": null,
+          "slot": "RW",
           "team": "PHI"
         },
         {
@@ -1409,7 +1564,7 @@
             "C",
             "RW"
           ],
-          "slot": null,
+          "slot": "RW",
           "team": "NSH"
         },
         {
@@ -1418,17 +1573,8 @@
           "positions": [
             "D"
           ],
-          "slot": null,
+          "slot": "D",
           "team": "SEA"
-        },
-        {
-          "id": 8480807,
-          "name": "Mattias Samuelsson",
-          "positions": [
-            "D"
-          ],
-          "slot": null,
-          "team": "BUF"
         },
         {
           "id": 8476902,
@@ -1436,7 +1582,7 @@
           "positions": [
             "D"
           ],
-          "slot": null,
+          "slot": "D",
           "team": "DAL"
         },
         {
@@ -1445,8 +1591,17 @@
           "positions": [
             "D"
           ],
-          "slot": null,
+          "slot": "D",
           "team": "MTL"
+        },
+        {
+          "id": 8480145,
+          "name": "Neal Pionk",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "WPG"
         },
         {
           "id": 8481519,
@@ -1454,7 +1609,7 @@
           "positions": [
             "G"
           ],
-          "slot": null,
+          "slot": "G",
           "team": "CHI"
         },
         {
@@ -1463,48 +1618,58 @@
           "positions": [
             "G"
           ],
-          "slot": null,
+          "slot": "G",
           "team": "UTA"
         },
         {
-          "id": 8476460,
-          "name": "Mark Scheifele",
+          "id": 8480855,
+          "name": "Jack McBain",
           "positions": [
-            "C"
+            "C",
+            "LW"
           ],
-          "slot": null,
-          "team": "WPG"
+          "slot": "BN",
+          "team": "UTA"
         },
         {
-          "id": 8480145,
-          "name": "Neal Pionk",
+          "id": 8480807,
+          "name": "Mattias Samuelsson",
           "positions": [
             "D"
           ],
-          "slot": null,
-          "team": "WPG"
+          "slot": "BN",
+          "team": "BUF"
         }
       ],
       "them": {
         "players": [
           {
-            "id": 8478420,
-            "name": "Mikko Rantanen",
+            "id": 8478427,
+            "name": "Sebastian Aho",
             "positions": [
-              "LW",
+              "C"
+            ],
+            "slot": null,
+            "team": "CAR"
+          },
+          {
+            "id": 8480014,
+            "name": "Gabriel Vilardi",
+            "positions": [
+              "C",
               "RW"
             ],
             "slot": null,
-            "team": "DAL"
+            "team": "WPG"
           },
           {
-            "id": 8479979,
-            "name": "Jake Oettinger",
+            "id": 8477409,
+            "name": "Carter Verhaeghe",
             "positions": [
-              "G"
+              "LW"
             ],
             "slot": null,
-            "team": "DAL"
+            "team": "FLA"
           },
           {
             "id": 8478483,
@@ -1516,33 +1681,6 @@
             ],
             "slot": null,
             "team": "VGK"
-          },
-          {
-            "id": 8478427,
-            "name": "Sebastian Aho",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "CAR"
-          },
-          {
-            "id": 8477346,
-            "name": "MacKenzie Weegar",
-            "positions": [
-              "D"
-            ],
-            "slot": null,
-            "team": "UTA"
-          },
-          {
-            "id": 8478550,
-            "name": "Artemi Panarin",
-            "positions": [
-              "LW"
-            ],
-            "slot": null,
-            "team": "LAK"
           },
           {
             "id": 8482078,
@@ -1563,13 +1701,13 @@
             "team": "VGK"
           },
           {
-            "id": 8480947,
-            "name": "Kevin Lankinen",
+            "id": 8477346,
+            "name": "MacKenzie Weegar",
             "positions": [
-              "G"
+              "D"
             ],
             "slot": null,
-            "team": "VAN"
+            "team": "UTA"
           },
           {
             "id": 8479425,
@@ -1590,16 +1728,6 @@
             "team": "NJD"
           },
           {
-            "id": 8480014,
-            "name": "Gabriel Vilardi",
-            "positions": [
-              "C",
-              "RW"
-            ],
-            "slot": null,
-            "team": "WPG"
-          },
-          {
             "id": 8475200,
             "name": "Dmitry Orlov",
             "positions": [
@@ -1609,13 +1737,41 @@
             "team": "SJS"
           },
           {
-            "id": 8477409,
-            "name": "Carter Verhaeghe",
+            "id": 8479979,
+            "name": "Jake Oettinger",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "DAL"
+          },
+          {
+            "id": 8480947,
+            "name": "Kevin Lankinen",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "VAN"
+          },
+          {
+            "id": 8478550,
+            "name": "Artemi Panarin",
             "positions": [
               "LW"
             ],
             "slot": null,
-            "team": "FLA"
+            "team": "LAK"
+          },
+          {
+            "id": 8478420,
+            "name": "Mikko Rantanen",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "DAL"
           }
         ],
         "team": "Retrot Chicken Wings"
@@ -1973,30 +2129,138 @@
           "score": 99.25
         }
       }
+    },
+    "2": {
+      "ours": {
+        "at": "2026-10-05T05:13+00:00",
+        "moves_through": "2026-10-02",
+        "teams": {
+          "Bahelin Boys": {
+            "expected": 205.73,
+            "sd": 31.94,
+            "so_far": 0.0
+          },
+          "Bellova": {
+            "expected": 168.8,
+            "sd": 28.86,
+            "so_far": 0.0
+          },
+          "Bottom three": {
+            "expected": 170.85,
+            "sd": 29.49,
+            "so_far": 0.0
+          },
+          "Gwp": {
+            "expected": 186.6,
+            "sd": 30.12,
+            "so_far": 0.0
+          },
+          "HAN-NES": {
+            "expected": 198.45,
+            "sd": 31.65,
+            "so_far": 0.0
+          },
+          "HC Bulju": {
+            "expected": 187.91,
+            "sd": 31.33,
+            "so_far": 0.0
+          },
+          "J\u00e4ttil\u00e4isentie Giants": {
+            "expected": 188.59,
+            "sd": 31.79,
+            "so_far": 0.0
+          },
+          "Lazy Lew": {
+            "expected": 215.43,
+            "sd": 31.6,
+            "so_far": 0.0
+          },
+          "L\u00f6ll\u00f6t H\u00f6nts\u00e4\u00e4j\u00e4t": {
+            "expected": 193.8,
+            "sd": 31.3,
+            "so_far": 0.0
+          },
+          "Nico's Groovy Team": {
+            "expected": 220.57,
+            "sd": 33.33,
+            "so_far": 0.0
+          },
+          "Pastasauce": {
+            "expected": 209.86,
+            "sd": 32.95,
+            "so_far": 0.0
+          },
+          "Randy": {
+            "expected": 210.75,
+            "sd": 31.5,
+            "so_far": 0.0
+          },
+          "Retrot Chicken Wings": {
+            "expected": 196.57,
+            "sd": 31.68,
+            "so_far": 0.0
+          },
+          "Vanilla Thunder": {
+            "expected": 204.77,
+            "sd": 32.57,
+            "so_far": 0.0
+          },
+          "Vantaa": {
+            "expected": 206.95,
+            "sd": 32.73,
+            "so_far": 0.0
+          },
+          "Viktorios": {
+            "expected": 190.85,
+            "sd": 31.62,
+            "so_far": 0.0
+          }
+        }
+      },
+      "pairs": [],
+      "scores": {}
     }
   },
   "live_score": {
-    "at": "2026-10-04T05:19:35+00:00",
+    "at": "2026-10-05T05:13:30+00:00",
     "goalies": [
-      28.85,
-      33.9
+      0.0,
+      0.0
     ],
-    "opponent": "Bahelin Boys",
+    "opponent": "Retrot Chicken Wings",
     "projected": [
-      165.63,
-      190.26
+      255.19,
+      198.76
     ],
     "score": [
-      139.15,
-      176.0
+      0.0,
+      0.0
     ],
-    "through": "2026-10-04",
-    "week": 1
+    "through": "2026-10-05",
+    "week": 2
   },
   "matchup_shots": null,
   "news_checked": null,
   "opponents": {},
   "pending": {
+    "add-2026-10-05-0513-0": {
+      "add": {
+        "id": 8481668,
+        "name": "Arturs Silovs",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PIT"
+      },
+      "add_slot": null,
+      "date": "2026-10-05",
+      "drop": 8476457,
+      "drop_name": "Adam Larsson",
+      "ir": {},
+      "message_id": 181,
+      "type": "add"
+    },
     "lineup-2026-10-01-1630": {
       "assignment": {
         "8474564": "RW",
@@ -2161,6 +2425,70 @@
         188.2,
         165.01
       ]
+    },
+    "2": {
+      "first": {
+        "at": "2026-10-05T05:13+00:00",
+        "expected": [
+          220.57,
+          196.57
+        ],
+        "sd": [
+          33.33,
+          31.68
+        ],
+        "so_far": [
+          0.0,
+          0.0
+        ],
+        "win": 0.6991
+      },
+      "last": {
+        "at": "2026-10-05T05:13+00:00",
+        "expected": [
+          220.57,
+          196.57
+        ],
+        "sd": [
+          33.33,
+          31.68
+        ],
+        "so_far": [
+          0.0,
+          0.0
+        ],
+        "win": 0.6991
+      },
+      "live": [
+        {
+          "box": [
+            0.0,
+            0.0
+          ],
+          "through": "2026-10-05",
+          "yahoo": [
+            0.0,
+            0.0
+          ],
+          "yahoo_projected": [
+            255.19,
+            198.76
+          ]
+        }
+      ],
+      "opponent": "Retrot Chicken Wings",
+      "yahoo_first": {
+        "at": "2026-10-05T05:13:30+00:00",
+        "projected": [
+          255.19,
+          198.76
+        ],
+        "score": [
+          0.0,
+          0.0
+        ],
+        "through": "2026-10-05"
+      }
     }
   },
   "scoreboard_shots": [],
@@ -2413,7 +2741,7 @@
     "week": 0
   },
   "standings_rows": [],
-  "telegram_offset": 929784573,
+  "telegram_offset": 929784575,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -2444,6 +2772,9 @@
     "1": {
       "midweek": "2026-10-04T13:51+00:00",
       "sent": "2026-10-01T07:15+00:00"
+    },
+    "2": {
+      "sent": "2026-10-05T05:13+00:00"
     }
   },
   "xfp_logged": 2
