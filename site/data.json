@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-05T05:13+00:00",
+ "generated": "2026-10-05T05:21+00:00",
  "week": 2,
  "opponent": "Retrot Chicken Wings",
  "days": [
@@ -23,7 +23,7 @@
   "stance": "protect",
   "stance_text": "Rest of the week: ahead (70%), protect the lead: you're 24 expected points up. No need to chase; make only the adds below.",
   "adds_left": {
-   "season": 34,
+   "season": 33,
    "week": 2
   }
  },
@@ -31,55 +31,55 @@
   "week": 2,
   "points": [
    {
-    "key": "8481668:8476457",
-    "label": "Silovs for Larsson",
-    "x": 6.442723566189812,
-    "y": 53.25147348765217,
-    "later_pts": 67.25901650628703,
+    "key": "8481668:8476932",
+    "label": "Silovs for Stolarz",
+    "x": 12.64975924364693,
+    "y": 6.081201035890642,
+    "later_pts": 7.791655600402544,
     "games": 4,
     "recommended": true
    },
    {
-    "key": "8473533:8476902",
-    "label": "Staal for Lindell",
-    "x": 5.964758006767445,
-    "y": -7.3964031184669405,
-    "later_pts": -9.341991251143014,
-    "games": 4,
-    "recommended": false
-   },
-   {
-    "key": "8480064:8476902",
-    "label": "Norris for Lindell",
-    "x": 3.544532826626312,
-    "y": -5.896916001785427,
-    "later_pts": -7.448071287496704,
+    "key": "8480064:8476932",
+    "label": "Norris for Stolarz",
+    "x": 10.250993338803461,
+    "y": -12.236740063106948,
+    "later_pts": -15.678558179652985,
     "games": 3,
     "recommended": false
    },
    {
-    "key": "8482475:8476457",
-    "label": "Chinakhov for Larsson",
-    "x": 3.29887557568187,
-    "y": 2.9970795069477965,
-    "later_pts": 3.78544680224104,
-    "games": 4,
+    "key": "8483532:8476932",
+    "label": "Stevenson for Stolarz",
+    "x": 9.966235483553632,
+    "y": -10.988683033885433,
+    "later_pts": -14.079461145372592,
+    "games": 3,
+    "recommended": false
+   },
+   {
+    "key": "8476432:8476932",
+    "label": "Jenner for Stolarz",
+    "x": 9.91134358263438,
+    "y": -11.534557599157647,
+    "later_pts": -14.778873414185645,
+    "games": 3,
     "recommended": false
    },
    {
     "key": "8484390:8476457",
     "label": "Kantserov for Larsson",
     "x": 2.7604622315807847,
-    "y": 24.47930922328849,
+    "y": 24.13112972641585,
     "later_pts": 30.91847333564283,
     "games": 3,
-    "recommended": false
+    "recommended": true
    },
    {
     "key": "8476892:8476457",
     "label": "Parayko for Larsson",
     "x": -0.05788442688401396,
-    "y": 20.967459097192055,
+    "y": 20.669230119708793,
     "later_pts": 26.482847988045705,
     "games": 3,
     "recommended": false
@@ -88,15 +88,24 @@
     "key": "8476372:8476457",
     "label": "Seeler for Larsson",
     "x": 1.4044613828258945,
-    "y": 12.101199031468521,
+    "y": 11.9290785949031,
     "later_pts": 15.28436101570287,
     "games": 4,
     "recommended": false
+   },
+   {
+    "key": "8477451:8476457",
+    "label": "Hartman for Larsson",
+    "x": 0.0437426660514606,
+    "y": 10.465699159857548,
+    "later_pts": 13.409378014270715,
+    "games": 3,
+    "recommended": false
    }
   ],
-  "headline": "Recommended: Silovs for Larsson",
+  "headline": "Recommended: Kantserov for Larsson, Silovs for Stolarz",
   "detail": "",
-  "bar": 8.717271396157637
+  "bar": 8.603273692992323
  },
  "schedule": {
   "days": [
@@ -619,6 +628,42 @@
     ]
    },
    {
+    "name": "A. Stolarz",
+    "positions": "G",
+    "cells": [
+     null,
+     "bench",
+     null,
+     "bench",
+     null,
+     "bench",
+     null,
+     null,
+     "bench",
+     null,
+     "bench",
+     null,
+     "bench",
+     null
+    ],
+    "probs": [
+     null,
+     0.4669008875739644,
+     null,
+     0.3519163763066202,
+     null,
+     0.3519163763066202,
+     null,
+     null,
+     0.3519163763066202,
+     null,
+     0.3519163763066202,
+     null,
+     0.3519163763066202,
+     null
+    ]
+   },
+   {
     "name": "K. Vejmelka",
     "positions": "G",
     "cells": [
@@ -693,41 +738,41 @@
   ],
   "streamers": [
    {
-    "key": "8473533:8476902",
-    "name": "J. Staal",
+    "key": "8481596:8476932",
+    "name": "S. Pinto",
     "positions": "C",
-    "team": "CAR",
-    "drop": "E. Lindell",
+    "team": "OTT",
+    "drop": "A. Stolarz",
     "cells": [
-     null,
+     "bench",
      "start",
      null,
      "start",
      null,
      "start",
+     null,
      "start",
+     "bench",
      null,
      "bench",
      null,
-     null,
-     null,
      "bench",
-     "start"
+     null
     ],
-    "slot_games": 5,
+    "slot_games": 4,
     "slot_starts": null,
     "gain": [
-     8.66873549434672,
-     0.9520385240471114
+     16.177404631886134,
+     4.526854570212322
     ],
     "recommended": false
    },
    {
-    "key": "8482475:8476902",
+    "key": "8482475:8476932",
     "name": "E. Chinakhov",
     "positions": "LW/RW",
     "team": "PIT",
-    "drop": "E. Lindell",
+    "drop": "A. Stolarz",
     "cells": [
      "start",
      null,
@@ -747,17 +792,17 @@
     "slot_games": 5,
     "slot_starts": null,
     "gain": [
-     6.332034008750895,
-     0.07499432535632877
+     17.101522249942377,
+     3.3326129957214334
     ],
     "recommended": false
    },
    {
-    "key": "8482809:8476902",
+    "key": "8482809:8476932",
     "name": "J. Blake",
     "positions": "RW",
     "team": "CAR",
-    "drop": "E. Lindell",
+    "drop": "A. Stolarz",
     "cells": [
      null,
      "start",
@@ -777,17 +822,17 @@
     "slot_games": 5,
     "slot_starts": null,
     "gain": [
-     5.898199042755209,
-     0.371820590660775
+     16.66768728394669,
+     3.6294392610258797
     ],
     "recommended": false
    },
    {
-    "key": "8474716:8476902",
+    "key": "8474716:8476932",
     "name": "J. Spurgeon",
     "positions": "D",
     "team": "MIN",
-    "drop": "E. Lindell",
+    "drop": "A. Stolarz",
     "cells": [
      null,
      "start",
@@ -807,17 +852,17 @@
     "slot_games": 6,
     "slot_starts": null,
     "gain": [
-     0.19141567483444533,
-     6.168104114515415
+     10.960903916025927,
+     9.42572278488052
     ],
     "recommended": false
    },
    {
-    "key": "8481668:8476902",
+    "key": "8481668:8476932",
     "name": "A. Silovs",
     "positions": "G",
     "team": "PIT",
-    "drop": "E. Lindell",
+    "drop": "A. Stolarz",
     "cells": [
      "start",
      null,
@@ -837,10 +882,10 @@
     "slot_games": 4,
     "slot_starts": 2.83,
     "gain": [
-     10.639311096336144,
-     4.234569180548078
+     21.408799337527626,
+     7.492187850913211
     ],
-    "recommended": false
+    "recommended": true
    }
   ],
   "open": [
@@ -989,8 +1034,8 @@
  "budget": {
   "week": 2,
   "used": [
-   2,
-   2
+   3,
+   3
   ],
   "pace": [
    1.3043478260869565,
@@ -1025,60 +1070,60 @@
   "playoffs_from": 24
  },
  "adds": {
-  "8481668:8476457": {
-   "key": "8481668:8476457",
-   "label": "Add A. Silovs, drop A. Larsson",
+  "8481668:8476932": {
+   "key": "8481668:8476932",
+   "label": "Add A. Silovs, drop A. Stolarz",
    "add": {
     "name": "Arturs Silovs",
     "team": "PIT",
     "positions": "G"
    },
-   "drop": "Adam Larsson",
+   "drop": "Anthony Stolarz",
    "games": 4,
    "weeks": [
     {
      "week": 2,
-     "gain": 8.955736072124552,
+     "gain": 21.408799337527626,
      "confident": true
     },
     {
      "week": 3,
-     "gain": 2.5509941563365146,
+     "gain": 7.492187850913211,
      "confident": true
     },
     {
      "week": 4,
-     "gain": 9.253477110494856,
+     "gain": 3.1797758758312966,
      "confident": true
     },
     {
      "week": 5,
-     "gain": 0.11372684831559354,
+     "gain": -2.5312377345737502,
      "confident": false
     },
     {
      "week": 6,
-     "gain": 6.853349620414804,
+     "gain": 4.530370131766887,
      "confident": false
     },
     {
      "week": 7,
-     "gain": 8.423681217396307,
+     "gain": 4.2988965241510755,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7635367147791323
+    0.8346899824669969
    ],
-   "next_two_weeks": 11.804471266831362,
-   "season": 67.25901650628703,
+   "next_two_weeks": 10.671963726744506,
+   "season": 7.791655600402546,
    "verdict": "Recommended",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1113,148 +1158,60 @@
     "playoffs_from": 24
    }
   },
-  "8473533:8476902": {
-   "key": "8473533:8476902",
-   "label": "Add J. Staal, drop E. Lindell",
-   "add": {
-    "name": "Jordan Staal",
-    "team": "CAR",
-    "positions": "C"
-   },
-   "drop": "Esa Lindell",
-   "games": 4,
-   "weeks": [
-    {
-     "week": 2,
-     "gain": 8.66873549434672,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 0.9520385240471114,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": -10.294029775190097,
-     "confident": true
-    },
-    {
-     "week": 5,
-     "gain": -6.022348486818402,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": -0.7997502664440503,
-     "confident": false
-    },
-    {
-     "week": 7,
-     "gain": 0.9520385240471114,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.6991094791172342,
-    0.7587570591849087
-   ],
-   "next_two_weeks": -9.341991251143014,
-   "season": -9.341991251143014,
-   "verdict": "Not recommended: dropping Esa Lindell costs about 9 pts later, more than this week's +6 win-pts make up for",
-   "budget": {
-    "week": 2,
-    "used": [
-     2,
-     2
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8480064:8476902": {
-   "key": "8480064:8476902",
-   "label": "Add J. Norris, drop E. Lindell",
+  "8480064:8476932": {
+   "key": "8480064:8476932",
+   "label": "Add J. Norris, drop A. Stolarz",
    "add": {
     "name": "Josh Norris",
     "team": "BUF",
     "positions": "C"
    },
-   "drop": "Esa Lindell",
+   "drop": "Anthony Stolarz",
    "games": 3,
    "weeks": [
     {
      "week": 2,
-     "gain": 5.012515188836403,
+     "gain": 15.782003430027885,
      "confident": true
     },
     {
      "week": 3,
-     "gain": -0.23684213831558054,
+     "gain": 3.020776532049581,
      "confident": true
     },
     {
      "week": 4,
-     "gain": -7.211229149181122,
+     "gain": -14.968505408056302,
      "confident": true
     },
     {
      "week": 5,
-     "gain": -7.211229149181122,
+     "gain": -7.388747667814329,
      "confident": false
     },
     {
      "week": 6,
-     "gain": -0.09471096516045918,
+     "gain": 0.04975561044770416,
      "confident": false
     },
     {
      "week": 7,
-     "gain": 3.3214169536947225,
+     "gain": 1.6640783247055424,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7345548073834973
+    0.8016194125052688
    ],
-   "next_two_weeks": -7.448071287496704,
-   "season": -7.448071287496704,
-   "verdict": "Not recommended: dropping Esa Lindell costs about 7 pts later, more than this week's +4 win-pts make up for",
+   "next_two_weeks": -11.947728876006751,
+   "season": -15.678558179652985,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 16 pts later, more than this week's +10 win-pts make up for",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1289,60 +1246,148 @@
     "playoffs_from": 24
    }
   },
-  "8482475:8476457": {
-   "key": "8482475:8476457",
-   "label": "Add E. Chinakhov, drop A. Larsson",
+  "8483532:8476932": {
+   "key": "8483532:8476932",
+   "label": "Add C. Stevenson, drop A. Stolarz",
    "add": {
-    "name": "Egor Chinakhov",
-    "team": "PIT",
-    "positions": "LW/RW"
+    "name": "Clay Stevenson",
+    "team": "WPG",
+    "positions": "G"
    },
-   "drop": "Adam Larsson",
-   "games": 4,
+   "drop": "Anthony Stolarz",
+   "games": 3,
    "weeks": [
     {
      "week": 2,
-     "gain": 4.648458984539332,
+     "gain": 14.862541208070354,
      "confident": true
     },
     {
      "week": 3,
-     "gain": -1.6085806988552918,
+     "gain": -0.206456545219055,
      "confident": true
     },
     {
      "week": 4,
-     "gain": -4.712872154038564,
+     "gain": -11.194398852909302,
      "confident": true
     },
     {
      "week": 5,
-     "gain": -4.431946621253132,
+     "gain": -1.009933830680211,
      "confident": false
     },
     {
      "week": 6,
-     "gain": 3.308244490111292,
+     "gain": -5.833474905008785,
      "confident": false
     },
     {
      "week": 7,
-     "gain": 6.412535945294593,
+     "gain": -2.2251249059625877,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7320982348740529
+    0.7987718339527705
    ],
-   "next_two_weeks": -6.3214528528938825,
-   "season": 3.78544680224104,
-   "verdict": "Not recommended: worth 6.3 win-pts, under the 8.7 an add costs",
+   "next_two_weeks": -11.400855398128371,
+   "season": -14.079461145372592,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 14 pts later, more than this week's +10 win-pts make up for",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8476432:8476932": {
+   "key": "8476432:8476932",
+   "label": "Add B. Jenner, drop A. Stolarz",
+   "add": {
+    "name": "Boone Jenner",
+    "team": "WSH",
+    "positions": "C/LW"
+   },
+   "drop": "Anthony Stolarz",
+   "games": 3,
+   "weeks": [
+    {
+     "week": 2,
+     "gain": 15.181161490530314,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 3.4706189147832447,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": -14.518663025322581,
+     "confident": true
+    },
+    {
+     "week": 5,
+     "gain": -2.93080381033667,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": -6.616920190839238,
+     "confident": false
+    },
+    {
+     "week": 7,
+     "gain": 6.571864564916922,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.6991094791172342,
+    0.798222914943578
+   ],
+   "next_two_weeks": -11.048044110539411,
+   "season": -14.778873414185645,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 15 pts later, more than this week's +10 win-pts make up for",
+   "budget": {
+    "week": 2,
+    "used": [
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1395,7 +1440,7 @@
     },
     {
      "week": 3,
-     "gain": -4.417994231625471,
+     "gain": -4.417994231625414,
      "confident": true
     },
     {
@@ -1423,14 +1468,14 @@
     0.6991094791172342,
     0.726714101433042
    ],
-   "next_two_weeks": -7.15641056006973,
+   "next_two_weeks": -7.156410560069732,
    "season": 30.91847333564283,
-   "verdict": "Not recommended: worth an add, but this week's go to Arturs Silovs",
+   "verdict": "Recommended",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1513,12 +1558,12 @@
    ],
    "next_two_weeks": -0.17030350656316529,
    "season": 26.482847988045705,
-   "verdict": "Not recommended: worth an add, but this week's go to Arturs Silovs",
+   "verdict": "Not recommended: worth an add, but this week's go to Roman Kantserov and Arturs Silovs",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1571,7 +1616,7 @@
     },
     {
      "week": 3,
-     "gain": -2.0272113817350146,
+     "gain": -2.0272113817349577,
      "confident": true
     },
     {
@@ -1586,7 +1631,7 @@
     },
     {
      "week": 6,
-     "gain": 2.0523524414721805,
+     "gain": 2.052352441472209,
      "confident": false
     },
     {
@@ -1601,12 +1646,12 @@
    ],
    "next_two_weeks": -4.125880028730526,
    "season": 15.28436101570287,
-   "verdict": "Not recommended: worth an add, but this week's go to Arturs Silovs",
+   "verdict": "Not recommended: worth an add, but this week's go to Roman Kantserov and Arturs Silovs",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1641,60 +1686,236 @@
     "playoffs_from": 24
    }
   },
-  "8482475:8476902": {
-   "key": "8482475:8476902",
-   "label": "Add E. Chinakhov, drop E. Lindell",
+  "8477451:8476457": {
+   "key": "8477451:8476457",
+   "label": "Add R. Hartman, drop A. Larsson",
+   "add": {
+    "name": "Ryan Hartman",
+    "team": "MIN",
+    "positions": "C/RW"
+   },
+   "drop": "Adam Larsson",
+   "games": 3,
+   "weeks": [
+    {
+     "week": 2,
+     "gain": 0.05970283616068173,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 2.4184931985490152,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": -0.6073090857732097,
+     "confident": true
+    },
+    {
+     "week": 5,
+     "gain": -4.353457450392085,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": -0.40487272384882544,
+     "confident": false
+    },
+    {
+     "week": 7,
+     "gain": 10.518099013559947,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.6991094791172342,
+    0.6995469057777488
+   ],
+   "next_two_weeks": 1.8111841127757353,
+   "season": 13.409378014270715,
+   "verdict": "Not recommended: worth an add, but it does nothing this week: Wednesday's plan, if the week holds",
+   "budget": {
+    "week": 2,
+    "used": [
+     3,
+     3
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8481596:8476932": {
+   "key": "8481596:8476932",
+   "label": "Add S. Pinto, drop A. Stolarz",
+   "add": {
+    "name": "Shane Pinto",
+    "team": "OTT",
+    "positions": "C"
+   },
+   "drop": "Anthony Stolarz",
+   "games": 4,
+   "weeks": [
+    {
+     "week": 2,
+     "gain": 16.177404631886134,
+     "confident": true
+    },
+    {
+     "week": 3,
+     "gain": 4.526854570212322,
+     "confident": true
+    },
+    {
+     "week": 4,
+     "gain": -12.669771528092127,
+     "confident": true
+    },
+    {
+     "week": 5,
+     "gain": -0.8183324994785153,
+     "confident": false
+    },
+    {
+     "week": 6,
+     "gain": -0.49634740523706,
+     "confident": false
+    },
+    {
+     "week": 7,
+     "gain": 4.676234401031081,
+     "confident": false
+    }
+   ],
+   "win": [
+    0.6991094791172342,
+    0.8038324238672347
+   ],
+   "next_two_weeks": -8.14291695787989,
+   "season": -11.873746261526124,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 12 pts later, more than this week's +10 win-pts make up for",
+   "budget": {
+    "week": 2,
+    "used": [
+     3,
+     3
+    ],
+    "pace": [
+     1.3043478260869565,
+     2.608695652173913,
+     3.9130434782608696,
+     5.217391304347826,
+     6.521739130434782,
+     7.826086956521739,
+     9.130434782608695,
+     10.434782608695652,
+     11.73913043478261,
+     13.043478260869565,
+     14.347826086956522,
+     15.652173913043478,
+     16.956521739130434,
+     18.26086956521739,
+     19.565217391304348,
+     20.869565217391305,
+     22.17391304347826,
+     23.47826086956522,
+     24.782608695652176,
+     26.08695652173913,
+     27.391304347826086,
+     28.695652173913043,
+     30.0,
+     32.0,
+     34.0,
+     36.0
+    ],
+    "cap": 36,
+    "reserve": 6,
+    "playoffs_from": 24
+   }
+  },
+  "8482475:8476932": {
+   "key": "8482475:8476932",
+   "label": "Add E. Chinakhov, drop A. Stolarz",
    "add": {
     "name": "Egor Chinakhov",
     "team": "PIT",
     "positions": "LW/RW"
    },
-   "drop": "Esa Lindell",
+   "drop": "Anthony Stolarz",
    "games": 4,
    "weeks": [
     {
      "week": 2,
-     "gain": 6.332034008750895,
+     "gain": 17.101522249942377,
      "confident": true
     },
     {
      "week": 3,
-     "gain": 0.07499432535632877,
+     "gain": 3.3326129957214334,
      "confident": true
     },
     {
      "week": 4,
-     "gain": -3.0292971298270004,
+     "gain": -10.786573388702124,
      "confident": true
     },
     {
      "week": 5,
-     "gain": -6.899392685509213,
+     "gain": -7.076911204142476,
      "confident": false
     },
     {
      "week": 6,
-     "gain": 0.8407984258552119,
+     "gain": 0.9852650014634321,
      "confident": false
     },
     {
      "week": 7,
-     "gain": 3.9450898810384842,
+     "gain": 2.287751252049361,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7434774513727953
+    0.8089766753074799
    ],
-   "next_two_weeks": -2.9543028044706916,
-   "season": -2.9543028044706916,
-   "verdict": "Not recommended: dropping Esa Lindell costs about 3 pts later, more than this week's +4 win-pts make up for",
+   "next_two_weeks": -7.453960392980738,
+   "season": -11.184789696626972,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 11 pts later, more than this week's +11 win-pts make up for",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1729,60 +1950,60 @@
     "playoffs_from": 24
    }
   },
-  "8482809:8476902": {
-   "key": "8482809:8476902",
-   "label": "Add J. Blake, drop E. Lindell",
+  "8482809:8476932": {
+   "key": "8482809:8476932",
+   "label": "Add J. Blake, drop A. Stolarz",
    "add": {
     "name": "Jackson Blake",
     "team": "CAR",
     "positions": "RW"
    },
-   "drop": "Esa Lindell",
+   "drop": "Anthony Stolarz",
    "games": 4,
    "weeks": [
     {
      "week": 2,
-     "gain": 5.898199042755209,
+     "gain": 16.66768728394669,
      "confident": true
     },
     {
      "week": 3,
-     "gain": 0.371820590660775,
+     "gain": 3.6294392610258797,
      "confident": true
     },
     {
      "week": 4,
-     "gain": -2.435644599218108,
+     "gain": -10.192920858093231,
      "confident": true
     },
     {
      "week": 5,
-     "gain": -6.602566420204738,
+     "gain": -6.780084938838002,
      "confident": false
     },
     {
      "week": 6,
-     "gain": -2.435644599218051,
+     "gain": -2.2911780236098878,
      "confident": false
     },
     {
      "week": 7,
-     "gain": 4.538742411647405,
+     "gain": 2.881403782658282,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7405747972691258
+    0.8065905668747828
    ],
-   "next_two_weeks": -2.063824008557315,
-   "season": -2.063824008557315,
-   "verdict": "Not recommended: dropping Esa Lindell costs about 2 pts later, more than this week's +4 win-pts make up for",
+   "next_two_weeks": -6.563481597067376,
+   "season": -10.29431090071361,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 10 pts later, more than this week's +11 win-pts make up for",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
@@ -1817,148 +2038,60 @@
     "playoffs_from": 24
    }
   },
-  "8474716:8476902": {
-   "key": "8474716:8476902",
-   "label": "Add J. Spurgeon, drop E. Lindell",
+  "8474716:8476932": {
+   "key": "8474716:8476932",
+   "label": "Add J. Spurgeon, drop A. Stolarz",
    "add": {
     "name": "Jared Spurgeon",
     "team": "MIN",
     "positions": "D"
    },
-   "drop": "Esa Lindell",
+   "drop": "Anthony Stolarz",
    "games": 3,
    "weeks": [
     {
      "week": 2,
-     "gain": 0.19141567483444533,
+     "gain": 10.960903916025927,
      "confident": true
     },
     {
      "week": 3,
-     "gain": 6.168104114515415,
+     "gain": 9.42572278488052,
      "confident": true
     },
     {
      "week": 4,
-     "gain": 2.5147855519303164,
+     "gain": -8.563559155225278,
      "confident": true
     },
     {
      "week": 5,
-     "gain": -0.8062828963501545,
+     "gain": -7.625938311544246,
      "confident": false
     },
     {
      "week": 6,
-     "gain": -0.8062828963501261,
+     "gain": -0.6618163207419627,
      "confident": false
     },
     {
      "week": 7,
-     "gain": -0.47403278204552635,
+     "gain": -2.1313714110346496,
      "confident": false
     }
    ],
    "win": [
     0.6991094791172342,
-    0.7005109403557668
+    0.773221404506822
    ],
-   "next_two_weeks": 8.682889666445655,
-   "season": 8.682889666445655,
-   "verdict": "Not recommended: worth 7.0 win-pts, under the 8.7 an add costs",
+   "next_two_weeks": 0.8621636296551762,
+   "season": -2.8686656739910577,
+   "verdict": "Not recommended: dropping Anthony Stolarz costs about 3 pts later, more than this week's +7 win-pts make up for",
    "budget": {
     "week": 2,
     "used": [
-     2,
-     2
-    ],
-    "pace": [
-     1.3043478260869565,
-     2.608695652173913,
-     3.9130434782608696,
-     5.217391304347826,
-     6.521739130434782,
-     7.826086956521739,
-     9.130434782608695,
-     10.434782608695652,
-     11.73913043478261,
-     13.043478260869565,
-     14.347826086956522,
-     15.652173913043478,
-     16.956521739130434,
-     18.26086956521739,
-     19.565217391304348,
-     20.869565217391305,
-     22.17391304347826,
-     23.47826086956522,
-     24.782608695652176,
-     26.08695652173913,
-     27.391304347826086,
-     28.695652173913043,
-     30.0,
-     32.0,
-     34.0,
-     36.0
-    ],
-    "cap": 36,
-    "reserve": 6,
-    "playoffs_from": 24
-   }
-  },
-  "8481668:8476902": {
-   "key": "8481668:8476902",
-   "label": "Add A. Silovs, drop E. Lindell",
-   "add": {
-    "name": "Arturs Silovs",
-    "team": "PIT",
-    "positions": "G"
-   },
-   "drop": "Esa Lindell",
-   "games": 4,
-   "weeks": [
-    {
-     "week": 2,
-     "gain": 10.639311096336144,
-     "confident": true
-    },
-    {
-     "week": 3,
-     "gain": 4.234569180548078,
-     "confident": true
-    },
-    {
-     "week": 4,
-     "gain": 10.937052134706477,
-     "confident": true
-    },
-    {
-     "week": 5,
-     "gain": -2.3537192159404867,
-     "confident": false
-    },
-    {
-     "week": 6,
-     "gain": 4.385903556158723,
-     "confident": false
-    },
-    {
-     "week": 7,
-     "gain": 5.956235153140199,
-     "confident": false
-    }
-   ],
-   "win": [
-    0.6991094791172342,
-    0.7741809816876791
-   ],
-   "next_two_weeks": 15.171621315254553,
-   "season": 15.171621315254553,
-   "verdict": "Not recommended: worth an add, but this week's go to Arturs Silovs",
-   "budget": {
-    "week": 2,
-    "used": [
-     2,
-     2
+     3,
+     3
     ],
     "pace": [
      1.3043478260869565,
