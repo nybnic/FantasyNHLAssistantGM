@@ -189,15 +189,15 @@
           null
         ],
         [
-          11.99,
-          133.59,
-          8478508,
+          12.51,
+          134.25,
+          8477451,
           null
         ],
         [
-          12.26,
-          130.81,
-          8480448,
+          11.99,
+          133.59,
+          8478508,
           null
         ],
         [
@@ -2255,10 +2255,10 @@
     }
   },
   "live_score": {
-    "at": "2026-10-06T02:41:26+00:00",
+    "at": "2026-10-06T02:47:17+00:00",
     "goalies": [
       0.0,
-      0.0
+      14.9
     ],
     "opponent": "Retrot Chicken Wings",
     "projected": [
@@ -2312,6 +2312,44 @@
       "drop_name": "Adam Larsson",
       "ir": {},
       "message_id": 246,
+      "type": "add"
+    },
+    "add-2026-10-05-0247-0": {
+      "add": {
+        "id": 8481596,
+        "name": "Shane Pinto",
+        "positions": [
+          "C"
+        ],
+        "slot": null,
+        "team": "OTT"
+      },
+      "add_slot": null,
+      "date": "2026-10-05",
+      "drop": null,
+      "drop_name": null,
+      "ir": {
+        "8484801": "IR"
+      },
+      "message_id": 253,
+      "type": "add"
+    },
+    "add-2026-10-05-0247-1": {
+      "add": {
+        "id": 8481668,
+        "name": "Arturs Silovs",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PIT"
+      },
+      "add_slot": null,
+      "date": "2026-10-05",
+      "drop": 8476457,
+      "drop_name": "Adam Larsson",
+      "ir": {},
+      "message_id": 254,
       "type": "add"
     },
     "add-2026-10-05-0513-0": {
@@ -2622,7 +2660,7 @@
         "win": 0.6991
       },
       "last": {
-        "at": "2026-10-06T02:41+00:00",
+        "at": "2026-10-06T02:47+00:00",
         "expected": [
           201.07,
           200.38
@@ -2914,7 +2952,7 @@
     "week": 1
   },
   "standings_rows": [],
-  "telegram_offset": 929784601,
+  "telegram_offset": 929784603,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
