@@ -18,7 +18,11 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The job's clock can start while it still waits for a runner: on
+    # 2026-10-05 GitHub took 5-10 min to start runs, and two never got one
+    # within 15 and were cancelled. The job limit leaves room for that wait;
+    # the bot's own step has the tight limit, for a run that hangs.
+    timeout-minutes: 30
     outputs:
       dashboard: ${{ steps.dashboard.outputs.changed }}
     env:
@@ -84,6 +88,7 @@ jobs:
       - name: Run Assistant GM
         # Until the Telegram secrets exist there's nothing to send: skip quietly.
         if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        timeout-minutes: 12
         env:
           ARCHIVE_WRITABLE: ${{ steps.archive_push.outcome == 'success' }}
         run: python main.py
