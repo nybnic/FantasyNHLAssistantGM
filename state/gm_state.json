@@ -1853,7 +1853,7 @@
             "LW",
             "RW"
           ],
-          "slot": "LW",
+          "slot": "BN",
           "team": "WSH"
         },
         {
@@ -1890,7 +1890,7 @@
           "positions": [
             "D"
           ],
-          "slot": "D",
+          "slot": "BN",
           "team": "DAL"
         },
         {
@@ -1936,7 +1936,7 @@
             "C",
             "LW"
           ],
-          "slot": "BN",
+          "slot": "LW",
           "team": "UTA"
         },
         {
@@ -1945,7 +1945,7 @@
           "positions": [
             "D"
           ],
-          "slot": "BN",
+          "slot": "D",
           "team": "BUF"
         }
       ],
@@ -2171,6 +2171,13 @@
       "date": "2026-10-03",
       "decision": "done",
       "rec_id": "lineup-2026-10-03-1631",
+      "type": "lineup"
+    },
+    {
+      "at": "2026-10-06T16:34:04+00:00",
+      "date": "2026-10-06",
+      "decision": "done",
+      "rec_id": "lineup-2026-10-06-1631",
       "type": "lineup"
     }
   ],
@@ -2793,27 +2800,6 @@
       "date": "2026-10-05",
       "message_id": 238,
       "type": "lineup"
-    },
-    "lineup-2026-10-06-1631": {
-      "assignment": {
-        "8474564": "RW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8476902": "BN",
-        "8477949": "BN",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8484801": "C",
-        "8485406": "RW"
-      },
-      "date": "2026-10-06",
-      "message_id": 255,
-      "type": "lineup"
     }
   },
   "relay_alert": "2026-09-29",
@@ -3262,7 +3248,7 @@
     "week": 1
   },
   "standings_rows": [],
-  "telegram_offset": 929784603,
+  "telegram_offset": 929784604,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
