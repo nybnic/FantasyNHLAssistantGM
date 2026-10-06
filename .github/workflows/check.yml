@@ -18,12 +18,13 @@ on:
           - check-sigma
           - venue-backtest
           - retro-forecast
+          - schedule
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
         required: false
       players:
-        description: Optional free agents for explain-week to score too, comma-separated, e.g. Jack Quinn, Quinton Byfield
+        description: Optional free agents for explain-week to score too (then every move is listed), comma-separated, e.g. Jack Quinn, Quinton Byfield
         type: string
         required: false
 
@@ -70,6 +71,8 @@ jobs:
             echo "players must be names separated by commas"; exit 1
           fi
           adds=()
+          top=60
+          [ -n "$PLAYERS" ] && top=1000
           IFS=',' read -ra names <<< "$PLAYERS"
           for n in "${names[@]}"; do
             n="${n#"${n%%[![:space:]]*}"}"; n="${n%"${n##*[![:space:]]}"}"
@@ -77,10 +80,11 @@ jobs:
           done
           case "$COMMAND" in
             dry-run) python main.py --dry-run --force ${NOW:+--now "$NOW"} ;;
-            explain-week) python -m scripts.explain_week --top 60 ${NOW:+--now "$NOW"} "${adds[@]}" ;;
+            explain-week) python -m scripts.explain_week --top "$top" ${NOW:+--now "$NOW"} "${adds[@]}" ;;
             trade-suggestions) time python main.py --dry-run --trade ;;
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
             venue-backtest) python -m scripts.backtest_venue ;;
             retro-forecast) python -m scripts.retro_forecast ;;
+            schedule) python -m scripts.schedule ;;
           esac
