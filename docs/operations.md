@@ -35,7 +35,9 @@ It sends nothing, commits nothing and gets no secrets; the output is the job
 log (public, like the repo). For a development sandbox without network access
 to the NHL and DailyFaceoff APIs. `explain-week` lists the top 60 moves and
 takes an optional `players` input (comma-separated free agents to score too,
-like `--add`; then every move is listed), e.g. to weigh a drop Nico is considering.
+like `--add`; then every move is listed), e.g. to weigh a drop Nico is considering,
+and an `ir` input (players of mine to treat as on IR+, `--ir`, this run only) for a
+move made in Yahoo that the bot hasn't been told about yet.
 `schedule` prints every NHL game day by day for this week and next
 (`scripts/schedule.py`).
 

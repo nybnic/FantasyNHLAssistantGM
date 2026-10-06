@@ -6,6 +6,7 @@ add/drop the bot weighed, ranked, with the reason each one passed or failed.
     python -m scripts.explain_week --position D      # only adds who play D
     python -m scripts.explain_week --add "Colton Parayko" --add "Ben Chiarot"   # score these too
     python -m scripts.explain_week --now 2026-10-05T12:00:00+03:00
+    python -m scripts.explain_week --ir "Macklin Celebrini"    # as if he sat on IR+ (moved, bot not told yet)
 
 Read-only: sends and saves nothing. Uses the committed state/ files, so
 `git pull` first to see what the bot sees.
@@ -30,6 +31,7 @@ def main_() -> None:
     parser.add_argument("--position", help="only adds eligible here (C, LW, RW, D, G)")
     parser.add_argument("--add", action="append", default=[], help="also score this free agent")
     parser.add_argument("--now", help="ISO time with offset (default: now)")
+    parser.add_argument("--ir", action="append", default=[], help="treat this player of mine as on IR+ (this run only)")
     args = parser.parse_args()
 
     now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
@@ -38,6 +40,8 @@ def main_() -> None:
     if week is None:
         raise SystemExit(f"{date} is outside the fantasy season")
     state, players, league = gm_state.load(), roster_mod.load(), teams.load()
+    for name in mark_ir(players, args.ir):
+        print(f"  ({name} isn't on my roster: --ir ignored)")
     opponent = common.current_opponent(state, week)
     if not opponent:
         raise SystemExit(f"Week {week} has no known opponent (playoffs: /opp Team Name)")
@@ -86,6 +90,19 @@ def main_() -> None:
               f"{m.games:6} {m.week_gain:+6.1f} {m.long_term:+6.1f} {100 * (m.win_after - m.win_before):+5.1f} "
               f"{100 * m.later_value:+6.1f} {100 * m.value:+6.1f}  "
               f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'WORTH AN ADD'}")
+
+
+def mark_ir(players: list, names: list[str]) -> list[str]:
+    """Moves the named players of mine to IR+ in memory (state is untouched);
+    returns the names that matched nobody."""
+    by_name = {normalize_name(p.name): p for p in players}
+    missing = []
+    for name in names:
+        if p := by_name.get(normalize_name(name)):
+            p.slot = "IR+"
+        else:
+            missing.append(name)
+    return missing
 
 
 def print_players(name: str, roster: list, team: matchup.TeamWeek, wk) -> None:
