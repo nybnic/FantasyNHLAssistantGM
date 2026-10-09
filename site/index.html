@@ -79,6 +79,22 @@
   .cell.s-start { border: 2px solid var(--blue); }
   .cell.s-bench { border: 2px solid var(--orange); }
   tr.sep td { border-top: 1px solid var(--grid); padding-top: 6px; }
+  .grid th.today { color: var(--text); font-weight: 600; }
+  .tabs { float: right; display: flex; border: 1px solid var(--grid); border-radius: 8px; overflow: hidden; }
+  .tabs button { background: none; border: 0; color: var(--text-2); font-size: 12px; padding: 4px 10px; cursor: pointer; }
+  .tabs button.on { background: var(--blue); color: var(--on-blue); }
+  .badge { font-size: 10px; font-weight: 600; color: var(--on-blue); background: var(--blue); border-radius: 4px;
+           padding: 0 4px; margin-right: 5px; }
+  tr.planrow .name { font-weight: 600; }
+  .toggle { display: block; font-size: 13px; color: var(--text-2); margin-top: 6px; }
+  .dots { display: flex; gap: 2px; justify-content: center; align-items: center; height: 20px; }
+  .dots.square { flex-wrap: wrap; width: 16px; margin: 0 auto; gap: 2px; align-content: center; }
+  .dots i { display: block; flex: none; width: 7px; height: 7px; border-radius: 50%; box-sizing: border-box; }
+  .dots i.d-full { background: var(--blue); }
+  .dots i.d-empty { border: 1px solid var(--muted); }
+  .dots i.d-added { background: var(--aqua); }
+  .dots i.d-freed { border: 2px solid var(--aqua); }
+  .lost { color: var(--orange); font-weight: 600; }
   .open { font-weight: 600; }
   .zero { color: var(--muted); }
   /* move table */
@@ -309,31 +325,61 @@ function valueCard() {
   return card;
 }
 
-// ---- schedule grid -------------------------------------------------------------
-function grid() {
-  const s = data.schedule;
-  const card = el("section", { class: "card" });
-  card.append(el("h2", {}, "Games by day"));
-  card.append(el("div", { class: "note" }, "Who starts, games lost to a full lineup, open slots, and the best streamer per position."));
-  const table = el("table", { class: "grid" });
+// ---- schedule grid: by player, or by slot ------------------------------------------
+let gridView = "player", gridPlan = true;
+try { gridView = localStorage.getItem("gridView") || "player"; } catch (e) {}
+function gridHead(s, table) {
   const thead = el("thead"), weeks = el("tr"), days = el("tr");
   weeks.append(el("th", { class: "name" }, ""));
   days.append(el("th", { class: "name" }, ""));
-  const brk = i => i > 0 && s.days[i].week !== s.days[i - 1].week;
   let run = [];
-  s.days.forEach((d, i) => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0 }); run.at(-1).n++; });
+  s.days.forEach(d => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0 }); run.at(-1).n++; });
   run.forEach((r, k) => {
     const w = s.weeks[k] || { week: r.week, opponent: "" };
     weeks.append(el("th", { colspan: r.n, class: "wkh" + (k ? " brk" : "") }, `Week ${w.week} vs ${w.opponent}`));
   });
-  s.days.forEach((d, i) => days.append(el("th", { class: brk(i) ? "brk" : "" }, `${d.label} ${d.day}`)));
+  s.days.forEach((d, i) => days.append(el("th", { class: (brk(s, i) ? "brk" : "") + (d.date === data.date ? " today" : "") },
+                                          `${d.label} ${d.day}`)));
   thead.append(weeks, days);
-  const tbody = el("tbody");
+  table.append(thead);
+}
+const brk = (s, i) => i > 0 && s.days[i].week !== s.days[i - 1].week;
+function countRows(s, tbody, rows) {
+  rows.forEach(([name, vals, cls], k) => {
+    const tr = el("tr", { class: k === 0 ? "sep" : "" });
+    tr.append(el("td", { class: "name" }, name));
+    vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brk(s, i) ? "brk " : "") + (cls ? cls(v) : "") },
+                                         cls && !v ? "·" : v)));
+    tbody.append(tr);
+  });
+}
+function addRows(s, tbody, rows, plan) {
+  rows.forEach((r, k) => {
+    const tr = el("tr", { class: (k === 0 ? "sep" : "") + (plan ? " planrow" : "") });
+    const name = el("td", { class: "name" });
+    if (plan) name.append(el("span", { class: "badge" }, "Plan"));
+    name.append(document.createTextNode(`+ ${r.name} ${r.positions}`));
+    tr.append(name);
+    r.cells.forEach((c, i) => {
+      const td = el("td", { class: brk(s, i) ? "brk" : "" });
+      if (c) {
+        const box = el("div", { class: `cell s-${c}` });
+        hover(box, [`${r.name} ${c === "start" ? "would start" : "would play, no slot free"}`,
+                    plan ? `In the plan${r.drop ? ` for ${r.drop}` : ""}${r.when ? `, from ${fmtDay(r.when)}` : ""}`
+                         : `Best streamer${r.drop ? ` for ${r.drop}` : ""}`]);
+        td.append(box);
+      }
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+}
+function byPlayer(s, tbody) {
   s.rows.forEach(r => {
     const tr = el("tr");
     tr.append(el("td", { class: "name" }, `${r.name} ${r.positions}`));
     r.cells.forEach((c, i) => {
-      const td = el("td", { class: brk(i) ? "brk" : "" });
+      const td = el("td", { class: brk(s, i) ? "brk" : "" });
       if (c) {
         const prob = r.probs[i];
         const box = el("div", { class: `cell ${c}` }, prob != null ? Math.round(prob * 100) : "");
@@ -345,33 +391,79 @@ function grid() {
     });
     tbody.append(tr);
   });
-  (s.streamers || []).forEach((r, k) => {
-    const tr = el("tr", { class: k === 0 ? "sep" : "" });
-    tr.append(el("td", { class: "name" }, `+ ${r.name} ${r.positions}`));
-    r.cells.forEach((c, i) => {
-      const td = el("td", { class: brk(i) ? "brk" : "" });
-      if (c) td.append(el("div", { class: `cell s-${c}` }));
+  addRows(s, tbody, s.plan || [], true);
+  addRows(s, tbody, s.streamers || [], false);
+  const positions = Object.keys(s.slots || (s.open[0] || {}));
+  countRows(s, tbody, positions.map(p => [`Open ${p}`, s.open.map(o => o[p]), v => v ? "open" : "zero"])
+    .concat([["Your lineup games", s.my_games], ["Their lineup games", s.their_games]]));
+}
+function bySlot(s, tbody) {
+  const plan = gridPlan && s.with_plan ? s.with_plan : null;
+  const open = plan ? plan.open : s.open;
+  Object.entries(s.slots).forEach(([pos, cap]) => {
+    const tr = el("tr");
+    tr.append(el("td", { class: "name" }, `${pos} ×${cap}`));
+    s.days.forEach((d, i) => {
+      const td = el("td", { class: brk(s, i) ? "brk" : "" });
+      const was = cap - s.open[i][pos], now = cap - open[i][pos];
+      const dots = el("div", { class: "dots" + (cap > 3 ? " square" : "") });  // 4 D slots: 2 x 2
+      for (let k = 0; k < cap; k++) {
+        const kind = k < Math.min(was, now) ? "full" : k < now ? "added" : k < was ? "freed" : "empty";
+        dots.append(el("i", { class: `d-${kind}` }));
+      }
+      hover(dots, [`${pos}, ${d.label} ${d.day}`, `${now} of ${cap} slots filled`]
+        .concat(now > was ? [`${now - was} filled by the plan`] : now < was ? [`${was - now} freed by the plan`] : [])
+        .concat(open[i][pos] ? [`${open[i][pos]} open: a streamer could play`] : []));
+      td.append(dots);
       tr.append(td);
     });
     tbody.append(tr);
   });
-  const positions = s.open.length ? Object.keys(s.open[0]) : [];
-  positions.map(p => [`Open ${p}`, s.open.map(o => o[p]), true])
-    .concat([["Your lineup games", s.my_games, false], ["Their lineup games", s.their_games, false]])
-    .forEach(([name, vals, isOpen], k) => {
-      const tr = el("tr", { class: k === 0 ? "sep" : "" });
-      tr.append(el("td", { class: "name" }, name));
-      vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brk(i) ? "brk " : "") + (isOpen ? (v ? "open" : "zero") : "") }, isOpen && !v ? "·" : v)));
-      tbody.append(tr);
-    });
-  table.append(thead, tbody);
+  const benched = plan ? plan.benched : s.benched;
+  countRows(s, tbody, [["Games lost (lineup full)", benched, v => v ? "lost" : "zero"],
+                       ["Your lineup games", plan ? plan.my_games : s.my_games],
+                       ["Their lineup games", s.their_games]]);
+}
+function grid() {
+  const s = data.schedule;
+  const card = el("section", { class: "card" });
+  const tabs = el("div", { class: "tabs", role: "tablist" });
+  [["player", "By player"], ["slot", "By slot"]].forEach(([v, name]) => {
+    const b = el("button", { type: "button", role: "tab", "aria-selected": String(gridView === v), class: gridView === v ? "on" : "" }, name);
+    b.onclick = () => { gridView = v; try { localStorage.setItem("gridView", v); } catch (e) {} render(); };
+    tabs.append(b);
+  });
+  card.append(tabs, el("h2", {}, "Games by day"));
+  card.append(el("div", { class: "note" }, gridView === "player"
+    ? "Who starts, games lost to a full lineup, the plan's adds and the best streamer per position."
+    : "Your lineup slots each night: open ones are where an add would play."));
+  if (gridView === "slot" && s.with_plan) {
+    const label = el("label", { class: "toggle" });
+    const box = el("input", { type: "checkbox" });
+    box.checked = gridPlan;
+    box.onchange = () => { gridPlan = box.checked; render(); };
+    label.append(box, document.createTextNode(" With the plan's moves"));
+    card.append(label);
+  }
+  const table = el("table", { class: "grid" });
+  gridHead(s, table);
+  const tbody = el("tbody");
+  (gridView === "slot" && s.slots ? bySlot : byPlayer)(s, tbody);
+  table.append(tbody);
   const scroll = el("div", { class: "scroll" });
   scroll.append(table);
   card.append(scroll);
   const legend = el("div", { class: "legend" });
-  legend.append(key("--blue", "Starts"), key("--orange", "Plays, no slot free"));
-  const outline = el("span"); const i = el("i"); i.style.border = `2px solid ${css("--blue")}`; outline.append(i, document.createTextNode("Streamer fills a slot"));
-  legend.append(outline, el("span", {}, "Goalie cells: % chance to start"));
+  const ring = (token, text, width = 2) => {
+    const sp = el("span"); const i = el("i"); i.style.border = `${width}px solid ${css(token)}`; sp.append(i, document.createTextNode(text)); return sp;
+  };
+  if (gridView === "player") {
+    legend.append(key("--blue", "Starts"), key("--orange", "Plays, no slot free"), ring("--blue", "An add would start"),
+                  el("span", {}, "Goalie cells: % chance to start"));
+  } else {
+    legend.append(key("--blue", "Filled"), ring("--muted", "Open", 1));
+    if (s.with_plan && gridPlan) legend.append(key("--aqua", "Filled by the plan"), ring("--aqua", "Freed by the plan"));
+  }
   card.append(legend);
   return card;
 }

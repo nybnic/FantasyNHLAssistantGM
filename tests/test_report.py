@@ -83,3 +83,19 @@ def test_a_result_says_who_missed_the_goalie_minimum_and_a_week_in_progress_is_s
 
 def test_the_result_chart_draws():
     assert charts.result_chart(_result([20.0, 30.0], [40.0, 40.0])).startswith(b"\x89PNG")
+
+
+def test_the_plans_adds_get_a_grid_row_and_the_slots_show_what_the_plan_changes():
+    knight = RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G")
+    mine = _team(0, {THU: 5.0, FRI: 5.0}, {THU: {3: ("G", 0.6)}, FRI: {}})
+    with_plan = _team(0, {THU: 9.0, FRI: 5.0}, {THU: {3: ("G", 0.6), 1: ("C", 1.0)}, FRI: {1: ("BN", 1.0)}})
+    kelly = _move(1, "Parker Kelly", 0.5)
+    stream_kelly = {"position": "C", "move": kelly, "next_gain": 1.0, "this_week": with_plan, "next_week": None}
+    view = report.schedule_view([knight], [(1, "Bahelin Boys", mine, mine)], [stream_kelly], [],
+                                [{"move": kelly, "this_week": with_plan, "next_week": None, "when": THU}], [with_plan])
+    assert [(r["name"], r["plan"], r["cells"], r["when"]) for r in view["plan"]] == [
+        ("P. Kelly", True, ["start", "bench"], "2026-10-01")]
+    assert view["streamers"] == []  # the plan's add isn't listed twice
+    assert view["open"][0]["C"] == 2 and view["with_plan"]["open"][0]["C"] == 1
+    assert view["with_plan"]["my_games"] == [2, 0] and view["with_plan"]["benched"] == [0, 1]
+    assert view["slots"]["D"] == 4 and view["benched"] == [0, 0]

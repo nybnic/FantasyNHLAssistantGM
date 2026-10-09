@@ -29,24 +29,66 @@ def move_key(m: matchup.Move) -> str:
     return f"{m.add.id}:{m.drop.id if m.drop else 0}" + (":IR" if m.ir_slot else "")
 
 
+def _slots(day: dict) -> tuple[int, dict[str, int], int]:
+    """(lineup games, open starting slots by position, games lost to a full lineup) of one day's lineup."""
+    starting = [slot for slot, _ in day.values() if slot != BENCH]
+    benched = sum(slot == BENCH for slot, _ in day.values())
+    return len(starting), {pos: n - starting.count(pos) for pos, n in STARTERS.items()}, benched
+
+
+def _add_row(entry: dict, days: list[dict], plan: bool = False) -> dict:
+    """An added player's row: where he'd slot in on each day, over the trial
+    lineups of this week and next (entry: {"move", "this_week", "next_week"},
+    and for a planned move its "when")."""
+    m = entry["move"]
+    merged, starts = {}, 0.0
+    for wk in (entry["this_week"], entry["next_week"]):
+        for d, day in (wk.lineups if wk else {}).items():
+            if m.add.id in day:
+                slot, prob = day[m.add.id]
+                merged[d.isoformat()] = "start" if slot != BENCH else "bench"
+                starts += prob if slot != BENCH else 0.0
+    cells = [merged.get(d["date"]) for d in days]
+    return {"key": move_key(m), "name": _short(m.add.name), "positions": "/".join(m.add.positions),
+            "team": m.add.team, "drop": _short(m.drop.name) if m.drop else None, "cells": cells,
+            "slot_games": cells.count("start"), "slot_starts": round(starts, 2) if m.add.is_goalie else None,
+            "gain": [m.week_gain, entry.get("next_gain", 0.0)], "plan": plan,
+            "when": entry["when"].isoformat() if entry.get("when") else None}
+
+
 def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchup.TeamWeek, matchup.TeamWeek]],
-                  streamers: list[dict] | None = None, recommended: list[matchup.Move] = ()) -> dict:
+                  streamers: list[dict] | None = None, recommended: list[matchup.Move] = (),
+                  plan: list[dict] = (), after: list[matchup.TeamWeek | None] = ()) -> dict:
     """My active players by day over the given weeks ((week, opponent, my week,
     their week)): "start" (in the best lineup), "bench" (plays, but no slot is
-    free), or None (no game); goalies carry their start odds. Then the best
-    streamer per position (matchup.streamers) on the same days, as he'd slot
-    in, and below: open starting slots, and both teams' lineup games per day."""
-    days, my_games, their_games, open_slots, cells = [], [], [], [], {}
+    free), or None (no game); goalies carry their start odds. Then the plan's
+    adds (`plan`: as streamers, with "when") and the best streamer per position
+    (matchup.streamers) on the same days, as they'd slot in, and below: open
+    starting slots, games lost to a full lineup, and both teams' lineup games
+    per day; with `after` (my weeks with the plan made, one per span), the
+    open slots and games with the plan too."""
+    days, my_games, their_games, open_slots, benched, cells = [], [], [], [], [], {}
     for week, _, mine, theirs in spans:
         for d in sorted(mine.lineups):
             day = mine.lineups[d]
             days.append({"date": d.isoformat(), "label": f"{d:%a}", "day": d.day, "week": week})
-            starting = [slot for slot, _ in day.values() if slot != BENCH]
-            my_games.append(len(starting))
+            games, open_now, lost = _slots(day)
+            my_games.append(games)
             their_games.append(sum(slot != BENCH for slot, _ in theirs.lineups.get(d, {}).values()))
-            open_slots.append({pos: n - starting.count(pos) for pos, n in STARTERS.items()})
+            open_slots.append(open_now)
+            benched.append(lost)
             for pid, (slot, prob) in day.items():
                 cells.setdefault(pid, {})[d.isoformat()] = ("start" if slot != BENCH else "bench", prob)
+    with_plan = None
+    if plan and after:
+        lineups = {d.isoformat(): day for wk in after if wk for d, day in wk.lineups.items()}
+        with_plan = {"open": [], "my_games": [], "benched": []}
+        for d, games, open_now, lost in zip(days, my_games, open_slots, benched):
+            if d["date"] in lineups:
+                games, open_now, lost = _slots(lineups[d["date"]])
+            with_plan["open"].append(open_now)
+            with_plan["my_games"].append(games)
+            with_plan["benched"].append(lost)
     players = sorted(active(roster), key=lambda p: (POSITION_ORDER.index(p.positions[0]), p.name))
     rows = []
     for p in players:
@@ -55,24 +97,18 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
                      "cells": [mine.get(d["date"], (None, None))[0] for d in days],
                      "probs": [mine[d["date"]][1] if p.is_goalie and d["date"] in mine else None for d in days]})
     chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
+    planned = {entry["move"].add.id for entry in plan}
+    plan_rows = [_add_row(entry, days, plan=True) for entry in plan]
     stream_rows = []
     for st in streamers or []:
-        m = st["move"]
-        merged, starts = {}, 0.0
-        for wk in (st["this_week"], st["next_week"]):
-            for d, day in (wk.lineups if wk else {}).items():
-                if m.add.id in day:
-                    slot, prob = day[m.add.id]
-                    merged[d.isoformat()] = "start" if slot != BENCH else "bench"
-                    starts += prob if slot != BENCH else 0.0
-        cells = [merged.get(d["date"]) for d in days]
-        stream_rows.append({"key": move_key(m), "name": _short(m.add.name), "positions": "/".join(m.add.positions), "team": m.add.team,
-                            "drop": _short(m.drop.name) if m.drop else None, "cells": cells,
-                            "slot_games": cells.count("start"),
-                            "slot_starts": round(starts, 2) if m.add.is_goalie else None, "gain": [m.week_gain, st["next_gain"]],
-                            "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen})
-    return {"days": days, "rows": rows, "streamers": stream_rows, "open": open_slots, "my_games": my_games,
-            "their_games": their_games, "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}
+        if st["move"].add.id in planned:
+            continue  # shown once, as the plan's
+        row = _add_row(st, days)
+        row["recommended"] = (st["move"].add.id, st["move"].drop.id if st["move"].drop else None) in chosen
+        stream_rows.append(row)
+    return {"days": days, "rows": rows, "plan": plan_rows, "streamers": stream_rows, "open": open_slots,
+            "benched": benched, "my_games": my_games, "their_games": their_games, "with_plan": with_plan,
+            "slots": dict(STARTERS), "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}
 
 
 def budget_view(adds: list[dict], week: int) -> dict:

@@ -351,7 +351,7 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
 
 
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
-               ranked: list, moves: list) -> dict:
+               ranked: list, moves: list, plan: list = ()) -> dict:
     """The dashboard's schedule grid (this week and next, with the best
     streamer per position) and the add budget."""
     spans = [(week, current_opponent(state, week), wk.me, wk.them)]
@@ -362,8 +362,30 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         spans.append((nxt.week, opp or "?", nxt.mine, theirs))
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
                                 wk.available_from)
-    return {"schedule": report.schedule_view(players, spans, streams, moves),
+    plan_entries, after = plan_weeks(players, plan, wk, nxt)
+    return {"schedule": report.schedule_view(players, spans, streams, moves, plan_entries, after),
             "budget": report.budget_view(state["adds"], week)}
+
+
+def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tuple[list[dict], list]:
+    """My roster with the whole plan made, each move from its day (an add
+    counts from then, his drop until then), projected over this week and next:
+    each planned add's grid row, and the weeks for the grid's "with the plan"."""
+    if not plan:
+        return [], []
+    roster, joins, leaves = players, {}, {}
+    for q in plan:
+        m = q.move
+        roster = matchup._swap(roster, m.add, None, m.ir_slot or roster_mod.BENCH)
+        joins[m.add.id] = max(q.when, m.plays_from or q.when)
+        if m.drop:
+            leaves[m.drop.id] = joins[m.add.id]
+    this_week = matchup.project(MY_TEAM, roster, wk.ctx, wk.schedule, wk.lines, wk.starters, joins=joins,
+                                so_far=wk.so_far, leaves=leaves)
+    next_week_ = (matchup.project(MY_TEAM, roster, wk.ctx, nxt.schedule, wk.lines, wk.starters, True, joins,
+                                  leaves=leaves) if nxt.week else None)
+    entries = [{"move": q.move, "this_week": this_week, "next_week": next_week_, "when": q.when} for q in plan]
+    return entries, [this_week, next_week_]
 
 
 DASHBOARD_MOVES = 60  # the move table's rows (the Board keeps every one)
@@ -619,7 +641,7 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     changed = verdict.reason if not verdict.keep and old_open else ""
     odds_note = _safe(season_odds, state, wk, week)
     b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed)
-    views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves)
+    views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.plan)
     data = _safe(dashboard_data, b, p, views, date, changed) if b else None
     if data:
         _safe(write_dashboard, data, outbox.settings.dry_run)
