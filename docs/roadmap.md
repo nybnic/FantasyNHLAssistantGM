@@ -3,14 +3,36 @@
 Pick the top item unless Nico names another. Each item has a short "done when".
 Move finished items to the log at the bottom, with the commit.
 
-## Direction (2026-10-01)
-Yahoo covers live scores, projections, Start Active and goalie-minimum warnings.
-The bot's edge is the **add decision**: spend the 36 adds where they change a
-week's result, save them where they don't, and show that trade-off this week and
-over the season. Input is mobile screenshots; output is Telegram plus charts.
+## Direction (2026-10-09, `docs/plan-2026-10-09.md`)
+Back to the core: one engine, one ranked add/drop table, one source of truth.
+inputs (ledger) -> **Board** (one per run, archived) -> rule -> views (Telegram, dashboard).
+Moves are scored in expected wins over this week and the next two (played against
+the real opponents and schedules) plus shrunk later points; the add price is in
+the same unit. A committed plan changes only when it can't be done or something
+beats it by 0.02 wins, and says why. Telegram is for the action (4-6 lines, cards
+once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating.
+(Earlier direction, 2026-10-01: the edge is the add decision; still true.)
 
-## Next
-From `docs/plan-2026-10-03.md` (Nico: order as proposed), plus the 2026-10-03 review.
+## Next (Nico, 2026-10-09: D1-D5 as proposed)
+1. **Board + ledger, no behavior change.** The engine's output becomes the Board; `explain_week`,
+   the plan message and the dashboard read it; facts and message bookkeeping split in state.
+   Done when: the dry run and `explain_week` print the same Board, the plan identical on today's state.
+2. **Honest values.** Weeks w+1, w+2 against their real opponents; error band and later-points
+   shrink backtested (fit 2024-25, check 2025-26); the "when" column; the 0.84 margin finding in
+   P(win) (absorbs projection accuracy, old item 2). Done when: numbers logged, `check_sigma` re-run.
+3. **The rule and the messages.** Commitment (0.02 wins), change reasons, cards once, a screenshot
+   updates the score, the 4-6 line plan; the goalie line, season line, stance, biggest swing,
+   can-wait, streamer table and news check fold into the Board (absorbs the message layer, old item 3).
+   Done when: week 2's state replayed gives a handful of cards, each change with a reason.
+4. **Visuals.** Dashboard rebuilt around the Board; the Telegram image a headless-Chromium screenshot
+   of it. Done when: Nico OKs the look on his phone.
+5. **One replay harness** (2025-26): expected wins, playoff/title odds, plan changes a week, adds used;
+   every later rule change ships with its numbers.
+
+Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
+streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
+
+### Previous Next (2026-10-03)
 Nico, each Monday: League > Transactions, Standings and All Matchups screenshots (All Matchups
 before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams). See `docs/data.md`.
 1. Logging: weekly xFP snapshot, league moves, every team's weekly score and Yahoo projection
