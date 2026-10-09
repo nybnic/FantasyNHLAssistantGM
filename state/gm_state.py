@@ -1,4 +1,8 @@
-"""Run-to-run memory, committed back to the repo by the workflow:
+"""Run-to-run memory, committed back to the repo by the workflow. One dict in
+memory, two files on disk: ledger.json holds the season's record (LEDGER_KEYS:
+adds, decisions, league moves, rosters by day, standings, scores, results,
+forecasts, add candidates), gm_state.json the run's bookkeeping. The latest
+plan's numbers are in board.json (bot/board.py). The keys:
 - telegram_offset: next Telegram update id to read
 - briefings: per game date, what was recommended/sent (so nothing repeats)
 - pending: recommendations awaiting a Done/Skip tap
@@ -74,6 +78,12 @@ from zoneinfo import ZoneInfo
 NHL_TIME = ZoneInfo("America/New_York")
 
 STATE_FILE = Path("state/gm_state.json")
+# The ledger: what happened and what the bot forecast, the season's record
+# (docs/plan-2026-10-09.md). In memory it's one dict with the rest; on disk
+# these keys live in ledger.json next to the state file, which keeps the run's
+# own bookkeeping (Telegram offset, pending cards, screenshot buffers, flags).
+LEDGER_KEYS = ("adds", "decisions", "transactions_seen", "league_adds", "day_rosters", "standings",
+               "live_score", "results", "league_weeks", "add_pools", "seen_mine", "opponents")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
 KEEP_TRANSACTIONS = 3000  # a season of league moves (who, when) is the opponent and stash evidence
@@ -113,8 +123,18 @@ def add_players(rec: dict) -> dict:
             "drop_name": rec.get("drop_name")}
 
 
+def ledger_path(path: Path) -> Path:
+    return path.with_name("ledger.json")
+
+
 def load(path: Path = STATE_FILE) -> dict:
     state = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    ledger = ledger_path(path)
+    if ledger.exists():
+        # A ledger key still in the state file was written there by a run from
+        # before the split, after the ledger's last write: it is the newer.
+        for key, value in json.loads(ledger.read_text(encoding="utf-8")).items():
+            state.setdefault(key, value)
     state.setdefault("telegram_offset", 0)
     state.setdefault("briefings", {})
     state.setdefault("pending", {})
@@ -196,4 +216,7 @@ def save(state: dict, today: dt.date, path: Path = STATE_FILE) -> None:
     state["add_pools"] = {w: p for w, p in state["add_pools"].items()
                           if int(w) > max(map(int, state["add_pools"]), default=0) - KEEP_POOL_WEEKS}
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+    ledger = {k: v for k, v in state.items() if k in LEDGER_KEYS}
+    run = {k: v for k, v in state.items() if k not in LEDGER_KEYS}
+    ledger_path(path).write_text(json.dumps(ledger, indent=2, sort_keys=True), encoding="utf-8")
+    path.write_text(json.dumps(run, indent=2, sort_keys=True), encoding="utf-8")

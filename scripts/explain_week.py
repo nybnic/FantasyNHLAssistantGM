@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 
-from bot import common, weekly
+from bot import board, common, weekly
 from clients.names import normalize_name
 from engine import matchup
 from league import roster as roster_mod
@@ -46,7 +46,21 @@ def main_() -> None:
     if not opponent:
         raise SystemExit(f"Week {week} has no known opponent (playoffs: /opp Team Name)")
 
-    wk = weekly.week_inputs(date, week, players, league, state, context.build, opponent)
+    pool = common.free_agents(players, league)
+    by_name = {normalize_name(p.name): p for p in pool}
+    extra = []
+    for name in args.add:
+        p = by_name.get(normalize_name(name))
+        if p:
+            extra.append(p)
+        else:
+            print(f"  ({name} isn't a free agent here: on a roster, /taken, or not on an NHL roster)")
+
+    # The plan's own computation and its Board: what the plan message is built from.
+    plan = weekly.plan_moves(state, players, league, date, week, opponent, context.build, extra)
+    wk = plan.wk
+    price = wk.price if wk.max_moves else None
+    keeper = matchup.can_wait(plan.ranked, plan.moves, price, plan.held)
     print(f"Week {week} ({wk.days[0]} - {wk.days[-1]}) vs {opponent}, as of {date}")
     for t in (wk.me, wk.them):
         print(f"  {t.name:24} so far {t.so_far:6.1f}  expected {t.expected:6.1f} +/- {t.variance ** 0.5:4.1f}  "
@@ -58,38 +72,28 @@ def main_() -> None:
     print("\n  Every team's week, as the first plan logs it (expected +/- sd):")
     for team, t in sorted(copy["league_weeks"][str(week)]["ours"]["teams"].items(), key=lambda kv: -kv[1]["expected"]):
         print(f"    {team[:24]:24} {t['expected']:6.1f} +/- {t['sd']:4.1f}")
-    candidates = weekly.add_candidates(wk, weekly.next_week(week, players, wk))
-    by_name = {normalize_name(p.name): p for p in wk.pool}
-    for name in args.add:
-        p = by_name.get(normalize_name(name))
-        if not p:
-            print(f"  ({name} isn't a free agent here: on a roster, /taken, or not on an NHL roster)")
-        elif p not in candidates:
-            candidates.append(p)
-    if args.position:
-        candidates = [p for p in candidates if args.position.upper() in p.positions]
-
-    ranked = matchup.candidate_moves(players, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
-                                     wk.later_weight)
-    price = weekly.add_price(state, week, wk, ranked, date)
-    print(f"  P(win) {matchup.win_prob(wk.me, wk.them):.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
-          f"{wk.max_moves} allowed now; matchup spread tau {wk.tau:.1f} pts, a later point = "
-          f"{100 * wk.later_weight:.2f} win-pts")
-    print("  add price: " + (f"{100 * price.lam:.1f} win-pts (pace {price.pace:.2f} adds a week, "
-                             f"{len(state['add_pools'])} week(s) of candidates logged)" if price
+    b = board.build(plan, week, opponent, now, date, keeper)
+    h = b["header"]
+    print(f"\n  P(win) {h['win']:.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
+          f"{h['adds_left']['week']} allowed now; matchup spread tau {h['tau']:.1f} pts, a later point = "
+          f"{100 * h['later_weight']:.2f} win-pts")
+    print("  add price: " + (f"{100 * h['price']['lam']:.1f} win-pts (pace {h['price']['pace']:.2f} adds a week, "
+                             f"{len(state['add_pools'])} week(s) of candidates logged)" if h["price"]
                              else "none (no adds left this week: everyone joins Monday)" if not wk.max_moves
                              else "none (budget spent)")
           + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from and wk.max_moves else ""))
-    print(f"\n{len(ranked)} moves from {len(candidates)} free agents (value = this week's win-pts + later win-pts):")
-    print(f"  {'add':22} {'pos':5} {'drop':18} {'wk gms':>6} {'week':>6} {'later':>6} {'now':>5} {'+later':>6} "
-          f"{'value':>6}  win     verdict")
-    for m in ranked[:args.top]:
-        verdict = matchup.rejection(m, price) if price else "no adds left"
-        print(f"  {m.add.name[:22]:22} {'/'.join(m.add.positions):5} {(m.drop.name if m.drop else f'({m.ir_slot} stash)' if m.ir_slot else '(open spot)')[:18]:18} "
-              f"{m.games:6} {m.week_gain:+6.1f} {m.long_term:+6.1f} {100 * (m.win_after - m.win_before):+5.1f} "
-              f"{100 * m.later_value:+6.1f} {100 * m.value:+6.1f}  "
-              f"{m.win_before:.0%}->{m.win_after:.0%}  {verdict or 'WORTH AN ADD'}")
+    if b["plan"]["ir"]:
+        print("  the adds assume these IR moves: " + ", ".join(f"{m['name']} to {m['slot']}" for m in b["plan"]["ir"]))
+    print("  plan: " + ("; ".join(_label(b, k) for k in b["plan"]["now"]) or "no add now")
+          + (f"; waits: {_label(b, b['plan']['waits'])}" if b["plan"]["waits"] else ""))
+    print(f"\n{len(b['moves'])} moves (value = this week's win-pts + later win-pts; now: the plan's adds, "
+          "passes: worth an add but not taken, fails: under the price):")
+    print("\n".join(board.table(b, args.top, args.position)))
+
+
+def _label(b: dict, key: str) -> str:
+    r = next(r for r in b["moves"] if r["key"] == key)
+    return r["add"]["name"] + (f" for {r['drop']['name']}" if r["drop"] else "")
 
 
 def mark_ir(players: list, names: list[str]) -> list[str]:

@@ -16,14 +16,14 @@ screenshots (team pages, matchups, transactions from the app, website or league 
 | Path | What lives there |
 |---|---|
 | `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
-| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan, news check, results, Monday's report), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan, news check, results, Monday's report), `board.py` (the plan as one record: the Board), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule, calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` |
 | `engine/` | Decisions: daily lineup, availability, weekly matchup and add/drops. See `engine/CLAUDE.md` |
 | `league/` | Rosters: mine (`roster.py`), other teams (`teams.py`), Yahoo text parser, fantasy weeks |
 | `clients/` | Data: NHL APIs, DailyFaceoff (lines, goalies, projections), disk cache, screenshot OCR |
 | `notify/telegram.py` | Bot API calls |
-| `state/` | Bot-owned JSON, committed by every run (roster, league, gm_state) |
+| `state/` | Bot-owned JSON, committed by every run: roster, league, `ledger.json` (the season's record), `gm_state.json` (run bookkeeping), `board.json` (the latest plan: every add/drop weighed) |
 | `scripts/` | One-off tools: seeding, backtest, explain_week, compare_yahoo, xfp_table |
 | `site/` | The dashboard: `index.html` (ours), `data.json` (written by each weekly plan), on GitHub Pages |
 | `relay/` | Cloudflare Worker for instant Telegram replies |

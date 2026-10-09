@@ -49,7 +49,7 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 | File / field | Holds | Used for |
 |---|---|---|
 | `roster.json`, `league.json`, `positions.json` | All 16 rosters, waivers, how current league moves are, Yahoo eligibility | Every lineup, add and trade decision |
-| `gm_state.json` `adds`, `decisions` | Every add made, every tap | The add budget; how suggested adds turned out (`scripts/scorecard.py`) |
+| `ledger.json` `adds`, `decisions` | Every add made, every tap | The add budget; how suggested adds turned out (`scripts/scorecard.py`) |
 | `results[week]` | Our plan's forecast of my matchup (first and latest), the final, live checks (Yahoo's score and projection vs box scores), `yahoo_first`, `yahoo_final` | Checking P(win) and its spread (`scripts/check_sigma.py`) |
 | `league_weeks[week]` | Pairings; each team's Yahoo score and projection (latest, and `first`), and from the website `orig_proj` / `live_proj`; `ours`: our forecast of all 16 teams at the week's first plan | Season odds; scoring our forecasts against Yahoo's, 16 team-weeks a week (roadmap item 7) |
 | `standings` | W-L-T and points for | Playoff and title odds (`engine/season.py`) |

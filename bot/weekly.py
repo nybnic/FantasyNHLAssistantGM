@@ -19,6 +19,7 @@ from league import teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import charts
+from bot import board
 from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents, _weakest
 
 logger = logging.getLogger(__name__)
@@ -166,20 +167,24 @@ def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
     return math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
 
 
-def season_line(state: dict, wk: WeekInputs, week: int) -> str | None:
+def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOdds | None, str]:
     """Playoff and title odds and this week's leverage (engine/season.py),
     from the latest standings (state["standings"], League > Standings
     screenshots), else from an even start, with this week's pairings when an
-    All Matchups screenshot gave them."""
+    All Matchups screenshot gave them; and a note on the standings' age."""
     odds = season.simulate(wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
                            (state.get("standings") or {}).get("teams"),
                            pairs=state.get("league_weeks", {}).get(str(week), {}).get("pairs"))
-    if odds is None:
-        return None
     through = (state.get("standings") or {}).get("week")
     note = (" (No standings yet: everyone starts even.)" if through is None
             else f" (Standings through week {through}: send a new screenshot.)" if through < week - 1 else "")
-    return season.text(odds) + note
+    return odds, note
+
+
+def season_line(state: dict, wk: WeekInputs, week: int, odds_note: tuple | None = None) -> str | None:
+    """The season odds as the plan's line; `odds_note` reuses season_odds' result."""
+    odds, note = odds_note or season_odds(state, wk, week)
+    return season.text(odds) + note if odds else None
 
 
 def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
@@ -427,6 +432,15 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
     return path
 
 
+def save_board(p: PlanMoves, week: int, opponent: str, now: dt.datetime, date: dt.date,
+               odds_note: tuple | None, dry_run: bool) -> Path:
+    """The plan's Board (bot/board.py) to state/board.json; a dry run's next to its charts."""
+    odds, note = odds_note or (None, "")
+    keeper = matchup.can_wait(p.ranked, p.moves, p.wk.price if p.wk.max_moves else None, p.held)
+    return board.save(board.build(p, week, opponent, now, date, keeper, odds, note),
+                      CHART_DIR / "board.json" if dry_run else board.BOARD_FILE)
+
+
 def _wait_text(keeper, wednesday: bool = False) -> str:
     """A keeper worth an add later: at the mid-week plan (`wednesday`), else next week."""
     if not keeper:
@@ -527,11 +541,13 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                                        moves)
     keeper = matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None, p.held)
     wednesday = p.held and len(moves) < wk.max_moves
+    odds_note = _safe(season_odds, state, wk, week)
+    _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run)
     outbox.send(_action_line(moves, ir_text, wk.max_moves, wednesday and keeper is not None) + "\n\n"
                 + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
                                wk.week_used, date, wk.yahoo_projected, teams.moves_through(league))
                 + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
-                + (f"\n{line}" if (line := _safe(season_line, state, wk, week)) else "")
+                + (f"\n{line}" if (line := _safe(season_line, state, wk, week, odds_note)) else "")
                 + (f"\n\n{midweek}" if midweek else "")
                 + _wait_text(keeper, wednesday)
                 + (f"\n\n{ir_text}" if ir_text else ""))
@@ -572,12 +588,14 @@ class PlanMoves:
 
 
 def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: int, opponent: str,
-               build_context) -> PlanMoves:
+               build_context, extra: list | None = None) -> PlanMoves:
+    """`extra`: free agents to judge besides the shortlist (scripts/explain_week.py --add)."""
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
     ir_moves = ir.moves(players, wk.lines)
     planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
+    candidates += [p for p in extra or [] if p not in candidates]
     ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
                                      wk.later_weight)
@@ -674,8 +692,10 @@ def news_step(state: dict, players: list, league: dict, now: dt.datetime, outbox
     offered = {(r["add"]["id"], r["drop"]) for r in state["pending"].values() if r["type"] == "add"}
     offered |= {(d.get("add"), d.get("drop")) for d in state["decisions"]
                 if d["type"] == "add" and first <= d["date"] <= last}
-    p = plan_moves(state, players, league, date, week, current_opponent(state, week), build_context)
-    new = [m for m in p.moves if (m.add.id, m.drop.id if m.drop else None) not in offered]
+    opponent = current_opponent(state, week)
+    p = plan_moves(state, players, league, date, week, opponent, build_context)
+    _safe(save_board, p, week, opponent, now, date, None, outbox.settings.dry_run)
+    new =[m for m in p.moves if (m.add.id, m.drop.id if m.drop else None) not in offered]
     if not new:
         logger.info("News check %s: no new add clears the price", date)
         return

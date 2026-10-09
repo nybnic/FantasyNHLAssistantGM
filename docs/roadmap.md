@@ -14,9 +14,8 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
 (Earlier direction, 2026-10-01: the edge is the add decision; still true.)
 
 ## Next (Nico, 2026-10-09: D1-D5 as proposed)
-1. **Board + ledger, no behavior change.** The engine's output becomes the Board; `explain_week`,
-   the plan message and the dashboard read it; facts and message bookkeeping split in state.
-   Done when: the dry run and `explain_week` print the same Board, the plan identical on today's state.
+1. **Board + ledger, no behavior change**: done (see the log). The messages still format the moves
+   themselves; step 3 rewrites them on the Board.
 2. **Honest values.** Weeks w+1, w+2 against their real opponents; error band and later-points
    shrink backtested (fit 2024-25, check 2025-26); the "when" column; the 0.84 margin finding in
    P(win) (absorbs projection accuracy, old item 2). Done when: numbers logged, `check_sigma` re-run.
@@ -173,3 +172,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-06 | `scripts/schedule.py` (Check workflow `schedule`): every NHL game day by day for this week and next, for schedule grids of my roster and streamers. explain-week with `players` lists every move, so a named player's moves are never cut off (Byfield's weren't in the top 60) | (this commit) |
 | 2026-10-06 | `explain_week --ir NAME` (Check input `ir`): scores the week as if a player of mine sat on IR+, in memory only, so the open-spot adds can be ranked right after Nico moves someone in Yahoo, before the bot hears of it (Celebrini to IR+) | (this commit) |
 | 2026-10-06 | Two runs (Oct 5, 19:31 and 20:30 UTC) were cancelled at the 15-min job limit without ever getting a GitHub runner (no steps, no logs); others that evening waited 5-10 min. The job limit is now 30 min, and `main.py`'s step has its own 12-min limit for a run that hangs (`tests/test_workflow.py`) | (this commit) |
+| 2026-10-09 | Step 1: the Board (`bot/board.py`, `state/board.json`): each plan's matchup, add budget and price, every add/drop weighed with its status (now / waits / passes / fails) and why, and the plan's moves, saved by the weekly plan and the news check. `explain_week` now prints that Board from the plan's own computation (it had scored moves before the IR moves the plan assumes, so the two could disagree). The ledger (`state/ledger.json`: adds, taps, league moves, rosters by day, scores, results, forecasts, add candidates) split from the run's bookkeeping; one dict in memory, a pre-split state file wins on load | (this commit) |
