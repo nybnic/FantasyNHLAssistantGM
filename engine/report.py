@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import datetime as dt
 
-from config.league import MAX_ADDS_PER_SEASON, REGULAR_SEASON_WEEKS, STARTERS
-from engine import matchup
+from clients.names import normalize_name
+from config.league import GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS
+from engine import availability, matchup
 from league import weeks
-from league.roster import BENCH, RosterPlayer, active
+from league.roster import BENCH, IR_SLOTS, RosterPlayer, active
 
 POSITION_ORDER = ["C", "LW", "RW", "D", "G"]
 
@@ -176,3 +177,99 @@ def result_text(view: dict) -> str:
     if view.get("scorecard"):
         lines.append(view["scorecard"])
     return "\n".join(lines)
+
+
+# Where a player's points come from, by stat, in the dashboard's groups (a
+# faceoff win is 0.1, a block 0.8: the peripherals are half of skater scoring).
+SKATER_PARTS = [("Goals", ("g",)), ("Assists", ("a",)), ("PP, SH, GWG", ("ppg", "ppa", "shg", "sha", "gwg")),
+                ("Shots", ("sog",)), ("Hits", ("hit",)), ("Blocks", ("blk",)), ("Faceoffs", ("fow",)),
+                ("+/- and PIM", ("pm", "pim"))]
+GOALIE_PARTS = [("Start", ("gs",)), ("Win", ("w",)), ("Saves", ("sv",)), ("Goals against", ("ga",)),
+                ("Shutout", ("so",))]
+GOALIES = "Goalies"  # the team breakdown's one goalie row, net of the minimum
+
+
+def stat_parts(stats: dict[str, float], goalie: bool = False) -> dict[str, float]:
+    """Fantasy points by stat group (SKATER_PARTS / GOALIE_PARTS): a per-game
+    (or per-start) stat line split the way the scoring adds it up."""
+    weights, parts = (GOALIE_WEIGHTS, GOALIE_PARTS) if goalie else (SKATER_WEIGHTS, SKATER_PARTS)
+    return {name: sum(weights[s] * stats.get(s, 0.0) for s in keys) for name, keys in parts}
+
+
+def _r(x: float | None, digits: int = 2) -> float | None:
+    return None if x is None else round(x, digits)
+
+
+def team_view(week: matchup.TeamWeek, roster: list[RosterPlayer], ctx) -> dict:
+    """A team's projected week, player by player: each one's expected points in
+    the lineup, lineup games (goalies: expected starts), the points his games on
+    the bench would have scored, and the team's rest of week by stat group (the
+    goalies one row, net of what the minimum costs). Adds up to `week.expected`
+    with the points banked so far."""
+    players, by_stat = [], {name: 0.0 for name, _ in SKATER_PARTS}
+    for p in roster:
+        pts, games, bench = week.by_player.get(p.id, (0.0, 0.0, 0.0))
+        players.append({"id": p.id, "pts": _r(pts), "games": _r(games, 1), "bench_pts": _r(bench),
+                        "slot": p.slot if p.slot in IR_SLOTS else None})
+        if not p.is_goalie and pts:
+            proj = ctx.skater(p.id, matchup._position(p))
+            if proj.xfp > 0:
+                for name, v in stat_parts(proj.per_game).items():
+                    by_stat[name] += pts * v / proj.xfp
+    goalie_pts = sum(week.by_player.get(p.id, (0.0,))[0] for p in roster if p.is_goalie)
+    by_stat[GOALIES] = goalie_pts - week.goalie_lost
+    players.sort(key=lambda r: (-(r["pts"] or 0), -(r["bench_pts"] or 0)))
+    return {"players": players, "by_stat": {k: _r(v) for k, v in by_stat.items()},
+            "goalie_lost": _r(week.goalie_lost), "rest": _r(week.expected - week.so_far)}
+
+
+def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dict, owner: str,
+                later: dict | None = None) -> dict:
+    """One player's numbers as the model has them: points per game (goalies:
+    per start, against his next opponent, this week's `schedule` or else the
+    `later` one's) by stat group, ice time, the sample behind it, tonight's
+    availability, and how much of his long-run points survive the games he's
+    projected to miss (matchup.durability). Goalies: each start left this week
+    with its odds. `owner`: "me", "them" or "fa"."""
+    info = lines.get(p.team, {}).get(normalize_name(p.name))
+    out = {"id": p.id, "name": p.name, "team": p.team, "positions": "/".join(p.positions), "owner": owner,
+           "goalie": p.is_goalie}
+    today = ctx.today
+    if p.is_goalie:
+        starts, line = [], None
+        for d in sorted(x for x in schedule if x >= today):
+            game = matchup._game_of(schedule[d]).get(p.team)
+            if not game:
+                continue
+            played = p.team in matchup._game_of(schedule.get(d - dt.timedelta(days=1), []))
+            mean, _, prob = matchup._player_day(p, ctx, d, game, played, lines, starters, next_game=not starts)
+            home = game.home == p.team
+            stats = ctx.goalie_start(p.id, p.team, game.away if home else game.home, home)
+            line = line or stats
+            starts.append({"date": d.isoformat(), "opp": ("" if home else "@") + (game.away if home else game.home),
+                           "prob": _r(prob, 3), "xfp": _r(stats["xfp"])})
+        nxt = starts[0] if starts else None
+        for d in [] if line else sorted(later or {}):
+            game = matchup._game_of(later[d]).get(p.team)
+            if game:
+                home = game.home == p.team
+                line = ctx.goalie_start(p.id, p.team, game.away if home else game.home, home)
+                nxt = {"date": d.isoformat(), "opp": ("" if home else "@") + (game.away if home else game.home)}
+                break
+        share = availability.start_share(p.id, today, info, ctx.team_starts.get(p.team, []),
+                                         ctx.prior_start_share(p.id))
+        out.update({"per_game": {k: _r(v) for k, v in stat_parts(line, goalie=True).items()} if line else None,
+                    "xfp": _r(line["xfp"]) if line else None, "share": _r(share, 3), "starts": starts,
+                    "next": {"date": nxt["date"], "opp": nxt["opp"]} if nxt else None,
+                    "gp": len([g for g in ctx.goalie_games.get(p.id, []) if g.date < today])})
+        return out
+    proj = ctx.skater(p.id, matchup._position(p))
+    status = availability.skater(info, bool(lines.get(p.team)))
+    dur = ctx.durability(p.id)
+    repl = (getattr(ctx, "replacement_xfp", None) or {}).get(matchup._position(p))
+    out.update({"per_game": {k: _r(v, 3) for k, v in stat_parts(proj.per_game).items()}, "xfp": _r(proj.xfp, 3),
+                "toi": _r(proj.toi, 1), "pp_toi": _r(proj.pp_toi, 1), "gp": proj.games,
+                "play": _r(status.prob, 3), "note": status.note,
+                "durability": _r(dur, 3), "kept": _r(matchup.durability(ctx, p, proj.xfp), 3),
+                "replacement": _r(repl, 3)})
+    return out

@@ -147,6 +147,12 @@ class TeamWeek:
     # (player id -> (slot or BN, start probability: 1 for skaters)).
     by_day: dict[dt.date, float] = field(default_factory=dict)
     lineups: dict[dt.date, dict[int, tuple[str, float]]] = field(default_factory=dict)
+    # Each player's part of the rest of the week (the dashboard's breakdown):
+    # id -> (expected points in the lineup, lineup games (goalies: expected
+    # starts), points his games on the bench would have scored). Goalies' before
+    # the minimum; `goalie_lost` is what the minimum costs in expectation.
+    by_player: dict[int, tuple[float, float, float]] = field(default_factory=dict)
+    goalie_lost: float = 0.0
 
 
 @dataclass
@@ -167,6 +173,8 @@ class Move:
     # the change in each one's P(win), and the gain counted (realized size, points).
     ahead_wins: tuple[float, ...] = ()
     ahead_pts: float = 0.0
+    ahead_week_pts: tuple[float, ...] = ()  # ahead_pts week by week
+    held: bool = False  # into one of my streaming spots: later points only while he'd be held
     # An add into a spot an injured player's IR move opened: who takes it back
     # (his later points count until then, see ir_crunch).
     until_back: str = ""
@@ -331,6 +339,9 @@ def project(name: str, roster: list[RosterPlayer], ctx, schedule: dict[dt.date, 
             goalie_min_prob=min(p.goalie_min_prob for p in parts),  # the riskiest week
             by_day={d: v for p in parts for d, v in p.by_day.items()},
             lineups={d: v for p in parts for d, v in p.lineups.items()},
+            by_player={pid: tuple(sum(p.by_player.get(pid, (0.0,) * 3)[k] for p in parts) for k in range(3))
+                       for pid in {pid for p in parts for pid in p.by_player}},
+            goalie_lost=sum(p.goalie_lost for p in parts),
         )
     return _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins, so_far, leaves)
 
@@ -367,6 +378,7 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
     day_skaters: dict[dt.date, float] = {}
     goalie_days: dict[dt.date, dict[int, tuple[float, float, float]]] = {}
     lineups: dict[dt.date, dict[int, tuple[str, float]]] = {}
+    by_player: dict[int, list[float]] = {}
     goalies = [p for p in roster if p.is_goalie]
     upcoming = [d for d in days if d >= ctx.today]
     first_game = _first_games(schedule, ctx.today)
@@ -386,8 +398,13 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         lineups[date] = {pid: (slot, 1.0) for pid, slot in assignment.items()}
         day_skaters[date] = 0.0
         for pid, slot in assignment.items():
-            if slot != BENCH:
+            part = by_player.setdefault(pid, [0.0, 0.0, 0.0])
+            if slot == BENCH:
+                part[2] += values[pid][0]
+            else:
                 mean, var, _ = values[pid]
+                part[0] += mean
+                part[1] += 1
                 player_games += 1
                 skater_mean += mean
                 skater_var += var
@@ -413,9 +430,14 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
                 mean += m
                 var += v
                 probs.append(prob)
+                part = by_player.setdefault(pid, [0.0, 0.0, 0.0])
+                part[0] += p_state * m
+                part[1] += p_state * prob
             if len(there) == len(goalies):  # the lineup shown: everyone there
                 for rank, ((m, v, prob), pid) in enumerate(playing):
                     lineups[date][pid] = ("G" if rank < STARTERS["G"] else BENCH, prob)
+                    if rank >= STARTERS["G"]:
+                        by_player.setdefault(pid, [0.0, 0.0, 0.0])[2] += p_state * m
                 player_games += len(started)
         p_min = _at_least(probs, goalie_games, MIN_GOALIE_GAMES_PER_WEEK)
         total = goalie_so_far + mean
@@ -439,6 +461,8 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         goalie_min_prob=min_prob,
         by_day={d: day_skaters[d] + day_goalies[d] for d in upcoming},
         lineups=lineups,
+        by_player={pid: tuple(v) for pid, v in by_player.items()},
+        goalie_lost=goalie_so_far + goalie_mean - expected_goalie,
     )
 
 
@@ -465,17 +489,17 @@ def win_after(current: TeamWeek, trial: TeamWeek, them: TeamWeek) -> float:
 
 
 def ahead_value(gain_by_day: dict[dt.date, float], ahead: list[WeekAhead], later_weight: float,
-                counted: set | None = None) -> tuple[tuple[float, ...], float]:
+                counted: set | None = None) -> tuple[tuple[float, ...], tuple[float, ...]]:
     """A move's worth in the weeks ahead: per week, the change in P(win) its
     gain (realized size) makes against that week's opponent, and the points
     counted. `counted`: only these days count (a streamer's hold)."""
-    wins, pts = [], 0.0
+    wins, pts = [], []
     for k, w in enumerate(ahead, start=1):
         g = GAP_REALIZES[k] * sum(v for d, v in gain_by_day.items() if d in w.days and (counted is None or d in counted))
-        pts += g
+        pts.append(g)
         wins.append(later_weight * g if w.margin is None
                     else _phi((w.margin + g) / w.sd) - _phi(w.margin / w.sd))
-    return tuple(wins), pts
+    return tuple(wins), tuple(pts)
 
 
 def decided(p_win: float) -> str | None:
@@ -685,8 +709,8 @@ def candidate_moves(
                 continue
             # A streaming spot is swapped again after the hold: its scheduled gain, no season.
             streamer = bool(drop and drop.id in spots)
-            ahead_wins, ahead_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight,
-                                                       held if streamer else None)
+            ahead_wins, week_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight,
+                                                      held if streamer else None)
             moves.append(Move(
                 add=add, drop=drop,
                 week_gain=week.expected - current.expected,
@@ -696,7 +720,7 @@ def candidate_moves(
                 win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
                 plays_from=plays_from,
-                ahead_wins=ahead_wins, ahead_pts=ahead_pts,
+                ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=streamer,
             ))
             gains[id(moves[-1])] = (gain, held if streamer else None)
     moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, weeks_after, later_weight)
@@ -767,9 +791,10 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
         trial = with_returns(_swap(roster, m.add, m.drop), ctx, future, lines, starters)
         after = {d: trial.by_day.get(d, 0.0) - base.by_day.get(d, 0.0) for d in future}
         mixed = {d: (1 - odds[d]) * gain.get(d, 0.0) + odds[d] * after[d] for d in future}
-        ahead_wins, ahead_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held)
+        ahead_wins, week_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held)
         changed = abs(sum(after.values()) - sum(gain.values())) > 0.5
-        out.append(dataclasses.replace(m, ahead_wins=ahead_wins, ahead_pts=ahead_pts, long_term=long_term,
+        out.append(dataclasses.replace(m, ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
+                                       long_term=long_term,
                                        next_weeks=sum(mixed[d] for d in sorted(future)[:7 * STREAM_WEEKS]),
                                        until_back=names if changed else ""))
     done = {id(m) for m in sorted(moves, key=lambda m: m.value, reverse=True)[:IR_RETURN_MOVES]}
@@ -777,9 +802,9 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
 
 
 def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], weeks_after: int,
-            later_weight: float, held: set | None = None) -> tuple[tuple[float, ...], float, float]:
+            later_weight: float, held: set | None = None) -> tuple[tuple[float, ...], tuple[float, ...], float]:
     """A move's gain by day after this week, valued: (P(win) change in each week
-    ahead, the points counted there, long-run points after them). The long
+    ahead, the points counted in each, long-run points after them). The long
     run: the gain per week over all of `future` (LONG_RUN_WEEKS: fewer weeks
     let one team's schedule swing it, 2026-10-01; the weeks ahead are in the
     average but not counted again), times the weeks left after the ones
@@ -839,13 +864,13 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
         week = dataclasses.replace(week, expected=week.expected - cost(current, week_without, current.by_day))
         gain = {d: later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0)
                 - back(d) * (current_future.by_day.get(d, 0.0) - future_without.by_day.get(d, 0.0)) for d in future}
-        ahead_wins, ahead_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight)
+        ahead_wins, week_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight)
         moves.append(Move(
             add=add, drop=None, week_gain=week.expected - current.expected,
             long_term=long_term, next_weeks=sum(gain[d] for d in soon),
             games=team_games.get(add.team, 0), win_before=before, win_after=win_after(current, week, opponent),
             later_weight=later_weight, plays_from=plays_from, ir_slot=slot, later_drop=drop,
-            ahead_wins=ahead_wins, ahead_pts=ahead_pts,
+            ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
         ))
     return moves
 

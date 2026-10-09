@@ -8,6 +8,9 @@ scripts/explain_week.py, so the explanation and the plan can't disagree.
 Values are in wins (a probability: 0.05 = 5 win-pts); points are fantasy points.
 A move's value = this week's change in P(win) + the change in each week
 ahead's P(win) against its opponent (header "ahead") + later points' worth.
+With the plan run's details (bot/weekly.player_details): "teams", each team's
+rest of week player by player and by stat group (engine/report.team_view), and
+"players", each one's per-game numbers (report.player_view), by id.
 """
 from __future__ import annotations
 
@@ -30,7 +33,8 @@ def _r(x: float | None, digits: int = 2) -> float | None:
 def _team(t: matchup.TeamWeek) -> dict:
     return {"name": t.name, "so_far": _r(t.so_far), "expected": _r(t.expected), "sd": _r(math.sqrt(t.variance)),
             "player_games": t.player_games, "goalie_games": _r(t.goalie_games_so_far + t.goalie_starts_left, 1),
-            "goalie_min": _r(t.goalie_min_prob, 3)}
+            "goalie_min": _r(t.goalie_min_prob, 3), "goalie_lost": _r(t.goalie_lost),
+            "by_day": {d.isoformat(): _r(v) for d, v in sorted(t.by_day.items())}}
 
 
 def _ahead(w: matchup.WeekAhead) -> dict:
@@ -66,6 +70,8 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "now_wins": _r(move.win_after - move.win_before, 4),
         "ahead_wins": [_r(w, 4) for w in move.ahead_wins],
         "ahead_pts": _r(move.ahead_pts),
+        "ahead_week_pts": [_r(x) for x in move.ahead_week_pts],
+        "held": move.held,
         "later_wins": _r(move.later_value, 4),
         "value": _r(move.value, 4),
         "status": state,
@@ -74,10 +80,11 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
 
 
 def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=None, odds_note: str = "",
-          changed: str = "") -> dict:
+          changed: str = "", details: dict | None = None) -> dict:
     """The Board of a plan: `p` is bot.weekly.PlanMoves (its plan composed by
     engine/plan.py), `odds` the season's (engine/season.py), `changed` why the
-    plan Nico had seen changed ("" if it didn't)."""
+    plan Nico had seen changed ("" if it didn't), `details` the breakdowns
+    ({"teams", "players"}, bot/weekly.player_details)."""
     wk = p.wk
     price = wk.price
     plan = {q.key: q for q in p.plan}
@@ -107,6 +114,8 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "me": _team(wk.me),
             "them": _team(wk.them),
             "win": _r(matchup.win_prob(wk.me, wk.them), 4),
+            # The final margin as P(win) reads it: banked points in full, the rest as it realizes.
+            "margin": _r(matchup.margin(wk.me, wk.them)), "sd": _r(math.sqrt(wk.me.variance + wk.them.variance)),
             "live": wk.live,
             "yahoo_projected": wk.yahoo_projected,
             "adds_left": {"season": MAX_ADDS_PER_SEASON - wk.season_used, "week": wk.max_moves},
@@ -115,6 +124,10 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "later_weight": _r(wk.later_weight, 5),
             "tau": _r(wk.tau),
             "ahead": [_ahead(w) for w in getattr(wk, "ahead", [])],
+            # How a move's later points are counted (matchup.horizon): the 6-week rate x
+            # these weeks x the discount, or a streaming spot's hold days only.
+            "long_run": {"weeks": max(getattr(wk, "weeks_after", 0) - len(getattr(wk, "ahead", [])), 0),
+                         "discount": matchup.LONG_RUN_DISCOUNT, "hold_days": getattr(wk, "hold_days", None)},
             "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k != "by_week"}, "note": odds_note}
                        if odds else None),
         },
@@ -125,15 +138,24 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "held": p.held,
         },
         "moves": rows,
+        **(details or {}),
     }
 
 
+def _line(x) -> str:
+    return json.dumps(x, ensure_ascii=False, separators=(",", ":"))
+
+
 def save(board: dict, path: Path = BOARD_FILE) -> Path:
-    """One move per line: small, and a git diff shows which moves changed."""
-    head = json.dumps({k: v for k, v in board.items() if k != "moves"}, indent=1, ensure_ascii=False)
-    rows = ",\n".join("  " + json.dumps(r, ensure_ascii=False, separators=(",", ":")) for r in board["moves"])
+    """One move (and one player) per line: small, and a git diff shows which changed."""
+    head = json.dumps({k: v for k, v in board.items() if k not in ("moves", "players")}, indent=1,
+                      ensure_ascii=False)
+    tail = ',\n "moves": [\n' + ",\n".join("  " + _line(r) for r in board["moves"]) + "\n ]"
+    if "players" in board:
+        tail += ',\n "players": {\n' + ",\n".join(f"  {_line(str(k))}: {_line(v)}"
+                                                    for k, v in board["players"].items()) + "\n }"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(head[:-2] + ',\n "moves": [\n' + rows + "\n ]\n}\n", encoding="utf-8")
+    path.write_text(head[:-2] + tail + "\n}\n", encoding="utf-8")
     return path
 
 

@@ -7,6 +7,7 @@ add/drop the bot weighed, ranked, with the reason each one passed or failed.
     python -m scripts.explain_week --add "Colton Parayko" --add "Ben Chiarot"   # score these too
     python -m scripts.explain_week --now 2026-10-05T12:00:00+03:00
     python -m scripts.explain_week --ir "Macklin Celebrini"    # as if he sat on IR+ (moved, bot not told yet)
+    python -m scripts.explain_week --player "Esa Lindell"     # his points per game by stat, availability, durability
 
 Read-only: sends and saves nothing. Uses the committed state/ files, so
 `git pull` first to see what the bot sees.
@@ -14,11 +15,9 @@ Read-only: sends and saves nothing. Uses the committed state/ files, so
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 
 from bot import board, common, weekly
 from clients.names import normalize_name
-from engine import matchup
 from league import roster as roster_mod
 from league import teams, weeks
 from model import context
@@ -32,6 +31,7 @@ def main_() -> None:
     parser.add_argument("--add", action="append", default=[], help="also score this free agent")
     parser.add_argument("--now", help="ISO time with offset (default: now)")
     parser.add_argument("--ir", action="append", default=[], help="treat this player of mine as on IR+ (this run only)")
+    parser.add_argument("--player", action="append", default=[], help="this player's numbers (any on the Board)")
     args = parser.parse_args()
 
     now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
@@ -64,14 +64,19 @@ def main_() -> None:
     for t in (wk.me, wk.them):
         print(f"  {t.name:24} so far {t.so_far:6.1f}  expected {t.expected:6.1f} +/- {t.variance ** 0.5:4.1f}  "
               f"lineup games {t.player_games:3}  goalie min {t.goalie_min_prob:.0%}")
-    for name, roster, team in ((wk.me.name, players, wk.me), (opponent, teams.players(league, opponent), wk.them)):
-        print_players(name, roster_mod.active(roster), team, wk)
+    # The dashboard's breakdowns: each team's rest of week by player and by stat.
+    b = board.build(plan, week, opponent, now, date,
+                    details=weekly.player_details(plan, players, league, opponent))
+    for side, name in (("me", wk.me.name), ("them", opponent)):
+        print("\n".join(team_lines(b, side, name)))
+    for name in args.player:
+        found = [v for v in b["players"].values() if normalize_name(v["name"]) == normalize_name(name)]
+        print("\n".join(player_lines(found[0]) if found else [f"\n  ({name} isn't on the Board)"]))
     copy = {"league_weeks": {}}  # what the week's first plan records (state["league_weeks"][week]["ours"])
     weekly.record_league(copy, league, week, opponent, wk, now)
     print("\n  Every team's week, as the first plan logs it (expected +/- sd):")
     for team, t in sorted(copy["league_weeks"][str(week)]["ours"]["teams"].items(), key=lambda kv: -kv[1]["expected"]):
         print(f"    {team[:24]:24} {t['expected']:6.1f} +/- {t['sd']:4.1f}")
-    b = board.build(plan, week, opponent, now, date)
     h = b["header"]
     print(f"\n  P(win) {h['win']:.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
           f"{h['adds_left']['week']} allowed now; matchup spread tau {h['tau']:.1f} pts, a later point = "
@@ -113,31 +118,37 @@ def mark_ir(players: list, names: list[str]) -> list[str]:
     return missing
 
 
-def print_players(name: str, roster: list, team: matchup.TeamWeek, wk) -> None:
-    """Each player's week from today: games, expected points over all of them
-    (what a per-player projection like Yahoo's shows) and over the games he
-    starts in the best daily lineup (what the team total counts)."""
-    print(f"\n  {name}: player, games, expected pts (all games / in the lineup)")
-    rows = []
-    first = matchup._first_games(wk.schedule, wk.ctx.today)
-    for p in roster:
-        games = all_pts = lineup_pts = 0.0
-        for date in (d for d in sorted(wk.schedule) if d >= wk.ctx.today):
-            game = matchup._game_of(wk.schedule[date]).get(p.team)
-            if not game:
-                continue
-            yesterday = matchup._game_of(wk.schedule.get(date - dt.timedelta(days=1), []))
-            mean, _, _ = matchup._player_day(p, wk.ctx, date, game, p.team in yesterday, wk.lines, wk.starters,
-                                             next_game=first.get(p.team) == date)
-            games += 1
-            all_pts += mean
-            slot = team.lineups.get(date, {}).get(p.id, ("G" if p.is_goalie else "BN", 1.0))[0]
-            lineup_pts += mean if slot != roster_mod.BENCH else 0.0
-        rows.append((p, games, all_pts, lineup_pts))
-    for p, games, all_pts, lineup_pts in sorted(rows, key=lambda r: -r[2]):
-        print(f"    {p.name[:22]:22} {'/'.join(p.positions):8} {games:2.0f}  {all_pts:6.1f} / {lineup_pts:6.1f}")
-    print(f"    {'sum':22} {'':8} {sum(r[1] for r in rows):2.0f}  {sum(r[2] for r in rows):6.1f} / "
-          f"{sum(r[3] for r in rows):6.1f}  (team expected {team.expected:.1f}: goalies x P(minimum))")
+def team_lines(b: dict, side: str, name: str) -> list[str]:
+    """A team's rest of week player by player, and by stat group (the Board's
+    "teams", as the dashboard shows them): adds up to the team's expected
+    points with the points banked and the goalie minimum's cost."""
+    t, people = b["teams"][side], b["players"]
+    out = [f"\n  {name}: rest of week, expected pts in the lineup (games), lost on the bench"]
+    for r in t["players"]:
+        if r["pts"] or r["bench_pts"] or r["slot"]:
+            p = people[str(r["id"])] if str(r["id"]) in people else people.get(r["id"], {})
+            out.append(f"    {p.get('name', r['id'])[:22]:22} {p.get('positions', ''):8} {r['pts']:6.1f} "
+                       f"({r['games']:3.1f})" + (f"  bench {r['bench_pts']:4.1f}" if r["bench_pts"] else "")
+                       + (f"  [{r['slot']}]" if r["slot"] else ""))
+    out.append(f"    goalie minimum costs {t['goalie_lost']:.1f}; rest of week {t['rest']:.1f}")
+    out.append("    by stat: " + ", ".join(f"{k} {v:.1f}" for k, v in t["by_stat"].items()))
+    return out
+
+
+def player_lines(p: dict) -> list[str]:
+    """One player's numbers (report.player_view): per game (goalies: per start) by stat group."""
+    head = f"\n  {p['name']} ({p['team']}, {p['positions']}, {p['owner']}): {p['xfp'] or 0:.2f} pts per " + \
+           ("start" if p["goalie"] else "game") + f", {p['gp']} games this season"
+    out = [head, "    " + ", ".join(f"{k} {v:+.2f}" for k, v in (p["per_game"] or {}).items())]
+    if p["goalie"]:
+        out.append(f"    start share {p['share']:.0%}; starts left this week: " + (", ".join(
+            f"{s['date'][5:]} {s['opp']} {s['prob']:.0%} x {s['xfp']:.1f}" for s in p["starts"]) or "none"))
+    else:
+        out.append(f"    TOI {p['toi']:.1f} (PP {p['pp_toi']:.1f}); plays tonight {p['play']:.0%}"
+                   + (f" ({p['note']})" if p["note"] else "")
+                   + f"; projected games {p['durability']:.0%}, long-run points kept {p['kept']:.0%}"
+                   + (f" (a streamer scores {p['replacement']:.2f})" if p["replacement"] is not None else ""))
+    return out
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ import datetime as dt
 
 import pytest
 
+from clients.nhl_client import ScheduledGame
 from engine import matchup, report
 from league.roster import RosterPlayer
 from notify import charts
@@ -99,3 +100,60 @@ def test_the_plans_adds_get_a_grid_row_and_the_slots_show_what_the_plan_changes(
     assert view["open"][0]["C"] == 2 and view["with_plan"]["open"][0]["C"] == 1
     assert view["with_plan"]["my_games"] == [2, 0] and view["with_plan"]["benched"] == [0, 1]
     assert view["slots"]["D"] == 4 and view["benched"] == [0, 0]
+
+
+class _BreakdownContext:
+    """Two skaters with real stat lines, a goalie with a start's line."""
+    today = THU
+    team_starts: dict = {}
+    goalie_games: dict = {}
+    last_results: dict = {}
+    replacement_xfp = {"C": 1.5, "D": 1.2}
+    lines = {1: {"g": 0.4, "a": 0.6, "ppa": 0.2, "sog": 3.0, "hit": 1.0, "blk": 0.5, "fow": 8.0, "pm": 0.1},
+             2: {"a": 0.3, "sog": 1.5, "hit": 2.0, "blk": 2.0}}
+
+    def skater(self, pid, position):
+        from model.projections import SkaterProjection
+        return SkaterProjection(pid, "", position, "WPG", 5, 19.5, 2.5, dict(self.lines[pid]))
+
+    def goalie_start(self, pid, team, opp, home):
+        stats = {"gs": 1.0, "w": 0.5, "ga": 2.6, "sv": 25.0, "so": 0.06}
+        return {**stats, "xfp": 1 + 4 * 0.5 - 2.6 + 0.35 * 25 + 5 * 0.06}
+
+    def prior_start_share(self, pid):
+        return 0.6
+
+    def durability(self, pid):
+        return 0.8
+
+    def games_missed(self, pid, team):
+        return 0
+
+
+def test_a_players_points_split_by_stat_add_up_to_his_projection():
+    ctx = _BreakdownContext()
+    view = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")
+    assert sum(view["per_game"].values()) == pytest.approx(view["xfp"], abs=0.01)
+    assert view["per_game"]["Faceoffs"] == pytest.approx(0.8) and view["per_game"]["PP, SH, GWG"] == pytest.approx(0.1)
+    # Missed games cost only his edge over a streamer: 20% of games x (xFP - 1.5) / xFP.
+    assert view["durability"] == 0.8 and view["kept"] == pytest.approx(1 - 0.2 * (view["xfp"] - 1.5) / view["xfp"],
+                                                                       abs=0.001)
+    sched = {FRI: [ScheduledGame(1, dt.datetime(2026, 10, 2, 23, tzinfo=dt.timezone.utc), "WPG", "CHI")]}
+    goalie = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, sched, "me")
+    assert goalie["starts"][0]["opp"] == "CHI" and goalie["xfp"] == pytest.approx(9.45)
+    assert goalie["per_game"]["Goals against"] == pytest.approx(-2.6)
+    assert goalie["next"] == {"date": "2026-10-02", "opp": "CHI"}
+    # No start left this week: his line is his next start's, next week.
+    idle = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, {}, "me", sched)
+    assert idle["starts"] == [] and idle["xfp"] == pytest.approx(9.45) and idle["next"]["opp"] == "CHI"
+
+
+def test_a_teams_breakdown_reconciles_to_its_projection():
+    roster = [RosterPlayer(1, "Mark Scheifele", "WPG", ["C"], "C"), RosterPlayer(2, "Neal Pionk", "WPG", ["D"], "D"),
+              RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"], "G"), RosterPlayer(4, "Hurt Guy", "WPG", ["D"], "IR+")]
+    week = matchup.TeamWeek("me", 40.0, 40.0 + 8.0 + 3.0 + 9.0 - 2.0, 300.0, 4, 1, 1.0, 0.8,
+                            by_player={1: (8.0, 2, 0.0), 2: (3.0, 2, 1.5), 3: (9.0, 1.0, 0.0)}, goalie_lost=2.0)
+    view = report.team_view(week, roster, _BreakdownContext())
+    assert [r["id"] for r in view["players"]] == [3, 1, 2, 4] and view["players"][3]["slot"] == "IR+"
+    assert sum(view["by_stat"].values()) == pytest.approx(18.0, abs=0.05) and view["rest"] == 18.0
+    assert view["by_stat"]["Goalies"] == 7.0 and view["by_stat"]["Blocks"] == pytest.approx(8 * 0.4 / 6.7 + 3 * 1.6 / 4.375, abs=0.01)

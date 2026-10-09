@@ -36,7 +36,9 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    every move with its status (plan / passes / fails) and why. `explain_week` prints it.
 6. **Views**: `bot/messages.py` (the plan in 4-6 lines; a card per move on its day,
    once; a screenshot gets the score or the change), `site/data.json` + `site/index.html`
-   (the dashboard), its `?card` view screenshotted for Telegram (`notify/snapshot.py`).
+   (the dashboard: the plan, why the win %, player by player, points by stat, and a tap-open
+   sheet per player and per move; the Board's `teams`/`players` from `engine/report.py`),
+   its `?card` view screenshotted for Telegram (`notify/snapshot.py`).
    When: Monday and Wednesday noon and `/week` = the full plan; a screenshot or
    Taken/Skip tap = a check; once an evening = silent unless the plan changed.
 
@@ -67,7 +69,7 @@ python main.py --dry-run --force                  # tonight's lineup + this week
 python main.py --dry-run --force --now 2026-10-09T06:50:07+00:00   # as of a moment (repeatable comparisons)
 python main.py --dry-run --report 1               # week 1's result report (so far, if unfinished)
 python main.py --dry-run --trade "Knight for Bouchard"   # what /trade would reply
-python -m scripts.explain_week                    # the Board: every move weighed, its parts, status and why (--add NAME, --ir NAME)
+python -m scripts.explain_week                    # the Board: every move weighed, its parts, status and why (--add NAME, --ir NAME, --player NAME)
 python -m scripts.scorecard                       # how the add suggestions turned out, made or skipped
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
 python -m scripts.backtest                        # model accuracy (--season, --horizon)

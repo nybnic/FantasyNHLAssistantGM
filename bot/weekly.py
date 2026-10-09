@@ -425,6 +425,7 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
                                                   wk.price if wk.max_moves else None, wk.max_moves),
         "weeks": weeks_shown,
         "moves": sorted(b["moves"], key=lambda r: -r["value"])[:DASHBOARD_MOVES],
+        "teams": b.get("teams"), "players": b.get("players"),
         **(views or {}),
     }
 
@@ -442,12 +443,30 @@ def write_dashboard(data: dict, dry_run: bool) -> Path:
     return path
 
 
+def player_details(p: PlanMoves, players: list, league: dict, opponent: str) -> dict:
+    """The Board's breakdowns: both teams' rest of week player by player and by
+    stat group, and the per-game numbers of everyone on either roster and every
+    add and drop the dashboard shows (engine/report.py)."""
+    wk = p.wk
+    them_roster = teams.players(league, opponent)
+    shown = sorted(p.ranked, key=lambda m: -m.value)[:DASHBOARD_MOVES] + p.moves
+    people = [(q, "me") for q in players] + [(q, "them") for q in them_roster]
+    people += [(m.add, "fa") for m in shown] + [(m.drop, "me") for m in shown if m.drop]
+    details = {}
+    for q, owner in people:
+        if q.id not in details:
+            details[q.id] = report.player_view(q, wk.ctx, wk.lines, wk.starters, wk.schedule, owner, wk.future)
+    return {"teams": {"me": report.team_view(wk.me, players, wk.ctx),
+                      "them": report.team_view(wk.them, them_roster, wk.ctx)},
+            "players": details}
+
+
 def save_board(p: PlanMoves, week: int, opponent: str, now: dt.datetime, date: dt.date,
-               odds_note: tuple | None, dry_run: bool, changed: str = "") -> dict:
+               odds_note: tuple | None, dry_run: bool, changed: str = "", details: dict | None = None) -> dict:
     """The plan's Board (bot/board.py) to state/board.json (a dry run's next
     to its charts); returns it."""
     odds, note = odds_note or (None, "")
-    b = board.build(p, week, opponent, now, date, odds, note, changed)
+    b = board.build(p, week, opponent, now, date, odds, note, changed, details)
     board.save(b, CHART_DIR / "board.json" if dry_run else board.BOARD_FILE)
     return b
 
@@ -656,7 +675,8 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     by_key = {o["key"]: o for o in old_open}
     changed = verdict.reason if not verdict.keep and old_open else ""
     odds_note = _safe(season_odds, state, wk, week)
-    b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed)
+    details = _safe(player_details, p, players, league, opponent)
+    b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed, details)
     views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.plan)
     data = _safe(dashboard_data, b, p, views, date, changed) if b else None
     if data:

@@ -72,6 +72,22 @@ def test_project_uses_each_days_best_lineup_and_the_goalie_minimum():
     assert week.expected == pytest.approx(0.97 * 4.0)
 
 
+def test_each_players_part_adds_up_to_the_teams_week():
+    """The dashboard's breakdown: lineup points per player, the bench's lost
+    points, and the goalie minimum's cost reconcile to the projection."""
+    roster = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(2, "B", "BOS", ["C"], "C"),
+              RosterPlayer(3, "C", "BOS", ["C"], "BN"), RosterPlayer(8, "G1", "TOR", ["G"], "G"),
+              RosterPlayer(9, "G2", "NJD", ["G"], "G")]
+    schedule = {MON: [_game(MON, "BOS", "TOR")], TUE: [_game(TUE, "TOR", "NJD")], WED: [_game(WED, "NJD", "BOS")]}
+    week = matchup.project("me", roster, FakeContext(), schedule, {}, {})
+    parts = week.by_player
+    assert parts[3][0] == 0 and parts[3][2] > 0  # the third C: every game on the bench
+    assert parts[1][1] == 2  # lineup games
+    total = sum(v[0] for v in parts.values()) - week.goalie_lost
+    assert total == pytest.approx(week.expected - week.so_far)
+    assert 0 < week.goalie_lost < parts[8][0] + parts[9][0]  # 4 starts at 0.9: the minimum may fail
+
+
 def _this_week(roster, opponent, pool, ctx, schedule, lines, future, weeks_after, max_moves, price,
                available_from=None, candidates=None):
     """The plan's moves made with this week's adds (engine/plan.search), on a
@@ -571,7 +587,7 @@ def test_a_gain_in_a_week_ahead_counts_by_how_close_that_matchup_is():
     lopsided = matchup.WeekAhead(4, frozenset(days2), 90.0, 45.0, "Lopsided")
     gain = {d: 1.0 for d in days1 | days2}  # 7 points a week
     wins, pts = matchup.ahead_value(gain, [close, lopsided], later_weight=0.009)
-    assert pts == pytest.approx(7 * 0.95 + 7 * 0.89)
+    assert pts == (pytest.approx(7 * 0.95), pytest.approx(7 * 0.89))
     assert wins[0] == pytest.approx(matchup._phi(7 * 0.95 / 45) - 0.5)
     assert wins[0] > 5 * wins[1] > 0  # a 2-sigma favorite barely gains
     # Opponent unknown (a playoff week not yet named): a typical week's worth.
@@ -587,11 +603,11 @@ def test_the_long_run_takes_the_six_week_rate_for_the_weeks_after_the_ones_playe
     wins, pts, long_term = matchup.horizon(gain, future, ahead, weeks_after=20, later_weight=0.009)
     per_week = sum(gain.values()) / 6
     assert long_term == pytest.approx(matchup.LONG_RUN_DISCOUNT * per_week * 18)
-    assert pts == pytest.approx(14 * 0.95 + 14 * 0.89)
+    assert pts == (pytest.approx(14 * 0.95), pytest.approx(14 * 0.89))
     # A streaming spot: only the held days count, ahead or later, never the season.
     held = set(sorted(future)[:10])
     wins_h, pts_h, long_h = matchup.horizon(gain, future, ahead, 20, 0.009, held)
-    assert pts_h == pytest.approx(14 * 0.95 + 6 * 0.89) and long_h == 0.0
+    assert sum(pts_h) == pytest.approx(14 * 0.95 + 6 * 0.89) and long_h == 0.0
     assert matchup.horizon(gain, future, [], 20, 0.009, held)[2] == pytest.approx(20.0)
 
 

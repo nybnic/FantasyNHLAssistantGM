@@ -131,3 +131,25 @@ def test_the_card_image_falls_back_when_no_browser_can_render_it(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", lambda name, *a, **k: (_ for _ in ()).throw(ImportError(name))
                         if name.startswith("playwright") else real(name, *a, **k))
     assert snapshot.card_png({"week": 2}) is None
+
+
+def test_the_board_carries_the_breakdowns_and_saves_one_player_a_line(tmp_path):
+    kelly = _move(3, "Parker Kelly", 0.0, 37.3, 0.16)
+    kelly.ahead_week_pts, kelly.ahead_pts, kelly.held = (1.5, -0.5), 1.0, True
+    p = _plan([kelly], [(kelly, NOW.date(), "spare")])
+    p.wk.ahead, p.wk.weeks_after, p.wk.hold_days = [], 23, 18
+    details = {"teams": {"me": {"players": [{"id": 1, "pts": 5.0}], "by_stat": {"Goals": 2.0}}},
+               "players": {1: {"id": 1, "name": "Mattias Samuelsson", "per_game": {"Blocks": 1.6}}}}
+    b = board.build(p, 2, "Retrot Chicken Wings", NOW, NOW.date(), details=details)
+    h = b["header"]
+    assert h["margin"] == round(matchup.margin(p.wk.me, p.wk.them), 2)
+    assert h["sd"] == round((p.wk.me.variance + p.wk.them.variance) ** 0.5, 2)
+    assert h["long_run"] == {"weeks": 23, "discount": matchup.LONG_RUN_DISCOUNT, "hold_days": 18}
+    assert b["moves"][0]["ahead_week_pts"] == [1.5, -0.5] and b["moves"][0]["held"] is True
+    path = board.save(b, tmp_path / "board.json")
+    text = path.read_text(encoding="utf-8")
+    assert '  "1": {"id":1,"name":"Mattias Samuelsson","per_game":{"Blocks":1.6}}' in text
+    loaded = board.load(path)
+    assert loaded["players"]["1"]["per_game"] == {"Blocks": 1.6} and loaded["teams"] == details["teams"]
+    data = weekly.dashboard_data(b, p, {"schedule": {"days": []}, "budget": {}}, NOW.date(), "")
+    assert data["teams"] is b["teams"] and data["players"] is b["players"]
