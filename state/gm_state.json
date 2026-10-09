@@ -450,6 +450,24 @@
       "message_id": 292,
       "type": "add"
     },
+    "add-2026-10-09-1230-8474716": {
+      "add": {
+        "id": 8474716,
+        "name": "Jared Spurgeon",
+        "positions": [
+          "D"
+        ],
+        "slot": null,
+        "team": "MIN"
+      },
+      "add_slot": null,
+      "date": "2026-10-09",
+      "drop": 8480807,
+      "drop_name": "Mattias Samuelsson",
+      "ir": {},
+      "message_id": 298,
+      "type": "add"
+    },
     "lineup-2026-10-01-1630": {
       "assignment": {
         "8474564": "RW",
@@ -556,7 +574,50 @@
       "type": "lineup"
     }
   },
-  "plan": null,
+  "plan": {
+    "at": "2026-10-09T12:30+00:00",
+    "moves": [
+      {
+        "add": {
+          "id": 8474716,
+          "name": "Jared Spurgeon",
+          "positions": [
+            "D"
+          ],
+          "team": "MIN"
+        },
+        "drop": {
+          "id": 8480807,
+          "name": "Mattias Samuelsson"
+        },
+        "key": "8474716:8480807",
+        "message_id": 298,
+        "rec_id": "add-2026-10-09-1230-8474716",
+        "value": 0.1108,
+        "when": "2026-10-09",
+        "why": "spare"
+      },
+      {
+        "add": {
+          "id": 8473419,
+          "name": "Brad Marchand",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "team": "FLA"
+        },
+        "drop": null,
+        "key": "8473419:0:IR",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.1008,
+        "when": "2026-10-12",
+        "why": "monday"
+      }
+    ],
+    "week": 2
+  },
   "plan_check": false,
   "relay_alert": "2026-09-29",
   "repairs_done": [
@@ -696,7 +757,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784617,
+  "telegram_offset": 929784618,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -708,7 +769,7 @@
       "sent": "2026-10-01T07:15+00:00"
     },
     "2": {
-      "midweek": "2026-10-09T06:09+00:00",
+      "midweek": "2026-10-09T12:30+00:00",
       "sent": "2026-10-05T05:13+00:00"
     }
   },
