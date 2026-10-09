@@ -135,7 +135,7 @@
 <circle cx="122" cy="106" r="6" fill="#2a78d6"/>
 <circle cx="138" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="204" cy="106" r="6" fill="#2a78d6"/>
-<circle cx="220" cy="106" r="6" fill="#1baf7a"/>
+<circle cx="220" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="286" cy="106" r="6" fill="#2a78d6"/>
 <circle cx="302" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="368" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
@@ -160,13 +160,13 @@
 <circle cx="138" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="204" cy="186" r="6" fill="#2a78d6"/>
 <circle cx="220" cy="186" r="6" fill="#2a78d6"/>
-<circle cx="204" cy="202" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/>
+<circle cx="204" cy="202" r="6" fill="#2a78d6"/>
 <circle cx="220" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="286" cy="186" r="6" fill="#2a78d6"/>
 <circle cx="302" cy="186" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="286" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="302" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-<circle cx="368" cy="186" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/>
+<circle cx="368" cy="186" r="6" fill="#2a78d6"/>
 <circle cx="384" cy="186" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="368" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
 <circle cx="384" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
@@ -190,7 +190,7 @@
 <text x="130" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">4</text>
 <text x="212" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">10</text>
 <text x="294" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">3</text>
-<text x="376" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">1</text>
+<text x="376" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">2</text>
 <text x="458" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">12</text>
 <text x="0" y="336">Theirs</text>
 <text x="130" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">2</text>
@@ -199,8 +199,8 @@
 <text x="376" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">5</text>
 <text x="458" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">12</text>
 </g></svg>
-      <p style="font-size:13.5px"><span style="color:#2a78d6">●</span> filled &nbsp; ○ open: an add would play there &nbsp;
-        <span style="color:#1baf7a">●</span> filled by the plan &nbsp; <span style="color:#1baf7a">◯</span> freed by the plan (Samuelsson leaves)</p>
+      <p style="font-size:13.5px"><span style="color:#2a78d6">●</span> filled &nbsp; ○ open: an add would play there.
+        The plan (Spurgeon for Samuelsson, D for D) changes no slot on these nights; a move that did would show in green.</p>
     </div>
   </div>
   <div class="foot"><span>Fit on past seasons, checked on the next (scripts/backtest.py, check_sigma.py)</span><span>2 / 5</span></div>
@@ -211,7 +211,7 @@
   <div class="kicker">Step 2 · What a move is worth</div>
   <h2>One currency: win-pts, percentage points of a weekly win</h2>
   <p class="lead" style="margin:-8px 0 14px; font-size:17px">1 win-pt = 0.01 expected weekly wins, summed over every week a move touches.
-    +40 = 0.4 more weekly wins expected this season; an add must buy 10 (0.1 wins) to be worth one of the 33 left.</p>
+    Today's plan, +11, is 0.11 more weekly wins expected this season; an add must buy 10 (0.1 wins) to be worth one of the 33 left.</p>
   <div class="eq">value = <b style="color:#2a78d6">Δ P(win) this week</b> + <b style="color:#eb6834">Δ P(win) in weeks +1, +2</b>
     <span style="color:#52514e">(against the real opponents)</span> + <b style="color:#1baf7a">later points × a point's worth</b></div>
   <div class="cols" style="grid-template-columns: 1.45fr 1fr;">
@@ -219,40 +219,41 @@
       <h3>Today's top moves, Fri 9 Oct (win-pts)</h3>
       <svg viewBox="0 0 700 270" width="100%" role="img" aria-label="Value of each move split by when it pays">
         <g font-size="14" fill="#52514e">
-          <!-- zero at x = 320, 8 px per win-pt -->
-          <line x1="320" y1="18" x2="320" y2="246" stroke="#8a8984"/>
-          <line x1="400" y1="18" x2="400" y2="246" stroke="#0b0b0b" stroke-width="1.5"/>
-          <text x="400" y="12" text-anchor="middle" fill="#0b0b0b" font-weight="650">an add costs 10</text>
-          <text x="228" y="50" text-anchor="end" font-weight="700" fill="#0b0b0b">Kelly for Samuelsson</text>
-          <rect x="321" y="34" width="68" height="22" rx="3" fill="#eb6834"/><rect x="391" y="34" width="250" height="22" rx="3" fill="#1baf7a"/>
-          <text x="647" y="50" fill="#0b0b0b" font-weight="650">+40</text>
-          <text x="228" y="98" text-anchor="end">Spurgeon for Samuelsson</text>
-          <rect x="321" y="82" width="53" height="22" rx="3" fill="#eb6834"/><rect x="376" y="82" width="117" height="22" rx="3" fill="#1baf7a"/>
-          <text x="499" y="98" fill="#0b0b0b">+22</text>
-          <text x="228" y="146" text-anchor="end">Kantserov for Samuelsson</text>
-          <rect x="309" y="130" width="10" height="22" rx="3" fill="#eb6834"/>
-          <rect x="321" y="130" width="11" height="22" rx="3" fill="#2a78d6"/><rect x="334" y="130" width="163" height="22" rx="3" fill="#1baf7a"/>
-          <text x="503" y="146" fill="#0b0b0b">+21</text>
-          <text x="228" y="194" text-anchor="end">Tolvanen for Samuelsson</text>
-          <rect x="299" y="178" width="20" height="22" rx="3" fill="#eb6834"/>
-          <rect x="321" y="178" width="41" height="22" rx="3" fill="#2a78d6"/><rect x="364" y="178" width="61" height="22" rx="3" fill="#1baf7a"/>
-          <text x="431" y="194" fill="#0b0b0b">+11</text>
-          <text x="228" y="240" text-anchor="end">Olivier for Lindell (chase)</text>
-          <rect x="240" y="224" width="79" height="22" rx="3" fill="#1baf7a"/>
-          <rect x="321" y="224" width="48" height="22" rx="3" fill="#2a78d6"/>
-          <text x="375" y="240" fill="#0b0b0b">−4</text>
+          <!-- zero at x = 360, 14 px per win-pt -->
+          <line x1="360" y1="18" x2="360" y2="252" stroke="#8a8984"/>
+          <line x1="500" y1="18" x2="500" y2="252" stroke="#0b0b0b" stroke-width="1.5"/>
+          <text x="500" y="12" text-anchor="middle" fill="#0b0b0b" font-weight="650">an add costs 10</text>
+          <text x="228" y="50" text-anchor="end" font-weight="700" fill="#0b0b0b">Spurgeon for Samuelsson</text>
+          <rect x="361" y="34" width="81" height="22" rx="3" fill="#eb6834"/><rect x="444" y="34" width="71" height="22" rx="3" fill="#1baf7a"/>
+          <text x="521" y="50" fill="#0b0b0b" font-weight="650">+11</text>
+          <text x="228" y="98" text-anchor="end" font-weight="700" fill="#0b0b0b">Marchand (IR stash, Mon)</text>
+          <rect x="361" y="82" width="2" height="22" rx="1" fill="#2a78d6"/><rect x="365" y="82" width="11" height="22" rx="3" fill="#eb6834"/>
+          <rect x="378" y="82" width="124" height="22" rx="3" fill="#1baf7a"/>
+          <text x="508" y="98" fill="#0b0b0b" font-weight="650">+10</text>
+          <text x="228" y="146" text-anchor="end">Arvidsson for McBain</text>
+          <rect x="349" y="130" width="10" height="22" rx="3" fill="#eb6834"/>
+          <rect x="361" y="130" width="67" height="22" rx="3" fill="#2a78d6"/><rect x="430" y="130" width="54" height="22" rx="3" fill="#1baf7a"/>
+          <text x="508" y="146" fill="#0b0b0b">+8</text>
+          <text x="228" y="194" text-anchor="end">Olivier for Lindell (chase)</text>
+          <rect x="254" y="178" width="65" height="22" rx="3" fill="#1baf7a"/><rect x="321" y="178" width="38" height="22" rx="3" fill="#eb6834"/>
+          <rect x="361" y="178" width="95" height="22" rx="3" fill="#2a78d6"/>
+          <text x="462" y="194" fill="#0b0b0b">−1</text>
+          <text x="228" y="242" text-anchor="end">Kelly for Samuelsson</text>
+          <rect x="235" y="226" width="124" height="22" rx="3" fill="#1baf7a"/>
+          <rect x="361" y="226" width="50" height="22" rx="3" fill="#eb6834"/>
+          <text x="417" y="242" fill="#0b0b0b">−5</text><text x="508" y="242">(was +40 before the review)</text>
         </g>
       </svg>
-      <p style="font-size:13.5px"><span style="color:#2a78d6">■</span> this week &nbsp; <span style="color:#eb6834">■</span> weeks +1, +2 (36% and 41%: close, so a point there counts a lot) &nbsp; <span style="color:#1baf7a">■</span> later</p>
+      <p style="font-size:13.5px"><span style="color:#2a78d6">■</span> this week &nbsp; <span style="color:#eb6834">■</span> weeks +1, +2 (35% and 42%: close, so a point there counts a lot) &nbsp; <span style="color:#1baf7a">■</span> later</p>
     </div>
     <div class="cols" style="grid-template-columns: 1fr; gap: 14px;">
       <div class="card"><h3>Why not chase this week?</h3>
-        <p>Olivier lifts you 16% → 22% (+6), but dropping Lindell costs 11 later: −4 in all, against the 10 an add costs.
-          You're 26 down with most of it banked, so a point now is worth only so much.</p></div>
+        <p>Olivier lifts you 16% → 22% (+7), but losing Lindell costs 3 in weeks 3–4 and 5 later: −1 in all,
+          against the 10 an add costs. You're 26 down with most of it banked, so a point now is worth only so much.</p></div>
       <div class="card"><h3>Honest numbers, and what's untested</h3>
         <p>Team margins come true at <b>0.80</b> (0.75 / 0.70 one and two weeks ahead), per-game gaps between fringe
-          players at <b>1.02</b> now, ~0.75 by week 20; later points get ×0.5. <b>Untested:</b> the projected games
-          missed (durability), which is 70% of Kelly's edge, and IR returns in one-for-one swaps.</p></div>
+          players at <b>1.02</b> now, ~0.75 by week 20; later points get ×0.5. Missed games cost only a player's edge
+          over a streamer (<b>untested</b>), and every top move is valued with Celebrini back and the cheapest player cut.</p></div>
     </div>
   </div>
   <div class="foot"><span>Calibration: check_sigma --ahead, check_gaps (2024-25 and 2025-26)</span><span>3 / 5</span></div>
@@ -302,39 +303,39 @@
       <div class="big num">16%</div><p>to win this week</p>
       <p style="margin-top:12px" class="num">137–163 so far · expect 223–250<br>Lineup games left: 17 each</p>
       <div style="display:flex; gap:10px; margin-top:16px">
-        <div><div style="font-size:26px;font-weight:700">36%</div><p>wk 3 vs Löllöt</p></div>
-        <div><div style="font-size:26px;font-weight:700">41%</div><p>wk 4 vs Jättiläisentie</p></div>
+        <div><div style="font-size:26px;font-weight:700">35%</div><p>wk 3 vs Löllöt</p></div>
+        <div><div style="font-size:26px;font-weight:700">42%</div><p>wk 4 vs Jättiläisentie</p></div>
       </div>
     </div>
     <div class="card">
       <h3>The plan</h3>
-      <p style="font-size:18px; color:#0b0b0b; margin-top:6px"><span class="tag">Fri 9 Oct</span><b>Parker Kelly for Mattias Samuelsson</b></p>
+      <p style="font-size:16px; color:#0b0b0b; margin-top:4px"><span class="tag">Fri 9 Oct</span><b>Spurgeon for Samuelsson</b></p>
+      <p style="font-size:16px; color:#0b0b0b; margin-top:4px"><span class="tag">Mon 12 Oct</span><b>Marchand into the empty IR slot</b></p>
       <ul>
-        <li>+40 win-pts: nothing this week (both play Saturday), +9 in weeks 3–4, +31 later</li>
-        <li>This week, not Monday: same season add either way, but week 3's two slots stay free (a close week, 36%)</li>
-        <li>Today, not tomorrow: waiting gains nothing and risks a claim</li>
-        <li><b>Under review:</b> per game Kelly = Samuelsson (4.15 vs 4.14); the edge is Samuelsson's projected
-          missed games and open F slots, and Kelly is the forward cut when Celebrini returns</li>
+        <li>Spurgeon: +11 (+6 in weeks 3–4, +5 later), D for D, just above the 10 an add costs</li>
+        <li>Marchand: +10; injured, so no drop now (check Yahoo tags him IR)</li>
+        <li>Not Kelly: +40 before your review, <b>−5</b> now: same per game as Samuelsson, and he'd be cut when Celebrini returns</li>
       </ul>
     </div>
     <div class="card">
       <h3>Checked against past seasons</h3>
       <ul>
         <li>P(win) spread right (×0.92–1.03) in 2024-25 and 2025-26</li>
-        <li>Margins shrunk to how they come true</li>
+        <li>Margins shrunk to how they come true; fringe players' per-game gaps hold (1.02 now, ~0.75 by week 20)</li>
         <li>Goalie start and injury-return curves fit on one season, checked on the next</li>
       </ul>
       <h3 style="margin-top:12px">Next</h3>
       <p>A replay of 2025-26 to score every rule change on wins, playoff and title odds, and how often the plan changes.</p>
     </div>
   </div>
-  <div class="card" style="margin-top:20px">
+  <div class="card" style="margin-top:14px; padding: 12px 18px;">
     <h3>What you get on Telegram (the plan message, then one card per move with Done / Taken / Skip)</h3>
-    <p style="font-family: Consolas, 'Cascadia Mono', monospace; font-size:14px; color:#0b0b0b; white-space:pre-line; margin-top:6px">Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-250 (Yahoo 230-257). Win 16%.
-Fri 9 Oct (today): Parker Kelly for Mattias Samuelsson (+40 win-pts, a keeper; uses this week's slot, so next week's two adds stay free).
-For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. Not worth an add: -4 win-pts in all, as dropping Esa Lindell costs 11 later, against the 10 an add costs.
-Ahead: wk 3 vs Löllöt Höntsääjät 36%, wk 4 vs Jättiläisentie Giants 41%.
-Adds: 1 this week, 33 this season. Playoffs 21%, title 1%.</p>
+    <p style="font-family: Consolas, 'Cascadia Mono', monospace; font-size:12.5px; color:#0b0b0b; white-space:pre-line; margin-top:6px">Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-250 (Yahoo 230-257). Win 16%.
+Fri 9 Oct (today): Jared Spurgeon for Mattias Samuelsson (+11 win-pts, a keeper; uses this week's slot, so next week's two adds stay free).
+Mon 12 Oct: Brad Marchand into your empty IR slot (+10 win-pts, a keeper; it does nothing this week, so it takes next week's add).
+For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. Not worth an add: -1 win-pts in all, as dropping Esa Lindell costs 8 later, against the 10 an add costs.
+Ahead: wk 3 vs Löllöt Höntsääjät 35%, wk 4 vs Jättiläisentie Giants 42%.
+Adds: 1 this week, 33 this season. Playoffs 20%, title 1%.</p>
   </div>
   <div class="foot"><span>Dashboard: nybnic.github.io/FantasyNHLAssistantGM</span><span>5 / 5</span></div>
 </section>
