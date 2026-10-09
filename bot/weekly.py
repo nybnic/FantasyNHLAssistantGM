@@ -19,16 +19,16 @@ from engine import plan as plan_mod
 from league import teams, weeks
 from league import roster as roster_mod
 from model import context
-from notify import charts
+from notify import charts, snapshot
 from bot import board, messages
 from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents, _weakest
 
 logger = logging.getLogger(__name__)
 
-SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (written by each weekly plan)
+SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (written by each plan run)
+DASHBOARD_URL = "https://nybnic.github.io/FantasyNHLAssistantGM/"  # GitHub Pages, published from site/
 
 
-CHART_WEEKS = 5  # an add's chart shows this many weeks after the current one
 
 
 MIN_KNOWN_ROSTER = 10  # a league team's roster counts toward the matchup spread from this many players
@@ -351,12 +351,9 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
 
 
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
-               ranked: list, moves: list, held: bool = False) -> dict:
-    """Every number the charts and the dashboard show, computed once: the
-    decision map, the schedule grid with streamers, the add budget, and each
-    shown add's week-by-week gain (keyed by report.move_key)."""
-    price = wk.price if wk.max_moves else None
-    decision = report.decision_view(week, ranked, moves, price)
+               ranked: list, moves: list) -> dict:
+    """The dashboard's schedule grid (this week and next, with the best
+    streamer per position) and the add budget."""
     spans = [(week, current_opponent(state, week), wk.me, wk.them)]
     if nxt.week:
         opp = current_opponent(state, nxt.week)
@@ -365,38 +362,41 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         spans.append((nxt.week, opp or "?", nxt.mine, theirs))
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
                                 wk.available_from)
-    schedule = report.schedule_view(players, spans, streams, moves)
-    budget = report.budget_view(state["adds"], week)
-    by_key = {report.move_key(m): m for m in ranked}
-    by_key.update({report.move_key(m): m for m in moves + [st["move"] for st in streams]})
-    chosen = {report.move_key(m) for m in moves}
-    keys = [pt["key"] for pt in decision["points"]] + [r["key"] for r in schedule["streamers"]] + list(chosen)
-    later = {w: _week_schedule(w) for w in range(week + 1, min(week + CHART_WEEKS, weeks.LAST_WEEK) + 1)}
-    adds = {}
-    for key in dict.fromkeys(keys):
-        m = by_key[key]
-        verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, price, moves, held)
-        gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
-        adds[key] = report.add_view(m, week, gains, budget, verdict)
-    return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds}
+    return {"schedule": report.schedule_view(players, spans, streams, moves),
+            "budget": report.budget_view(state["adds"], week)}
 
 
-def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
-                    now: dt.datetime, dry_run: bool) -> Path:
+DASHBOARD_MOVES = 60  # the move table's rows (the Board keeps every one)
+
+
+def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, changed: str) -> dict:
+    """site/data.json: the Board's numbers plus the plan in the message's own
+    words (bot/messages.py), so the dashboard, its Telegram card and the plan
+    message can't disagree."""
+    wk = p.wk
+    h = b["header"]
+    weeks_shown = [{"week": b["week"], "opponent": b["opponent"], "win": h["win"],
+                    "margin": round(matchup.margin(wk.me, wk.them), 1)}]
+    weeks_shown += [{"week": w["week"], "opponent": w["opponent"], "win": w["win"],
+                     "margin": w["margin"]} for w in h["ahead"]]
+    return {
+        "generated": b["at"], "date": b["date"], "week": b["week"], "opponent": b["opponent"], "days": b["days"],
+        "header": h,
+        "plan": messages.plan_items(p.plan, date),
+        "plan_empty": messages.empty_text(wk.max_moves),
+        "changed": changed,
+        "this_week_line": messages.this_week_line(matchup.biggest_swing(p.ranked), p.plan,
+                                                  wk.price if wk.max_moves else None, wk.max_moves),
+        "weeks": weeks_shown,
+        "moves": sorted(b["moves"], key=lambda r: -r["value"])[:DASHBOARD_MOVES],
+        **(views or {}),
+    }
+
+
+def write_dashboard(data: dict, dry_run: bool) -> Path:
     """site/data.json for the dashboard (site/index.html), published to GitHub
     Pages by the workflow. A dry run writes it next to its charts instead,
     with a copy of the page, to preview locally."""
-    p_win = matchup.win_prob(wk.me, wk.them)
-    data = {
-        "generated": now.astimezone(dt.timezone.utc).isoformat(timespec="minutes"),
-        "week": week, "opponent": opponent, "days": [wk.days[0].isoformat(), wk.days[-1].isoformat()],
-        "summary": {
-            "so_far": [wk.me.so_far, wk.them.so_far], "expected": [wk.me.expected, wk.them.expected],
-            "yahoo": wk.yahoo_projected, "win": p_win, "stance": matchup.stance(p_win), "stance_text": stance_text,
-            "adds_left": {"season": MAX_ADDS_PER_SEASON - wk.season_used, "week": wk.max_moves},
-        },
-        **views,
-    }
     folder = CHART_DIR if dry_run else SITE_DIR
     folder.mkdir(parents=True, exist_ok=True)
     if dry_run:
@@ -407,11 +407,13 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
 
 
 def save_board(p: PlanMoves, week: int, opponent: str, now: dt.datetime, date: dt.date,
-               odds_note: tuple | None, dry_run: bool, changed: str = "") -> Path:
-    """The plan's Board (bot/board.py) to state/board.json; a dry run's next to its charts."""
+               odds_note: tuple | None, dry_run: bool, changed: str = "") -> dict:
+    """The plan's Board (bot/board.py) to state/board.json (a dry run's next
+    to its charts); returns it."""
     odds, note = odds_note or (None, "")
-    return board.save(board.build(p, week, opponent, now, date, odds, note, changed),
-                      CHART_DIR / "board.json" if dry_run else board.BOARD_FILE)
+    b = board.build(p, week, opponent, now, date, odds, note, changed)
+    board.save(b, CHART_DIR / "board.json" if dry_run else board.BOARD_FILE)
+    return b
 
 
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
@@ -616,7 +618,11 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     by_key = {o["key"]: o for o in old_open}
     changed = verdict.reason if not verdict.keep and old_open else ""
     odds_note = _safe(season_odds, state, wk, week)
-    _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed)
+    b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed)
+    views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves)
+    data = _safe(dashboard_data, b, p, views, date, changed) if b else None
+    if data:
+        _safe(write_dashboard, data, outbox.settings.dry_run)
 
     if mode == "full":
         ir_text = ir.text(p.ir_moves, ir.returning(players, wk.lines), _weakest(players, wk.ctx, wk.lines))
@@ -629,13 +635,11 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
              ir_text]))
         record_plan(state, week, opponent, wk.me, wk.them, now)
         _safe(record_league, state, league, week, opponent, wk, now)
-        views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.held)
-        if views:
-            png = _safe(charts.schedule_chart, views["schedule"])
-            if png:
-                outbox.send_photo(png, "Schedule, this week and next: your lineup's games and open slots, "
-                                       "and the best streamer per position.")
-            _safe(write_dashboard, views, wk, week, opponent, None, now, outbox.settings.dry_run)
+        png = _safe(snapshot.card_png, data) if data else None
+        if png:
+            outbox.send_photo(png, f"Everything weighed: {DASHBOARD_URL}")
+        elif views and (png := _safe(charts.schedule_chart, views["schedule"])):  # no browser: the old chart
+            outbox.send_photo(png, f"Schedule, this week and next. Everything weighed: {DASHBOARD_URL}")
     elif changed:
         outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves))
     elif p.plan and not old_open:  # moves where there were none: say so before any card

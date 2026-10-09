@@ -2,7 +2,7 @@ import datetime as dt
 import json
 from types import SimpleNamespace
 
-from bot import board, weekly
+from bot import board, messages, weekly
 from engine import matchup
 from engine.addprice import AddPrice
 from engine.plan import Planned
@@ -68,10 +68,10 @@ def test_with_the_budget_spent_nothing_passes():
 def test_the_plan_saves_its_board_and_explain_week_reads_the_same_table(monkeypatch, tmp_path):
     monkeypatch.setattr(board, "BOARD_FILE", tmp_path / "board.json")
     tolvanen = _move(2, "Eeli Tolvanen", 4.9, 9.2, 0.21)
-    path = weekly.save_board(_plan([tolvanen], [(tolvanen, NOW.date(), "now")]), 2, "R", NOW, NOW.date(), None,
-                             dry_run=False, changed="someone took him")
-    saved = board.load(path)
-    assert path == tmp_path / "board.json" and saved["plan"]["changed"] == "someone took him"
+    built = weekly.save_board(_plan([tolvanen], [(tolvanen, NOW.date(), "now")]), 2, "R", NOW, NOW.date(), None,
+                              dry_run=False, changed="someone took him")
+    saved = board.load(tmp_path / "board.json")
+    assert saved == json.loads(json.dumps(built)) and saved["plan"]["changed"] == "someone took him"
     lines = board.table(saved)
     assert "Eeli Tolvanen" in lines[1] and "plan" in lines[1] and "16%->21%" in lines[1] and "Fri 09" in lines[1]
     assert board.table(saved, position="D") == lines[:1]  # header only: Tolvanen plays LW
@@ -105,3 +105,29 @@ def test_a_move_that_clashes_with_the_plan_says_so():
     b = board.build(_plan([kelly, kantserov], [(kelly, NOW.date(), "spare")]), 2, "R", NOW, NOW.date())
     row = next(r for r in b["moves"] if r["add"]["name"] == "Roman Kantserov")
     assert row["status"] == "passes" and row["why"] == "worth an add, but the plan's Parker Kelly uses the same drop"
+
+
+def test_the_dashboard_data_is_the_board_plus_the_plan_in_the_messages_words():
+    kelly = _move(3, "Parker Kelly", 0.0, 37.3, 0.16)
+    olivier = _move(5, "Mathieu Olivier", 5.8, -11.0, 0.22, drop=RosterPlayer(7, "Esa Lindell", "DAL", ["D"]))
+    p = _plan([kelly, olivier], [(kelly, NOW.date(), "spare")])
+    p.wk.ahead = [matchup.WeekAhead(3, frozenset(), -15.9, 46.1, "Lallat")]
+    b = board.build(p, 2, "Retrot Chicken Wings", NOW, NOW.date())
+    data = weekly.dashboard_data(b, p, {"schedule": {"days": []}, "budget": {}}, NOW.date(), "")
+    assert data["plan"] == [{"day": "Today", "today": True, "swap": "Parker Kelly for Mattias Samuelsson",
+                             "detail": messages._detail(p.plan[0]), "key": "3:1"}]
+    assert data["this_week_line"].startswith("For this week alone, the best is Mathieu Olivier for Esa Lindell")
+    assert [w["week"] for w in data["weeks"]] == [2, 3] and data["weeks"][1]["opponent"] == "Lallat"
+    assert data["weeks"][0]["margin"] == round(matchup.margin(p.wk.me, p.wk.them), 1)
+    assert [r["key"] for r in data["moves"]] == ["3:1", "5:7"] and data["schedule"] == {"days": []}
+    assert data["header"] is b["header"]
+    json.dumps(data)
+
+
+def test_the_card_image_falls_back_when_no_browser_can_render_it(monkeypatch):
+    import builtins
+    from notify import snapshot
+    real = builtins.__import__
+    monkeypatch.setattr(builtins, "__import__", lambda name, *a, **k: (_ for _ in ()).throw(ImportError(name))
+                        if name.startswith("playwright") else real(name, *a, **k))
+    assert snapshot.card_png({"week": 2}) is None

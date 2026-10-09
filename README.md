@@ -33,20 +33,25 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   makes a clearly better lineup. Nothing is sent 23:00-08:00.
 - **Done / Skip buttons.** Tap Done after you've made the change in Yahoo -
   that's how the assistant knows your lineup (no Yahoo API access).
-- **Weekly matchup plan** at noon on each fantasy week's first day (or any
-  time with `/week`). It's built to win the week, not just score points:
-  - expected score vs this week's opponent and your chance of winning
-  - lineup games left for each side
-  - whether you'll make the 3-goalie-game minimum
-  - the add/drops worth making, each with Done, Taken and Skip buttons.
+- **The plan** at noon on each fantasy week's first day and again on its
+  Wednesday (or any time with `/week`), a few lines: the score and your chance
+  of winning, what to do and when ("Today: Kelly for Samuelsson", "Mon 12:
+  ..."), the week's best stream if it isn't in the plan and why not, your odds
+  in the next two weeks, the add budget. Each move comes as its own message
+  with Done, Other drop, Taken and Skip buttons, once, on its day. A screenshot
+  gets a one-line reply (the score, or what changed); the evening check speaks
+  only if the plan changed, and says why.
 
   Every add is valued in **win-pts** (percentage points of a weekly win): what
-  it does to this week's win odds, plus its later points at what a point is
-  worth in a typical week. It's made when that beats the **add price**, set so
-  that spending at that bar (at most 2 a week) uses the 36 adds at the right
-  pace, 6 kept for the playoffs. So a close week with good streamers gets 2
-  adds, a lopsided one none. This week's adds go to moves that pay this week;
-  a keeper that adds nothing now is flagged to make on Monday. Your streaming
+  it does to this week's win odds and to the next two weeks' against their
+  real opponents, plus its later points at what a point is worth in a typical
+  week. It's made when that beats the **add price**, set so that spending at
+  that bar (at most 2 a week) uses the 36 adds at the right pace, 6 kept for
+  the playoffs. So a close week with good streamers gets 2 adds, a lopsided one
+  none. The plan is one coherent set (no two moves share a player); a keeper
+  that adds nothing now waits for Monday only if another move can use this
+  week's add. Once you've seen it, the plan changes only when a move can't be
+  made or a new one is clearly better (2 win-pts). Your streaming
   spots (the 3 skaters nearest waiver level, plus your weakest goalie) are
   valued only for the ~3 weeks a streamer stays, not the season.
   An injured free agent worth holding can be stashed straight into an empty
@@ -88,21 +93,12 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   Transactions screenshot, is enough.
 - If a run fails, you get one alert that day.
 
-From Wednesday the plan comes again with a stance: chase when behind (with the
-add that would swing the odds most, and what it costs), protect when ahead, or
-"this week looks lost/won" when it's decided (an add then barely moves the odds,
-so it rarely beats the price).
-
-The plan comes with charts: a decision map (each candidate add in win-pts, this
-week's against later, with the add price as a diagonal: above it, worth an
-add); a schedule grid for this week and next
-(who starts, games lost to a full lineup, open slots by position, and the best
-streamer per position drawn on the nights he'd fill); and for each recommended
-add, its points gain week by week and the add budget.
-
-The same numbers are on a phone-first web dashboard (GitHub Pages, rebuilt with
-each plan): tap any add on the decision map, the grid or the table for its
-week-by-week gain and what it does to the add budget.
+The plan message comes with one image, a card of the dashboard: the score,
+the plan, this week and the next two, and the lineup games left night by night,
+yours against theirs. The dashboard itself (GitHub Pages, rebuilt with every
+plan) adds what each top move is worth (this week, the next two, later, against
+the add price), the schedule grid for this week and next (who starts, open
+slots, the best streamer per position), every move weighed, and the add budget.
 
 Coming next: see `docs/roadmap.md`.
 

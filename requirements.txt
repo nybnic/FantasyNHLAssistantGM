@@ -8,5 +8,6 @@ onnxruntime~=1.30.0  # the OCR's engine
 opencv-python~=5.0.0  # the OCR's image handling
 python-dotenv~=1.2.4
 matplotlib~=3.11.2  # Telegram charts (notify/charts.py)
+playwright~=1.62.0  # the Telegram card: the dashboard rendered by headless Chromium (notify/snapshot.py)
 tzdata>=2026.4  # time zone data: newer is better
 pytest~=9.1.1

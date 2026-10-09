@@ -22,10 +22,10 @@ screenshots (team pages, matchups, transactions from the app, website or league 
 | `engine/` | Decisions: daily lineup, availability, weekly matchup and add/drops. See `engine/CLAUDE.md` |
 | `league/` | Rosters: mine (`roster.py`), other teams (`teams.py`), Yahoo text parser, fantasy weeks |
 | `clients/` | Data: NHL APIs, DailyFaceoff (lines, goalies, projections), disk cache, screenshot OCR |
-| `notify/telegram.py` | Bot API calls |
+| `notify/` | `telegram.py` (Bot API calls), `snapshot.py` (the dashboard card as the plan's image, headless Chromium), `charts.py` (matplotlib: the result chart, and the fallback image) |
 | `state/` | Bot-owned JSON, committed by every run: roster, league, `ledger.json` (the season's record), `gm_state.json` (run bookkeeping), `board.json` (the latest plan: every add/drop weighed) |
 | `scripts/` | One-off tools: seeding, backtest, explain_week, compare_yahoo, xfp_table |
-| `site/` | The dashboard: `index.html` (ours), `data.json` (written by each weekly plan), on GitHub Pages |
+| `site/` | The dashboard: `index.html` (ours; `?card` is the Telegram image), `data.json` (written by each plan run), on GitHub Pages |
 | `relay/` | Cloudflare Worker for instant Telegram replies |
 | `docs/league-rules.md` | Full scoring and league rules, worked examples, where the points come from |
 | `docs/operations.md` | Runtime, secrets, state ownership, past incidents |

@@ -53,9 +53,12 @@ GitHub masks secrets in logs, but anything the bot *sends to Telegram* isn't
 masked: `notify/telegram.TelegramError` and the failure alert strip the token.
 
 ## Dashboard (GitHub Pages)
-`site/index.html` is ours; `site/data.json` is written by every weekly plan
-(`bot/weekly.write_dashboard`, from the same `engine/report.py` views as the charts)
-and committed with the state. The workflow's `deploy-dashboard` job publishes
+`site/index.html` is ours; `site/data.json` is written by every plan run
+(`bot/weekly.dashboard_data`: the Board plus the plan in the message's words, the
+schedule grid and the add budget) and committed with the state. `index.html?card`
+is the compact card the plan message's image is a screenshot of (`notify/snapshot.py`,
+headless Chromium installed by the workflow, cached; without it the old matplotlib
+schedule chart goes out). The workflow's `deploy-dashboard` job publishes
 `site/` when `data.json` changed. One-time setup: repo Settings > Pages >
 Source: GitHub Actions. The page is public (like `state/`) and marked
 noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/charts`.

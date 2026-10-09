@@ -12,7 +12,6 @@ from engine import matchup
 from league import weeks
 from league.roster import BENCH, RosterPlayer, active
 
-CONFIDENT_WEEKS = 2  # weeks after this one an add's chart shows as firm; later ones are faded (schedules and injuries change)
 POSITION_ORDER = ["C", "LW", "RW", "D", "G"]
 
 
@@ -28,50 +27,6 @@ def _last(name: str) -> str:
 def move_key(m: matchup.Move) -> str:
     """A move's id across views: "add id:drop id" (0 for an open spot; ":IR" for an IR stash)."""
     return f"{m.add.id}:{m.drop.id if m.drop else 0}" + (":IR" if m.ir_slot else "")
-
-
-def _move_label(m: matchup.Move) -> str:
-    if m.ir_slot:
-        return f"{_last(m.add.name)} (IR stash)"
-    return f"{_last(m.add.name)} for {_last(m.drop.name)}" if m.drop else f"{_last(m.add.name)} (open spot)"
-
-
-def decision_view(week: int, ranked: list[matchup.Move], recommended: list[matchup.Move],
-                  price, top: int = 4) -> dict:
-    """Every add as a point in win-points (percentage points of a weekly win):
-    this week's change in win odds (x) and its later points' worth (y). An add
-    is worth making when x + y reaches the add's price (`bar`, a diagonal).
-    Each player once, at his best drop; the `top` by each axis plus every
-    recommended add."""
-    best: dict[int, matchup.Move] = {}
-    for m in ranked:
-        if m.add.id not in best or m.value > best[m.add.id].value:
-            best[m.add.id] = m
-    for m in recommended:
-        best[m.add.id] = m
-    chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
-
-    def lift(m: matchup.Move) -> float:
-        return (m.win_after - m.win_before) * 100
-
-    moves = list(best.values())
-    shown = sorted(moves, key=lift, reverse=True)[:top] + sorted(moves, key=lambda m: m.later_value, reverse=True)[:top]
-    shown += [best[m.add.id] for m in recommended]
-    shown = list({m.add.id: m for m in shown}.values())
-    points = [{"key": move_key(m), "label": _move_label(m), "x": lift(m), "y": 100 * m.later_value,
-               "later_pts": m.long_term, "games": m.games,
-               "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen} for m in shown]
-    if recommended:
-        headline = "Recommended: " + ", ".join(_move_label(m) for m in recommended)
-    else:
-        headline = "No add is worth its price right now"
-    biggest = max(points, key=lambda pt: pt["x"], default=None)
-    detail = ""
-    if biggest and biggest["x"] >= matchup.MIN_WIN_GAIN * 100 and not biggest["recommended"]:
-        detail = (f"Biggest lift this week: {biggest['label']}, +{biggest['x']:.0f} win-pts, "
-                  f"{biggest['y']:+.0f} later")
-    return {"week": week, "points": points, "headline": headline, "detail": detail,
-            "bar": 100 * price.lam if price else None}
 
 
 def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchup.TeamWeek, matchup.TeamWeek]],
@@ -118,35 +73,6 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
                             "recommended": (m.add.id, m.drop.id if m.drop else None) in chosen})
     return {"days": days, "rows": rows, "streamers": stream_rows, "open": open_slots, "my_games": my_games,
             "their_games": their_games, "weeks": [{"week": w, "opponent": opp} for w, opp, _, _ in spans]}
-
-
-def weekly_gains(roster: list[RosterPlayer], move: matchup.Move, ctx, week_schedules: dict[int, dict],
-                 lines: dict, starters: dict) -> list[tuple[int, float]]:
-    """The add's points gain in each later week (`week_schedules`: week ->
-    that week's schedule), judged like the long run: durability included.
-    An IR stash is shown with his later drop made (a lower bound while he's out)."""
-    trial = matchup._swap(roster, move.add, move.drop or move.later_drop)
-    gains = []
-    for week, schedule in sorted(week_schedules.items()):
-        before = matchup.project("me", roster, ctx, schedule, lines, starters, True).expected
-        after = matchup.project("me", trial, ctx, schedule, lines, starters, True).expected
-        gains.append((week, after - before))
-    return gains
-
-
-def add_view(move: matchup.Move, week: int, later: list[tuple[int, float]], budget: dict,
-             verdict: str = "") -> dict:
-    """This week's gain, then each later week's; weeks past the add rule's
-    horizon are marked as less certain."""
-    rows = [{"week": week, "gain": move.week_gain, "confident": True}]
-    rows += [{"week": w, "gain": g, "confident": w - week <= CONFIDENT_WEEKS} for w, g in later]
-    return {"key": move_key(move),
-            "label": (f"Stash {_short(move.add.name)} in {move.ir_slot}" if move.ir_slot
-                      else f"Add {_short(move.add.name)}" + (f", drop {_short(move.drop.name)}" if move.drop else "")),
-            "add": {"name": move.add.name, "team": move.add.team, "positions": "/".join(move.add.positions)},
-            "drop": move.drop.name if move.drop else None, "games": move.games,
-            "weeks": rows, "win": [move.win_before, move.win_after], "next_two_weeks": move.next_weeks,
-            "season": move.long_term, "verdict": verdict, "budget": budget}
 
 
 def budget_view(adds: list[dict], week: int) -> dict:

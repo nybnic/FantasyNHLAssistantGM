@@ -41,16 +41,28 @@ def _detail(p: Planned) -> str:
     return head + (f"; {when}" if when else "") + claim
 
 
+def empty_text(adds_left_week: int) -> str:
+    return ("No adds left this week, and nothing worth one planned for Monday." if not adds_left_week
+            else "No add is worth one of yours now.")
+
+
+def day_label(when: dt.date, today: dt.date) -> str:
+    return "Today" if when <= today else f"{when:%a %d}"
+
+
+def plan_items(plan: list[Planned], today: dt.date) -> list[dict]:
+    """The plan as the dashboard lists it: the same words as the message."""
+    return [{"day": day_label(p.when, today), "today": p.when <= today, "swap": swap(p.move), "detail": _detail(p),
+             "key": p.key} for p in plan]
+
+
 def plan_lines(plan: list[Planned], today: dt.date, adds_left_week: int) -> list[str]:
     """What to do and when, one line per day."""
     if not plan:
-        if not adds_left_week:
-            return ["No adds left this week, and nothing worth one planned for Monday."]
-        return ["No add is worth one of yours now."]
+        return [empty_text(adds_left_week)]
     lines = []
     for p in plan:
-        day = "Today" if p.when <= today else f"{p.when:%a %d}"
-        lines.append(f"{day}: {swap(p.move)} ({_detail(p)}).")
+        lines.append(f"{day_label(p.when, today)}: {swap(p.move)} ({_detail(p)}).")
     if all(p.when > today for p in plan) and adds_left_week:
         lines.insert(0, "Nothing to add today.")
     return lines
@@ -66,18 +78,8 @@ def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.Team
                                                else "")
             + f"expect {me.expected:.0f}-{them.expected:.0f}{yahoo_text}. Win {_pct(matchup.win_prob(me, them))}.")
     lines = [head] + plan_lines(plan, today, adds_left_week)
-    planned = {(p.move.add.id, p.move.drop.id if p.move.drop else None) for p in plan}
-    if (this_week_best and price and adds_left_week
-            and (this_week_best.add.id, this_week_best.drop.id if this_week_best.drop else None) not in planned):
-        m = this_week_best
-        head = f"For this week alone, the best is {swap(m)}: win {_pct(m.win_before)} -> {_pct(m.win_after)}"
-        if m.value >= price.lam:
-            lines.append(f"{head}. Worth an add too, but it clashes with the plan's.")
-        else:
-            later = m.value - (m.win_after - m.win_before)
-            cost = (f", as dropping {m.drop.name} costs {100 * -later:.0f} later" if m.drop and later < 0 else "")
-            lines.append(f"{head}. Not worth an add: {100 * m.value:.0f} win-pts in all{cost}, against the "
-                         f"{100 * price.lam:.0f} an add costs.")
+    if best := this_week_line(this_week_best, plan, price, adds_left_week):
+        lines.append(best)
     if ahead:
         lines.append("Ahead: " + ", ".join(
             f"wk {w.week} vs {w.opponent} {_pct(matchup._phi(w.margin / w.sd))}" if w.margin is not None
@@ -91,6 +93,21 @@ def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.Team
         lines.append(f"Goalie minimum at risk: ~{games:.1f} games of {MIN_GOALIE_GAMES_PER_WEEK}, "
                      f"{_pct(me.goalie_min_prob)} to make it. Pick up a goalie who plays this week.")
     return "\n".join(lines + [w for w in warnings if w])
+
+
+def this_week_line(best: matchup.Move | None, plan: list[Planned], price, adds_left_week: int) -> str:
+    """The move that lifts this week's odds most, when it isn't the plan's:
+    what chasing would buy and why it isn't planned ("" otherwise)."""
+    planned = {(p.move.add.id, p.move.drop.id if p.move.drop else None) for p in plan}
+    if not (best and price and adds_left_week) or (best.add.id, best.drop.id if best.drop else None) in planned:
+        return ""
+    head = f"For this week alone, the best is {swap(best)}: win {_pct(best.win_before)} -> {_pct(best.win_after)}"
+    if best.value >= price.lam:
+        return f"{head}. Worth an add too, but it clashes with the plan's."
+    later = best.value - (best.win_after - best.win_before)
+    cost = f", as dropping {best.drop.name} costs {100 * -later:.0f} later" if best.drop and later < 0 else ""
+    return (f"{head}. Not worth an add: {100 * best.value:.0f} win-pts in all{cost}, against the "
+            f"{100 * price.lam:.0f} an add costs.")
 
 
 def league_warning(league_through: dt.date | None, opponent_updated: str | None, today: dt.date) -> str:

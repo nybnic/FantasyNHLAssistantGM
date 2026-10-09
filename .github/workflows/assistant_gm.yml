@@ -73,6 +73,18 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # The Telegram card is the dashboard rendered by headless Chromium
+      # (notify/snapshot.py). Cached between runs; if the install fails, the
+      # plan goes out with the old matplotlib chart instead, so it can't stop the run.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('requirements.txt') }}
+      - name: Install the headless browser
+        continue-on-error: true
+        timeout-minutes: 4
+        run: python -m playwright install --with-deps --only-shell chromium
+
       # Past seasons' NHL stats never change: keep them between runs instead
       # of re-downloading ~140k rows every time.
       - uses: actions/cache@v4
