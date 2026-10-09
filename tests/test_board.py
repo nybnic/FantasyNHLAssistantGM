@@ -114,7 +114,7 @@ def test_the_dashboard_data_is_the_board_plus_the_plan_in_the_messages_words():
     p.wk.ahead = [matchup.WeekAhead(3, frozenset(), -15.9, 46.1, "Lallat")]
     b = board.build(p, 2, "Retrot Chicken Wings", NOW, NOW.date())
     data = weekly.dashboard_data(b, p, {"schedule": {"days": []}, "budget": {}}, NOW.date(), "")
-    assert data["plan"] == [{"day": "Today", "today": True, "swap": "Parker Kelly for Mattias Samuelsson",
+    assert data["plan"] == [{"day": "Fri 9 Oct (today)", "today": True, "swap": "Parker Kelly for Mattias Samuelsson",
                              "detail": messages._detail(p.plan[0]), "key": "3:1"}]
     assert data["this_week_line"].startswith("For this week alone, the best is Mathieu Olivier for Esa Lindell")
     assert [w["week"] for w in data["weeks"]] == [2, 3] and data["weeks"][1]["opponent"] == "Lallat"

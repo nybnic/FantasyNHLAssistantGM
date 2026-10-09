@@ -63,6 +63,8 @@
   waits for Monday's adds if another move can use this week's add; otherwise it
   takes this week's add, which would expire unused, today, or before Wednesday's
   plan is held for it (`holds_keepers`, unless the week is decided).
+- **The day** (`plan.time_moves`): each move's exact day, the earliest of its week's days that
+  loses no points (the drop's games first, the add in before his); waiting only risks a claim.
 - **Keeping it** (`plan.decide`, `bot/weekly.run_plan`): the plan Nico has seen
   stays unless a move can't be made (taken, its drop gone, skipped, no longer
   worth an add) or a new plan is `CHANGE_MARGIN` (0.02 wins) better. Its old

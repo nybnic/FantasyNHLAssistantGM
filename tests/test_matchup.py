@@ -601,3 +601,20 @@ def test_the_weeks_ahead_take_the_margin_at_its_realized_size():
     w2 = matchup.week_ahead(4, {}, _tw(0, 200.0), _tw(0, 220.0), "L", weeks_out=2)
     assert w2.margin == pytest.approx(-20 * matchup.MARGIN_REALIZES_AHEAD[2])
     assert matchup.week_ahead(25, {}, _tw(0, 200.0), None).margin is None
+
+
+def test_a_move_is_timed_after_the_drops_game_and_before_the_adds():
+    drop = RosterPlayer(2, "Mattias Samuelsson", "BOS", ["C"], "C")
+    add = RosterPlayer(9, "Parker Kelly", "NYR", ["C"])
+    roster = [RosterPlayer(1, "Star", "TOR", ["C"], "C"), drop]
+    schedule = {MON: [_game(MON, "BOS", "PHI")], TUE: [_game(TUE, "NYR", "PHI")], WED: []}
+    move = matchup.Move(add, drop, 3.0, 20.0, 5.0, 1, 0.4, 0.45, 0.01)
+    timed = plan.time_moves([plan.Planned(move, MON, "spare")], roster, FakeContext(), schedule, {}, {}, {},
+                            (0.0, 0.0, 0), WED + dt.timedelta(days=5))
+    assert (timed[0].when, timed[0].note) == (TUE, "after Mattias Samuelsson's game on Mon 9")
+    # Both play the same night: no reason to wait, so today (a claim could come meanwhile).
+    schedule[MON].append(_game(MON, "NYR", "TOR"))
+    schedule[TUE] = []
+    timed = plan.time_moves([plan.Planned(move, MON, "spare")], roster, FakeContext(), schedule, {}, {}, {},
+                            (0.0, 0.0, 0), WED + dt.timedelta(days=5))
+    assert (timed[0].when, timed[0].note) == (MON, "")

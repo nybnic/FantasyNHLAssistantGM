@@ -96,11 +96,11 @@ def test_a_card_goes_out_once_the_plan_holds_through_near_ties_and_a_change_says
     searches.append(([kelly, kantserov], [plan.Planned(kelly, FRIDAY, "spare")], pool))
     weekly.run_plan(state, players, {}, friday, outbox, None, "check")
     assert sent[0].split("\n")[:2] == ["137-163, expect 223-250: win 15%.", "New plan:"]
-    assert sent[1].startswith("Add Parker Kelly (NYR, LW, 2")
+    assert sent[1].startswith("Make it Fri 9 Oct (today), before that evening's games.\nAdd Parker Kelly (NYR, LW")
     # 2. Another: Kantserov now ranks 1 win-pt higher. The plan holds; no new card.
     searches.append(([kantserov, kelly], [plan.Planned(kantserov, FRIDAY, "now")], pool))
     weekly.run_plan(state, players, {}, friday, outbox, None, "check")
-    assert len(sent) == 3 and sent[-1].endswith("Plan unchanged: Parker Kelly for Mattias Samuelsson today.")
+    assert len(sent) == 3 and sent[-1].endswith("Plan unchanged: Parker Kelly for Mattias Samuelsson today (Fri 9 Oct).")
     # 3. The evening: nothing changed, nothing said.
     searches.append(([kantserov, kelly], [plan.Planned(kantserov, FRIDAY, "now")], pool))
     weekly.run_plan(state, players, {}, friday, outbox, None, "quiet")
@@ -110,7 +110,7 @@ def test_a_card_goes_out_once_the_plan_holds_through_near_ties_and_a_change_says
     weekly.run_plan(state, players, {}, friday, outbox, None, "quiet")
     assert sent[3].startswith("Plan changed (Parker Kelly for Mattias Samuelsson: someone took him). "
                               "Was: Parker Kelly for Mattias Samuelsson. Now:")
-    assert sent[4].startswith("Add Roman Kantserov") and len(sent) == 5
+    assert sent[4].split("\n")[1].startswith("Add Roman Kantserov") and len(sent) == 5
     assert marked == [(2, "Replaced: Roman Kantserov for Mattias Samuelsson")]
     assert [m["add"]["name"] for m in state["plan"]["moves"]] == ["Roman Kantserov"]
     assert state["plan"]["moves"][0]["rec_id"] in state["pending"] and len(state["pending"]) == 2  # both scored later
@@ -127,8 +127,8 @@ def test_a_move_made_leaves_the_plan_without_a_change_message(monkeypatch, tmp_p
     searches.append(([other], [plan.Planned(other, FRIDAY, "now")], [other.add]))
     weekly.run_plan(state, players, {}, friday, outbox, None, "quiet")
     # A new plan is announced each time there was none open, then its card; no "changed", nothing relabelled.
-    assert [m.split("\n")[0].split(" (")[0] for m in sent] == ["New plan:", "Add Parker Kelly", "New plan:",
-                                                                 "Add Other"]
+    assert [m.split("\n")[0 if m.startswith("New") else 1].split(" (")[0] for m in sent] == [
+        "New plan:", "Add Parker Kelly", "New plan:", "Add Other"]
     assert marked == []
 
 

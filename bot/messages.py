@@ -37,8 +37,8 @@ def _detail(p: Planned) -> str:
     when = {"spare": "on this week's add, which would go unused",
             "monday": "it does nothing this week, so it takes next week's add",
             "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)
-    claim = f"; a claim, plays from {m.plays_from:%a %d}" if m.plays_from else ""
-    return head + (f"; {when}" if when else "") + claim
+    claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
+    return head + (f"; {when}" if when else "") + (f"; {p.note}" if p.note else "") + claim
 
 
 def empty_text(adds_left_week: int) -> str:
@@ -46,8 +46,22 @@ def empty_text(adds_left_week: int) -> str:
             else "No add is worth one of yours now.")
 
 
+def date_text(d: dt.date) -> str:
+    """"Sat 10 Oct" (no leading zero, on Windows too)."""
+    return f"{d:%a} {d.day} {d:%b}"
+
+
 def day_label(when: dt.date, today: dt.date) -> str:
-    return "Today" if when <= today else f"{when:%a %d}"
+    """The exact day to make a move: its NHL date, i.e. during that day in
+    Helsinki, before the evening's games."""
+    when = max(when, today)
+    return date_text(when) + (" (today)" if when == today else " (tomorrow)" if (when - today).days == 1 else "")
+
+
+def make_it(p: Planned, today: dt.date) -> str:
+    """A card's first line: the day, and why not sooner."""
+    return (f"Make it {day_label(p.when, today)}, before that evening's games"
+            + (f": {p.note}" if p.note else "") + ".")
 
 
 def plan_items(plan: list[Planned], today: dt.date) -> list[dict]:
@@ -136,8 +150,8 @@ def _score(me: matchup.TeamWeek, them: matchup.TeamWeek) -> str:
 def score_text(me: matchup.TeamWeek, them: matchup.TeamWeek, plan: list[Planned], today: dt.date) -> str:
     """The reply to a screenshot when the plan holds."""
     now = [p for p in plan if p.when <= today]
-    what = ("; ".join(swap(p.move) for p in now) + " today" if now
-            else f"{swap(plan[0].move)} on {plan[0].when:%a %d}" if plan else "no add")
+    what = ("; ".join(swap(p.move) for p in now) + f" today ({date_text(today)})" if now
+            else f"{swap(plan[0].move)} on {date_text(plan[0].when)}" if plan else "no add")
     return f"{_score(me, them)} Plan unchanged: {what}."
 
 

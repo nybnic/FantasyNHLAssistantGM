@@ -39,6 +39,7 @@ class Planned:
     when: dt.date
     why: str  # "now": pays this week; "spare": a keeper on this week's otherwise unused add;
     #           "monday": a keeper that waits for next week's adds; "held": kept for Wednesday's plan
+    note: str = ""  # why it's made on that day and not sooner (time_moves)
 
     @property
     def key(self) -> str:
@@ -125,6 +126,53 @@ def search(roster, opponent: matchup.TeamWeek, candidates: list, ctx, schedule: 
 
     return compose(ranked if ranked is not None else rank([]), rank, price, now_slots, today, monday, midweek,
                    hold_keepers, monday_slots, exclude)
+
+
+# Making a move later must gain at least this much this week to be worth the
+# wait (someone may claim the player meanwhile): ties go to the earliest day.
+TIMING_GAIN = 0.1
+
+
+def _plays(team: str, schedule: dict, days: list[dt.date]) -> list[dt.date]:
+    return [d for d in days if any(team in (g.home, g.away) for g in schedule.get(d, []))]
+
+
+def time_moves(plan: list[Planned], roster, ctx, schedule: dict, next_schedule: dict, lines: dict, starters: dict,
+               so_far: tuple | None, monday: dt.date) -> list[Planned]:
+    """Each move's day: the one that loses no points (the drop plays his
+    games first, the add is in for his), the earliest of those, since waiting
+    risks a claim. Days run from the planned one to the end of its week
+    (NHL dates: made during that day, before its games). A move held for
+    Wednesday's plan keeps Wednesday. Each move is timed with the earlier
+    ones made."""
+    out, trial, joins, leaves = [], roster, {}, {}
+    for p in sorted(plan, key=lambda q: q.when):
+        m = p.move
+        later = p.when >= monday
+        sched = next_schedule if later else schedule
+        days = [p.when] if p.why == "held" else [d for d in sorted(sched) if d >= p.when] or [p.when]
+        here = matchup._swap(trial, m.add, None, m.ir_slot or matchup.BENCH)
+        best = None
+        for d in days:
+            start = max(d, m.plays_from or d)
+            j = {**joins, m.add.id: start}
+            lv = {**leaves, **({m.drop.id: start} if m.drop else {})}
+            week = matchup.project("me", here, ctx, sched, lines, starters, later, j, None if later else so_far, lv)
+            if best is None or week.expected > best[1] + TIMING_GAIN:
+                best = (d, week.expected)
+        when = best[0] if best else p.when
+        joins[m.add.id] = max(when, m.plays_from or when)
+        if m.drop:
+            leaves[m.drop.id] = joins[m.add.id]
+        trial = here
+        note = ""
+        if when > days[0] and m.drop:
+            games = _plays(m.drop.team, sched, [d for d in days if d < when])
+            if games:
+                note = f"after {m.drop.name}'s game{'s' if len(games) > 1 else ''} on " + ", ".join(
+                    f"{d:%a} {d.day}" for d in games)
+        out.append(Planned(m, when, p.why, note))
+    return out
 
 
 def total(plan: list[Planned]) -> float:

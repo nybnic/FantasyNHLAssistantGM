@@ -584,6 +584,8 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
                                wk.weeks_after, wk.price, wk.max_moves, date, wk.days[-1] + dt.timedelta(days=1),
                                weeks.midweek(week), held, wk.available_from, wk.so_far, wk.hold_days, wk.ahead,
                                monday_slots, exclude, ranked)
+    composed = plan_mod.time_moves(composed, planned, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
+                                   wk.so_far, wk.days[-1] + dt.timedelta(days=1))
     return PlanMoves(wk, nxt, ranked, composed, ir_moves, planned,
                      max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
 
@@ -707,7 +709,8 @@ def send_cards(state: dict, p: PlanMoves, stored: list[dict], date: dt.date, now
         k = sum(m.drop is None and not m.ir_slot for m in [d[0].move for d in due[:i]]) - p.open_spots
         opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
                  else None)
-        message_id = outbox.send(matchup.move_text(move, opens.player.name if opens else None), buttons)
+        text = messages.make_it(q, date) + "\n" + matchup.move_text(move, opens.player.name if opens else None)
+        message_id = outbox.send(text, buttons)
         s["rec_id"], s["message_id"] = rec_id, message_id
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None,
