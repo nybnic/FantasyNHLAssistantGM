@@ -14,8 +14,7 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
 (Earlier direction, 2026-10-01: the edge is the add decision; still true.)
 
 ## Next (Nico, 2026-10-09: D1-D5 as proposed)
-1. **Board + ledger, no behavior change**: done (see the log). The messages still format the moves
-   themselves; step 3 rewrites them on the Board.
+1. **Board + ledger, no behavior change**: done (see the log).
 2. **Honest values**: done (see the log). The error band isn't a step-2 number after all: near-term gaps
    are calibrated (`check_gaps` 1.02), so what flips the advice is day-to-day change, which the
    commitment margin (step 3) handles.
@@ -24,7 +23,8 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
 4. **Visuals**: built (see the log). Done when Nico OKs the look on his phone: the next plan message
    carries the card, and the dashboard is at https://nybnic.github.io/FantasyNHLAssistantGM/.
 5. **One replay harness** (2025-26): expected wins, playoff/title odds, plan changes a week, adds used;
-   every later rule change ships with its numbers.
+   every later rule change ships with its numbers. **Next up.** First candidates: `LONG_RUN_DISCOUNT` 0.5,
+   `plan.CHANGE_MARGIN` 0.02, keepers held for Wednesday, durability over replacement (2026-10-09).
 
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
