@@ -12,6 +12,11 @@ import requests
 
 API_URL = "https://api.telegram.org/bot{token}/{method}"
 FILE_URL = "https://api.telegram.org/file/bot{token}/{path}"
+# Every message carries the dashboard (GitHub Pages, published from site/) as a
+# link button, its own row under any others (Nico, 2026-10-09): a button, not
+# the URL in the text, so Telegram doesn't add a link preview to each message.
+DASHBOARD_URL = "https://nybnic.github.io/FantasyNHLAssistantGM/"
+DASHBOARD_BUTTON = "Dashboard"
 
 
 class TelegramError(requests.HTTPError):
@@ -30,27 +35,26 @@ def _call(token: str, method: str, **payload) -> dict:
     return resp.json()["result"]
 
 
-def _keyboard(buttons: list[tuple[str, str]]) -> dict:
-    return {"inline_keyboard": [[{"text": label, "callback_data": data} for label, data in buttons]]}
+def _keyboard(buttons: list[tuple[str, str]] | None) -> dict:
+    """The message's buttons (label, callback data) in a row, then the dashboard link."""
+    rows = [[{"text": label, "callback_data": data} for label, data in buttons]] if buttons else []
+    return {"inline_keyboard": rows + [[{"text": DASHBOARD_BUTTON, "url": DASHBOARD_URL}]]}
 
 
 def send_message(token: str, chat_id: str, text: str, buttons: list[tuple[str, str]] | None = None) -> int:
-    """Send `text`; `buttons` are (label, callback data) pairs. Returns the message id."""
-    payload = {"chat_id": chat_id, "text": text}
-    if buttons:
-        payload["reply_markup"] = _keyboard(buttons)
+    """Send `text`; `buttons` are (label, callback data) pairs (the dashboard
+    link always comes too). Returns the message id."""
+    payload = {"chat_id": chat_id, "text": text, "reply_markup": _keyboard(buttons)}
     return _call(token, "sendMessage", **payload)["message_id"]
 
 
 def send_photo(token: str, chat_id: str, png: bytes, caption: str | None = None,
                buttons: list[tuple[str, str]] | None = None) -> int:
-    """Send a PNG, with an optional caption (max 1024 characters) and buttons.
-    Returns the message id."""
-    data = {"chat_id": chat_id}
+    """Send a PNG, with an optional caption (max 1024 characters) and buttons
+    (the dashboard link always comes too). Returns the message id."""
+    data = {"chat_id": chat_id, "reply_markup": json.dumps(_keyboard(buttons))}
     if caption:
         data["caption"] = caption[:1024]
-    if buttons:
-        data["reply_markup"] = json.dumps(_keyboard(buttons))
     resp = requests.post(API_URL.format(token=token, method="sendPhoto"), data=data,
                          files={"photo": ("chart.png", png, "image/png")}, timeout=60)
     if not resp.ok:
@@ -89,8 +93,9 @@ def delete_webhook(token: str) -> None:
 
 
 def mark_handled(token: str, chat_id: str, message_id: int, label: str) -> None:
-    """Replace a message's buttons with a single inert label, e.g. "Recorded: Done".
-    Cosmetic, so a refusal (already labeled, message too old) is ignored."""
+    """Replace a message's buttons with a single inert label, e.g. "Recorded: Done"
+    (the dashboard link stays). Cosmetic, so a refusal (already labeled, message
+    too old) is ignored."""
     try:
         _call(token, "editMessageReplyMarkup", chat_id=chat_id, message_id=message_id,
               reply_markup=_keyboard([(label, "noop")]))

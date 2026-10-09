@@ -110,7 +110,8 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
   this flow: implement, run tests, dry run, then commit and push. Ask before
   destructive git (deleting branches or tags, force-push).
 - **Telegram messages are for a phone.** Lead with the action and its exact day
-  ("Fri 9 Oct (today): X for Y"), keep the plan to a few lines, give numbers with
+  ("Fri 9 Oct (today): X for Y"), keep the plan to a few lines, every message links the
+  dashboard (a "Dashboard" button, `notify/telegram.py`), give numbers with
   context ("win 16% -> 22%", "+11 win-pts against the 10 an add costs"). One plan,
   stable: never resend what was sent; a change says why. Words live in
   `bot/messages.py` only, so the message, the card and the dashboard can't disagree.

@@ -24,6 +24,11 @@ NHL_TIME = ZoneInfo("America/New_York")
 CHART_DIR = Path("data/charts")  # where a dry run saves the charts it would send
 
 
+def _buttons(buttons: list[tuple[str, str]] | None) -> str:
+    """A dry run's printout of a message's buttons: its own, then the dashboard link every message has."""
+    return " [" + " | ".join([b[0] for b in buttons or []] + [f"{telegram.DASHBOARD_BUTTON} (link)"]) + "]"
+
+
 class Outbox:
     """Sends to Telegram, or prints in a dry run."""
 
@@ -32,7 +37,7 @@ class Outbox:
 
     def send(self, text: str, buttons: list[tuple[str, str]] | None = None) -> int | None:
         if self.settings.dry_run:
-            print(f"\n----- Telegram message{' [' + ' | '.join(b[0] for b in buttons) + ']' if buttons else ''}\n{text}")
+            print(f"\n----- Telegram message{_buttons(buttons)}\n{text}")
             return None
         return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons)
 
@@ -50,8 +55,7 @@ class Outbox:
             CHART_DIR.mkdir(parents=True, exist_ok=True)
             path = CHART_DIR / f"{len(list(CHART_DIR.glob('*.png'))):02d}.png"
             path.write_bytes(png)
-            label = f" [{' | '.join(b[0] for b in buttons)}]" if buttons else ""
-            print(f"\n----- Telegram photo{label}: {path}" + (f"\n{caption}" if caption else ""))
+            print(f"\n----- Telegram photo{_buttons(buttons)}: {path}" + (f"\n{caption}" if caption else ""))
             return None
         return telegram.send_photo(self.settings.telegram_bot_token, self.settings.telegram_chat_id, png,
                                    caption, buttons)

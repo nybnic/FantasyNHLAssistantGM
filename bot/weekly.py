@@ -19,14 +19,13 @@ from engine import plan as plan_mod
 from league import teams, weeks
 from league import roster as roster_mod
 from model import context
-from notify import charts, snapshot
+from notify import charts, snapshot, telegram
 from bot import board, messages
 from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents, _weakest
 
 logger = logging.getLogger(__name__)
 
 SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (written by each plan run)
-DASHBOARD_URL = "https://nybnic.github.io/FantasyNHLAssistantGM/"  # GitHub Pages, published from site/
 
 
 
@@ -695,9 +694,9 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         _safe(record_league, state, league, week, opponent, wk, now)
         png = _safe(snapshot.card_png, data) if data else None
         if png:
-            outbox.send_photo(png, f"Everything weighed: {DASHBOARD_URL}")
+            outbox.send_photo(png, "Everything weighed: tap Dashboard.")
         elif views and (png := _safe(charts.schedule_chart, views["schedule"])):  # no browser: the old chart
-            outbox.send_photo(png, f"Schedule, this week and next. Everything weighed: {DASHBOARD_URL}")
+            outbox.send_photo(png, "Schedule, this week and next. Everything weighed: tap Dashboard.")
     elif changed:
         outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves))
     elif p.plan and not old_open:  # moves where there were none: say so before any card
