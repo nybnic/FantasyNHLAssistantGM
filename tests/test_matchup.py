@@ -618,3 +618,29 @@ def test_a_move_is_timed_after_the_drops_game_and_before_the_adds():
     timed = plan.time_moves([plan.Planned(move, MON, "spare")], roster, FakeContext(), schedule, {}, {}, {},
                             (0.0, 0.0, 0), WED + dt.timedelta(days=5))
     assert (timed[0].when, timed[0].note) == (MON, "")
+
+
+def test_an_add_into_a_spot_ir_opened_counts_only_until_the_injured_player_is_back():
+    from clients.dfo_lines import LineInfo
+    ctx, future, schedule, lines, _, opponent = _stash_setup()
+    ctx.xfp.update({200: 5.0, 50: 3.0})
+    roster = [p for p in _full_roster(("IR",)) if p.id != 113]  # 13 active: the IR move opened a spot
+    streamer = RosterPlayer(50, "Streamer", "NYR", ["RW"])
+    soon = dict(lines, BOS={"hurt": LineInfo(groups={"f1"}, injury="ir")})
+    moves = matchup.candidate_moves(roster, opponent, [streamer], ctx, schedule, soon, {}, future, 10,
+                                    later_weight=0.01)
+    into_spot = next(m for m in moves if m.drop is None)
+    assert into_spot.until_back == "Hurt 0"
+    # Healthy, he's back at once: the add is then worth only what he beats the weakest by.
+    back = dict(lines, BOS={"hurt": LineInfo(groups={"f1"})})
+    moves_back = matchup.candidate_moves(roster, opponent, [streamer], ctx, schedule, back, {}, future, 10,
+                                         later_weight=0.01)
+    spot_back = next(m for m in moves_back if m.drop is None)
+    best_drop = max((m for m in moves_back if m.drop), key=lambda m: m.long_term)
+    assert spot_back.long_term < into_spot.long_term
+    assert spot_back.long_term == pytest.approx(max(best_drop.long_term, 0.0), abs=0.6)
+    # A spare spot left over: no crunch, the season counts.
+    roomy = [p for p in roster if p.id != 112]
+    free = next(m for m in matchup.candidate_moves(roomy, opponent, [streamer], ctx, schedule, soon, {}, future, 10,
+                                                   later_weight=0.01) if m.drop is None)
+    assert free.until_back == "" and free.long_term > into_spot.long_term

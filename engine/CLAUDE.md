@@ -40,6 +40,9 @@
   those days, at the size fringe gaps realize (`GAP_REALIZES` 0.95 / 0.89),
   counts by the change it makes to that week's P(win) (`ahead_value`): a
   point in a close week ahead is worth far more than in a lopsided one.
+- **IR returns** (`ir_crunch`): an add into an open spot, while players in IR slots outnumber the
+  spots left after it, gains in full only until they're likely back (return curves), then what it
+  beats the weakest by (its best drop), or nothing if it'd be the one cut. Weeks ahead and later.
 - **Later points** = the long run after the weeks ahead (`horizon`): the
   whole-lineup projection over the next 6 weeks (`LONG_RUN_WEEKS`, with
   durability), per week, times the weeks left after the ones ahead, x

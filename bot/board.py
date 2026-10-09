@@ -55,6 +55,7 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "drop": {"id": move.drop.id, "name": move.drop.name} if move.drop else None,
         "ir_slot": move.ir_slot,
         "later_drop": move.later_drop.name if move.later_drop else None,
+        "until_back": move.until_back or None,
         "plays_from": move.plays_from.isoformat() if move.plays_from else None,
         "when": day.isoformat() if day else None,
         "games": move.games,

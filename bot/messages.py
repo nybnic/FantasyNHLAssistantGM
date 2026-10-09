@@ -38,6 +38,7 @@ def _detail(p: Planned) -> str:
             "monday": "it does nothing this week, so it takes next week's add",
             "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
+    claim += f"; holds the spot until {m.until_back} is back" if m.until_back else ""
     return head + (f"; {when}" if when else "") + (f"; {p.note}" if p.note else "") + claim
 
 
