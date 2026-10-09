@@ -152,6 +152,10 @@ jobs:
     needs: run
     if: needs.run.outputs.dashboard == 'true'
     runs-on: ubuntu-latest
+    # One Pages deploy at a time, with dashboard.yml's (a change to the page itself).
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write

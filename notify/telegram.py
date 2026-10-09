@@ -7,6 +7,7 @@ set up, from the relay's queue (the relay starts a run right away).
 from __future__ import annotations
 
 import json
+import time
 
 import requests
 
@@ -17,6 +18,13 @@ FILE_URL = "https://api.telegram.org/file/bot{token}/{path}"
 # the URL in the text, so Telegram doesn't add a link preview to each message.
 DASHBOARD_URL = "https://nybnic.github.io/FantasyNHLAssistantGM/"
 DASHBOARD_BUTTON = "Dashboard"
+
+
+def dashboard_link() -> str:
+    """The dashboard with a query unique to this message: the in-app browser
+    then loads the page fresh, not a copy cached from before the last deploy
+    (2026-10-09: an old page opened, then a new one met old data)."""
+    return f"{DASHBOARD_URL}?v={int(time.time())}"
 
 
 class TelegramError(requests.HTTPError):
@@ -38,7 +46,7 @@ def _call(token: str, method: str, **payload) -> dict:
 def _keyboard(buttons: list[tuple[str, str]] | None) -> dict:
     """The message's buttons (label, callback data) in a row, then the dashboard link."""
     rows = [[{"text": label, "callback_data": data} for label, data in buttons]] if buttons else []
-    return {"inline_keyboard": rows + [[{"text": DASHBOARD_BUTTON, "url": DASHBOARD_URL}]]}
+    return {"inline_keyboard": rows + [[{"text": DASHBOARD_BUTTON, "url": dashboard_link()}]]}
 
 
 def send_message(token: str, chat_id: str, text: str, buttons: list[tuple[str, str]] | None = None) -> int:

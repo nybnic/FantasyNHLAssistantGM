@@ -45,7 +45,12 @@ def _capture(monkeypatch):
     return calls
 
 
-DASHBOARD_ROW = [{"text": "Dashboard", "url": telegram.DASHBOARD_URL}]
+DASHBOARD_ROW = [{"text": "Dashboard", "url": telegram.DASHBOARD_URL + "?v=1760000000"}]
+
+
+@pytest.fixture(autouse=True)
+def _clock(monkeypatch):
+    monkeypatch.setattr(telegram.time, "time", lambda: 1760000000.5)
 
 
 def test_every_message_links_the_dashboard_under_its_own_buttons(monkeypatch):
@@ -65,3 +70,8 @@ def test_a_photo_and_a_handled_card_keep_the_dashboard_link(monkeypatch):
     assert json.loads(calls[0]["data"]["reply_markup"])["inline_keyboard"] == [DASHBOARD_ROW]
     telegram.mark_handled("123:SECRET", "42", 7, "Recorded: Done")
     assert calls[1]["json"]["reply_markup"]["inline_keyboard"][-1] == DASHBOARD_ROW
+
+
+def test_each_message_links_the_dashboard_fresh_not_a_cached_copy(monkeypatch):
+    monkeypatch.setattr(telegram.time, "time", lambda: 1760000123.0)
+    assert telegram.dashboard_link() == "https://nybnic.github.io/FantasyNHLAssistantGM/?v=1760000123"

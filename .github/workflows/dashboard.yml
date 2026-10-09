@@ -1,0 +1,39 @@
+name: Dashboard
+
+# Publishes site/ to GitHub Pages when the page itself changes. The bot's own
+# runs publish it when they rewrite data.json (assistant_gm.yml, deploy-dashboard),
+# but a change to index.html alone used to wait for the next plan run: on
+# 2026-10-09 the page served stayed the morning's for hours. The bot commits with
+# the workflow token, which starts no push workflows, so this runs only for
+# pushes by people (and on demand).
+on:
+  push:
+    branches: [main]
+    paths: [site/index.html]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -59,7 +59,12 @@ schedule grid and the add budget) and committed with the state. `index.html?card
 is the compact card the plan message's image is a screenshot of (`notify/snapshot.py`,
 headless Chromium installed by the workflow, cached; without it the old matplotlib
 schedule chart goes out). The workflow's `deploy-dashboard` job publishes
-`site/` when `data.json` changed. One-time setup: repo Settings > Pages >
+`site/` when `data.json` changed, and `dashboard.yml` publishes it when a push
+changes `index.html` (one Pages deploy at a time). Each Telegram Dashboard button
+links the page with a unique `?v=` so the in-app browser loads it fresh, and data
+from another version of the page shows "updating" instead of breaking it
+(2026-10-09: a page change waited hours for a plan run, then a fresh page met
+cached data and showed "No plan yet"). One-time setup: repo Settings > Pages >
 Source: GitHub Actions. The page is public (like `state/`) and marked
 noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/charts`.
 

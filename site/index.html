@@ -181,7 +181,7 @@ function svgEl(tag, attrs = {}, text) {
 }
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const pct = p => `${Math.round(Math.min(Math.max(p, 0.01), 0.99) * 100)}%`;
-const signed = (v, d = 1) => (v >= 0 ? "+" : "") + v.toFixed(d);
+const signed = (v, d = 1) => { const t = Math.abs(v).toFixed(d); return (v < 0 && +t ? "-" : "+") + t; };  // no "-0.0"
 const wp = v => { const r = Math.round(100 * v); return (r > 0 ? "+" : "") + r; };  // win-pts, no "-0"
 const width = () => Math.max(280, Math.min(app.clientWidth - 30, 728));
 const pair = v => `${v[0].toFixed(0)}-${v[1].toFixed(0)}`;
@@ -932,7 +932,7 @@ function waterfall(r) {
     svg.append(rect);
     if (i < bars.length - 1 && !b.total)
       svg.append(svgEl("line", { x1: x + bw, x2: x + band, y1: Y(b.b * 100), y2: Y(b.b * 100), stroke: css("--muted"), "stroke-dasharray": "2 2" }));
-    svg.append(svgEl("text", { x: x + bw / 2, y: b.v >= 0 ? y1 - 4 : y2 + 12, "text-anchor": "middle", fill: css("--text"),
+    svg.append(svgEl("text", { x: x + bw / 2, y: b.v >= -0.005 ? y1 - 4 : y2 + 12, "text-anchor": "middle", fill: css("--text"),
                                "font-weight": b.total ? 700 : 400 }, wp(b.v)));
     svg.append(svgEl("text", { x: x + bw / 2, y: H - 6, "text-anchor": "middle" }, b.name));
   });
@@ -1008,14 +1008,30 @@ function moveSheet(moveKey) {
   return out;
 }
 
+// One card that can't be drawn (data from another version of the page, a bug)
+// says so in its place; the rest of the page still shows.
+function safe(build) {
+  try { return build(); } catch (e) {
+    console.error(build.name, e);
+    const card = el("section", { class: "card" });
+    card.append(el("div", { class: "note" }, `This part couldn't be drawn (${build.name}: ${e.message}).`));
+    return card;
+  }
+}
+function message(text) { app.replaceChildren(el("p", { class: "empty" }, text)); }
 function render() {
   if (!data) return;
+  if (!data.header || !data.plan) {  // the data is an older version's (a deploy in progress)
+    message("The dashboard is updating. Reopen it in a minute.");
+    document.body.dataset.ready = "1";
+    return;
+  }
   if (CARD) {
     document.body.classList.add("card-mode");
-    app.replaceChildren(header(), planCard(), weeksCard(), nightsCard());
+    app.replaceChildren(...[header, planCard, weeksCard, nightsCard].map(safe));
   } else {
-    app.replaceChildren(...[header(), planCard(), whyCard(), playersCard(), statsCard(), weeksCard(), nightsCard(),
-                            valueCard(), grid(), moveTable(), budgetCard()].filter(Boolean));
+    app.replaceChildren(...[header, planCard, whyCard, playersCard, statsCard, weeksCard, nightsCard,
+                            valueCard, grid, moveTable, budgetCard].map(safe).filter(Boolean));
     drawSheet();
   }
   document.body.dataset.ready = "1";  // notify/snapshot.py waits for this
@@ -1026,7 +1042,8 @@ if (CARD) document.documentElement.dataset.theme = "light";
 (window.__DATA__ ? Promise.resolve(window.__DATA__)
   : fetch("data.json", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
   .then(d => { data = d; render(); })
-  .catch(() => { app.replaceChildren(el("p", { class: "empty" }, "No plan yet: send /week to the bot.")); });
+  .catch(e => message(e.message === "404" ? "No plan yet: send /week to the bot."
+                                          : `The plan couldn't be loaded (${e.message}). Reopen the page to try again.`));
 // Only a new width redraws: a phone's address bar showing or hiding fires resize on
 // scroll, and a redraw would rebuild an open sheet back at its top.
 let resizeTimer, lastWidth = innerWidth;
