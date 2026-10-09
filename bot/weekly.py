@@ -111,6 +111,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
     remaining = sum(d >= date for d in days)
     pool = free_agents(players, league)
+    ctx.replacement_xfp = _safe(replacement_xfp, pool, ctx, default={})
     max_moves = matchup.max_moves(season_used, week_used)
     available_from = waiver_days(pool, league, date)
     if not max_moves:
@@ -133,6 +134,19 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         weeks_after=weeks.LAST_WEEK - week,
         available_from=available_from,
     )
+
+
+def replacement_xfp(pool: list, ctx) -> dict[str, float]:
+    """A replacement-level player's points per game by group ("C" for
+    forwards, "D"): the best REPLACEMENT_SAMPLE free agents' average. What
+    a missed game by one of mine is streamed at (matchup.durability)."""
+    out = {}
+    for group, is_d in (("C", False), ("D", True)):
+        xs = sorted((ctx.skater(p.id, group).xfp for p in pool
+                     if not p.is_goalie and (p.positions == ["D"]) == is_d), reverse=True)[:matchup.REPLACEMENT_SAMPLE]
+        if xs:
+            out[group] = sum(xs) / len(xs)
+    return out
 
 
 def after_this_week(available_from: dict, pool: list, days: list[dt.date]) -> dict[int, dt.date]:

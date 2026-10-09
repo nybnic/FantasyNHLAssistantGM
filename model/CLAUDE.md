@@ -43,7 +43,8 @@ matchup, so start odds live in `engine/availability.py`.
 ## Judgment calls (untested, labeled in code)
 - `PROJECTION_WEIGHT = 0.5`: DFO projections aren't archived, so they can't be backtested.
 - The DFO half isn't age-adjusted (the curve was fit on history only).
-- Durability = DFO projected GP / (82 x 0.97). It is only used for long-run value.
+- Durability = DFO projected GP / (82 x 0.97). It is only used for long-run value, and since
+  2026-10-09 only on a player's edge over a replacement-level free agent (`matchup.durability`).
 
 ## Known weaknesses / open questions
 - Players with no NHL history get the position fallback prior, which over-projects them by

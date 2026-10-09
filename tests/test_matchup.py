@@ -620,27 +620,42 @@ def test_a_move_is_timed_after_the_drops_game_and_before_the_adds():
     assert (timed[0].when, timed[0].note) == (MON, "")
 
 
-def test_an_add_into_a_spot_ir_opened_counts_only_until_the_injured_player_is_back():
-    from clients.dfo_lines import LineInfo
+def test_when_ir_players_return_the_player_cheapest_to_lose_is_cut():
     ctx, future, schedule, lines, _, opponent = _stash_setup()
-    ctx.xfp.update({200: 5.0, 50: 3.0})
-    roster = [p for p in _full_roster(("IR",)) if p.id != 113]  # 13 active: the IR move opened a spot
-    streamer = RosterPlayer(50, "Streamer", "NYR", ["RW"])
-    soon = dict(lines, BOS={"hurt": LineInfo(groups={"f1"}, injury="ir")})
-    moves = matchup.candidate_moves(roster, opponent, [streamer], ctx, schedule, soon, {}, future, 10,
-                                    later_weight=0.01)
-    into_spot = next(m for m in moves if m.drop is None)
-    assert into_spot.until_back == "Hurt 0"
-    # Healthy, he's back at once: the add is then worth only what he beats the weakest by.
-    back = dict(lines, BOS={"hurt": LineInfo(groups={"f1"})})
-    moves_back = matchup.candidate_moves(roster, opponent, [streamer], ctx, schedule, back, {}, future, 10,
-                                         later_weight=0.01)
-    spot_back = next(m for m in moves_back if m.drop is None)
-    best_drop = max((m for m in moves_back if m.drop), key=lambda m: m.long_term)
-    assert spot_back.long_term < into_spot.long_term
-    assert spot_back.long_term == pytest.approx(max(best_drop.long_term, 0.0), abs=0.6)
-    # A spare spot left over: no crunch, the season counts.
-    roomy = [p for p in roster if p.id != 112]
-    free = next(m for m in matchup.candidate_moves(roomy, opponent, [streamer], ctx, schedule, soon, {}, future, 10,
-                                                   later_weight=0.01) if m.drop is None)
-    assert free.until_back == "" and free.long_term > into_spot.long_term
+    ctx.xfp[200] = 5.0  # the star in the IR slot, a C who plays BOS nights
+    roster = _full_roster(("IR",))  # 14 active: one must go when he's back
+    back = matchup.with_returns(roster, ctx, future, lines, {})
+    team = [p for p in roster if p.slot != "IR"] + [RosterPlayer(200, "Hurt 0", "BOS", ["C"], "BN")]
+    no_c = matchup.project("me", [p for p in team if p.id != 100], ctx, future, lines, {}, True)
+    no_weakest = matchup.project("me", [p for p in team if p.id != 113], ctx, future, lines, {}, True)
+    # A C benched behind him costs nothing; the weakest by season value plays the other nights.
+    assert back.expected == pytest.approx(no_c.expected) and back.expected > no_weakest.expected
+
+
+def test_a_moves_later_gain_mixes_now_and_once_ir_players_are_back(monkeypatch):
+    start = MON + dt.timedelta(days=7)
+    future = {start + dt.timedelta(days=i): [] for i in range(42)}
+    hurt = RosterPlayer(200, "Macklin Celebrini", "SJS", ["C"], "IR+")
+    kelly = RosterPlayer(9, "Parker Kelly", "COL", ["C"])
+    move = matchup.Move(kelly, RosterPlayer(2, "Mattias Samuelsson", "BUF", ["D"]), 0.0, 0.0, 0.0, 1, 0.16, 0.16, 0.01)
+    monkeypatch.setattr(matchup, "ir_back", lambda hurt, ctx, lines, future: {d: 0.25 for d in future})
+    week = lambda by_day: matchup.TeamWeek("me", 0, sum(by_day.values()), 1.0, 0, 0, 0, 1.0, by_day=by_day)
+    # Once he's back, Kelly is the one cut: the move then gains nothing.
+    monkeypatch.setattr(matchup, "with_returns", lambda roster, ctx, future, lines, starters: week({d: 0.0 for d in future}))
+    gains = {id(move): ({d: 2.0 for d in future}, None)}
+    refined = matchup.ir_returns([move], gains, [hurt], FakeContext(), future, {}, {}, [], 20, 0.01)[0]
+    expected = matchup.horizon({d: 0.75 * 2.0 for d in future}, future, [], 20, 0.01)[2]
+    assert refined.long_term == pytest.approx(expected) and refined.until_back == "Macklin Celebrini"
+    # Nobody in an IR slot: unchanged.
+    assert matchup.ir_returns([move], gains, [], FakeContext(), future, {}, {}, [], 20, 0.01) == [move]
+
+
+def test_projected_missed_games_cost_only_a_players_edge_over_a_streamer():
+    ctx = FakeContext()
+    ctx.durability = lambda pid: 0.8
+    star, fringe = RosterPlayer(1, "Star", "BOS", ["C"]), RosterPlayer(2, "Fringe", "BOS", ["D"])
+    assert matchup.durability(ctx, star, 8.0) == pytest.approx(0.8)  # no replacement level known: as before
+    ctx.replacement_xfp = {"C": 4.0, "D": 4.0}
+    assert matchup.durability(ctx, star, 8.0) == pytest.approx(1 - 0.2 * 4.0 / 8.0)  # a missed game costs 8 - 4
+    assert matchup.durability(ctx, fringe, 4.1) == pytest.approx(1 - 0.2 * 0.1 / 4.1)  # streamed at about his level
+    assert matchup.durability(ctx, fringe, 3.5) == 1.0  # below replacement: nothing to lose

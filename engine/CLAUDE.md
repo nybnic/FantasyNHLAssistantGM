@@ -40,9 +40,14 @@
   those days, at the size fringe gaps realize (`GAP_REALIZES` 0.95 / 0.89),
   counts by the change it makes to that week's P(win) (`ahead_value`): a
   point in a close week ahead is worth far more than in a lopsided one.
-- **IR returns** (`ir_crunch`): an add into an open spot, while players in IR slots outnumber the
-  spots left after it, gains in full only until they're likely back (return curves), then what it
-  beats the weakest by (its best drop), or nothing if it'd be the one cut. Weeks ahead and later.
+- **IR returns** (`ir_returns`, the top `IR_RETURN_MOVES` 30 moves): with players in IR slots, each
+  day after this week mixes the move's gain as it is with its gain once they're back
+  (`with_returns`: the roster with them back, the cheapest to lose cut, by projection), weighted by
+  the odds they're back (`ir_back`, return curves). So an add that would be the one cut counts
+  only until then. IR stashes keep their own return logic (not the others' returns).
+- **Durability** (`matchup.durability`): a player's projected missed games (DFO projected GP) cost
+  only his edge over a replacement-level free agent (`ctx.replacement_xfp`, best 3 by group), since
+  a missed game is streamed. Untested (DFO projections aren't archived).
 - **Later points** = the long run after the weeks ahead (`horizon`): the
   whole-lineup projection over the next 6 weeks (`LONG_RUN_WEEKS`, with
   durability), per week, times the weeks left after the ones ahead, x
@@ -117,6 +122,7 @@
 | 2026-10-09 | The next 2 weeks are played against their real opponents; P(win) reads margins at their realized size (0.80 this week, 0.75 / 0.70 for the weeks ahead); the long run stays the 6-week rate x 0.5, now for the weeks after those two | `check_gaps`: fringe gaps realize at 1.02 / 0.95 / 0.89 / 0.84 (weeks 3-6) / ~0.75 (to week 20), both seasons, so the long run isn't inflated and isn't shrunk further. `check_sigma --ahead`, 2024-25 / 2025-26: team margins 0.77 / 0.84 this week, 0.76 / 0.74 a week before, 0.67 / 0.73 two before; spread right (x0.92-1.03). A long run on weeks 3-6 alone was tried and reverted the same day: four weeks of schedule swung moves 15+ pts (Spurgeon +17.6 -> +0.1) |
 | 2026-10-09 | A keeper that does nothing this week waits for Monday only if another move can use this week's add; else it takes this week's add (refines 2026-10-01) | Oct 9: Kantserov (1.5 pts this week, 21 win-pts) took the last weekly add and Kelly (0 pts, 40 win-pts) was sent to Monday dropping the same player. Waiting is free only when it frees the add for something else; this week's add expires Sunday |
 | 2026-10-09 | One plan message on Monday and Wednesday (and /week), cards once on their day, screenshots answered with the score or the change, the evening check silent unless the plan changed (Nico: D1-D4) | Replaces the plan resent on every screenshot (8 of week 2's 13 cards were repeats), the goalie line, season line, stance, biggest swing, can-wait and streamer caption: their content is in the plan message's lines, the Board and the dashboard |
+| 2026-10-09 | Projected missed games cost only the edge over replacement; players in IR slots coming back are in every move's later value (Nico) | Kelly for Samuelsson was +40: 4.15 vs 4.14 per game, 70% of the edge was DFO projecting Samuelsson at 81% of games, and Kelly would be the forward cut when Celebrini returns (~41% by week 3's end). Nico: an injured fringe player is moved to IR or dropped and streamed, so durability shouldn't separate fringe players. After: -5; the plan became Spurgeon for Samuelsson (+11) |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)

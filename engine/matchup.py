@@ -245,8 +245,24 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
         status = availability.skater(info, bool(team_lines), days_ahead, ctx.games_missed(p.id, p.team))
     prob = status.prob
     if long_run:
-        prob *= ctx.durability(p.id)
+        prob *= durability(ctx, p, x)
     return prob * x, prob * (SKATER_VARIANCE_PER_XFP * x + x * x) - (prob * x) ** 2, 1.0
+
+
+def durability(ctx, p: RosterPlayer, x: float) -> float:
+    """The share of his long-run points a team keeps given the games he's
+    projected to miss (ctx.durability: DFO's projected games played). A missed
+    game is filled from free agents (IR, or a drop and a streamer: Nico,
+    2026-10-09), so it costs only his edge over a replacement-level player at
+    his position (ctx.replacement_xfp, set by the weekly plan): a fringe
+    player's durability barely matters, a star's does. Without a replacement
+    level, his whole projection (as before). Untested: DFO's projected games
+    played aren't archived for past seasons."""
+    dur = ctx.durability(p.id)
+    repl = (getattr(ctx, "replacement_xfp", None) or {}).get(_position(p))
+    if repl is None or x <= 0 or dur >= 1.0:
+        return dur
+    return 1.0 - (1.0 - dur) * max(0.0, x - repl) / x
 
 
 def _at_least(probs: list[float], so_far: int, need: int) -> float:
@@ -649,8 +665,7 @@ def candidate_moves(
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
     drops += drop_candidates(mine, ctx, lines)
-    crunch, returning = ir_crunch(roster, ctx, lines, future, ACTIVE_SPOTS - len(mine) - 1)
-    moves = []
+    moves, gains = [], {}
     for add in candidates:
         plays_from = (available_from or {}).get(add.id)
         tried = []
@@ -665,18 +680,9 @@ def candidate_moves(
                 trial_future = project("me", trial, ctx, future, lines, starters, True)
                 gain = {d: trial_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
             tried.append((drop, week, gain))
-        # Into an open spot while an IR player will want it back: once he's back the
-        # weakest player goes, so the add then gains only what he beats that player by
-        # (his best drop; nothing if he'd be the one cut).
-        cut = max((g for d, _, g in tried if d), key=lambda g: sum(g.values()), default={})
         for drop, week, gain in tried:
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
-            until = ""
-            if drop is None and crunch:
-                after = cut if sum(cut.values()) > 0 else {}
-                gain = {d: (1 - crunch[d]) * v + crunch[d] * after.get(d, 0.0) for d, v in gain.items()}
-                until = returning
             # A streaming spot is swapped again after the hold: its scheduled gain, no season.
             streamer = bool(drop and drop.id in spots)
             ahead_wins, ahead_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight,
@@ -690,8 +696,10 @@ def candidate_moves(
                 win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
                 plays_from=plays_from,
-                ahead_wins=ahead_wins, ahead_pts=ahead_pts, until_back=until,
+                ahead_wins=ahead_wins, ahead_pts=ahead_pts,
             ))
+            gains[id(moves[-1])] = (gain, held if streamer else None)
+    moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, weeks_after, later_weight)
     stashes = [p for p in candidates if _ir_status(p, lines)]
     if stashes and current_future and ir.free_slots(roster):
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
@@ -700,25 +708,72 @@ def candidate_moves(
     return sorted(moves, key=lambda m: m.value, reverse=True)
 
 
-def ir_crunch(roster: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]], future: dict,
-              open_after: int) -> tuple[dict[dt.date, float], str]:
-    """By day after this week, the odds that more players in IR slots are back
-    than the open spots left after an add (`open_after`): then someone must be
-    dropped. Each one's odds of being back follow the return curves for his
-    status and games missed, as a stash's do. ({} when no crunch can come, and
-    the names of the IR players.)"""
-    hurt = [p for p in roster if p.slot in IR_SLOTS]
-    need = len(hurt) - max(open_after, 0)
-    if need <= 0 or not future:
-        return {}, ""
+# The moves re-valued with players in IR slots coming back (the best by value
+# so far; the rest can't reach the top): a judgment call on cost.
+IR_RETURN_MOVES = 30
+CUT_OPTIONS = 3  # the cheapest players by season value tried as the one cut when they're back
 
+
+def ir_back(hurt: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]], future: dict) -> dict[dt.date, float]:
+    """By day, the odds every player in an IR slot is back: each one's odds of
+    playing follow the return curves for his status and games missed, as a
+    stash's do (independent)."""
     def back(p: RosterPlayer, day: dt.date) -> float:
         info = lines.get(p.team, {}).get(normalize_name(p.name))
         return availability.skater(info, bool(lines.get(p.team)), (day - ctx.today).days,
                                    ctx.games_missed(p.id, p.team)).prob
 
-    return ({d: _at_least([back(p, d) for p in hurt], 0, need) for d in future},
-            " and ".join(p.name for p in hurt))
+    return {d: math.prod(back(p, d) for p in hurt) for d in future}
+
+
+def with_returns(roster: list[RosterPlayer], ctx, future: dict, lines: dict, starters: dict) -> TeamWeek:
+    """The roster once the players in IR slots are back: if that's more than
+    the active spots, the cheapest to lose are cut (of the CUT_OPTIONS lowest
+    by season value, whichever leaves the best lineup; never below
+    MIN_GOALIES), projected over `future`."""
+    back = [dataclasses.replace(p, slot=BENCH) for p in roster if p.slot in IR_SLOTS]
+    team = [p for p in roster if p.slot not in IR_SLOTS] + back
+    best = None
+    for _ in range(max(len(team) - ACTIVE_SPOTS, 0)):
+        goalies = sum(p.is_goalie for p in team)
+        options = sorted((p for p in team if p.id not in {b.id for b in back}
+                          and not (p.is_goalie and goalies <= MIN_GOALIES)),
+                         key=lambda p: season_value(p, ctx, lines))[:CUT_OPTIONS]
+        weeks_cut = [(project("me", [q for q in team if q.id != p.id], ctx, future, lines, starters, True), p)
+                     for p in options]
+        best, cut = max(weeks_cut, key=lambda wc: wc[0].expected)
+        team = [q for q in team if q.id != cut.id]
+    return best or project("me", team, ctx, future, lines, starters, True)
+
+
+def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, future: dict, lines: dict,
+               starters: dict, ahead: list[WeekAhead], weeks_after: int, later_weight: float) -> list[Move]:
+    """The best moves' later gains with the players in IR slots coming back:
+    each day, (1 - P(back)) x the gain as it is + P(back) x the gain with them
+    back and the cheapest players cut (with_returns), for this roster and the
+    move's. So an add that would be the one cut when they're back (Kelly when
+    Celebrini returns) counts only until then, and one that takes an open
+    spot holds it only that long. `gains`: id(move) -> (gain by day, the
+    streaming hold's days or None)."""
+    hurt = [p for p in roster if p.slot in IR_SLOTS]
+    if not hurt or not future:
+        return moves
+    odds = ir_back(hurt, ctx, lines, future)
+    base = with_returns(roster, ctx, future, lines, starters)
+    names = " and ".join(p.name for p in hurt)
+    out = []
+    for m in sorted(moves, key=lambda m: m.value, reverse=True)[:IR_RETURN_MOVES]:
+        gain, held = gains[id(m)]
+        trial = with_returns(_swap(roster, m.add, m.drop), ctx, future, lines, starters)
+        after = {d: trial.by_day.get(d, 0.0) - base.by_day.get(d, 0.0) for d in future}
+        mixed = {d: (1 - odds[d]) * gain.get(d, 0.0) + odds[d] * after[d] for d in future}
+        ahead_wins, ahead_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held)
+        changed = abs(sum(after.values()) - sum(gain.values())) > 0.5
+        out.append(dataclasses.replace(m, ahead_wins=ahead_wins, ahead_pts=ahead_pts, long_term=long_term,
+                                       next_weeks=sum(mixed[d] for d in sorted(future)[:7 * STREAM_WEEKS]),
+                                       until_back=names if changed else ""))
+    done = {id(m) for m in sorted(moves, key=lambda m: m.value, reverse=True)[:IR_RETURN_MOVES]}
+    return out + [m for m in moves if id(m) not in done]
 
 
 def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], weeks_after: int,
