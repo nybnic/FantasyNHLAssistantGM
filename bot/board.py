@@ -39,24 +39,13 @@ def _ahead(w: matchup.WeekAhead) -> dict:
             "win": _r(matchup._phi(w.margin / w.sd), 4) if w.margin is not None else None}
 
 
-def status(move: matchup.Move, now: set[str], waits: str | None, price) -> str:
-    """now: one of the plan's adds; waits: the keeper kept for later; passes:
-    worth an add but the week's go elsewhere (or none are left); fails: under the price."""
-    key = report.move_key(move)
-    if key in now:
-        return "now"
-    if key == waits:
-        return "waits"
+def status(move: matchup.Move, planned: set[str], price) -> str:
+    """plan: one of the plan's moves (made when its "when" says); passes: worth
+    an add but not in the plan (it clashes with a planned move, or the week's
+    adds go elsewhere); fails: under the price."""
+    if report.move_key(move) in planned:
+        return "plan"
     return "passes" if price is not None and not matchup.rejection(move, price) else "fails"
-
-
-def when(move: matchup.Move, date: dt.date, monday: dt.date) -> dt.date:
-    """The day to make the move: when it starts paying. A claim plays from its
-    day; a keeper that does nothing this week can wait for Monday's adds
-    (matchup.waits); anything else, today."""
-    if matchup.waits(move):
-        return max(monday, move.plays_from or monday)
-    return move.plays_from or date
 
 
 def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = None) -> dict:
@@ -83,27 +72,30 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
     }
 
 
-def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, keeper: matchup.Move | None,
-          odds=None, odds_note: str = "") -> dict:
-    """The Board of a plan: `p` is bot.weekly.PlanMoves, `keeper` the move
-    that waits for later (matchup.can_wait), `odds` the season's (engine/season.py)."""
+def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=None, odds_note: str = "",
+          changed: str = "") -> dict:
+    """The Board of a plan: `p` is bot.weekly.PlanMoves (its plan composed by
+    engine/plan.py), `odds` the season's (engine/season.py), `changed` why the
+    plan Nico had seen changed ("" if it didn't)."""
     wk = p.wk
-    price = wk.price if wk.max_moves else None
-    now_keys = [report.move_key(m) for m in p.moves]
-    waits = report.move_key(keeper) if keeper else None
-    monday = wk.days[-1] + dt.timedelta(days=1)
+    price = wk.price
+    plan = {q.key: q for q in p.plan}
+    moves = [q.move for q in p.plan]
     rows = []
     for m in p.ranked:
-        state = status(m, set(now_keys), waits, price)
-        why = "" if state == "now" else matchup.why_not(m, price, p.moves, p.held)
-        rows.append(move_row(m, state, why, when(m, date, monday)))
+        q = plan.get(report.move_key(m))
+        state = status(m, set(plan), price)
+        clash = next((c for c in moves if c is not m and (c.add.id == m.add.id or (c.drop and m.drop and
+                                                                                   c.drop.id == m.drop.id))), None)
+        why = (q.why if q else
+               f"worth an add, but the plan's {clash.add.name} uses the same "
+               f"{'player' if clash.add.id == m.add.id else 'drop'}" if state == "passes" and clash
+               else matchup.why_not(m, price, moves, p.held))
+        rows.append(move_row(m, state, why, q.when if q else None))
     known = {r["key"] for r in rows}
-    # A plan's later adds are judged after its first is made, so they may not be
+    # A plan's later moves are judged after its first is made, so they may not be
     # among the moves weighed on today's roster.
-    rows += [move_row(m, "now", "", when(m, date, monday)) for m in p.moves if report.move_key(m) not in known]
-    if keeper and waits not in known:
-        rows.append(move_row(keeper, "waits", matchup.why_not(keeper, price, p.moves, p.held),
-                             when(keeper, date, monday)))
+    rows += [move_row(q.move, "plan", q.why, q.when) for q in p.plan if q.key not in known]
     return {
         "at": now.astimezone(dt.timezone.utc).isoformat(timespec="minutes"),
         "date": date.isoformat(),
@@ -126,9 +118,9 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, keeper: 
                        if odds else None),
         },
         "plan": {
-            "now": now_keys,
+            "moves": [{"key": q.key, "when": q.when.isoformat(), "why": q.why} for q in p.plan],
+            "changed": changed,
             "ir": [{"id": m.player.id, "name": m.player.name, "slot": m.slot} for m in p.ir_moves],
-            "waits": waits,
             "held": p.held,
         },
         "moves": rows,

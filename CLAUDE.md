@@ -16,7 +16,7 @@ screenshots (team pages, matchups, transactions from the app, website or league 
 | Path | What lives there |
 |---|---|
 | `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
-| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan, news check, results, Monday's report), `board.py` (the plan as one record: the Board), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan: its search, keeping it, the plan check; results, Monday's report), `board.py` (the plan as one record: the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule, calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` |
 | `engine/` | Decisions: daily lineup, availability, weekly matchup and add/drops. See `engine/CLAUDE.md` |

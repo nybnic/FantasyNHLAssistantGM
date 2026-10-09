@@ -139,7 +139,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                     common.forget_mine(state, rec["drop"])
             if action == "taken" and rec["type"] == "add":
                 teams.mark_taken(league, [rec["add"]["id"]])
-                state["week_requested"] = True  # the next best add, right away
+            if action in ("taken", "skip") and rec["type"] == "add":
+                state["plan_check"] = True  # the plan without him, right away
             state["decisions"].append({
                 "rec_id": rec_id, "type": rec["type"], "date": rec["date"],
                 "decision": "done" if action == "other" else action,
@@ -781,8 +782,8 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
         found.problems += found_them.problems
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
-    state["week_requested"] = True
-    outbox.send("\n".join(lines + ["Updated plan below."]))
+    state["plan_check"] = True  # the score, or the plan if it changed, right after
+    outbox.send("\n".join(lines))
 
 
 def _whose(rows: list[dict], players: list, league: dict) -> str:

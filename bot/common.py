@@ -36,6 +36,14 @@ class Outbox:
             return None
         return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons)
 
+    def mark(self, message_id: int | None, label: str) -> None:
+        """Replace a message's buttons with an inert label (a replaced add card)."""
+        if self.settings.dry_run:
+            print(f"\n----- Telegram buttons of message {message_id} -> [{label}]")
+        elif message_id is not None:
+            telegram.mark_handled(self.settings.telegram_bot_token, self.settings.telegram_chat_id, message_id,
+                                  label)
+
     def send_photo(self, png: bytes, caption: str | None = None,
                    buttons: list[tuple[str, str]] | None = None) -> int | None:
         if self.settings.dry_run:

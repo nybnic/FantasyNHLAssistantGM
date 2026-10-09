@@ -783,51 +783,6 @@ def _deferred(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer 
             {drop.id: plays_from} if drop else None)
 
 
-def best_moves(
-    roster: list[RosterPlayer],
-    opponent: TeamWeek,
-    pool: list[RosterPlayer],
-    ctx,
-    schedule: dict[dt.date, list[ScheduledGame]],
-    lines: dict[str, dict[str, LineInfo]],
-    starters: dict[str, dict],
-    future: dict[dt.date, list[ScheduledGame]],
-    weeks_after: int,
-    max_moves: int,
-    price: AddPrice,
-    available_from: dict[int, dt.date] | None = None,
-    so_far: tuple[float, float, int] | None = None,
-    candidates: list[RosterPlayer] | None = None,
-    ranked: list[Move] | None = None,
-    hold_days: int = 7 * STREAM_WEEKS,
-    hold_keepers: bool = False,
-    ahead: list[WeekAhead] | None = None,
-) -> list[Move]:
-    """Up to `max_moves` add/drops worth making, best first; each one is
-    judged with the previous ones already made. `candidates` and `ranked`
-    (their moves on the current roster) save recomputing them.
-    `hold_keepers` (see `holds_keepers`): a keeper that does nothing this
-    week takes no add now, even with nothing else passing."""
-    if candidates is None:
-        candidates = shortlist(pool, ctx, schedule, lines, starters, available_from)
-    so_far = so_far or _so_far(active(roster), ctx, sorted(schedule))  # banked before any move
-    moves: list[Move] = []
-    for i in range(max_moves):
-        if not (i == 0 and ranked is not None):
-            ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
-                                     weeks_after, available_from, so_far, hold_days, price.later_weight, ahead)
-        passing = [m for m in ranked if not rejection(m, price)]
-        if not passing:
-            break
-        best = next((m for m in passing if not waits(m)), None if hold_keepers else passing[0])
-        if best is None:
-            break
-        moves.append(best)
-        candidates = [p for p in candidates if p.id != best.add.id]
-        roster = _swap(roster, best.add, best.drop, best.ir_slot or BENCH)
-    return moves
-
-
 def waits(move: Move) -> bool:
     """A keeper that does nothing this week: it can be made next week."""
     return move.week_gain < KEEPER_WAITS_BELOW and move.next_weeks > 0
@@ -839,16 +794,6 @@ def holds_keepers(date: dt.date, week: int, p_win: float) -> bool:
     nothing this week (Nico, 2026-10-03). Not in a decided week: nothing to
     chase or protect. The risk: someone claims him meanwhile."""
     return date < weeks.midweek(week) and decided(p_win) is None
-
-
-def can_wait(ranked: list[Move], moves: list[Move], price: AddPrice | None, held: bool = False) -> Move | None:
-    """The best keeper passed over for this week's adds (or, `held`, held
-    for the mid-week plan), to make later."""
-    if price is None:
-        return None
-    taken = {m.add.id for m in moves}
-    best = next((m for m in ranked if m.add.id not in taken and waits(m) and not rejection(m, price)), None)
-    return best if best and (moves or held) else None
 
 
 def biggest_swing(ranked: list[Move]) -> Move | None:
@@ -917,46 +862,6 @@ def why_not(move: Move, price: AddPrice | None, chosen: list[Move] = (), held: b
     return reason
 
 
-def midweek_text(me: TeamWeek, them: TeamWeek, chase: Move | None, price: AddPrice | None,
-                 recommended: bool, chosen: list[Move] = ()) -> str | None:
-    """The mid-week stance in a few lines; None in a decided week (text() covers it).
-    `price` is None when no adds are left this week (the plan's first line says so)."""
-    p_win = win_prob(me, them)
-    gap = me.expected - them.expected
-    st = stance(p_win)
-    if st == "protect":
-        lead = f"Rest of the week: ahead ({_pct(p_win)}), protect the lead: you're {gap:.0f} expected points up."
-        if price is None:
-            return lead + " No need to chase."
-        if not chosen:
-            return lead + " No need to chase, and no add is worth it right now."
-        return lead + " No need to chase; make only the adds below."
-    if st == "even":
-        lines = [f"Rest of the week: dead even ({_pct(p_win)}), every point counts."]
-    elif st == "chase":
-        if price is None:
-            return (f"Rest of the week: behind ({_pct(p_win)}) but close: you trail by {-gap:.0f} expected points, "
-                    "with no adds left to chase with.")
-        lines = [f"Rest of the week: behind ({_pct(p_win)}) but close, so chase: "
-                 f"you trail by {-gap:.0f} expected points."]
-    else:
-        return None
-    if price is None:  # nothing to add with, and the plan's first line says so
-        return lines[0]
-    if chase is None:
-        lines.append("No free agent moves your odds much.")
-        return "\n".join(lines)
-    swing = (f"Biggest swing: add {chase.add.name} ({_games(chase.games)} left)"
-             + (f" for {chase.drop.name}" if chase.drop else "")
-             + f", win {_pct(chase.win_before)} -> {_pct(chase.win_after)}.")
-    if recommended:
-        lines.append(swing + " That's the add below.")
-    else:
-        why = why_not(chase, price, chosen)
-        lines.append(swing + f" Not a recommended add ({why}), so it's your call.")
-    return "\n".join(lines)
-
-
 def adds_used(adds: list[dict], week_days: list[dt.date]) -> tuple[int, int]:
     """(this season, this week) adds made, from the ledger (state["adds"]):
     each counts in the week it was made."""
@@ -974,41 +879,6 @@ def _games(n: int) -> str:
 
 def _pct(p: float) -> str:
     return f"{min(max(p, 0.01), 0.99):.0%}"
-
-
-def text(week: int, days: list[dt.date], me: TeamWeek, them: TeamWeek, opponent_updated: str | None,
-         season_used: int, week_used: int, today: dt.date, yahoo_projected: list | None = None,
-         league_through: dt.date | None = None) -> str:
-    """`opponent_updated`: the date their roster is known as of; `league_through`:
-    the day every league move is known through (Transactions screenshots)."""
-    span = f"{days[0]:%a %d %b} - {days[-1]:%a %d %b}"
-    lines = [f"Week {week} ({span}) vs {them.name}"]
-    if me.so_far or them.so_far:
-        lines.append(f"So far {'' if yahoo_projected else 'about '}{me.so_far:.0f} - {them.so_far:.0f}")
-    p_win = win_prob(me, them)
-    yahoo = f" (Yahoo: {yahoo_projected[0]:.0f} - {yahoo_projected[1]:.0f})" if yahoo_projected else ""
-    lines.append(f"Expected {me.expected:.0f} - {them.expected:.0f}{yahoo}: {_pct(p_win)} to win")
-    if decided(p_win) == "lost":
-        lines.append("This week looks lost: don't spend adds chasing it, only on players worth keeping.")
-    elif decided(p_win) == "won":
-        lines.append("This week looks won: no adds needed for it, only on players worth keeping.")
-    lines.append(f"Lineup games left, setting the best lineup every day: you {me.player_games}, "
-                 f"them {them.player_games}")
-    goalie_games = me.goalie_games_so_far + me.goalie_starts_left
-    status = "on track" if me.goalie_min_prob >= 0.9 else "AT RISK - pick up a goalie who plays this week"
-    lines.append(f"Goalie games: ~{goalie_games:.1f} (min {MIN_GOALIE_GAMES_PER_WEEK}), "
-                 f"{_pct(me.goalie_min_prob)} to make it: {status}")
-    lines.append(f"Adds: {MAX_ADDS_PER_SEASON - season_used} left this season, "
-                 f"{max_moves(season_used, week_used)} this week")
-    if league_through and (today - league_through).days >= LEAGUE_MOVES_STALE_DAYS:
-        lines.append("")
-        lines.append(f"League moves known through {league_through:%a %d %b}: send League > Transactions "
-                     "screenshots back to then, so free agents and their roster are current.")
-    elif opponent_updated and (today - dt.date.fromisoformat(opponent_updated)).days >= LEAGUE_MOVES_STALE_DAYS:
-        lines.append("")
-        lines.append(f"Their roster is from {dt.date.fromisoformat(opponent_updated):%d %b}. If they've "
-                     "made moves, send League > Transactions screenshots (or /opp with their team page).")
-    return "\n".join(lines)
 
 
 def move_text(move: Move, opened_by: str | None = None) -> str:

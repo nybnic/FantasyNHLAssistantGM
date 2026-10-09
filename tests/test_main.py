@@ -351,7 +351,7 @@ def test_matchup_screenshots_update_both_rosters_and_the_live_score(monkeypatch,
     assert {p["id"] for p in league["teams"]["Bahelin Boys"]["players"]} == set(range(300, 312))
     assert state["live_score"]["score"] == [13.4, 51.5] and state["live_score"]["through"] == "2026-10-01"
     assert state["live_score"]["goalies"] == [0.0, 0.0]  # rows 10-11 are G, read with 0 points
-    assert state["week_requested"] and state["matchup_shots"] is None
+    assert state["plan_check"] and state["matchup_shots"] is None
     assert sent[0].startswith("Week 1 vs Bahelin Boys: 13.40 - 51.50 (Yahoo projects 160 - 165)")
     assert "new: Rick Lo; gone: Old Guy" in sent[0]
 
@@ -410,13 +410,13 @@ def test_the_dashboard_data_carries_the_summary_and_every_view(monkeypatch, tmp_
     them = matchup.TeamWeek("them", 51.5, 156.0, 400.0, 23, 1, 3, 1.0)
     wk = SimpleNamespace(me=me, them=them, days=[dt.date(2026, 9, 29), dt.date(2026, 10, 4)], season_used=1,
                          max_moves=1, yahoo_projected=[159.79, 164.52])
-    views = {"decision": {"points": []}, "schedule": {}, "budget": {}, "adds": {}, "streamer_text": "x"}
+    views = {"decision": {"points": []}, "schedule": {}, "budget": {}, "adds": {}}
     path = weekly.write_dashboard(views, wk, 1, "Bahelin Boys", "Mid-week: chase", NOW, dry_run=False)
     data = json.loads(path.read_text(encoding="utf-8"))
     assert path == tmp_path / "data.json"
     assert data["summary"]["so_far"] == [13.4, 51.5] and data["summary"]["stance"] == "chase"
     assert data["summary"]["adds_left"] == {"season": 35, "week": 1}
-    assert set(data) >= {"decision", "schedule", "budget", "adds"} and "streamer_text" not in data
+    assert set(data) >= {"decision", "schedule", "budget", "adds"}
 
 
 TX_REGISTRY = [{"id": 700 + i, "name": n, "team": "TOR", "position": pos} for i, (n, pos) in enumerate(
@@ -548,14 +548,12 @@ def test_every_screenshot_is_archived_with_what_was_read(monkeypatch, tmp_path):
 
 
 def test_the_plan_asks_for_transactions_when_league_moves_are_old():
-    me = matchup.TeamWeek("me", 0, 150.0, 400.0, 20, 0, 3, 1.0)
-    them = matchup.TeamWeek("them", 0, 150.0, 400.0, 20, 0, 3, 1.0)
-    days, mon = [dt.date(2026, 10, 5), dt.date(2026, 10, 11)], dt.date(2026, 10, 5)
-    stale = matchup.text(2, days, me, them, "2026-10-02", 2, 0, mon, None, dt.date(2026, 10, 2))
-    assert "League moves known through Fri 02 Oct: send League > Transactions" in stale
-    fresh = matchup.text(2, days, me, them, "2026-10-04", 2, 0, mon, None, dt.date(2026, 10, 4))
-    assert "Transactions" not in fresh
-    assert "Their roster is from 29 Sep" in matchup.text(2, days, me, them, "2026-09-29", 2, 0, mon)
+    from bot import messages
+    mon = dt.date(2026, 10, 5)
+    stale = messages.league_warning(dt.date(2026, 10, 2), "2026-10-02", mon)
+    assert stale.startswith("League moves known through Fri 02 Oct: send League > Transactions")
+    assert messages.league_warning(dt.date(2026, 10, 4), "2026-10-04", mon) == ""
+    assert messages.league_warning(None, "2026-09-29", mon).startswith("Their roster is from 29 Sep")
 
 
 def test_a_move_seen_in_the_app_then_the_website_or_chat_is_applied_once(monkeypatch, tmp_path):
@@ -577,7 +575,7 @@ def test_taken_marks_the_suggested_player_and_asks_for_the_next_best(monkeypatch
     state["pending"]["add-1"] = {"type": "add", "date": "2026-10-01", "add": {"id": 900}, "drop": None, "message_id": 7}
     league = {"teams": {}, "taken": []}
     ingest.process_updates(settings, state, players, league, common.Outbox(settings))
-    assert league["taken"] == [900] and state["week_requested"]
+    assert league["taken"] == [900] and state["plan_check"]
     assert state["decisions"][-1]["decision"] == "taken" and handled == ["Taken: finding the next best"]
 
 
@@ -801,52 +799,34 @@ def test_a_tap_on_an_add_records_its_players(monkeypatch, tmp_path):
     assert (d["decision"], d["add"], d["add_name"], d["drop"], d["drop_name"]) == ("skip", 11, "Joey Daccord", 2, "B")
 
 
-def _news_setup(monkeypatch, tmp_path, moves):
-    from engine import matchup
+def _check_setup(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
     first_puck = dt.datetime(2026, 10, 7, 23, tzinfo=dt.timezone.utc)  # Wed 7 Oct, week 2
     monkeypatch.setattr(nhl_client, "games_on", lambda d: [nhl_client.ScheduledGame(1, first_puck, "BOS", "TOR")])
-    me = matchup.TeamWeek("me", 0, 150, 400, 20, 1, 3, 1.0)
-    plan = weekly.PlanMoves(type("Wk", (), {"me": me, "them": me})(), None, moves, moves, [], players, 0)
     calls = []
-    monkeypatch.setattr(weekly, "plan_moves", lambda *a: calls.append(1) or plan)
+    monkeypatch.setattr(weekly, "run_plan", lambda *a: calls.append(a[-1]))
     state["opponents"] = {}
     return settings, state, players, sent, calls
 
 
-def _move(add_id, name, drop=None):
-    from engine import matchup
-    return matchup.Move(RosterPlayer(add_id, name, "NYR", ["C"]), drop, 3.0, 0.0, 0.0, 3, 0.48, 0.55)
-
-
-def test_the_evening_news_check_sends_only_adds_not_offered_this_week(monkeypatch, tmp_path):
-    old, new = _move(9, "Offered Monday"), _move(10, "New Streamer")
-    settings, state, players, sent, calls = _news_setup(monkeypatch, tmp_path, [old, new])
-    state["decisions"].append({"rec_id": "r", "type": "add", "decision": "skip", "date": "2026-10-05", "add": 9,
-                               "drop": None})
+def test_the_plan_is_checked_once_an_evening_and_says_only_a_change(monkeypatch, tmp_path):
+    settings, state, players, sent, calls = _check_setup(monkeypatch, tmp_path)
     evening = dt.datetime(2026, 10, 7, 16, 45, tzinfo=dt.timezone.utc)  # 19:45 Helsinki
-    weekly.news_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
-    weekly.news_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))  # once an evening
-    assert calls == [1] and sent[0].startswith("News since the plan: an add now clears the price")
-    assert sent[1].startswith("Add New Streamer") and len(sent) == 2
+    weekly.plan_check_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
+    weekly.plan_check_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
+    assert calls == ["quiet"]
 
 
-def test_no_news_check_on_a_plan_day_or_without_adds_left(monkeypatch, tmp_path):
-    settings, state, players, sent, calls = _news_setup(monkeypatch, tmp_path, [_move(10, "New")])
+def test_a_screenshot_or_tap_checks_the_plan_right_away_but_a_plan_day_has_no_evening_check(monkeypatch, tmp_path):
+    settings, state, players, sent, calls = _check_setup(monkeypatch, tmp_path)
     evening = dt.datetime(2026, 10, 7, 16, 45, tzinfo=dt.timezone.utc)
     state["weeks"]["2"] = {"sent": "2026-10-05T09:00+00:00", "midweek": "2026-10-07T09:00+00:00"}
-    weekly.news_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
-    state["weeks"]["2"] = {"sent": "2026-10-05T09:00+00:00"}
-    state["adds"] = [{"id": i, "name": None, "date": "2026-10-06", "source": "done"} for i in (1, 2)]
-    weekly.news_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
-    assert calls == [] and sent == []
-
-
-def test_the_plan_leads_with_the_action():
-    assert weekly._action_line([_move(10, "Beniers", RosterPlayer(2, "Stamkos", "NSH", ["C"]))], "") == \
-        "Do now: add Beniers for Stamkos (win 48% -> 55%). Details below."
-    assert weekly._action_line([], "IR: ...") == "No add is worth one of yours right now. See the IR note below."
-    assert weekly._action_line([], "", adds_left=0) == "No adds left this week (they reset Monday)."
+    weekly.plan_check_step(state, players, {"teams": {}, "taken": []}, evening, common.Outbox(settings))
+    assert calls == []
+    state["plan_check"] = True
+    morning = dt.datetime(2026, 10, 7, 6, tzinfo=dt.timezone.utc)
+    weekly.plan_check_step(state, players, {"teams": {}, "taken": []}, morning, common.Outbox(settings))
+    assert calls == ["check"] and not state["plan_check"]
 
 
 def test_other_drop_records_the_add_then_asks_who_went(monkeypatch, tmp_path):
@@ -904,7 +884,8 @@ def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_
     wk = weekly.week_inputs(dt.date(2026, 10, 2), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
     assert wk.max_moves == 0
     assert wk.available_from == {7: dt.date(2026, 10, 5), 8: dt.date(2026, 10, 6)}  # Monday, or a later waiver day
-    assert weekly.add_price(state, 1, wk, [], wk.days[0]) is None and "1" not in state["add_pools"]
+    # Monday's moves are still priced, but this week's candidates can't join: none logged.
+    assert weekly.add_price(state, 1, wk, [], wk.days[0]) is not None and "1" not in state["add_pools"]
 
 
 def test_other_teams_adds_are_logged_from_transactions(monkeypatch, tmp_path):
@@ -995,19 +976,6 @@ def test_the_2026_10_05_repair_saves_week_1_standings_unless_newer_ones_came(tmp
     assert state["standings"] is newer
 
 
-def test_the_plan_says_whether_a_third_goalie_is_worth_an_add():
-    from engine.addprice import AddPrice
-    two = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(20, "Knight", "CHI", ["G"], "G"),
-           RosterPlayer(21, "Vejmelka", "UTA", ["G"], "G")]
-    third = matchup.Move(RosterPlayer(30, "Silovs", "PIT", ["G"]), None, 1.0, 5.0, 2.0, 2, 0.50, 0.51, 0.002)
-    skater = matchup.Move(RosterPlayer(31, "Beniers", "SEA", ["C"]), None, 3.0, 0.0, 0.0, 3, 0.50, 0.55)
-    line = weekly.goalie_line(two, [skater, third], AddPrice(0.05, 0.002, 1.2))
-    assert line == ("Goalies: 2, by value. Best move to a third: Silovs, +2.0 win-pts vs the 5.0 an add costs: "
-                    "two are enough for now.")
-    assert "worth an add" in weekly.goalie_line(two, [third], AddPrice(0.01, 0.002, 1.2))
-    assert "(no adds left this week)" in weekly.goalie_line(two, [third], None)
-
-
 def test_the_2026_10_03_repair_rebuilds_other_teams_adds_from_the_log(tmp_path):
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")
@@ -1044,13 +1012,13 @@ def test_the_plan_gives_the_season_odds_and_how_old_the_standings_are():
     team = matchup.TeamWeek("t", 0, 200.0, 900.0, 40, 0, 4, 1.0)
     wk = SimpleNamespace(strengths={t: (200.0, 30.0) for t in [*set(SCHEDULE), MY_TEAM]}, me=team, them=team)
     state = {"standings": None}
-    line = weekly.season_line(state, wk, 3)
-    assert line.startswith("Season: playoffs") and "No standings yet: everyone starts even" in line
+    odds, note = weekly.season_odds(state, wk, 3)
+    assert 0 < odds.playoffs < 1 and "No standings yet: everyone starts even" in note
     state["standings"] = {"week": 1, "teams": {MY_TEAM: {"w": 1, "l": 0, "t": 0, "pf": 210.0}}}
-    assert "Standings through week 1: send a new screenshot" in weekly.season_line(state, wk, 3)
+    assert "Standings through week 1: send a new screenshot" in weekly.season_odds(state, wk, 3)[1]
     state["standings"]["week"] = 2
-    assert "Standings" not in weekly.season_line(state, wk, 3)
-    assert weekly.season_line(state, SimpleNamespace(strengths={}, me=team, them=team), 3) is None
+    assert weekly.season_odds(state, wk, 3)[1] == ""
+    assert weekly.season_odds(state, SimpleNamespace(strengths={}, me=team, them=team), 3)[0] is None
 
 
 def _league_shots(monkeypatch, tmp_path, shots):
@@ -1098,30 +1066,6 @@ def test_the_week_1_board_repair_names_every_team_once(tmp_path):
     repairs.apply(state, [], {"teams": {}, "taken": []})
     assert {t for pair in state["league_weeks"]["1"]["pairs"] for t in pair} == set(SCHEDULE) | {MY_TEAM}
     assert len(state["league_weeks"]["1"]["scores"]) == 16 and state["standings"]["week"] == 0
-
-
-def test_a_held_keeper_is_named_for_wednesday_and_the_plan_says_nothing_to_add_now():
-    keeper = _move(10, "Colton Parayko", RosterPlayer(2, "Mattias Samuelsson", "BUF", ["D"]))
-    assert weekly._action_line([], "", 2, keeper_waits=True) == \
-        "Nothing to add now: a keeper waits for Wednesday, see below."
-    text = weekly._wait_text(keeper, wednesday=True)
-    assert text.startswith("\n\nWednesday, if the week holds: Colton Parayko for Mattias Samuelsson")
-    assert "in case you need to chase" in text
-    assert "next week's adds" in weekly._wait_text(keeper)
-
-
-def test_the_streamer_caption_says_when_youre_favored_and_streams_arent_worth_an_add():
-    move = _move(10, "Jordan Staal", RosterPlayer(2, "Esa Lindell", "DAL", ["D"]))
-    stream = {"position": "C", "move": move, "next_gain": 0.5}
-    row = {"recommended": False, "slot_games": 5}
-    from engine.addprice import AddPrice
-    price = AddPrice(lam=0.089, later_weight=0.008, pace=1.27)
-    favored = weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.77)
-    assert favored.startswith("You're favored (77%): no stream is worth an add, so save them.")
-    assert weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.5).startswith(
-        "Best streamer per position")
-    row["recommended"] = True
-    assert "only the one marked recommended" in weekly.streamer_text({"streamers": [row]}, [stream], price, p_win=0.77)
 
 
 def test_the_weeks_first_plan_records_our_projection_of_every_team_once(monkeypatch, tmp_path):

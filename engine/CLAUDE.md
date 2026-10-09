@@ -9,7 +9,8 @@
 | `scorecard.py` | How the add suggestions turned out: the add's raw points vs the drop's over the 14 days after, made or not (a line in Monday's result; `scripts/scorecard.py` lists them) |
 | `addprice.py` | What an add buys and costs, in win probability: later points' worth, the budget's pace, the add price (solved by simulating weeks over logged candidates) |
 | `season.py` | Playoff and title odds and this week's leverage (P(playoffs) if won - if lost) next to a typical week left: the rest of the season simulated from the standings, my real schedule, the others paired at random. A line in the plan; not yet used by the add price (Nico to decide) |
-| `matchup.py` | The weekly plan: both teams' week, P(win), the goalie minimum, add/drops, the add budget, the mid-week stance |
+| `matchup.py` | The week: both teams' projections, P(win), the goalie minimum, every add/drop's value (this week, the weeks ahead, the long run), the add budget |
+| `plan.py` | The plan: which add/drops and when, as one coherent set (`compose`, `search`), and whether a new one replaces the one Nico has seen (`decide`, `CHANGE_MARGIN`) |
 | `report.py` | What the charts show, as plain data (the decision map, the schedule grid, an add's weekly gain, the add budget, last week's result and score race); `notify/charts.py` draws it |
 | `trade.py` | `/trade`: both teams' points per week before and after, over the 6 weeks after the review (`LONG_RUN_WEEKS`, as an add's long run). Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Shows F/D/G counts (and injured) and flags a trade that leaves them unable to fill their starters. `/trade` alone: screen all 1-for-1 and 2-for-1 with a quick per-player value, keep those they wouldn't see as a loss by how the players feel to a manager (draft round, `league/draft.py`, blended toward this season's fantasy-point rank: `PERCEPTION_GAMES`) and that don't leave them short, judge the top 12 in full (~30 s on GitHub, 2026-10-03), reply with the best per team |
 
@@ -55,9 +56,23 @@
 - **Accept** if value >= the add price (`addprice.solve`): set so spending at
   that bar, at most 2 a week, uses adds at the budget's pace, simulated over
   this and earlier weeks' candidates (`state["add_pools"]`). Close weeks with
-  good streamers clear it twice, lopsided weeks not at all. This week's adds go
-  to moves that pay this week; a keeper gaining < 1 pt waits for Monday, and before
-  Wednesday's plan it takes no add even alone (`holds_keepers`), unless the week is decided.
+  good streamers clear it twice, lopsided weeks not at all.
+- **The plan** (`plan.compose`): moves best value first, each judged with the
+  ones before it made (no shared add or drop). A move that pays this week takes
+  one of this week's adds today. A keeper that does nothing this week (< 1 pt)
+  waits for Monday's adds if another move can use this week's add; otherwise it
+  takes this week's add, which would expire unused, today, or before Wednesday's
+  plan is held for it (`holds_keepers`, unless the week is decided).
+- **Keeping it** (`plan.decide`, `bot/weekly.run_plan`): the plan Nico has seen
+  stays unless a move can't be made (taken, its drop gone, skipped, no longer
+  worth an add) or a new plan is `CHANGE_MARGIN` (0.02 wins) better. Its old
+  adds are always scored again (`extra_ids`), so a shortlist reshuffle can't drop
+  them. A change is one message with its reason; replaced cards lose their buttons.
+- **Messages** (`bot/messages.py`): the plan message (Monday and Wednesday noon,
+  /week): matchup, what to do and when, the week's best stream if it isn't the
+  plan's, the weeks ahead, the budget, warnings. A card per move on its day,
+  once. A screenshot or Taken/Skip gets the score or the change; the evening
+  check speaks only on a change.
 - `scripts/sim_add_policy.py` compares the price with the old points rule over
   simulated seasons.
 - `scripts/explain_week.py` prints every candidate with its verdict. Use it
@@ -95,8 +110,10 @@
 | 2026-10-09 | A committed plan changes only when it can't be done or a new one is 0.02 wins better, and says why; a card is sent once; a screenshot updates the score (Nico) | Repeats and near-tie flips made the advice unreadable. 0.02 is a judgment call until the error band is measured |
 | 2026-10-09 | Telegram is for the action, the dashboard (HTML) for evaluating; the Telegram image is a screenshot of the dashboard (Nico) | matplotlib charts weren't readable enough; one design everywhere |
 | 2026-10-09 | The next 2 weeks are played against their real opponents; P(win) reads margins at their realized size (0.80 this week, 0.75 / 0.70 for the weeks ahead); the long run stays the 6-week rate x 0.5, now for the weeks after those two | `check_gaps`: fringe gaps realize at 1.02 / 0.95 / 0.89 / 0.84 (weeks 3-6) / ~0.75 (to week 20), both seasons, so the long run isn't inflated and isn't shrunk further. `check_sigma --ahead`, 2024-25 / 2025-26: team margins 0.77 / 0.84 this week, 0.76 / 0.74 a week before, 0.67 / 0.73 two before; spread right (x0.92-1.03). A long run on weeks 3-6 alone was tried and reverted the same day: four weeks of schedule swung moves 15+ pts (Spurgeon +17.6 -> +0.1) |
+| 2026-10-09 | A keeper that does nothing this week waits for Monday only if another move can use this week's add; else it takes this week's add (refines 2026-10-01) | Oct 9: Kantserov (1.5 pts this week, 21 win-pts) took the last weekly add and Kelly (0 pts, 40 win-pts) was sent to Monday dropping the same player. Waiting is free only when it frees the add for something else; this week's add expires Sunday |
+| 2026-10-09 | One plan message on Monday and Wednesday (and /week), cards once on their day, screenshots answered with the score or the change, the evening check silent unless the plan changed (Nico: D1-D4) | Replaces the plan resent on every screenshot (8 of week 2's 13 cards were repeats), the goalie line, season line, stance, biggest swing, can-wait and streamer caption: their content is in the plan message's lines, the Board and the dashboard |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
-`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20. Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20. Revisit when we have in-season results.

@@ -56,6 +56,10 @@ plan's numbers are in board.json (bot/board.py). The keys:
   on it within 30 days is a correction, not an add)
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran
 - week_requested: /week was sent; plan the week on this run
+- plan_check: a screenshot or a Taken/Skip tap came in: re-plan on this run
+  (bot/weekly.plan_check_step: the score, or the change)
+- plan: the plan Nico has seen (engine/plan.py: it changes only when it must):
+  {week, at, moves: [{key, add, drop, when, why, value, rec_id, message_id}]}
 - trade_request: the text after /trade, judged on this run
 - standings: the latest League > Standings ({week: the last week they include,
   teams: {team: {w, l, t, pf}}, at}), where the season simulation starts (engine/season.py)
@@ -171,6 +175,8 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
+    state.setdefault("plan_check", False)
+    state.setdefault("plan", None)
     state.setdefault("trade_request", None)
     state.setdefault("standings", None)
     state.setdefault("standings_rows", [])

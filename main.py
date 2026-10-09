@@ -11,10 +11,11 @@ one alert a day):
 3. /trade (bot/daily.py);
 4. on a new week's first day, last week's result (bot/weekly.py);
 5. the weekly plan from noon on the week's first day, again from Wednesday
-   noon, and on /week: expected score, win odds, the goalie minimum, the
-   add/drops worth making (a plan that fails stays due for the next run);
+   noon, and on /week: the matchup, the plan (which add/drops, when), the
+   weeks ahead, the budget (a plan that fails stays due for the next run);
 6. the evening briefing, a diff against Yahoo's Start Active (bot/daily.py);
-7. the evening news check: an add that newly clears the price;
+7. the plan check: after a screenshot or a Taken/Skip tap (the score, or what
+   changed), and once an evening (only if the plan changed);
 8. the data check: sources down or stale, once a day.
 
 Notify-only: it never touches Yahoo.
@@ -34,7 +35,7 @@ from typing import Callable
 from bot.common import Outbox, _safe, nhl_today, remember_mine
 from bot.daily import alert_health, briefing_step, sync_teams, trade_step
 from bot.ingest import process_updates, report_relay, sync_webhook
-from bot.weekly import news_step, report_step, snapshot_rosters, weekly_step
+from bot.weekly import plan_check_step, report_step, snapshot_rosters, weekly_step
 from bot import dfo_archive, xfp_log
 from clients import health
 from config.settings import Settings, load_settings
@@ -113,7 +114,7 @@ def main() -> None:
         ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
-        ("news", lambda: news_step(state, players, league, now, outbox, build_context)),
+        ("plan check", lambda: plan_check_step(state, players, league, now, outbox, build_context)),
         ("xfp log", lambda: xfp_log.log_step(state, players, league, now, build_context, settings.dry_run)),
         ("DFO archive", lambda: dfo_archive.archive_step(state, now, settings.dry_run)),
         ("data check", lambda: alert_health(state, outbox, now)),

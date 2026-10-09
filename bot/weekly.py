@@ -12,14 +12,15 @@ from pathlib import Path
 
 
 from clients import dfo_lines, goalie_client, nhl_client
-from config.league import (MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
+from config.league import (MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SEASON_END)
 from engine import addprice, briefing, ir, matchup, report, scorecard, season
+from engine import plan as plan_mod
 from league import teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import charts
-from bot import board
+from bot import board, messages
 from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents, _weakest
 
 logger = logging.getLogger(__name__)
@@ -184,20 +185,17 @@ def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOd
     return odds, note
 
 
-def season_line(state: dict, wk: WeekInputs, week: int, odds_note: tuple | None = None) -> str | None:
-    """The season odds as the plan's line; `odds_note` reuses season_odds' result."""
-    odds, note = odds_note or season_odds(state, wk, week)
-    return season.text(odds) + note if odds else None
-
-
 def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
-    """The add's price this week, solved over this week's candidates and the
-    ones logged in earlier weeks (state["add_pools"])."""
-    if wk.pace is None or not wk.max_moves:
-        return None  # with this week's adds spent, its candidates can't join: the logged pool stays
-    sigma_now = math.sqrt(wk.me.variance + wk.them.variance)
-    remaining = sum(d >= date for d in wk.days)
-    state["add_pools"][str(week)] = addprice.pool_entry(ranked, remaining, sigma_now, wk.tau)
+    """The add's price, solved over this week's candidates and the ones logged
+    in earlier weeks (state["add_pools"]). With this week's adds spent, its
+    candidates can't join until Monday, so the logged pools stay as they are
+    (the price then judges Monday's moves)."""
+    if wk.pace is None:
+        return None
+    if wk.max_moves:
+        sigma_now = math.sqrt(wk.me.variance + wk.them.variance)
+        remaining = sum(d >= date for d in wk.days)
+        state["add_pools"][str(week)] = addprice.pool_entry(ranked, remaining, sigma_now, wk.tau)
     lam = addprice.solve(list(state["add_pools"].values()), wk.pace, wk.later_weight)
     return addprice.AddPrice(lam, wk.later_weight, wk.pace)
 
@@ -352,48 +350,6 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
                              open_days, wk.schedule | nxt.schedule)
 
 
-def _slot_games(row: dict) -> str:
-    """A streamer's games in open slots; a goalie's with his expected starts
-    (each game counts at his odds of starting)."""
-    text = f"{row['slot_games']} games in open slots"
-    return text + (f", ~{row['slot_starts']:.1f} expected starts" if row.get("slot_starts") is not None else "")
-
-
-def streamer_text(view: dict, streams: list[dict], price, chosen: list = (), adds_left: int = 1,
-                  p_win: float = 0.5, held: bool = False) -> str:
-    """The schedule chart's caption. With this week's adds spent, a pickup
-    plays from Monday, so only next week's games count. When you're favored
-    it says so first: a stream's points move your odds less then, which is
-    why streams fail the add price."""
-    if not adds_left:
-        if not streams:
-            return "This week's adds are used. No free agent adds points in your open slots next week."
-        lines = ["This week's adds are used; best streamer per position from Monday:"]
-        for row, st in zip(view["streamers"], streams):
-            m = st["move"]
-            lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
-                         + f": {_slot_games(row)}, net of the drop {st['next_gain']:+.1f} pts.")
-        return "\n".join(lines)
-    if not streams:
-        return "No free agent adds points in your open slots this week or next."
-    lines = ["Best streamer per position, this week + next:"]
-    if matchup.stance(p_win) in ("protect", "won"):
-        if any(row["recommended"] for row in view["streamers"]):
-            lines = [f"You're favored ({matchup._pct(p_win)}): a stream's points barely move your odds, so only the "
-                     "one marked recommended is worth an add. Best per position, this week + next:"]
-        else:
-            lines = [f"You're favored ({matchup._pct(p_win)}): no stream is worth an add, so save them. If the week "
-                     "turns, the best per position, this week + next:"]
-    for row, st in zip(view["streamers"], streams):
-        m = st["move"]
-        verdict = ("recommended, see below" if row["recommended"]
-                   else f"not recommended: {matchup.why_not(m, price, chosen, held)}")
-        lines.append(f"{st['position']}: {m.add.name} ({m.add.team})" + (f" for {m.drop.name}" if m.drop else "")
-                     + f": {_slot_games(row)}; net of the drop {m.week_gain:+.1f} pts this "
-                     f"week, {st['next_gain']:+.1f} next ({verdict}).")
-    return "\n".join(lines)
-
-
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
                ranked: list, moves: list, held: bool = False) -> dict:
     """Every number the charts and the dashboard show, computed once: the
@@ -422,9 +378,7 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
         verdict = "Recommended" if key in chosen else "Not recommended: " + matchup.why_not(m, price, moves, held)
         gains = report.weekly_gains(players, m, wk.ctx, later, wk.lines, wk.starters)
         adds[key] = report.add_view(m, week, gains, budget, verdict)
-    return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds,
-            "streamer_text": streamer_text(schedule, streams, price, moves, wk.max_moves,
-                                           matchup.win_prob(wk.me, wk.them), held)}
+    return {"decision": decision, "schedule": schedule, "budget": budget, "adds": adds}
 
 
 def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stance_text: str | None,
@@ -441,7 +395,7 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
             "yahoo": wk.yahoo_projected, "win": p_win, "stance": matchup.stance(p_win), "stance_text": stance_text,
             "adds_left": {"season": MAX_ADDS_PER_SEASON - wk.season_used, "week": wk.max_moves},
         },
-        **{k: v for k, v in views.items() if k != "streamer_text"},
+        **views,
     }
     folder = CHART_DIR if dry_run else SITE_DIR
     folder.mkdir(parents=True, exist_ok=True)
@@ -453,25 +407,11 @@ def write_dashboard(views: dict, wk: WeekInputs, week: int, opponent: str, stanc
 
 
 def save_board(p: PlanMoves, week: int, opponent: str, now: dt.datetime, date: dt.date,
-               odds_note: tuple | None, dry_run: bool) -> Path:
+               odds_note: tuple | None, dry_run: bool, changed: str = "") -> Path:
     """The plan's Board (bot/board.py) to state/board.json; a dry run's next to its charts."""
     odds, note = odds_note or (None, "")
-    keeper = matchup.can_wait(p.ranked, p.moves, p.wk.price if p.wk.max_moves else None, p.held)
-    return board.save(board.build(p, week, opponent, now, date, keeper, odds, note),
+    return board.save(board.build(p, week, opponent, now, date, odds, note, changed),
                       CHART_DIR / "board.json" if dry_run else board.BOARD_FILE)
-
-
-def _wait_text(keeper, wednesday: bool = False) -> str:
-    """A keeper worth an add later: at the mid-week plan (`wednesday`), else next week."""
-    if not keeper:
-        return ""
-    swap = (f"{keeper.add.name} for {keeper.drop.name}" if keeper.drop
-            else f"{keeper.add.name} into your empty {keeper.ir_slot} slot" if keeper.ir_slot else keeper.add.name)
-    gains = f"({keeper.week_gain:+.1f} pts this week, {keeper.next_weeks:+.1f} over the next two)"
-    if wednesday:
-        return (f"\n\nWednesday, if the week holds: {swap} {gains}. He does nothing for this week, so the add "
-                "stays free until then in case you need to chase. The risk: someone claims him first.")
-    return f"\n\nCan wait for next week's adds: {swap} {gains}. The risk: someone claims him first."
 
 
 def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
@@ -521,13 +461,13 @@ def _plan_sent(state: dict, key: str, now: dt.datetime, midweek: bool) -> None:
     if midweek:
         record["midweek"] = stamp
     state["week_requested"] = False
+    state["plan_check"] = False
 
 
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
                 build_context=context.build) -> None:
-    """The matchup plan: from noon local on the week's first day, again from
-    noon on its Wednesday (with the mid-week stance), and whenever you send
-    /week or a matchup screenshot."""
+    """The plan message: from noon local on the week's first day, again from
+    noon on its Wednesday, and whenever you send /week."""
     date = now.astimezone(NHL_TIME).date()
     week = weeks.week_of(date)
     requested = state["week_requested"]
@@ -547,179 +487,204 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
         outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
         _plan_sent(state, key, now, is_midweek)  # asked once; /opp then /week brings the plan
         return
-
-    p = plan_moves(state, players, league, date, week, opponent, build_context)
-    wk, nxt, ranked, moves = p.wk, p.nxt, p.ranked, p.moves
-    ir_text = ir.text(p.ir_moves, ir.returning(players, wk.lines), _weakest(players, wk.ctx, wk.lines))
-    midweek = None
-    if is_midweek or wk.live:
-        chase = None
-        if matchup.stance(matchup.win_prob(wk.me, wk.them)) in ("chase", "even"):
-            chase = matchup.biggest_swing(ranked)
-        recommended = chase is not None and report.move_key(chase) in {report.move_key(m) for m in moves}
-        midweek = matchup.midweek_text(wk.me, wk.them, chase, wk.price if wk.max_moves else None, recommended,
-                                       moves)
-    keeper = matchup.can_wait(ranked, moves, wk.price if wk.max_moves else None, p.held)
-    wednesday = p.held and len(moves) < wk.max_moves
-    odds_note = _safe(season_odds, state, wk, week)
-    _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run)
-    outbox.send(_action_line(moves, ir_text, wk.max_moves, wednesday and keeper is not None) + "\n\n"
-                + matchup.text(week, wk.days, wk.me, wk.them, teams.updated(league, opponent), wk.season_used,
-                               wk.week_used, date, wk.yahoo_projected, teams.moves_through(league))
-                + "\n" + goalie_line(players, ranked, wk.price if wk.max_moves else None)
-                + (f"\n{line}" if (line := _safe(season_line, state, wk, week, odds_note)) else "")
-                + (f"\n\n{midweek}" if midweek else "")
-                + _wait_text(keeper, wednesday)
-                + (f"\n\n{ir_text}" if ir_text else ""))
+    run_plan(state, players, league, now, outbox, build_context, "full")
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
-    record_plan(state, week, opponent, wk.me, wk.them, now)
-    _safe(record_league, state, league, week, opponent, wk, now)
-    if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
-        entry = state["results"][str(week)]
-        entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]
-    views = _safe(week_views, state, p.planned, league, week, wk, nxt, ranked, moves, p.held)
-    if views:
-        png = _safe(charts.decision_chart, views["decision"])
-        if png:
-            outbox.send_photo(png)
-        png = _safe(charts.schedule_chart, views["schedule"])
-        if png:
-            outbox.send_photo(png, views["streamer_text"])
-        decided = matchup.decided(matchup.win_prob(wk.me, wk.them))
-        stance_text = midweek or (f"This week looks {decided}: save your adds for players worth keeping."
-                                  if decided else None)
-        _safe(write_dashboard, views, wk, week, opponent, stance_text, now, outbox.settings.dry_run)
-    send_adds(state, p, moves, views, date, now, outbox)
 
 
-@dataclass
-class PlanMoves:
-    """A week's add/drop search (the weekly plan's, and the evening's news check)."""
-    wk: WeekInputs
-    nxt: NextWeek
-    ranked: list  # every move weighed
-    moves: list  # the adds worth making now, best first
-    ir_moves: list  # IR moves the adds assume (each frees a spot)
-    planned: list  # the roster with them made
-    open_spots: int  # spots open before any IR move
-    held: bool = False  # keepers that do nothing this week wait for the mid-week plan
-
-
-def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: int, opponent: str,
-               build_context, extra: list | None = None) -> PlanMoves:
-    """`extra`: free agents to judge besides the shortlist (scripts/explain_week.py --add)."""
-    wk = week_inputs(date, week, players, league, state, build_context, opponent)
-    ir_moves = ir.moves(players, wk.lines)
-    planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
-    nxt = next_week(week, players, wk)
-    candidates = add_candidates(wk, nxt)
-    candidates += [p for p in extra or [] if p not in candidates]
-    wk.ahead = weeks_ahead(state, league, week, planned, wk)
-    ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
-                                     wk.later_weight, wk.ahead)
-    wk.price = add_price(state, week, wk, ranked, date)
-    moves = []
-    held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
-    if wk.max_moves and wk.price is not None:
-        moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                   wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
-                                   candidates, ranked, wk.hold_days, held, wk.ahead)
-    return PlanMoves(wk, nxt, ranked, moves, ir_moves, planned,
-                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
-
-
-def goalie_line(players: list, ranked: list, price) -> str:
-    """Two goalies or three, by value: the best move that changes the count,
-    against what an add costs (the same moves the plan weighed)."""
-    goalies = sum(p.is_goalie for p in roster_mod.active(players))
-    if goalies <= matchup.MIN_GOALIES:
-        options = [m for m in ranked if m.add.is_goalie and not (m.drop and m.drop.is_goalie)]
-        what, keep = "a third", "two are enough for now"
-    else:
-        options = [m for m in ranked if m.drop and m.drop.is_goalie and not m.add.is_goalie]
-        what, keep = "two (a skater for your weakest goalie)", "keep three"
-    best = max(options, key=lambda m: m.value, default=None)
-    head = f"Goalies: {goalies}, by value."
-    if best is None:
-        return f"{head} No move to {what} came up."
-    swap = f"{best.add.name}" + (f" for {best.drop.name}" if best.drop else "")
-    if price is None:
-        return f"{head} Best move to {what}: {swap}, {100 * best.value:+.1f} win-pts (no adds left this week)."
-    verdict = "worth an add" if best.value >= price.lam else keep
-    return (f"{head} Best move to {what}: {swap}, {100 * best.value:+.1f} win-pts vs the "
-            f"{100 * price.lam:.1f} an add costs: {verdict}.")
-
-
-def _action_line(moves: list, ir_text: str, adds_left: int = 1, keeper_waits: bool = False) -> str:
-    """The plan's first line: what to do now."""
-    if not moves:
-        head = ("No adds left this week (they reset Monday)." if not adds_left
-                else "Nothing to add now: a keeper waits for Wednesday, see below." if keeper_waits
-                else "No add is worth one of yours right now.")
-        return head + (" See the IR note below." if ir_text else "")
-    adds = "; ".join(f"add {m.add.name}" + (f" for {m.drop.name}" if m.drop else "")
-                     + f" (win {matchup._pct(m.win_before)} -> {matchup._pct(m.win_after)})" for m in moves)
-    return f"Do now: {adds}. Details below."
-
-
-def send_adds(state: dict, p: PlanMoves, moves: list, views: dict | None, date: dt.date, now: dt.datetime,
-              outbox: Outbox) -> None:
-    """Each add as its own message with Done / Taken / Skip, and its chart."""
-    for i, move in enumerate(moves):
-        rec_id = f"add-{date.isoformat()}-{now:%H%M}-{i}"
-        buttons = [("Done", f"done:{rec_id}"), ("Other drop", f"other:{rec_id}"), ("Taken", f"taken:{rec_id}"),
-                   ("Skip", f"skip:{rec_id}")]
-        if move.ir_slot:  # a stash drops nobody now
-            buttons = [b for b in buttons if b[0] != "Other drop"]
-        view = views and views["adds"].get(report.move_key(move))
-        png = _safe(charts.add_chart, view) if view else None
-        # An add without a drop fills a spot already open, else the next IR move's
-        # (an IR stash fills his IR slot instead).
-        k = sum(m.drop is None and not m.ir_slot for m in moves[:i]) - p.open_spots
-        opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
-                 else None)
-        text = matchup.move_text(move, opens.player.name if opens else None)
-        message_id = (outbox.send_photo(png, text, buttons) if png else outbox.send(text, buttons))
-        state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
-                                    "drop": move.drop.id if move.drop else None,
-                                    "drop_name": move.drop.name if move.drop else None, "message_id": message_id,
-                                    "ir": {str(opens.player.id): opens.slot} if opens else {},
-                                    "add_slot": move.ir_slot}
-
-
-def news_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
-              build_context=context.build) -> None:
-    """Between plans, once an evening: an add that now clears the price and
-    hasn't been suggested this week (an injury, a confirmed goalie, a hot
-    free agent since the plan). Not on a plan's day; only with adds left."""
+def plan_check_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
+                    build_context=context.build) -> None:
+    """The plan again between plan messages: right after a screenshot or a
+    Taken or Skip tap (a reply either way), and once an evening before the
+    first puck (a message only if the plan changed: an injury, a confirmed
+    goalie, a player taken)."""
     date = now.astimezone(NHL_TIME).date()
     week = weeks.week_of(date)
-    games = nhl_client.games_on(date) if week else []
-    if not games or not roster_mod.active(players) or state["news_checked"] == date.isoformat():
+    if week is None or not roster_mod.active(players) or not current_opponent(state, week):
+        state["plan_check"] = False
+        return
+    if state.get("plan_check"):
+        run_plan(state, players, league, now, outbox, build_context, "check")
+        state["plan_check"] = False
+        return
+    games = nhl_client.games_on(date)
+    if not games or state["news_checked"] == date.isoformat():
         return
     if now < briefing.briefing_due(date, games[0].start) or briefing.quiet(now) or now >= games[0].start:
         return
     record = state["weeks"].get(str(week), {})
     if any(record.get(k, "")[:10] == now.date().isoformat() for k in ("sent", "midweek")):
         return  # the plan went out today
-    days = weeks.days(week)
-    if not matchup.max_moves(*matchup.adds_used(state["adds"], days)) or not current_opponent(state, week):
-        return
     state["news_checked"] = date.isoformat()
-    first, last = days[0].isoformat(), days[-1].isoformat()
-    offered = {(r["add"]["id"], r["drop"]) for r in state["pending"].values() if r["type"] == "add"}
-    offered |= {(d.get("add"), d.get("drop")) for d in state["decisions"]
-                if d["type"] == "add" and first <= d["date"] <= last}
+    run_plan(state, players, league, now, outbox, build_context, "quiet")
+
+
+@dataclass
+class PlanMoves:
+    """A week's add/drop search and its plan (engine/plan.py)."""
+    wk: WeekInputs
+    nxt: NextWeek
+    ranked: list  # every move weighed, on today's roster
+    plan: list  # plan.Planned: the moves to make and when, best first
+    ir_moves: list  # IR moves the adds assume (each frees a spot)
+    planned: list  # the roster with them made
+    open_spots: int  # spots open before any IR move
+    held: bool = False  # keepers that do nothing this week wait for the mid-week plan
+
+    @property
+    def moves(self) -> list:
+        return [p.move for p in self.plan]
+
+
+def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: int, opponent: str,
+               build_context, extra_ids: set | frozenset = frozenset(), exclude: set | frozenset = frozenset()
+               ) -> PlanMoves:
+    """`extra_ids`: free agents to judge besides the shortlist (the plan's adds,
+    explain_week --add); `exclude`: move keys not to plan (skipped)."""
+    wk = week_inputs(date, week, players, league, state, build_context, opponent)
+    ir_moves = ir.moves(players, wk.lines)
+    planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
+    nxt = next_week(week, players, wk)
+    candidates = add_candidates(wk, nxt)
+    candidates += [p for p in wk.pool if p.id in extra_ids and p not in candidates]
+    wk.ahead = weeks_ahead(state, league, week, planned, wk)
+    ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                     wk.later_weight, wk.ahead)
+    wk.price = add_price(state, week, wk, ranked, date)
+    held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
+    season_left = MAX_ADDS_PER_SEASON - wk.season_used - wk.max_moves
+    monday_slots = min(MAX_ADDS_PER_WEEK, max(season_left, 0)) if week < weeks.LAST_WEEK else 0
+    composed = plan_mod.search(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
+                               wk.weeks_after, wk.price, wk.max_moves, date, wk.days[-1] + dt.timedelta(days=1),
+                               weeks.midweek(week), held, wk.available_from, wk.so_far, wk.hold_days, wk.ahead,
+                               monday_slots, exclude, ranked)
+    return PlanMoves(wk, nxt, ranked, composed, ir_moves, planned,
+                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
+
+
+def skipped(state: dict, date: dt.date) -> set[str]:
+    """Moves Nico skipped in the last week: not planned again."""
+    since = (date - dt.timedelta(days=7)).isoformat()
+    return {f"{d['add']}:{d.get('drop') or 0}" for d in state["decisions"]
+            if d["type"] == "add" and d["decision"] == "skip" and d.get("add") and d["date"] >= since}
+
+
+def _stored(p: plan_mod.Planned, old: dict | None) -> dict:
+    m = p.move
+    return {"key": p.key, "add": {"id": m.add.id, "name": m.add.name, "team": m.add.team,
+                                  "positions": m.add.positions},
+            "drop": {"id": m.drop.id, "name": m.drop.name} if m.drop else None,
+            "when": p.when.isoformat(), "why": p.why, "value": round(m.value, 4),
+            "rec_id": (old or {}).get("rec_id"), "message_id": (old or {}).get("message_id")}
+
+
+def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox, build_context,
+             mode: str) -> PlanMoves:
+    """Compose the plan, keep the one Nico has seen unless it must change
+    (engine/plan.decide), and say what's needed. `mode`: "full" (the plan
+    message), "check" (a screenshot or tap: the score, or the change),
+    "quiet" (the evening: only a change)."""
+    date = now.astimezone(NHL_TIME).date()
+    week = weeks.week_of(date)
     opponent = current_opponent(state, week)
-    p = plan_moves(state, players, league, date, week, opponent, build_context)
-    _safe(save_board, p, week, opponent, now, date, None, outbox.settings.dry_run)
-    new =[m for m in p.moves if (m.add.id, m.drop.id if m.drop else None) not in offered]
-    if not new:
-        logger.info("News check %s: no new add clears the price", date)
-        return
-    outbox.send(f"News since the plan: {'an add now clears' if len(new) == 1 else f'{len(new)} adds now clear'} "
-                f"the price (you're at {matchup._pct(matchup.win_prob(p.wk.me, p.wk.them))} to win).")
-    send_adds(state, p, new, None, date, now, outbox)
+    old = state.get("plan") or {}
+    mine = {p.id for p in players}
+    old_open = [o for o in old.get("moves", []) if o["add"]["id"] not in mine]  # the rest were made
+    skips = skipped(state, date)
+    p = plan_moves(state, players, league, date, week, opponent, build_context,
+                   {o["add"]["id"] for o in old_open}, skips)
+    wk = p.wk
+    current = {plan_mod.key(m): m for m in p.ranked}
+    pool = {x.id for x in wk.pool}
+    problems = {}
+    for o in old_open:
+        if o["key"] in skips:
+            problems[o["key"]] = "you skipped it"
+        elif o["add"]["id"] not in pool:
+            problems[o["key"]] = "someone took him"
+        elif o.get("drop") and o["drop"]["id"] not in mine:
+            problems[o["key"]] = f"{o['drop']['name']} is no longer on your roster"
+    verdict = plan_mod.decide(old_open, p.plan, current, problems, wk.price)
+    if verdict.keep and old_open:
+        dated = {q.key: q for q in p.plan}
+        p.plan = sorted((dated.get(o["key"]) or plan_mod.Planned(current[o["key"]],
+                                                                  max(date, dt.date.fromisoformat(o["when"])),
+                                                                  o.get("why", "now"))
+                         for o in old_open), key=lambda q: q.when)
+    by_key = {o["key"]: o for o in old_open}
+    changed = verdict.reason if not verdict.keep and old_open else ""
+    odds_note = _safe(season_odds, state, wk, week)
+    _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed)
+
+    if mode == "full":
+        ir_text = ir.text(p.ir_moves, ir.returning(players, wk.lines), _weakest(players, wk.ctx, wk.lines))
+        odds = odds_note[0] if odds_note else None
+        outbox.send(messages.plan_text(
+            week, opponent, wk.me, wk.them, p.plan, date, wk.max_moves, wk.season_used, wk.ahead,
+            matchup.biggest_swing(p.ranked), wk.price if wk.max_moves else None, odds, wk.yahoo_projected,
+            [f"Changed since the last plan: {changed}." if changed else "",
+             messages.league_warning(teams.moves_through(league), teams.updated(league, opponent), date),
+             ir_text]))
+        record_plan(state, week, opponent, wk.me, wk.them, now)
+        _safe(record_league, state, league, week, opponent, wk, now)
+        views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.held)
+        if views:
+            png = _safe(charts.schedule_chart, views["schedule"])
+            if png:
+                outbox.send_photo(png, "Schedule, this week and next: your lineup's games and open slots, "
+                                       "and the best streamer per position.")
+            _safe(write_dashboard, views, wk, week, opponent, None, now, outbox.settings.dry_run)
+    elif changed:
+        outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves))
+    elif p.plan and not old_open:  # moves where there were none: say so before any card
+        outbox.send(messages.new_plan_text(p.plan, date, wk.max_moves, *((wk.me, wk.them) if mode == "check" else ())))
+    elif mode == "check":
+        outbox.send(messages.score_text(wk.me, wk.them, p.plan, date))
+    if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
+        entry = state["results"].setdefault(str(week), {"opponent": opponent})
+        entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]
+
+    keys = {q.key for q in p.plan}
+    label = ("Replaced: " + ("; ".join(messages.swap(q.move) for q in p.plan) or "no add"))[:60]
+    for o in old_open:  # replaced cards lose their buttons (pending keeps them for the scorecard)
+        if o["key"] not in keys and o.get("message_id"):
+            outbox.mark(o["message_id"], label)
+    if state.get("plan") is None:  # the first plan: the earlier system's cards this week are replaced
+        for rec in state["pending"].values():
+            if (rec["type"] == "add" and rec.get("message_id") and rec["date"] >= wk.days[0].isoformat()
+                    and rec["add"]["id"] not in mine):  # a card whose add was made isn't replaced
+                outbox.mark(rec["message_id"], label)
+    stored = [_stored(q, by_key.get(q.key)) for q in p.plan]
+    send_cards(state, p, stored, date, now, outbox)
+    state["plan"] = {"week": week, "at": now.isoformat(timespec="minutes"), "moves": stored}
+    return p
+
+
+def send_cards(state: dict, p: PlanMoves, stored: list[dict], date: dt.date, now: dt.datetime,
+               outbox: Outbox) -> None:
+    """Each planned move due today as its own message with Done / Taken /
+    Skip, once (`stored`: the plan as kept, its card's ids written back)."""
+    due = [(q, s) for q, s in zip(p.plan, stored) if q.when <= date]
+    for i, (q, s) in enumerate(due):
+        if s["rec_id"]:
+            continue  # its card is out
+        move = q.move
+        rec_id = f"add-{date.isoformat()}-{now:%H%M}-{move.add.id}"  # unique even for two runs in a minute
+        buttons = [("Done", f"done:{rec_id}"), ("Other drop", f"other:{rec_id}"), ("Taken", f"taken:{rec_id}"),
+                   ("Skip", f"skip:{rec_id}")]
+        if move.ir_slot:  # a stash drops nobody now
+            buttons = [b for b in buttons if b[0] != "Other drop"]
+        # An add without a drop fills a spot already open, else the next IR move's
+        # (an IR stash fills his IR slot instead).
+        k = sum(m.drop is None and not m.ir_slot for m in [d[0].move for d in due[:i]]) - p.open_spots
+        opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
+                 else None)
+        message_id = outbox.send(matchup.move_text(move, opens.player.name if opens else None), buttons)
+        s["rec_id"], s["message_id"] = rec_id, message_id
+        state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
+                                    "drop": move.drop.id if move.drop else None,
+                                    "drop_name": move.drop.name if move.drop else None, "message_id": message_id,
+                                    "ir": {str(opens.player.id): opens.slot} if opens else {},
+                                    "add_slot": move.ir_slot}

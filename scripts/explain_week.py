@@ -48,19 +48,18 @@ def main_() -> None:
 
     pool = common.free_agents(players, league)
     by_name = {normalize_name(p.name): p for p in pool}
-    extra = []
+    extra = set()
     for name in args.add:
         p = by_name.get(normalize_name(name))
         if p:
-            extra.append(p)
+            extra.add(p.id)
         else:
             print(f"  ({name} isn't a free agent here: on a roster, /taken, or not on an NHL roster)")
 
     # The plan's own computation and its Board: what the plan message is built from.
-    plan = weekly.plan_moves(state, players, league, date, week, opponent, context.build, extra)
+    plan = weekly.plan_moves(state, players, league, date, week, opponent, context.build, extra,
+                             weekly.skipped(state, date))
     wk = plan.wk
-    price = wk.price if wk.max_moves else None
-    keeper = matchup.can_wait(plan.ranked, plan.moves, price, plan.held)
     print(f"Week {week} ({wk.days[0]} - {wk.days[-1]}) vs {opponent}, as of {date}")
     for t in (wk.me, wk.them):
         print(f"  {t.name:24} so far {t.so_far:6.1f}  expected {t.expected:6.1f} +/- {t.variance ** 0.5:4.1f}  "
@@ -72,15 +71,15 @@ def main_() -> None:
     print("\n  Every team's week, as the first plan logs it (expected +/- sd):")
     for team, t in sorted(copy["league_weeks"][str(week)]["ours"]["teams"].items(), key=lambda kv: -kv[1]["expected"]):
         print(f"    {team[:24]:24} {t['expected']:6.1f} +/- {t['sd']:4.1f}")
-    b = board.build(plan, week, opponent, now, date, keeper)
+    b = board.build(plan, week, opponent, now, date)
     h = b["header"]
     print(f"\n  P(win) {h['win']:.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
           f"{h['adds_left']['week']} allowed now; matchup spread tau {h['tau']:.1f} pts, a later point = "
           f"{100 * h['later_weight']:.2f} win-pts")
     print("  add price: " + (f"{100 * h['price']['lam']:.1f} win-pts (pace {h['price']['pace']:.2f} adds a week, "
                              f"{len(state['add_pools'])} week(s) of candidates logged)" if h["price"]
-                             else "none (no adds left this week: everyone joins Monday)" if not wk.max_moves
                              else "none (budget spent)")
+          + ("; no adds left this week: everyone joins Monday" if not wk.max_moves else "")
           + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from and wk.max_moves else ""))
     for w in h["ahead"]:
         print(f"  week {w['week']} vs {w['opponent'] or '(unknown: a point at a typical week)'}: "
@@ -88,11 +87,11 @@ def main_() -> None:
                  else "no matchup to play out"))
     if b["plan"]["ir"]:
         print("  the adds assume these IR moves: " + ", ".join(f"{m['name']} to {m['slot']}" for m in b["plan"]["ir"]))
-    print("  plan: " + ("; ".join(_label(b, k) for k in b["plan"]["now"]) or "no add now")
-          + (f"; waits: {_label(b, b['plan']['waits'])}" if b["plan"]["waits"] else ""))
+    print("  plan (as composed now; the bot keeps the one already sent unless it must change): "
+          + ("; ".join(f"{_label(b, q['key'])} {q['when']} ({q['why']})" for q in b["plan"]["moves"])
+             or "no add"))
     print(f"\n{len(b['moves'])} moves (value = this week's win-pts + the next weeks' (+1/+2) + later win-pts; "
-          "now: the plan's adds, "
-          "passes: worth an add but not taken, fails: under the price):")
+          "plan: in the plan, passes: worth an add but not in it, fails: under the price):")
     print("\n".join(board.table(b, args.top, args.position)))
 
 
