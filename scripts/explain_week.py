@@ -82,11 +82,16 @@ def main_() -> None:
                              else "none (no adds left this week: everyone joins Monday)" if not wk.max_moves
                              else "none (budget spent)")
           + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from and wk.max_moves else ""))
+    for w in h["ahead"]:
+        print(f"  week {w['week']} vs {w['opponent'] or '(unknown: a point at a typical week)'}: "
+              + (f"margin {w['margin']:+.1f} +/- {w['sd']:.1f} pts, win {w['win']:.0%}" if w["win"] is not None
+                 else "no matchup to play out"))
     if b["plan"]["ir"]:
         print("  the adds assume these IR moves: " + ", ".join(f"{m['name']} to {m['slot']}" for m in b["plan"]["ir"]))
     print("  plan: " + ("; ".join(_label(b, k) for k in b["plan"]["now"]) or "no add now")
           + (f"; waits: {_label(b, b['plan']['waits'])}" if b["plan"]["waits"] else ""))
-    print(f"\n{len(b['moves'])} moves (value = this week's win-pts + later win-pts; now: the plan's adds, "
+    print(f"\n{len(b['moves'])} moves (value = this week's win-pts + the next weeks' (+1/+2) + later win-pts; "
+          "now: the plan's adds, "
           "passes: worth an add but not taken, fails: under the price):")
     print("\n".join(board.table(b, args.top, args.position)))
 

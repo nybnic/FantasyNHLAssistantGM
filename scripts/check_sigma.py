@@ -1,4 +1,4 @@
-"""Is P(win)'s spread right? Checked on the 2025-26 season.
+"""Is P(win)'s spread right? Checked on the 2025-26 season (--season for another).
 
 The weekly plan turns two teams' projected weeks into P(win) with a normal
 model whose spread (sigma) comes from per-game variances (skater ~2.5 x xFP,
@@ -20,6 +20,8 @@ lineup actually got. Skaters who didn't play in the week before count as out
     python -m scripts.check_sigma --availability old   # skaters who played last week
         certain to play, the others left out (the replay before the return curves)
     python -m scripts.check_sigma --no-age             # priors not aged (replays before 2026-10-03)
+    python -m scripts.check_sigma --ahead 2            # projected 2 weeks before (the plan's weeks ahead)
+    python -m scripts.check_sigma --season 20242025
 
 Default `--availability bot`: a skater who played his team's last game plays at
 availability.HEALTHY_PLAY; one who missed it returns along the curve for how
@@ -40,9 +42,9 @@ from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIG
 from engine import availability, lineup
 from engine.matchup import GOALIE_START_VARIANCE, MODEL_SD_SHARE, SKATER_VARIANCE_PER_XFP, _at_least
 from model.projections import aged, goalie_priors, project_goalie, project_skater, skater_priors
+from scripts.backtest import history_of
 
 TARGET = 20252026
-HISTORY = (20242025, 20232024)
 SHAPE = {"C": 3, "LW": 2, "RW": 2, "D": 4, "G": 3}
 POS = {"C": "C", "L": "LW", "R": "RW", "D": "D"}
 
@@ -51,12 +53,13 @@ def _phi(x: float) -> float:
     return 0.5 * (1 + math.erf(x / math.sqrt(2)))
 
 
-def load():
-    skater_history = [nhl_stats.skater_games(s) for s in HISTORY]
-    goalie_history = [nhl_stats.goalie_games(s) for s in HISTORY]
+def load(target: int = TARGET):
+    history = history_of(target)
+    skater_history = [nhl_stats.skater_games(s) for s in history]
+    goalie_history = [nhl_stats.goalie_games(s) for s in history]
     s_priors, s_fallback = skater_priors(skater_history)
     g_priors, g_fallback = goalie_priors(goalie_history)
-    skaters, goalies = nhl_stats.skater_games(TARGET), nhl_stats.goalie_games(TARGET)
+    skaters, goalies = nhl_stats.skater_games(target), nhl_stats.goalie_games(target)
     return s_priors, s_fallback, g_priors, g_fallback, skaters, goalies
 
 
@@ -83,13 +86,15 @@ def main_() -> None:
     parser.add_argument("--seed", type=int, default=11)
     parser.add_argument("--availability", choices=("bot", "old"), default="bot")
     parser.add_argument("--no-age", action="store_true", help="skater priors not aged (the bot ages them)")
+    parser.add_argument("--ahead", type=int, default=0, help="project each week this many weeks before it")
+    parser.add_argument("--season", type=int, default=TARGET, help="e.g. 20242025 (priors: the two before)")
     args = parser.parse_args()
-    s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load()
+    s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load(args.season)
     if not args.no_age:
         born = {}
-        for season_id in (TARGET, *HISTORY):
+        for season_id in (args.season, *history_of(args.season)):
             born.update(nhl_stats.skater_birth_dates(season_id))
-        start = dt.date(TARGET // 10_000, 10, 1)
+        start = dt.date(args.season // 10_000, 10, 1)
         s_priors = {pid: aged(p, (start - born[pid]).days / 365.25 if pid in born else None)
                     for pid, p in s_priors.items()}
 
@@ -121,6 +126,7 @@ def main_() -> None:
 
     first, last = skaters[0].date, skaters[-1].date
     monday = first + dt.timedelta(days=14 + (7 - (first + dt.timedelta(days=14)).weekday()) % 7)
+    monday += dt.timedelta(days=7 * args.ahead)  # the first week whose projection date is in week 3
     weeks = []
     while monday + dt.timedelta(days=7) <= last:
         weeks.append(monday)
@@ -132,19 +138,20 @@ def main_() -> None:
         rosters = draft(pool, 16, rng)
         for monday in weeks:
             days = [monday + dt.timedelta(days=i) for i in range(7)]
+            asof = monday - dt.timedelta(days=7 * args.ahead)  # what the projection knows
             results = []
             for roster in rosters:
                 proj, actual = {}, {}
                 for pos in ("C", "LW", "RW", "D"):
                     for pid in roster[pos]:
-                        past = [g for g in by_skater[pid] if g.date < monday]
+                        past = [g for g in by_skater[pid] if g.date < asof]
                         if args.availability == "old" and not any(
-                                g.date >= monday - dt.timedelta(days=7) for g in past):
+                                g.date >= asof - dt.timedelta(days=7) for g in past):
                             continue  # out: the bot would see it
                         # Team games missed in a row before Monday, as scripts/fit_absence.py counts them.
                         mine = {g.date for g in past}
                         team = past[-1].team if past else team_of[pid]  # his team then (trades)
-                        team_past = sorted(d for d in team_dates[team] if d < monday)
+                        team_past = sorted(d for d in team_dates[team] if d < asof)
                         missed = next((i for i, d in enumerate(reversed(team_past)) if d in mine), len(team_past))
                         curve = availability.return_curve(missed)
                         x = project_skater(s_prior(pid), past).xfp
@@ -163,12 +170,12 @@ def main_() -> None:
                                 actual[(d, pid)] = played.get(d, 0.0)
                 for pid in roster["G"]:
                     team = team_of[pid]
-                    past_team = [(d, g) for d, g in starts_by_team[team] if d < monday]
+                    past_team = [(d, g) for d, g in starts_by_team[team] if d < asof]
                     share = (sum(g == pid for _, g in past_team[-15:]) / len(past_team[-15:])) if past_team else 0.5
                     if share == 0:
                         continue
                     x = project_goalie(g_priors.get(pid, g_fallback),
-                                       [g for g in by_goalie[pid] if g.date < monday]).xfp
+                                       [g for g in by_goalie[pid] if g.date < asof]).xfp
                     started = {g.date: fantasy_points(g.stats, GOALIE_WEIGHTS) for g in by_goalie[pid]
                                if g.started and monday <= g.date < monday + dt.timedelta(days=7)}
                     for d in days:

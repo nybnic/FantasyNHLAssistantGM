@@ -44,7 +44,8 @@ python -m scripts.scorecard                       # how the add suggestions turn
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
 python -m scripts.backtest                        # model accuracy on 2025-26
 python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
-python -m scripts.check_sigma                     # is P(win)'s spread right? 2025-26 replay
+python -m scripts.check_sigma                     # is P(win)'s spread right? 2025-26 replay (--ahead 1, --season)
+python -m scripts.check_gaps                      # do fringe players' projected gaps show up? by horizon
 python -m scripts.fit_absence                     # how fast absent players return (availability curves)
 python -m scripts.sim_goalies                     # two goalies or three: 2025-26 replayed under each policy
 python -m scripts.fit_goalie_starts               # who starts next: last result, back-to-backs

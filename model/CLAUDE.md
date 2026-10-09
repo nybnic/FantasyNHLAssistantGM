@@ -36,6 +36,8 @@ matchup, so start odds live in `engine/availability.py`.
 | Back-to-back repeat (`BACK_TO_BACK_REPEAT` 0.15) | Same script: the goalie who started last night starts again at 0.09 / 0.13 / 0.16 of his share (2023-24 / 24-25 / 25-26, n ~350 each, rising); 0.15 = 2024-26 pooled. Was 0.35, a guess |
 | Goalie count by value (`scripts/sim_goalies.py`, 2026-10-02) | See the decision log: as good as always-3 (+0.05 +/- 0.10 wins), always-2 clearly worse. Replay assumptions: starters known on the day, an add worth 9 pts over 4 weeks, skaters healthy in projections |
 | Opponent and arena effects on skaters: not worth modeling (`scripts/backtest_venue.py`, 2026-10-03) | Per-stat factors (shots, hits, blocks, goals, assists) for the game's arena (scorer bias) and opponent, shrunk, known as of each Monday, relative to the arenas and opponents a projection already holds. MAE minus plain, 2025-26 / 2024-25: arena +0.003 (+/- 0.001) / -0.000 (+/- 0.001), opponent +0.002 (+/- 0.002) / -0.002 (+/- 0.001), both +0.006 (+/- 0.002) / -0.001 (+/- 0.002); pairwise unchanged (63.8%, 62.9-63.0%). Adjustments are small (RMS 0.24-0.28 pts a game) and don't beat noise in both seasons |
+| Team margins realize below their projected size, more so further ahead (`scripts/check_sigma.py --ahead`, `--season`, 2026-10-09) | Projected on the week's Monday / a week before / two weeks before: 0.77 / 0.76 / 0.67 (2024-25), 0.84 / 0.74 / 0.73 (2025-26); the spread of results around the projection right (x0.92-1.03). In P(win) since 2026-10-09 at the averages, 0.80 / 0.75 / 0.70 (`matchup.MARGIN_REALIZES`, `MARGIN_REALIZES_AHEAD`) |
+| Gaps between fringe skaters (projected-xFP ranks 120-450: the adds and drops) do show up (`scripts/check_gaps.py`, 2026-10-09) | Within-Monday slope of actual on projected points, 2024-25 / 2025-26 (+/- 0.02-0.05): this week 1.02 / 1.02, next week 0.95 / 0.96, the week after 0.91 / 0.87, weeks 3-6 0.86 / 0.81, weeks 7-12 0.82 / 0.70, 13-20 0.76 / 0.72. So a move's gain isn't overstated this week, and a long-run edge mostly holds (the long run's 0.5 discount is below it). Weeks ahead counted at 0.95 / 0.89 (`matchup.GAP_REALIZES`) |
 | Our model vs Yahoo | 711-skater preseason export: Spearman 0.95. Free-agent D after the age fix: veterans within ~0.1-0.3 pts/game |
 
 ## Judgment calls (untested, labeled in code)
@@ -47,8 +49,9 @@ matchup, so start odds live in `engine/availability.py`.
 - Players with no NHL history get the position fallback prior, which over-projects them by
   +0.05 to +0.33 pts/game (2026-10-03, every skater). The bot gives most of them DFO's projection
   whole, so it matters only for call-ups DFO doesn't project. Unfixed.
-- Margins still realize at 0.84 in `check_sigma` (aged priors), so projected differences between
-  players are a little too wide, even with teams now unbiased (-0.01 sigma).
+- Team margins realize at ~0.80 (more below further ahead) while fringe players' gaps realize in
+  full this week (`check_gaps` 1.02): the overstatement is in whole teams (stars, depth), not in the
+  add/drop band. P(win) now reads margins at their realized size; where it comes from is open.
 - Return curves are fit on skaters; injured goalies use them too (times their start share).
   Day-to-day / game-time decisions (0.6 tonight, 0.85 tomorrow, then healthy) are a judgment
   call: DFO statuses aren't archived.

@@ -21,7 +21,8 @@
   today's players less my later adds). Goalie points are
   multiplied by P(reaching the 3-game minimum).
 - **P(win)** = normal approximation of the point difference (the variance
-  constants come from `model/CLAUDE.md`).
+  constants come from `model/CLAUDE.md`). Banked points count in full, the
+  margin still to play at `MARGIN_REALIZES` 0.80 (how projected margins realize).
 - **Candidate moves:** free agents shortlisted per position (and by schedule fit),
   times drops (the open spot first, then my 2 lowest long-run players per group:
   forwards, D, goalies). An add who can't play yet (waivers, or this week's adds
@@ -32,17 +33,25 @@
   can go straight into it: no drop now. Valued as an extra player whose games
   follow the return curves, less the cheapest drop's points on each day times
   the odds he's back by then (`_stash_moves`), against the same add price.
-- **Later points** = the long run. Long run = the whole-lineup
-  projection over the next 6 weeks (`LONG_RUN_WEEKS`, with durability), per
-  week, times the weeks left, x `LONG_RUN_DISCOUNT` 0.5. Dropping one of my
-  streaming spots (the 3 skaters closest to waiver level at their position,
-  plus my weakest goalie) is credited only its scheduled gain while the
-  streamer would be held: spots / the affordable adds a week (`hold_weeks`,
-  ~3 weeks at 1.3 adds a week), counting the rest of this week.
+- **The weeks ahead** (`AHEAD_WEEKS` 2, `week_ahead`): both teams' projections
+  of each, my current roster against that week's real opponent (`config/league.py`),
+  the margin read at `MARGIN_REALIZES_AHEAD` (0.75 / 0.70). A move's gain on
+  those days, at the size fringe gaps realize (`GAP_REALIZES` 0.95 / 0.89),
+  counts by the change it makes to that week's P(win) (`ahead_value`): a
+  point in a close week ahead is worth far more than in a lopsided one.
+- **Later points** = the long run after the weeks ahead (`horizon`): the
+  whole-lineup projection over the next 6 weeks (`LONG_RUN_WEEKS`, with
+  durability), per week, times the weeks left after the ones ahead, x
+  `LONG_RUN_DISCOUNT` 0.5. Dropping one of my streaming spots (the 3 skaters
+  closest to waiver level at their position, plus my weakest goalie) is
+  credited only its scheduled gain while the streamer would be held: spots /
+  the affordable adds a week (`hold_weeks`, ~3 weeks at 1.3 adds a week),
+  counting the rest of this week; the weeks ahead count only those days too.
 - **Value** (in win-pts, percentage points of a weekly win) = this week's change
-  in P(win) + later points x `later_weight` (what a point does in a typical
-  week: 1 / sqrt(2 pi (sigma^2 + tau^2)), tau = the league's matchup spread
-  from all known rosters).
+  in P(win) + each week ahead's + later points x `later_weight` (what a point
+  does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), tau = the league's
+  matchup spread from all known rosters, x 0.80 as margins realize). The add
+  price's simulation counts the weeks ahead's points as later points.
 - **Accept** if value >= the add price (`addprice.solve`): set so spending at
   that bar, at most 2 a week, uses adds at the budget's pace, simulated over
   this and earlier weeks' candidates (`state["add_pools"]`). Close weeks with
@@ -85,6 +94,7 @@
 | 2026-10-09 | **One engine, one Board** (Nico, `docs/plan-2026-10-09.md`): a move is scored in expected wins, the change in P(win) this week and the next two against the real opponents and schedules, plus shrunk later points; title and playoff odds are context, not the per-move score; 6 adds kept for the playoffs | Week 2: 13 cards in 5 days, the add picked by the season-extrapolated long run (Kelly +37, Kantserov +24 for one drop, 0-1.5 pts this week), "chase" while every chase move failed the price. Title odds per move are noise, and leverage weighting lowered title odds (2026-10-03) |
 | 2026-10-09 | A committed plan changes only when it can't be done or a new one is 0.02 wins better, and says why; a card is sent once; a screenshot updates the score (Nico) | Repeats and near-tie flips made the advice unreadable. 0.02 is a judgment call until the error band is measured |
 | 2026-10-09 | Telegram is for the action, the dashboard (HTML) for evaluating; the Telegram image is a screenshot of the dashboard (Nico) | matplotlib charts weren't readable enough; one design everywhere |
+| 2026-10-09 | The next 2 weeks are played against their real opponents; P(win) reads margins at their realized size (0.80 this week, 0.75 / 0.70 for the weeks ahead); the long run stays the 6-week rate x 0.5, now for the weeks after those two | `check_gaps`: fringe gaps realize at 1.02 / 0.95 / 0.89 / 0.84 (weeks 3-6) / ~0.75 (to week 20), both seasons, so the long run isn't inflated and isn't shrunk further. `check_sigma --ahead`, 2024-25 / 2025-26: team margins 0.77 / 0.84 this week, 0.76 / 0.74 a week before, 0.67 / 0.73 two before; spread right (x0.92-1.03). A long run on weeks 3-6 alone was tried and reverted the same day: four weeks of schedule swung moves 15+ pts (Spurgeon +17.6 -> +0.1) |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
 ## Judgment calls (untested)

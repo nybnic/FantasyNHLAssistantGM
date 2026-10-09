@@ -6,6 +6,8 @@ state/board.json (git history keeps each one), and read by
 scripts/explain_week.py, so the explanation and the plan can't disagree.
 
 Values are in wins (a probability: 0.05 = 5 win-pts); points are fantasy points.
+A move's value = this week's change in P(win) + the change in each week
+ahead's P(win) against its opponent (header "ahead") + later points' worth.
 """
 from __future__ import annotations
 
@@ -31,6 +33,12 @@ def _team(t: matchup.TeamWeek) -> dict:
             "goalie_min": _r(t.goalie_min_prob, 3)}
 
 
+def _ahead(w: matchup.WeekAhead) -> dict:
+    """A week ahead as my current roster plays it against that week's opponent."""
+    return {"week": w.week, "opponent": w.opponent, "margin": _r(w.margin), "sd": _r(w.sd),
+            "win": _r(matchup._phi(w.margin / w.sd), 4) if w.margin is not None else None}
+
+
 def status(move: matchup.Move, now: set[str], waits: str | None, price) -> str:
     """now: one of the plan's adds; waits: the keeper kept for later; passes:
     worth an add but the week's go elsewhere (or none are left); fails: under the price."""
@@ -42,7 +50,16 @@ def status(move: matchup.Move, now: set[str], waits: str | None, price) -> str:
     return "passes" if price is not None and not matchup.rejection(move, price) else "fails"
 
 
-def move_row(move: matchup.Move, state: str, why: str) -> dict:
+def when(move: matchup.Move, date: dt.date, monday: dt.date) -> dt.date:
+    """The day to make the move: when it starts paying. A claim plays from its
+    day; a keeper that does nothing this week can wait for Monday's adds
+    (matchup.waits); anything else, today."""
+    if matchup.waits(move):
+        return max(monday, move.plays_from or monday)
+    return move.plays_from or date
+
+
+def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = None) -> dict:
     return {
         "key": report.move_key(move),
         "add": {"id": move.add.id, "name": move.add.name, "team": move.add.team, "positions": move.add.positions},
@@ -50,12 +67,15 @@ def move_row(move: matchup.Move, state: str, why: str) -> dict:
         "ir_slot": move.ir_slot,
         "later_drop": move.later_drop.name if move.later_drop else None,
         "plays_from": move.plays_from.isoformat() if move.plays_from else None,
+        "when": day.isoformat() if day else None,
         "games": move.games,
         "week_pts": _r(move.week_gain),
         "next_two_pts": _r(move.next_weeks),
         "later_pts": _r(move.long_term),
         "win": [_r(move.win_before, 4), _r(move.win_after, 4)],
         "now_wins": _r(move.win_after - move.win_before, 4),
+        "ahead_wins": [_r(w, 4) for w in move.ahead_wins],
+        "ahead_pts": _r(move.ahead_pts),
         "later_wins": _r(move.later_value, 4),
         "value": _r(move.value, 4),
         "status": state,
@@ -71,17 +91,19 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, keeper: 
     price = wk.price if wk.max_moves else None
     now_keys = [report.move_key(m) for m in p.moves]
     waits = report.move_key(keeper) if keeper else None
+    monday = wk.days[-1] + dt.timedelta(days=1)
     rows = []
     for m in p.ranked:
         state = status(m, set(now_keys), waits, price)
         why = "" if state == "now" else matchup.why_not(m, price, p.moves, p.held)
-        rows.append(move_row(m, state, why))
+        rows.append(move_row(m, state, why, when(m, date, monday)))
     known = {r["key"] for r in rows}
     # A plan's later adds are judged after its first is made, so they may not be
     # among the moves weighed on today's roster.
-    rows += [move_row(m, "now", "") for m in p.moves if report.move_key(m) not in known]
+    rows += [move_row(m, "now", "", when(m, date, monday)) for m in p.moves if report.move_key(m) not in known]
     if keeper and waits not in known:
-        rows.append(move_row(keeper, "waits", matchup.why_not(keeper, price, p.moves, p.held)))
+        rows.append(move_row(keeper, "waits", matchup.why_not(keeper, price, p.moves, p.held),
+                             when(keeper, date, monday)))
     return {
         "at": now.astimezone(dt.timezone.utc).isoformat(timespec="minutes"),
         "date": date.isoformat(),
@@ -99,6 +121,7 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, keeper: 
                       "pace": _r(price.pace, 3)} if price else None,
             "later_weight": _r(wk.later_weight, 5),
             "tau": _r(wk.tau),
+            "ahead": [_ahead(w) for w in getattr(wk, "ahead", [])],
             "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k != "by_week"}, "note": odds_note}
                        if odds else None),
         },
@@ -130,12 +153,14 @@ def table(board: dict, top: int = 25, position: str | None = None) -> list[str]:
     rows = [r for r in board["moves"] if not position or position.upper() in r["add"]["positions"]]
     rows = sorted(rows, key=lambda r: -r["value"])[:top]
     out = [f"  {'add':22} {'pos':5} {'drop':18} {'gms':>3} {'week':>6} {'next2':>6} {'later':>6} "
-           f"{'now':>5} {'+later':>6} {'value':>6}  {'win':9} status  why"]
+           f"{'now':>5} {'+1/+2':>6} {'+later':>6} {'value':>6}  {'win':9} {'when':6} status  why"]
     for r in rows:
         drop = r["drop"]["name"] if r["drop"] else f"({r['ir_slot']} stash)" if r["ir_slot"] else "(open spot)"
         win = f"{r['win'][0]:.0%}->{r['win'][1]:.0%}"
+        day = dt.date.fromisoformat(r["when"]).strftime("%a %d") if r.get("when") else ""
         out.append(f"  {r['add']['name'][:22]:22} {'/'.join(r['add']['positions'])[:5]:5} {drop[:18]:18} "
                    f"{r['games']:3} {r['week_pts']:+6.1f} {r['next_two_pts']:+6.1f} {r['later_pts']:+6.1f} "
-                   f"{100 * r['now_wins']:+5.1f} {100 * r['later_wins']:+6.1f} {100 * r['value']:+6.1f}  "
-                   f"{win:9} {r['status']:6}  {r['why']}")
+                   f"{100 * r['now_wins']:+5.1f} {100 * sum(r.get('ahead_wins', [])):+6.1f} "
+                   f"{100 * r['later_wins']:+6.1f} {100 * r['value']:+6.1f}  "
+                   f"{win:9} {day:6} {r['status']:6}  {r['why']}")
     return out

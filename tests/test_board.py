@@ -90,3 +90,14 @@ def test_a_state_file_from_before_the_split_wins_over_an_older_ledger(tmp_path):
                     encoding="utf-8")
     state = gm_state.load(path)
     assert [a["name"] for a in state["adds"]] == ["Pinto"] and state["seen_mine"] == {"1": "2026-10-01"}
+
+
+def test_a_keeper_that_does_nothing_this_week_is_made_monday_else_today():
+    monday, friday = dt.date(2026, 10, 12), dt.date(2026, 10, 9)
+    kelly = _move(3, "Parker Kelly", 0.0, 37.3, 0.16)
+    kelly.next_weeks = 11.1  # nothing this week, plenty in the next two
+    assert board.when(kelly, friday, monday) == monday
+    assert board.when(_move(2, "Eeli Tolvanen", 4.9, 9.2, 0.21), friday, monday) == friday
+    claim = _move(2, "Claimed", 4.9, 9.2, 0.21)
+    claim.plays_from = dt.date(2026, 10, 10)
+    assert board.when(claim, friday, monday) == dt.date(2026, 10, 10)

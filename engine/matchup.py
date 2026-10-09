@@ -49,8 +49,28 @@ TYPICAL_START_XFP = 8.8  # 2025-26 average points per goalie start
 MODEL_SD_SHARE = 0.08  # projection error, as a share of a team's rest-of-week points (a guess)
 
 ACTIVE_SPOTS = sum(STARTERS.values()) + BENCH_SLOTS
+# Projected margins between teams realize at 0.77 (2024-25) / 0.84 (2025-26)
+# of their size (scripts/check_sigma.py, aged priors), the spread of results
+# around them right (x0.94 / x0.97): P(win) reads the part still to play at
+# the average, 0.80. Points already banked count in full.
+MARGIN_REALIZES = 0.80
+# Projected 1 or 2 weeks before (check_sigma --ahead): 0.76 / 0.74 a week
+# before, 0.67 / 0.73 two weeks before, spread x0.97-1.03. The weeks ahead's
+# margins are read at the averages.
+MARGIN_REALIZES_AHEAD = {1: 0.75, 2: 0.70}
+# A projected gap between two fringe skaters (ranks 120-450, the adds and
+# drops) realizes at 1.02 this week, 0.95 next week and 0.89 the week after
+# (scripts/check_gaps.py, 2024-25 / 2025-26 averaged, +/- 0.02); a move's gain
+# in the weeks ahead is counted at that size. Weeks 3-6: 0.84, 7-20: ~0.75,
+# which the long run's discount already covers (below).
+GAP_REALIZES = {0: 1.0, 1: 0.95, 2: 0.89}
+# The weeks after this one played out against their real opponents (Nico,
+# 2026-10-09): a move's points there count by what they do to that week's P(win).
+AHEAD_WEEKS = 2
 # Injuries, role changes and later adds make a long-run edge worth less
-# than it projects to (a judgment call, not fitted).
+# than it projects to. Calibration alone takes ~0.75-0.84 of it out to 20
+# weeks (check_gaps); the rest of the 0.5 is for swaps that end the hold early
+# (a judgment call).
 LONG_RUN_DISCOUNT = 0.5
 # The long run is judged on the weeks after this one: averaged over 6 (one
 # week's schedule swings a swap by 5-10 pts; 2 weeks times the season turned
@@ -143,6 +163,10 @@ class Move:
     plays_from: dt.date | None = None  # on waivers: the first day a claim of him plays
     ir_slot: str | None = None  # an injured add stashed straight into this empty IR slot (no drop now)
     later_drop: RosterPlayer | None = None  # a stash's drop once he's back: the cheapest to lose
+    # The weeks after this one (AHEAD_WEEKS), against their real opponents:
+    # the change in each one's P(win), and the gain counted (realized size, points).
+    ahead_wins: tuple[float, ...] = ()
+    ahead_pts: float = 0.0
 
     @property
     def later_value(self) -> float:
@@ -150,8 +174,33 @@ class Move:
 
     @property
     def value(self) -> float:
-        """The win probability the move buys: this week's, plus later points'."""
-        return self.win_after - self.win_before + self.later_value
+        """The win probability the move buys: this week's, the next weeks'
+        against their opponents, plus later points'."""
+        return self.win_after - self.win_before + sum(self.ahead_wins) + self.later_value
+
+
+@dataclass
+class WeekAhead:
+    """A week after this one as my current roster would play it: its days, my
+    margin over that week's opponent as it realizes (MARGIN_REALIZES_AHEAD), and the
+    margin's spread. `margin` is None when the opponent isn't known (playoffs):
+    then a point counts at a typical week's worth (later_weight)."""
+    week: int
+    days: frozenset
+    margin: float | None
+    sd: float
+    opponent: str | None = None
+
+
+def week_ahead(week: int, schedule: dict[dt.date, list[ScheduledGame]], me: TeamWeek, them: TeamWeek | None,
+               opponent: str | None = None, weeks_out: int = 1) -> WeekAhead:
+    """From both teams' projections of that week (long run: durability in),
+    made `weeks_out` weeks before it."""
+    if them is None:
+        return WeekAhead(week, frozenset(schedule), None, math.sqrt(me.variance), opponent)
+    shrink = MARGIN_REALIZES_AHEAD.get(weeks_out, min(MARGIN_REALIZES_AHEAD.values()))
+    return WeekAhead(week, frozenset(schedule), shrink * (me.expected - them.expected),
+                     math.sqrt(me.variance + them.variance) or 1.0, opponent)
 
 
 def _position(p: RosterPlayer) -> str:
@@ -374,9 +423,40 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
     )
 
 
-def win_prob(me: TeamWeek, them: TeamWeek) -> float:
-    sd = math.sqrt(me.variance + them.variance) or 1.0
-    return 0.5 * (1 + math.erf((me.expected - them.expected) / (sd * math.sqrt(2))))
+def _phi(x: float) -> float:
+    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+
+
+def margin(me: TeamWeek, them: TeamWeek) -> float:
+    """My expected margin as it realizes: banked points in full, the rest at MARGIN_REALIZES."""
+    banked = me.so_far - them.so_far
+    return banked + MARGIN_REALIZES * (me.expected - them.expected - banked)
+
+
+def win_prob(me: TeamWeek, them: TeamWeek, gain: float = 0.0, variance: float | None = None) -> float:
+    """P(win). `gain`: a move's points this week on top (a fringe gap realizes
+    in full this week, GAP_REALIZES), with the trial roster's `variance`."""
+    sd = math.sqrt((me.variance if variance is None else variance) + them.variance) or 1.0
+    return _phi((margin(me, them) + GAP_REALIZES[0] * gain) / sd)
+
+
+def win_after(current: TeamWeek, trial: TeamWeek, them: TeamWeek) -> float:
+    """P(win) with a move made: the trial roster's gain over the current one."""
+    return win_prob(current, them, trial.expected - current.expected, trial.variance)
+
+
+def ahead_value(gain_by_day: dict[dt.date, float], ahead: list[WeekAhead], later_weight: float,
+                counted: set | None = None) -> tuple[tuple[float, ...], float]:
+    """A move's worth in the weeks ahead: per week, the change in P(win) its
+    gain (realized size) makes against that week's opponent, and the points
+    counted. `counted`: only these days count (a streamer's hold)."""
+    wins, pts = [], 0.0
+    for k, w in enumerate(ahead, start=1):
+        g = GAP_REALIZES[k] * sum(v for d, v in gain_by_day.items() if d in w.days and (counted is None or d in counted))
+        pts += g
+        wins.append(later_weight * g if w.margin is None
+                    else _phi((w.margin + g) / w.sd) - _phi(w.margin / w.sd))
+    return tuple(wins), pts
 
 
 def decided(p_win: float) -> str | None:
@@ -543,14 +623,17 @@ def candidate_moves(
     so_far: tuple[float, float, int] | None = None,
     hold_days: int = 7 * STREAM_WEEKS,
     later_weight: float = 0.0,
+    ahead: list[WeekAhead] | None = None,
 ) -> list[Move]:
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
     `future` is the schedule of the days after this week used to judge the
     long run (LONG_RUN_WEEKS); `weeks_after` is how many weeks are left.
     `available_from`: player id -> the first day he can play for me (waivers).
-    `hold_days`: days after this week a streamer is kept (hold_weeks)."""
-    future_weeks = len(future) / 7 or 1.0
+    `hold_days`: days after this week a streamer is kept (hold_weeks).
+    `ahead`: the next weeks against their opponents (week_ahead); the long
+    run then covers the weeks after them."""
+    ahead = ahead or []
     soon = set(sorted(future)[:7 * STREAM_WEEKS])
     held = set(sorted(future)[:hold_days])
     team_games = _team_games(schedule, ctx.today)
@@ -574,35 +657,53 @@ def candidate_moves(
             week = project("me", during, ctx, schedule, lines, starters, joins=joins, so_far=so_far, leaves=leaves)
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
-            later = soon_gain = held_gain = 0.0
+            gain = {}
             if current_future:
                 trial_future = project("me", trial, ctx, future, lines, starters, True)
-                later = trial_future.expected - current_future.expected
                 gain = {d: trial_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
-                soon_gain = sum(gain[d] for d in soon)
-                held_gain = sum(gain[d] for d in held)
             # A streaming spot is swapped again after the hold: its scheduled gain, no season.
-            long_term = held_gain if drop and drop.id in spots else LONG_RUN_DISCOUNT * later / future_weeks * weeks_after
+            streamer = bool(drop and drop.id in spots)
+            ahead_wins, ahead_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight,
+                                                       held if streamer else None)
             moves.append(Move(
                 add=add, drop=drop,
                 week_gain=week.expected - current.expected,
                 long_term=long_term,
-                next_weeks=soon_gain,
+                next_weeks=sum(v for d, v in gain.items() if d in soon),
                 games=team_games.get(add.team, 0),
-                win_before=before, win_after=win_prob(week, opponent),
+                win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
                 plays_from=plays_from,
+                ahead_wins=ahead_wins, ahead_pts=ahead_pts,
             ))
     stashes = [p for p in candidates if _ir_status(p, lines)]
     if stashes and current_future and ir.free_slots(roster):
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
-                              available_from, so_far, current, current_future, later_weight, team_games)
+                              available_from, so_far, current, current_future, later_weight, team_games, ahead)
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
 
 
+def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], weeks_after: int,
+            later_weight: float, held: set | None = None) -> tuple[tuple[float, ...], float, float]:
+    """A move's gain by day after this week, valued: (P(win) change in each week
+    ahead, the points counted there, long-run points after them). The long
+    run: the gain per week over all of `future` (LONG_RUN_WEEKS: fewer weeks
+    let one team's schedule swing it, 2026-10-01; the weeks ahead are in the
+    average but not counted again), times the weeks left after the ones
+    ahead, discounted (LONG_RUN_DISCOUNT). `held`: a streaming spot's days
+    (hold_weeks): only those count, ahead or later, and no season."""
+    ahead_wins, ahead_pts = ahead_value(gain, ahead, later_weight, held)
+    if held is not None:
+        near = set().union(*(w.days for w in ahead)) if ahead else set()
+        return ahead_wins, ahead_pts, sum(gain.get(d, 0.0) for d in future if d in held and d not in near)
+    per_week = sum(gain.get(d, 0.0) for d in future) / (len(future) / 7) if future else 0.0
+    return ahead_wins, ahead_pts, LONG_RUN_DISCOUNT * per_week * max(weeks_after - len(ahead), 0)
+
+
 def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after, available_from,
-                 so_far, current: TeamWeek, current_future: TeamWeek, later_weight, team_games) -> list[Move]:
+                 so_far, current: TeamWeek, current_future: TeamWeek, later_weight, team_games,
+                 ahead: list[WeekAhead] | None = None) -> list[Move]:
     """Injured free agents added straight into an empty IR or IR+ slot: no drop
     now; once he's back, the player cheapest to lose goes. Valued as an extra
     player whose games follow the return curves, less that drop's points on
@@ -613,7 +714,6 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
     mine = active(roster)
     goalies = sum(p.is_goalie for p in mine)
     before = win_prob(current, opponent)
-    future_weeks = len(future) / 7 or 1.0
     soon = sorted(future)[:7 * STREAM_WEEKS]
     without = {}
     for d in drop_candidates(mine, ctx, lines):
@@ -645,14 +745,15 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
                        so_far=so_far)
         later = project("me", trial, ctx, future, lines, starters, True)
         week = dataclasses.replace(week, expected=week.expected - cost(current, week_without, current.by_day))
-        later_gain = later.expected - current_future.expected - cost(current_future, future_without, future)
-        soon_gain = (sum(later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in soon)
-                     - cost(current_future, future_without, soon))
+        gain = {d: later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0)
+                - back(d) * (current_future.by_day.get(d, 0.0) - future_without.by_day.get(d, 0.0)) for d in future}
+        ahead_wins, ahead_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight)
         moves.append(Move(
             add=add, drop=None, week_gain=week.expected - current.expected,
-            long_term=LONG_RUN_DISCOUNT * later_gain / future_weeks * weeks_after, next_weeks=soon_gain,
-            games=team_games.get(add.team, 0), win_before=before, win_after=win_prob(week, opponent),
+            long_term=long_term, next_weeks=sum(gain[d] for d in soon),
+            games=team_games.get(add.team, 0), win_before=before, win_after=win_after(current, week, opponent),
             later_weight=later_weight, plays_from=plays_from, ir_slot=slot, later_drop=drop,
+            ahead_wins=ahead_wins, ahead_pts=ahead_pts,
         ))
     return moves
 
@@ -700,6 +801,7 @@ def best_moves(
     ranked: list[Move] | None = None,
     hold_days: int = 7 * STREAM_WEEKS,
     hold_keepers: bool = False,
+    ahead: list[WeekAhead] | None = None,
 ) -> list[Move]:
     """Up to `max_moves` add/drops worth making, best first; each one is
     judged with the previous ones already made. `candidates` and `ranked`
@@ -713,7 +815,7 @@ def best_moves(
     for i in range(max_moves):
         if not (i == 0 and ranked is not None):
             ranked = candidate_moves(roster, opponent, candidates, ctx, schedule, lines, starters, future,
-                                     weeks_after, available_from, so_far, hold_days, price.later_weight)
+                                     weeks_after, available_from, so_far, hold_days, price.later_weight, ahead)
         passing = [m for m in ranked if not rejection(m, price)]
         if not passing:
             break

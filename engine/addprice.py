@@ -106,13 +106,19 @@ def solve(pools: list[dict], target_pace: float, weight: float, seed: int = 1) -
 
 def pool_entry(moves: list, remaining_days: int, sigma_now: float, tau: float) -> dict:
     """This week's candidate adds as a typical week's pool: this week's gain
-    scaled to a full week, later points as they are, sigma scaled likewise."""
+    scaled to a full week, later points as they are (the weeks ahead's points
+    included: against a typical week's opponent a point there is worth
+    `weight`, as later ones are), sigma scaled likewise."""
     scale = 7 / max(remaining_days, 1)
+
+    def later(m) -> float:
+        return m.long_term + getattr(m, "ahead_pts", 0.0)
+
     best: dict[int, object] = {}
     for m in moves:
-        if m.add.id not in best or m.week_gain + m.long_term > best[m.add.id].week_gain + best[m.add.id].long_term:
+        if m.add.id not in best or m.week_gain + later(m) > best[m.add.id].week_gain + later(best[m.add.id]):
             best[m.add.id] = m
-    top = sorted(best.values(), key=lambda m: m.week_gain * scale + m.long_term, reverse=True)[:POOL_SIZE]
-    return {"moves": [[round(m.week_gain * scale, 2), round(m.long_term, 2), m.add.id, m.drop.id if m.drop else None]
+    top = sorted(best.values(), key=lambda m: m.week_gain * scale + later(m), reverse=True)[:POOL_SIZE]
+    return {"moves": [[round(m.week_gain * scale, 2), round(later(m), 2), m.add.id, m.drop.id if m.drop else None]
                       for m in top],
             "sigma": round(sigma_now * math.sqrt(scale), 2), "tau": round(tau, 2)}

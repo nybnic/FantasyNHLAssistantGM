@@ -1,3 +1,4 @@
+import math
 import datetime as dt
 from dataclasses import dataclass
 
@@ -558,3 +559,60 @@ def test_before_wednesday_a_keeper_that_does_nothing_this_week_holds_the_add_for
     assert matchup.holds_keepers(monday, 2, 0.77)
     assert not matchup.holds_keepers(wednesday, 2, 0.77)
     assert not matchup.holds_keepers(monday, 2, 0.95)
+
+
+def _tw(so_far, expected, variance=400.0):
+    return matchup.TeamWeek("t", so_far, expected, variance, 10, 0, 3, 1.0)
+
+
+def test_p_win_counts_banked_points_in_full_and_the_rest_at_its_realized_size():
+    # 26 points down, all banked: the shrink leaves it alone.
+    banked = matchup.margin(_tw(137, 223.0), _tw(163, 249.0))
+    assert banked == pytest.approx(-26.0)
+    # 20 projected points up on Monday: they realize at MARGIN_REALIZES.
+    assert matchup.margin(_tw(0, 220.0), _tw(0, 200.0)) == pytest.approx(20 * matchup.MARGIN_REALIZES)
+    me, them = _tw(0, 220.0), _tw(0, 200.0)
+    m = 20 * matchup.MARGIN_REALIZES
+    assert matchup.win_prob(me, them) == pytest.approx(matchup._phi(m / math.sqrt(800)))
+    # A move's gain this week counts in full (fringe gaps realize at 1.02).
+    trial = _tw(0, 225.0, 410.0)
+    assert matchup.win_after(me, trial, them) == pytest.approx(matchup._phi((m + 5) / math.sqrt(810)))
+
+
+def test_a_gain_in_a_week_ahead_counts_by_how_close_that_matchup_is():
+    days1 = {dt.date(2026, 10, 12) + dt.timedelta(days=i) for i in range(7)}
+    days2 = {d + dt.timedelta(days=7) for d in days1}
+    close = matchup.WeekAhead(3, frozenset(days1), 0.0, 45.0, "Close")
+    lopsided = matchup.WeekAhead(4, frozenset(days2), 90.0, 45.0, "Lopsided")
+    gain = {d: 1.0 for d in days1 | days2}  # 7 points a week
+    wins, pts = matchup.ahead_value(gain, [close, lopsided], later_weight=0.009)
+    assert pts == pytest.approx(7 * 0.95 + 7 * 0.89)
+    assert wins[0] == pytest.approx(matchup._phi(7 * 0.95 / 45) - 0.5)
+    assert wins[0] > 5 * wins[1] > 0  # a 2-sigma favorite barely gains
+    # Opponent unknown (a playoff week not yet named): a typical week's worth.
+    unknown = matchup.WeekAhead(25, frozenset(days1), None, 45.0)
+    assert matchup.ahead_value(gain, [unknown], 0.009)[0] == (pytest.approx(0.009 * 7 * 0.95),)
+
+
+def test_the_long_run_takes_the_six_week_rate_for_the_weeks_after_the_ones_played_out():
+    start = dt.date(2026, 10, 12)
+    future = {start + dt.timedelta(days=i): [] for i in range(42)}
+    gain = {d: (2.0 if i < 14 else 0.5) for i, d in enumerate(sorted(future))}  # a good schedule first
+    ahead = [matchup.WeekAhead(3 + k, frozenset(list(future)[7 * k:7 * k + 7]), 0.0, 45.0) for k in range(2)]
+    wins, pts, long_term = matchup.horizon(gain, future, ahead, weeks_after=20, later_weight=0.009)
+    per_week = sum(gain.values()) / 6
+    assert long_term == pytest.approx(matchup.LONG_RUN_DISCOUNT * per_week * 18)
+    assert pts == pytest.approx(14 * 0.95 + 14 * 0.89)
+    # A streaming spot: only the held days count, ahead or later, never the season.
+    held = set(sorted(future)[:10])
+    wins_h, pts_h, long_h = matchup.horizon(gain, future, ahead, 20, 0.009, held)
+    assert pts_h == pytest.approx(14 * 0.95 + 6 * 0.89) and long_h == 0.0
+    assert matchup.horizon(gain, future, [], 20, 0.009, held)[2] == pytest.approx(20.0)
+
+
+def test_the_weeks_ahead_take_the_margin_at_its_realized_size():
+    w = matchup.week_ahead(3, {dt.date(2026, 10, 12): []}, _tw(0, 200.0, 900.0), _tw(0, 220.0, 1100.0), "L")
+    assert w.margin == pytest.approx(-20 * matchup.MARGIN_REALIZES_AHEAD[1]) and w.sd == pytest.approx(math.sqrt(2000))
+    w2 = matchup.week_ahead(4, {}, _tw(0, 200.0), _tw(0, 220.0), "L", weeks_out=2)
+    assert w2.margin == pytest.approx(-20 * matchup.MARGIN_REALIZES_AHEAD[2])
+    assert matchup.week_ahead(25, {}, _tw(0, 200.0), None).margin is None

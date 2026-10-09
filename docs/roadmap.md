@@ -16,9 +16,11 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
 ## Next (Nico, 2026-10-09: D1-D5 as proposed)
 1. **Board + ledger, no behavior change**: done (see the log). The messages still format the moves
    themselves; step 3 rewrites them on the Board.
-2. **Honest values.** Weeks w+1, w+2 against their real opponents; error band and later-points
-   shrink backtested (fit 2024-25, check 2025-26); the "when" column; the 0.84 margin finding in
-   P(win) (absorbs projection accuracy, old item 2). Done when: numbers logged, `check_sigma` re-run.
+2. **Honest values**: done (see the log). Left for step 3: the plan's moves can contradict each other
+   (2026-10-09: "now" Kantserov for Samuelsson and "Monday" Kelly for Samuelsson, Kelly worth 40
+   win-pts to Kantserov's 21, while this week's expiring add goes to the lesser move). The error band
+   isn't a step-2 number after all: near-term gaps are calibrated (`check_gaps` 1.02), so what flips
+   the advice is day-to-day change, which the commitment margin (step 3) handles.
 3. **The rule and the messages.** Commitment (0.02 wins), change reasons, cards once, a screenshot
    updates the score, the 4-6 line plan; the goalie line, season line, stance, biggest swing,
    can-wait, streamer table and news check fold into the Board (absorbs the message layer, old item 3).
@@ -173,3 +175,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-06 | `explain_week --ir NAME` (Check input `ir`): scores the week as if a player of mine sat on IR+, in memory only, so the open-spot adds can be ranked right after Nico moves someone in Yahoo, before the bot hears of it (Celebrini to IR+) | (this commit) |
 | 2026-10-06 | Two runs (Oct 5, 19:31 and 20:30 UTC) were cancelled at the 15-min job limit without ever getting a GitHub runner (no steps, no logs); others that evening waited 5-10 min. The job limit is now 30 min, and `main.py`'s step has its own 12-min limit for a run that hangs (`tests/test_workflow.py`) | (this commit) |
 | 2026-10-09 | Step 1: the Board (`bot/board.py`, `state/board.json`): each plan's matchup, add budget and price, every add/drop weighed with its status (now / waits / passes / fails) and why, and the plan's moves, saved by the weekly plan and the news check. `explain_week` now prints that Board from the plan's own computation (it had scored moves before the IR moves the plan assumes, so the two could disagree). The ledger (`state/ledger.json`: adds, taps, league moves, rosters by day, scores, results, forecasts, add candidates) split from the run's bookkeeping; one dict in memory, a pre-split state file wins on load | (this commit) |
+| 2026-10-09 | Step 2: weeks +1 and +2 played against their real opponents (`matchup.week_ahead`, `ahead_value`): a move's points there count by the change in that week's P(win). P(win) reads margins at their realized size: 0.80 this week (banked points in full), 0.75 / 0.70 for the weeks ahead (`check_sigma --ahead`, now `--season` too: 0.77/0.76/0.67 in 2024-25, 0.84/0.74/0.73 in 2025-26). Fringe gaps (`scripts/check_gaps.py`): 1.02 / 0.95 / 0.89 / 0.84 / ~0.75 out to week 20 in both seasons, so the long run keeps its 6-week rate x 0.5, for the weeks after the two ahead. The Board shows each move's +1/+2 win-pts and when to make it. On Oct 9: weeks 3-4 at 36% / 41%, add price 9.7 -> 10.0, same plan | (this commit) |

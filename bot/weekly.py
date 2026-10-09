@@ -7,7 +7,7 @@ import datetime as dt
 import json
 import math
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 
@@ -75,6 +75,7 @@ class WeekInputs:
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
     strengths: dict | None = None  # team -> (mean, sd) of a typical week's points (team_strengths)
+    ahead: list = field(default_factory=list)  # matchup.WeekAhead: the next weeks vs their opponents (plan_moves)
 
 
 def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
@@ -159,12 +160,14 @@ def team_strengths(players: list, league: dict, ctx, future: dict, lines: dict, 
 
 def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
     """The spread of matchup margins: how far apart two of the league's teams
-    usually project in a week (the margin's spread is sqrt(2) times the teams')."""
+    usually project in a week (the margin's spread is sqrt(2) times the teams'),
+    at the size projected margins realize (matchup.MARGIN_REALIZES: a typical
+    week's margin is known as well as this week's is on its Monday)."""
     totals = [mean for mean, _ in strengths.values()]
     if len(totals) < 4:
         return addprice.DEFAULT_TAU
     mean = sum(totals) / len(totals)
-    return math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
+    return matchup.MARGIN_REALIZES * math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
 
 
 def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOdds | None, str]:
@@ -322,6 +325,23 @@ def next_week(week: int, players: list, wk: WeekInputs) -> NextWeek:
         return NextWeek(None, {}, None)
     sched = _week_schedule(week + 1)
     return NextWeek(week + 1, sched, matchup.project(MY_TEAM, players, wk.ctx, sched, wk.lines, wk.starters, True))
+
+
+def weeks_ahead(state: dict, league: dict, week: int, roster: list, wk: WeekInputs) -> list[matchup.WeekAhead]:
+    """The next matchup.AHEAD_WEEKS weeks as my roster would play them against
+    each week's opponent (the schedule in config/league.py; playoff weeks'
+    only once named with /opp)."""
+    out = []
+    for w in range(week + 1, min(week + matchup.AHEAD_WEEKS, weeks.LAST_WEEK) + 1):
+        sched = {d: games for d, games in wk.future.items() if weeks.week_of(d) == w}
+        if not sched:
+            break
+        opponent = current_opponent(state, w)
+        mine = matchup.project(MY_TEAM, roster, wk.ctx, sched, wk.lines, wk.starters, True)
+        theirs = (matchup.project(opponent, teams.players(league, opponent), wk.ctx, sched, wk.lines, wk.starters,
+                                  True) if opponent and teams.players(league, opponent) else None)
+        out.append(matchup.week_ahead(w, sched, mine, theirs, opponent, w - week))
+    return out
 
 
 def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
@@ -596,16 +616,17 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
     candidates += [p for p in extra or [] if p not in candidates]
+    wk.ahead = weeks_ahead(state, league, week, planned, wk)
     ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
-                                     wk.later_weight)
+                                     wk.later_weight, wk.ahead)
     wk.price = add_price(state, week, wk, ranked, date)
     moves = []
     held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
     if wk.max_moves and wk.price is not None:
         moves = matchup.best_moves(planned, wk.them, wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                    wk.weeks_after, wk.max_moves, wk.price, wk.available_from, wk.so_far,
-                                   candidates, ranked, wk.hold_days, held)
+                                   candidates, ranked, wk.hold_days, held, wk.ahead)
     return PlanMoves(wk, nxt, ranked, moves, ir_moves, planned,
                      max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
 
