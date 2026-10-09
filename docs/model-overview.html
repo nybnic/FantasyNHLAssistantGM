@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assistant GM: how the model decides</title>
+<style>
+  /* Printed to docs/model-overview.pdf by scripts/render_slides.py (headless Chromium).
+     Palette: the dashboard's (dataviz reference: blue, orange, aqua). */
+  @page { size: 13.333in 7.5in; margin: 0; }
+  :root { --ink: #0b0b0b; --ink-2: #52514e; --muted: #8a8984; --grid: #e6e5e1; --surface: #fcfcfb;
+          --blue: #2a78d6; --blue-soft: #e8f1fb; --orange: #eb6834; --aqua: #1baf7a; --card: #ffffff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink);
+         font: 17px/1.4 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; }
+  .slide { width: 13.333in; height: 7.5in; padding: 0.55in 0.7in 0.45in; position: relative; overflow: hidden;
+           page-break-after: always; break-after: page; background: var(--surface); }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+  .kicker { color: var(--blue); font-weight: 650; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+  h1 { font-size: 40px; line-height: 1.12; margin: 6px 0 10px; font-weight: 700; }
+  h2 { font-size: 30px; line-height: 1.15; margin: 6px 0 18px; font-weight: 700; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+  .lead { font-size: 20px; color: var(--ink-2); max-width: 10.5in; margin: 0 0 22px; }
+  .foot { position: absolute; left: 0.7in; right: 0.7in; bottom: 0.28in; font-size: 12px; color: var(--muted);
+          display: flex; justify-content: space-between; }
+  .cols { display: grid; gap: 22px; }
+  .card { background: var(--card); border: 1px solid var(--grid); border-radius: 14px; padding: 16px 18px; }
+  .card p, .card li { font-size: 15.5px; color: var(--ink-2); margin: 0; }
+  .card ul { margin: 4px 0 0; padding-left: 18px; }
+  .card li { margin: 3px 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  .big { font-size: 44px; font-weight: 700; line-height: 1; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 650; padding: 2px 8px; border-radius: 6px;
+         background: var(--blue); color: #fff; margin-right: 6px; }
+  svg text { font-family: "Segoe UI", system-ui, sans-serif; }
+  .eq { font-size: 19px; background: var(--card); border: 1px solid var(--grid); border-radius: 14px;
+        padding: 14px 20px; margin-bottom: 18px; }
+  .eq b { font-weight: 650; }
+  .pill { display: inline-block; padding: 1px 9px; border-radius: 99px; color: #fff; font-weight: 600; font-size: 17px; }
+</style>
+</head>
+<body>
+
+<!-- 1. The idea -->
+<section class="slide">
+  <div class="kicker">Assistant GM · Not for everyone! · Nico's Groovy Team</div>
+  <h1>Win this week's matchup.<br>Spend the 36 adds only where they change a result.</h1>
+  <p class="lead">Data sites list projections; nobody turns them into a decision for <em>your</em> matchup.
+    The bot plays out every night of your matchup and the next two, values each add/drop in win probability,
+    and tells you one plan: which move, on which day, and why.</p>
+  <svg viewBox="0 0 1180 300" width="100%" height="300" role="img" aria-label="The loop: data, the Board, the rule, you">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a8984"/></marker></defs>
+    <g font-size="15" fill="#52514e">
+      <rect x="0" y="40" width="250" height="200" rx="14" fill="#fff" stroke="#e6e5e1"/>
+      <text x="20" y="74" font-size="19" font-weight="700" fill="#0b0b0b">1 · What it knows</text>
+      <text x="20" y="106">Player projections (xFP)</text>
+      <text x="20" y="130">Injuries, goalie starts</text>
+      <text x="20" y="154">NHL schedule, every night</text>
+      <text x="20" y="178">All 16 rosters (screenshots)</text>
+      <text x="20" y="202">Your adds left: 33 of 36</text>
+
+      <rect x="310" y="40" width="270" height="200" rx="14" fill="#e8f1fb" stroke="#2a78d6"/>
+      <text x="330" y="74" font-size="19" font-weight="700" fill="#0b0b0b">2 · The Board</text>
+      <text x="330" y="106">Best lineup each night,</text>
+      <text x="330" y="130">you and the opponent</text>
+      <text x="330" y="154">P(win) now, wk +1, wk +2</text>
+      <text x="330" y="178">173 add/drops valued</text>
+      <text x="330" y="202">in win-pts</text>
+
+      <rect x="640" y="40" width="250" height="200" rx="14" fill="#fff" stroke="#e6e5e1"/>
+      <text x="660" y="74" font-size="19" font-weight="700" fill="#0b0b0b">3 · The rule</text>
+      <text x="660" y="106">Worth more than an add</text>
+      <text x="660" y="130">costs? (the add price)</text>
+      <text x="660" y="154">One coherent plan</text>
+      <text x="660" y="178">The exact day</text>
+      <text x="660" y="202">Kept unless it must change</text>
+
+      <rect x="950" y="40" width="230" height="200" rx="14" fill="#fff" stroke="#e6e5e1"/>
+      <text x="970" y="74" font-size="19" font-weight="700" fill="#0b0b0b">4 · You</text>
+      <text x="970" y="106">A 5-line plan + card</text>
+      <text x="970" y="130">One button per move</text>
+      <text x="970" y="154">Dashboard: everything</text>
+      <text x="970" y="178">weighed</text>
+      <text x="970" y="202">You make it in Yahoo</text>
+
+      <line x1="252" y1="140" x2="306" y2="140" stroke="#8a8984" stroke-width="2" marker-end="url(#a)"/>
+      <line x1="582" y1="140" x2="636" y2="140" stroke="#8a8984" stroke-width="2" marker-end="url(#a)"/>
+      <line x1="892" y1="140" x2="946" y2="140" stroke="#8a8984" stroke-width="2" marker-end="url(#a)"/>
+      <path d="M1065,244 C1065,292 125,292 125,244" fill="none" stroke="#8a8984" stroke-width="2" marker-end="url(#a)"/>
+      <text x="595" y="288" text-anchor="middle" font-size="14">Done / Taken / Skip taps and screenshots tell the bot what happened · runs every 30 min</text>
+    </g>
+  </svg>
+  <div class="foot"><span>How the model decides · 9 Oct 2026</span><span>1 / 5</span></div>
+</section>
+
+<!-- 2. What it knows -->
+<section class="slide">
+  <div class="kicker">Step 1 · What it knows</div>
+  <h2>Every night of the week, played out with your best lineup</h2>
+  <div class="cols" style="grid-template-columns: 1fr 1.15fr;">
+    <div class="cols" style="grid-template-columns: 1fr; gap: 14px;">
+      <div class="card"><h3>Projected points per game (xFP)</h3>
+        <p>Three seasons of history, aged, blended 50/50 with DailyFaceoff's projection, then updated with this
+          season's games and ice time. Peripherals count: shots, hits, blocks are about half of skater points.</p></div>
+      <div class="card"><h3>Who actually plays</h3>
+        <p>Injured players return along curves fit on game logs (slower the more games missed); goalie start odds
+          from confirmations, recent share, back-to-backs and the last result.</p></div>
+      <div class="card"><h3>The lineup, as Yahoo would allow it</h3>
+        <p>Yahoo's position eligibility; each night the best C2 LW2 RW2 D4 G2. A game on a night your slot is full
+          is worth <b>nothing</b>. The 3-game goalie minimum is priced in (miss it and all goalie points are zeroed).</p></div>
+    </div>
+    <div class="card">
+      <h3>Are the slots full? Five nights, with the plan made</h3>
+      <p style="margin-bottom:10px">C, LW and D slots each night (the dashboard's "By slot" view). Open slots are where an add plays.</p>
+      <svg viewBox="0 0 520 300" width="100%" role="img" aria-label="Slot dots per night">
+        <g font-size="14" fill="#52514e">
+          <text x="0" y="40">Night</text>
+          <g text-anchor="middle">
+            <text x="120" y="40">Fri 9</text><text x="200" y="40">Sat 10</text><text x="280" y="40">Sun 11</text>
+            <text x="360" y="40">Mon 12</text><text x="440" y="40">Tue 13</text>
+          </g>
+          <text x="0" y="92">C ×2</text><text x="0" y="142">LW ×2</text><text x="0" y="192">D ×4</text>
+          <!-- C -->
+          <circle cx="112" cy="87" r="7" fill="#2a78d6"/><circle cx="128" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="192" cy="87" r="7" fill="#2a78d6"/><circle cx="208" cy="87" r="7" fill="#2a78d6"/>
+          <circle cx="272" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="288" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="352" cy="87" r="7" fill="#2a78d6"/><circle cx="368" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="432" cy="87" r="7" fill="#2a78d6"/><circle cx="448" cy="87" r="7" fill="#2a78d6"/>
+          <!-- LW -->
+          <circle cx="112" cy="137" r="7" fill="#2a78d6"/><circle cx="128" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="192" cy="137" r="7" fill="#2a78d6"/><circle cx="208" cy="137" r="7" fill="#1baf7a"/>
+          <circle cx="272" cy="137" r="7" fill="#2a78d6"/><circle cx="288" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="352" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="368" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+          <circle cx="432" cy="137" r="7" fill="#2a78d6"/><circle cx="448" cy="137" r="7" fill="#2a78d6"/>
+          <!-- D -->
+          <g><circle cx="112" cy="182" r="6" fill="#2a78d6"/><circle cx="128" cy="182" r="6" fill="#2a78d6"/>
+             <circle cx="112" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="128" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
+          <g><circle cx="192" cy="182" r="6" fill="#2a78d6"/><circle cx="208" cy="182" r="6" fill="#2a78d6"/>
+             <circle cx="192" cy="198" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/><circle cx="208" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
+          <g><circle cx="272" cy="182" r="6" fill="#2a78d6"/><circle cx="288" cy="182" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+             <circle cx="272" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="288" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
+          <g><circle cx="352" cy="182" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/><circle cx="368" cy="182" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+             <circle cx="352" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="368" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
+          <g><circle cx="432" cy="182" r="6" fill="#2a78d6"/><circle cx="448" cy="182" r="6" fill="#2a78d6"/>
+             <circle cx="432" cy="198" r="6" fill="#2a78d6"/><circle cx="448" cy="198" r="6" fill="#2a78d6"/></g>
+          <line x1="0" y1="222" x2="500" y2="222" stroke="#e6e5e1"/>
+          <text x="0" y="252">Your games</text><text x="0" y="280">Theirs</text>
+          <g text-anchor="middle" font-weight="650" fill="#0b0b0b">
+            <text x="120" y="252">4</text><text x="200" y="252">10</text><text x="280" y="252">3</text><text x="360" y="252">1</text><text x="440" y="252">12</text>
+            <text x="120" y="280">2</text><text x="200" y="280">12</text><text x="280" y="280">3</text><text x="360" y="280">5</text><text x="440" y="280">12</text>
+          </g>
+        </g>
+      </svg>
+      <p style="font-size:13.5px"><span style="color:#2a78d6">●</span> filled &nbsp; ○ open: an add would play there &nbsp;
+        <span style="color:#1baf7a">●</span> filled by the plan &nbsp; <span style="color:#1baf7a">◯</span> freed by the plan (Samuelsson leaves)</p>
+    </div>
+  </div>
+  <div class="foot"><span>Fit on past seasons, checked on the next (scripts/backtest.py, check_sigma.py)</span><span>2 / 5</span></div>
+</section>
+
+<!-- 3. What a move is worth -->
+<section class="slide">
+  <div class="kicker">Step 2 · What a move is worth</div>
+  <h2>One currency: win-pts, percentage points of a weekly win</h2>
+  <div class="eq">value = <b style="color:#2a78d6">Δ P(win) this week</b> + <b style="color:#eb6834">Δ P(win) in weeks +1, +2</b>
+    <span style="color:#52514e">(against the real opponents)</span> + <b style="color:#1baf7a">later points × a point's worth</b></div>
+  <div class="cols" style="grid-template-columns: 1.45fr 1fr;">
+    <div class="card">
+      <h3>Today's top moves, Fri 9 Oct (win-pts)</h3>
+      <svg viewBox="0 0 700 270" width="100%" role="img" aria-label="Value of each move split by when it pays">
+        <g font-size="14" fill="#52514e">
+          <!-- zero at x = 320, 8 px per win-pt -->
+          <line x1="320" y1="18" x2="320" y2="246" stroke="#8a8984"/>
+          <line x1="400" y1="18" x2="400" y2="246" stroke="#0b0b0b" stroke-width="1.5"/>
+          <text x="400" y="12" text-anchor="middle" fill="#0b0b0b" font-weight="650">an add costs 10</text>
+          <text x="228" y="50" text-anchor="end" font-weight="700" fill="#0b0b0b">Kelly for Samuelsson</text>
+          <rect x="321" y="34" width="68" height="22" rx="3" fill="#eb6834"/><rect x="391" y="34" width="250" height="22" rx="3" fill="#1baf7a"/>
+          <text x="647" y="50" fill="#0b0b0b" font-weight="650">+40</text>
+          <text x="228" y="98" text-anchor="end">Spurgeon for Samuelsson</text>
+          <rect x="321" y="82" width="53" height="22" rx="3" fill="#eb6834"/><rect x="376" y="82" width="117" height="22" rx="3" fill="#1baf7a"/>
+          <text x="499" y="98" fill="#0b0b0b">+22</text>
+          <text x="228" y="146" text-anchor="end">Kantserov for Samuelsson</text>
+          <rect x="309" y="130" width="10" height="22" rx="3" fill="#eb6834"/>
+          <rect x="321" y="130" width="11" height="22" rx="3" fill="#2a78d6"/><rect x="334" y="130" width="163" height="22" rx="3" fill="#1baf7a"/>
+          <text x="503" y="146" fill="#0b0b0b">+21</text>
+          <text x="228" y="194" text-anchor="end">Tolvanen for Samuelsson</text>
+          <rect x="299" y="178" width="20" height="22" rx="3" fill="#eb6834"/>
+          <rect x="321" y="178" width="41" height="22" rx="3" fill="#2a78d6"/><rect x="364" y="178" width="61" height="22" rx="3" fill="#1baf7a"/>
+          <text x="431" y="194" fill="#0b0b0b">+11</text>
+          <text x="228" y="240" text-anchor="end">Olivier for Lindell (chase)</text>
+          <rect x="240" y="224" width="79" height="22" rx="3" fill="#1baf7a"/>
+          <rect x="321" y="224" width="48" height="22" rx="3" fill="#2a78d6"/>
+          <text x="375" y="240" fill="#0b0b0b">−4</text>
+        </g>
+      </svg>
+      <p style="font-size:13.5px"><span style="color:#2a78d6">■</span> this week &nbsp; <span style="color:#eb6834">■</span> weeks +1, +2 (36% and 41%: close, so a point there counts a lot) &nbsp; <span style="color:#1baf7a">■</span> later</p>
+    </div>
+    <div class="cols" style="grid-template-columns: 1fr; gap: 14px;">
+      <div class="card"><h3>Why not chase this week?</h3>
+        <p>Olivier lifts you 16% → 22% (+6), but dropping Lindell costs 11 later: −4 in all, against the 10 an add costs.
+          You're 26 down with most of it banked, so a point now is worth only so much.</p></div>
+      <div class="card"><h3>Honest numbers</h3>
+        <p>Projected team margins come true at <b>0.80</b> (0.75 / 0.70 one and two weeks ahead): P(win) uses that.
+          Gaps between fringe players come true at <b>1.02</b> this week, ~0.75 by week 20, so keeper value is real.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Calibration: check_sigma --ahead, check_gaps (2024-25 and 2025-26)</span><span>3 / 5</span></div>
+</section>
+
+<!-- 4. The rule -->
+<section class="slide">
+  <div class="kicker">Step 3 · The rule</div>
+  <h2>From a ranked table to one plan you can follow</h2>
+  <div class="cols" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="card"><span class="pill" style="background:#2a78d6">1</span>
+      <h3 style="margin-top:10px">Worth an add?</h3>
+      <p>An add costs what it could buy later. The <b>add price</b> (10 win-pts today) is set by simulating
+        weeks so that 2 a week at most uses the budget at its pace, 6 kept for the playoffs. Close weeks with good
+        streamers clear it; lopsided weeks don't.</p></div>
+    <div class="card"><span class="pill" style="background:#2a78d6">2</span>
+      <h3 style="margin-top:10px">One coherent plan</h3>
+      <p>Best move first, each next one judged with the earlier ones made: no two share a player.
+        A keeper that does nothing this week waits for Monday <b>only if</b> another move can use this week's add,
+        else it takes the add that would expire.</p></div>
+    <div class="card"><span class="pill" style="background:#2a78d6">3</span>
+      <h3 style="margin-top:10px">The exact day</h3>
+      <p>The earliest day that loses no points: the dropped player's games first, the add in before his.
+        Waiting otherwise only risks a claim. IR: an add into a spot IR opened counts only until the
+        injured player is back.</p></div>
+    <div class="card"><span class="pill" style="background:#2a78d6">4</span>
+      <h3 style="margin-top:10px">Kept once seen</h3>
+      <p>The plan changes only if a move can't be made (taken, skipped, injured) or a new plan is
+        <b>2 win-pts</b> better, and says why. Week 2 had 13 cards with 4 different adds; now near-ties don't
+        flip it.</p></div>
+  </div>
+  <div class="card" style="margin-top:20px; display:flex; gap:28px; align-items:center;">
+    <div style="flex:none"><div class="big num" style="color:#2a78d6">9.7 → 10</div><p>win-pts an add must buy</p></div>
+    <p style="font-size:16px">A point is worth most when a matchup is close: about <b>0.9 win-pts</b> in a typical week,
+      far less in a lopsided one. So the same +5-point stream can be a must-add in a 50% week and
+      worthless at 90%: the rule follows from the numbers, not from a fixed "stream on Mondays".</p>
+  </div>
+  <div class="foot"><span>engine/plan.py · engine/addprice.py · decision log in engine/CLAUDE.md</span><span>4 / 5</span></div>
+</section>
+
+<!-- 5. Today -->
+<section class="slide">
+  <div class="kicker">Today, through the model</div>
+  <h2>Week 2 vs Retrot Chicken Wings</h2>
+  <div class="cols" style="grid-template-columns: 1fr 1.3fr 1fr;">
+    <div class="card">
+      <div class="big num">16%</div><p>to win this week</p>
+      <p style="margin-top:12px" class="num">137–163 so far · expect 223–250<br>Lineup games left: 17 each</p>
+      <div style="display:flex; gap:10px; margin-top:16px">
+        <div><div style="font-size:26px;font-weight:700">36%</div><p>wk 3 vs Löllöt</p></div>
+        <div><div style="font-size:26px;font-weight:700">41%</div><p>wk 4 vs Jättiläisentie</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>The plan</h3>
+      <p style="font-size:18px; color:#0b0b0b; margin-top:6px"><span class="tag">Fri 9 Oct</span><b>Parker Kelly for Mattias Samuelsson</b></p>
+      <ul>
+        <li>+40 win-pts: nothing this week (both play Saturday), +9 in weeks 3–4, +31 later</li>
+        <li>On this week's add, which would otherwise expire Sunday</li>
+        <li>Today, not tomorrow: waiting gains nothing and risks a claim</li>
+        <li>Not Kantserov (+21) as the old rule picked: same drop, half the value</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Checked against past seasons</h3>
+      <ul>
+        <li>P(win) spread right (×0.92–1.03) in 2024-25 and 2025-26</li>
+        <li>Margins shrunk to how they come true</li>
+        <li>Goalie start and injury-return curves fit on one season, checked on the next</li>
+      </ul>
+      <h3 style="margin-top:12px">Next</h3>
+      <p>A replay of 2025-26 to score every rule change on wins, playoff and title odds, and how often the plan changes.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h3>What you get on Telegram (the plan message, then one card per move with Done / Taken / Skip)</h3>
+    <p style="font-family: Consolas, 'Cascadia Mono', monospace; font-size:14px; color:#0b0b0b; white-space:pre-line; margin-top:6px">Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-250 (Yahoo 230-257). Win 16%.
+Fri 9 Oct (today): Parker Kelly for Mattias Samuelsson (+40 win-pts, a keeper; on this week's add, which would go unused).
+For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. Not worth an add: -4 win-pts in all, as dropping Esa Lindell costs 11 later, against the 10 an add costs.
+Ahead: wk 3 vs Löllöt Höntsääjät 36%, wk 4 vs Jättiläisentie Giants 41%.
+Adds: 1 this week, 33 this season. Playoffs 21%, title 1%.</p>
+  </div>
+  <div class="foot"><span>Dashboard: nybnic.github.io/FantasyNHLAssistantGM</span><span>5 / 5</span></div>
+</section>
+
+</body>
+</html>
