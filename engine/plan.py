@@ -37,7 +37,7 @@ CHANGE_MARGIN = 0.02
 class Planned:
     move: matchup.Move
     when: dt.date
-    why: str  # "now": pays this week; "spare": a keeper on this week's otherwise unused add;
+    why: str  # "now": pays this week; "spare": a keeper on this week's free slot (next week's two stay free);
     #           "monday": a keeper that waits for next week's adds; "held": kept for Wednesday's plan
     note: str = ""  # why it's made on that day and not sooner (time_moves)
 

@@ -97,8 +97,8 @@
 <section class="slide">
   <div class="kicker">Step 1 · What it knows</div>
   <h2>Every night of the week, played out with your best lineup</h2>
-  <div class="cols" style="grid-template-columns: 1fr 1.15fr;">
-    <div class="cols" style="grid-template-columns: 1fr; gap: 14px;">
+  <div class="cols" style="grid-template-columns: 1fr 1.15fr; align-items: start;">
+    <div class="cols" style="grid-template-columns: 1fr; gap: 12px;">
       <div class="card"><h3>Projected points per game (xFP)</h3>
         <p>Three seasons of history, aged, blended 50/50 with DailyFaceoff's projection, then updated with this
           season's games and ice time. Peripherals count: shots, hits, blocks are about half of skater points.</p></div>
@@ -111,46 +111,94 @@
     </div>
     <div class="card">
       <h3>Are the slots full? Five nights, with the plan made</h3>
-      <p style="margin-bottom:10px">C, LW and D slots each night (the dashboard's "By slot" view). Open slots are where an add plays.</p>
-      <svg viewBox="0 0 520 300" width="100%" role="img" aria-label="Slot dots per night">
-        <g font-size="14" fill="#52514e">
-          <text x="0" y="40">Night</text>
-          <g text-anchor="middle">
-            <text x="120" y="40">Fri 9</text><text x="200" y="40">Sat 10</text><text x="280" y="40">Sun 11</text>
-            <text x="360" y="40">Mon 12</text><text x="440" y="40">Tue 13</text>
-          </g>
-          <text x="0" y="92">C ×2</text><text x="0" y="142">LW ×2</text><text x="0" y="192">D ×4</text>
-          <!-- C -->
-          <circle cx="112" cy="87" r="7" fill="#2a78d6"/><circle cx="128" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="192" cy="87" r="7" fill="#2a78d6"/><circle cx="208" cy="87" r="7" fill="#2a78d6"/>
-          <circle cx="272" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="288" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="352" cy="87" r="7" fill="#2a78d6"/><circle cx="368" cy="87" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="432" cy="87" r="7" fill="#2a78d6"/><circle cx="448" cy="87" r="7" fill="#2a78d6"/>
-          <!-- LW -->
-          <circle cx="112" cy="137" r="7" fill="#2a78d6"/><circle cx="128" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="192" cy="137" r="7" fill="#2a78d6"/><circle cx="208" cy="137" r="7" fill="#1baf7a"/>
-          <circle cx="272" cy="137" r="7" fill="#2a78d6"/><circle cx="288" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="352" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="368" cy="137" r="6" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-          <circle cx="432" cy="137" r="7" fill="#2a78d6"/><circle cx="448" cy="137" r="7" fill="#2a78d6"/>
-          <!-- D -->
-          <g><circle cx="112" cy="182" r="6" fill="#2a78d6"/><circle cx="128" cy="182" r="6" fill="#2a78d6"/>
-             <circle cx="112" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="128" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
-          <g><circle cx="192" cy="182" r="6" fill="#2a78d6"/><circle cx="208" cy="182" r="6" fill="#2a78d6"/>
-             <circle cx="192" cy="198" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/><circle cx="208" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
-          <g><circle cx="272" cy="182" r="6" fill="#2a78d6"/><circle cx="288" cy="182" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-             <circle cx="272" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="288" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
-          <g><circle cx="352" cy="182" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/><circle cx="368" cy="182" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
-             <circle cx="352" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/><circle cx="368" cy="198" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/></g>
-          <g><circle cx="432" cy="182" r="6" fill="#2a78d6"/><circle cx="448" cy="182" r="6" fill="#2a78d6"/>
-             <circle cx="432" cy="198" r="6" fill="#2a78d6"/><circle cx="448" cy="198" r="6" fill="#2a78d6"/></g>
-          <line x1="0" y1="222" x2="500" y2="222" stroke="#e6e5e1"/>
-          <text x="0" y="252">Your games</text><text x="0" y="280">Theirs</text>
-          <g text-anchor="middle" font-weight="650" fill="#0b0b0b">
-            <text x="120" y="252">4</text><text x="200" y="252">10</text><text x="280" y="252">3</text><text x="360" y="252">1</text><text x="440" y="252">12</text>
-            <text x="120" y="280">2</text><text x="200" y="280">12</text><text x="280" y="280">3</text><text x="360" y="280">5</text><text x="440" y="280">12</text>
-          </g>
-        </g>
-      </svg>
+      <p style="margin-bottom:6px">All 12 starting slots each night (the dashboard's "By slot" view). Open slots are where an add plays.</p>
+      <svg viewBox="0 0 540 352" width="100%" style="height:300px" role="img" aria-label="Lineup slots per position and night, with the plan made">
+<g font-size="14" fill="#52514e">
+<text x="0" y="24">Night</text>
+<text x="130" y="24" text-anchor="middle">Fri 9</text>
+<text x="212" y="24" text-anchor="middle">Sat 10</text>
+<text x="294" y="24" text-anchor="middle">Sun 11</text>
+<text x="376" y="24" text-anchor="middle">Mon 12</text>
+<text x="458" y="24" text-anchor="middle">Tue 13</text>
+<text x="0" y="67">C ×2</text>
+<circle cx="122" cy="62" r="6" fill="#2a78d6"/>
+<circle cx="138" cy="62" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="204" cy="62" r="6" fill="#2a78d6"/>
+<circle cx="220" cy="62" r="6" fill="#2a78d6"/>
+<circle cx="286" cy="62" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="302" cy="62" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="62" r="6" fill="#2a78d6"/>
+<circle cx="384" cy="62" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="450" cy="62" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="62" r="6" fill="#2a78d6"/>
+<text x="0" y="111">LW ×2</text>
+<circle cx="122" cy="106" r="6" fill="#2a78d6"/>
+<circle cx="138" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="204" cy="106" r="6" fill="#2a78d6"/>
+<circle cx="220" cy="106" r="6" fill="#1baf7a"/>
+<circle cx="286" cy="106" r="6" fill="#2a78d6"/>
+<circle cx="302" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="384" cy="106" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="450" cy="106" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="106" r="6" fill="#2a78d6"/>
+<text x="0" y="155">RW ×2</text>
+<circle cx="122" cy="150" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="138" cy="150" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="204" cy="150" r="6" fill="#2a78d6"/>
+<circle cx="220" cy="150" r="6" fill="#2a78d6"/>
+<circle cx="286" cy="150" r="6" fill="#2a78d6"/>
+<circle cx="302" cy="150" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="150" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="384" cy="150" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="450" cy="150" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="150" r="6" fill="#2a78d6"/>
+<text x="0" y="199">D ×4</text>
+<circle cx="122" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="138" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="122" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="138" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="204" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="220" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="204" cy="202" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/>
+<circle cx="220" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="286" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="302" cy="186" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="286" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="302" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="186" r="5" fill="#fff" stroke="#1baf7a" stroke-width="2.5"/>
+<circle cx="384" cy="186" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="384" cy="202" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="450" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="186" r="6" fill="#2a78d6"/>
+<circle cx="450" cy="202" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="202" r="6" fill="#2a78d6"/>
+<text x="0" y="257">G ×2</text>
+<circle cx="122" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="138" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="204" cy="252" r="6" fill="#2a78d6"/>
+<circle cx="220" cy="252" r="6" fill="#2a78d6"/>
+<circle cx="286" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="302" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="368" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="384" cy="252" r="5" fill="none" stroke="#8a8984" stroke-width="1.5"/>
+<circle cx="450" cy="252" r="6" fill="#2a78d6"/>
+<circle cx="466" cy="252" r="6" fill="#2a78d6"/>
+<line x1="0" y1="282" x2="520" y2="282" stroke="#e6e5e1"/>
+<text x="0" y="308">Your games</text>
+<text x="130" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">4</text>
+<text x="212" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">10</text>
+<text x="294" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">3</text>
+<text x="376" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">1</text>
+<text x="458" y="308" text-anchor="middle" font-weight="650" fill="#0b0b0b">12</text>
+<text x="0" y="336">Theirs</text>
+<text x="130" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">2</text>
+<text x="212" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">12</text>
+<text x="294" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">3</text>
+<text x="376" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">5</text>
+<text x="458" y="336" text-anchor="middle" font-weight="650" fill="#0b0b0b">12</text>
+</g></svg>
       <p style="font-size:13.5px"><span style="color:#2a78d6">●</span> filled &nbsp; ○ open: an add would play there &nbsp;
         <span style="color:#1baf7a">●</span> filled by the plan &nbsp; <span style="color:#1baf7a">◯</span> freed by the plan (Samuelsson leaves)</p>
     </div>
@@ -162,6 +210,8 @@
 <section class="slide">
   <div class="kicker">Step 2 · What a move is worth</div>
   <h2>One currency: win-pts, percentage points of a weekly win</h2>
+  <p class="lead" style="margin:-8px 0 14px; font-size:17px">1 win-pt = 0.01 expected weekly wins, summed over every week a move touches.
+    +40 = 0.4 more weekly wins expected this season; an add must buy 10 (0.1 wins) to be worth one of the 33 left.</p>
   <div class="eq">value = <b style="color:#2a78d6">Δ P(win) this week</b> + <b style="color:#eb6834">Δ P(win) in weeks +1, +2</b>
     <span style="color:#52514e">(against the real opponents)</span> + <b style="color:#1baf7a">later points × a point's worth</b></div>
   <div class="cols" style="grid-template-columns: 1.45fr 1fr;">
@@ -199,9 +249,10 @@
       <div class="card"><h3>Why not chase this week?</h3>
         <p>Olivier lifts you 16% → 22% (+6), but dropping Lindell costs 11 later: −4 in all, against the 10 an add costs.
           You're 26 down with most of it banked, so a point now is worth only so much.</p></div>
-      <div class="card"><h3>Honest numbers</h3>
-        <p>Projected team margins come true at <b>0.80</b> (0.75 / 0.70 one and two weeks ahead): P(win) uses that.
-          Gaps between fringe players come true at <b>1.02</b> this week, ~0.75 by week 20, so keeper value is real.</p></div>
+      <div class="card"><h3>Honest numbers, and what's untested</h3>
+        <p>Team margins come true at <b>0.80</b> (0.75 / 0.70 one and two weeks ahead), per-game gaps between fringe
+          players at <b>1.02</b> now, ~0.75 by week 20; later points get ×0.5. <b>Untested:</b> the projected games
+          missed (durability), which is 70% of Kelly's edge, and IR returns in one-for-one swaps.</p></div>
     </div>
   </div>
   <div class="foot"><span>Calibration: check_sigma --ahead, check_gaps (2024-25 and 2025-26)</span><span>3 / 5</span></div>
@@ -260,9 +311,10 @@
       <p style="font-size:18px; color:#0b0b0b; margin-top:6px"><span class="tag">Fri 9 Oct</span><b>Parker Kelly for Mattias Samuelsson</b></p>
       <ul>
         <li>+40 win-pts: nothing this week (both play Saturday), +9 in weeks 3–4, +31 later</li>
-        <li>On this week's add, which would otherwise expire Sunday</li>
+        <li>This week, not Monday: same season add either way, but week 3's two slots stay free (a close week, 36%)</li>
         <li>Today, not tomorrow: waiting gains nothing and risks a claim</li>
-        <li>Not Kantserov (+21) as the old rule picked: same drop, half the value</li>
+        <li><b>Under review:</b> per game Kelly = Samuelsson (4.15 vs 4.14); the edge is Samuelsson's projected
+          missed games and open F slots, and Kelly is the forward cut when Celebrini returns</li>
       </ul>
     </div>
     <div class="card">
@@ -279,7 +331,7 @@
   <div class="card" style="margin-top:20px">
     <h3>What you get on Telegram (the plan message, then one card per move with Done / Taken / Skip)</h3>
     <p style="font-family: Consolas, 'Cascadia Mono', monospace; font-size:14px; color:#0b0b0b; white-space:pre-line; margin-top:6px">Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-250 (Yahoo 230-257). Win 16%.
-Fri 9 Oct (today): Parker Kelly for Mattias Samuelsson (+40 win-pts, a keeper; on this week's add, which would go unused).
+Fri 9 Oct (today): Parker Kelly for Mattias Samuelsson (+40 win-pts, a keeper; uses this week's slot, so next week's two adds stay free).
 For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. Not worth an add: -4 win-pts in all, as dropping Esa Lindell costs 11 later, against the 10 an add costs.
 Ahead: wk 3 vs Löllöt Höntsääjät 36%, wk 4 vs Jättiläisentie Giants 41%.
 Adds: 1 this week, 33 this season. Playoffs 21%, title 1%.</p>

@@ -34,7 +34,7 @@ def _detail(p: Planned) -> str:
             head += f", +{100 * m.value:.0f} win-pts in all"
     else:
         head = f"+{100 * m.value:.0f} win-pts, a keeper"
-    when = {"spare": "on this week's add, which would go unused",
+    when = {"spare": "uses this week's slot, so next week's two adds stay free",
             "monday": "it does nothing this week, so it takes next week's add",
             "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
