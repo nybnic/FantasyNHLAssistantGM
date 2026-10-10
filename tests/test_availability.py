@@ -17,6 +17,20 @@ def test_skater_injury_and_lineup_status():
     assert availability.skater(None, False).prob == availability.HEALTHY_PLAY
 
 
+def test_dfo_status_decides_not_its_injured_section():
+    # Celebrini, Oct 10: in DFO's injured section, "dtd". Out tonight (off the chart), then a day-to-day return.
+    listed_dtd = LineInfo(groups={"ir"}, injury="dtd")
+    assert availability.skater(listed_dtd, True, days_ahead=3, missed=2).prob == availability.HEALTHY_PLAY
+    assert availability.skater(listed_dtd, True, days_ahead=1).prob == availability.DTD_RETURN[0]
+    listed_out = LineInfo(groups={"ir"}, injury="out")  # out: the curve for the games he's missed, no IR floor
+    assert availability.skater(listed_out, True, days_ahead=2).prob == availability.return_curve(1)[0]
+    no_status = LineInfo(groups={"ir"})  # the section alone: IR
+    assert availability.skater(no_status, True, days_ahead=2).prob == availability.return_curve(3)[0]
+    goalie = LineInfo(groups={"ir"}, injury="dtd")
+    assert availability.goalie(1, "A", TONIGHT, goalie, None, [], 0.6).prob == 0.0
+    assert availability.goalie(1, "A", TONIGHT, goalie, None, [], 0.6, days_ahead=3).prob > 0.5
+
+
 def test_goalie_uses_dailyfaceoff_when_it_names_a_starter():
     confirmed = {"goalie_name": "Jake Oettinger", "confirmed": True}
     assert availability.goalie(1, "Jake Oettinger", TONIGHT, None, confirmed, [], 0.7).prob == 0.97

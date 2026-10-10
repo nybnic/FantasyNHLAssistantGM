@@ -30,3 +30,10 @@ def test_the_plan_assumes_the_ir_moves_without_touching_the_roster():
     moves = ir.moves(roster, LINES)
     assert [p.slot for p in ir.after(roster, moves)] == ["IR+", "C"] and roster[0].slot == "C"
     assert "move Short Out to IR+" in ir.text(moves, []) and "an add needs no drop" in ir.text(moves, [])
+
+
+def test_yahoos_likely_tag_follows_dfos_status():
+    assert ir.likely_status(LineInfo(groups={"ir"}, injury="dtd")) is None  # day-to-day: stays active
+    assert ir.likely_status(LineInfo(groups={"ir"}, injury="out")) == "O"
+    assert ir.likely_status(LineInfo(groups={"ir"})) == "IR"
+    assert ir.likely_status(LineInfo(groups={"f1"}, injury="ir")) == "IR"

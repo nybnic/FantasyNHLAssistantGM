@@ -33,7 +33,7 @@ def likely_status(info: LineInfo | None) -> str | None:
     reason to move him; day-to-day players stay active, they often play next game)."""
     if info is None:
         return None
-    if info.injury == "ir" or "ir" in info.groups:
+    if info.injury == "ir" or (info.injury is None and "ir" in info.groups):  # DFO's status first
         return "IR"
     return "O" if info.injury == "out" else None
 

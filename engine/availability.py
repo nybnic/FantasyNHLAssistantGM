@@ -81,9 +81,21 @@ class Availability:
 
 
 def _injured(info: LineInfo | None) -> str | None:
-    if info and (info.injury in ("out", "ir") or "ir" in info.groups):
-        return "IR" if (info.injury == "ir" or "ir" in info.groups) else "out"
-    return None
+    """"IR" or "out" by DFO's status. DFO's injured section ("ir" group) holds
+    every injured player whatever his status, so it means IR only when no
+    status is given (Nico, 2026-10-10: Celebrini sat there "dtd" and was read
+    as IR). Day-to-day is not injured here: it has its own curve."""
+    if info is None:
+        return None
+    if info.injury == "ir" or (info.injury is None and "ir" in info.groups):
+        return "IR"
+    return "out" if info.injury == "out" else None
+
+
+def _sidelined_dtd(info: LineInfo | None) -> bool:
+    """Day-to-day and in DFO's injured section: off tonight's chart, so out
+    tonight, then back as day-to-day players come back."""
+    return info is not None and info.injury == "dtd" and "ir" in info.groups
 
 
 def ahead(curve: tuple[float, ...], days_ahead: int, tonight: float) -> float:
@@ -116,7 +128,7 @@ def skater(info: LineInfo | None, team_has_lines: bool, days_ahead: int = 0, mis
             return Availability(HEALTHY_PLAY)
         return Availability(ahead(_curve(None, missed), days_ahead, UNLISTED_PLAY), "not in lineup")
     if info.injury == "dtd" or info.game_time_decision:
-        return Availability(ahead(DTD_RETURN, days_ahead, DOUBTFUL_PLAY),
+        return Availability(ahead(DTD_RETURN, days_ahead, 0.0 if _sidelined_dtd(info) else DOUBTFUL_PLAY),
                             "day-to-day" if info.injury == "dtd" else "game-time decision")
     return Availability(HEALTHY_PLAY)
 
@@ -139,10 +151,10 @@ def goalie(
     return curves; goalies' weren't fit separately). `last_result` is how the
     team's last start went (`start_result`), given only for the team's next game."""
     injured = _injured(info)
-    if injured:
-        back = ahead(_curve(injured, 0), days_ahead, 0.0)
+    if injured or _sidelined_dtd(info):
+        back = ahead(_curve(injured, 0) if injured else DTD_RETURN, days_ahead, 0.0)
         return Availability(back * start_share(player_id, date, info, team_starts, prior_share) if back else 0.0,
-                            injured)
+                            injured or "day-to-day")
 
     if dfo_starter:
         confirmed = dfo_starter["confirmed"]

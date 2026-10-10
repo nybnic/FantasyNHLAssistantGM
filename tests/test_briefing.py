@@ -84,7 +84,7 @@ def test_injured_player_is_benched_when_someone_can_replace_him():
     }
     result = _plan(roster, now, lines)
     assert result.optimal == {1: "BN", 2: "C", 3: "C", 4: "G"}
-    assert "Bench C   Top Center @ TOR, IR  0.0" in briefing.text(result)
+    assert "Bench C   Top Center @ TOR, out  0.0" in briefing.text(result)  # DFO's status, not its section
 
 
 def test_unknown_lineup_lists_everything():
