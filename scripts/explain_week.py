@@ -15,6 +15,7 @@ Read-only: sends and saves nothing. Uses the committed state/ files, so
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 
 from bot import board, common, weekly
 from clients.names import normalize_name
