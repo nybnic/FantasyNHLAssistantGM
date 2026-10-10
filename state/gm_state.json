@@ -488,6 +488,24 @@
       "message_id": 298,
       "type": "add"
     },
+    "add-2026-10-10-0400-8474716": {
+      "add": {
+        "id": 8474716,
+        "name": "Jared Spurgeon",
+        "positions": [
+          "D"
+        ],
+        "slot": null,
+        "team": "MIN"
+      },
+      "add_slot": null,
+      "date": "2026-10-10",
+      "drop": 8476902,
+      "drop_name": "Esa Lindell",
+      "ir": {},
+      "message_id": 308,
+      "type": "add"
+    },
     "lineup-2026-10-01-1630": {
       "assignment": {
         "8474564": "RW",
@@ -616,7 +634,7 @@
     }
   },
   "plan": {
-    "at": "2026-10-09T12:30+00:00",
+    "at": "2026-10-10T04:00+00:00",
     "moves": [
       {
         "add": {
@@ -628,33 +646,15 @@
           "team": "MIN"
         },
         "drop": {
-          "id": 8480807,
-          "name": "Mattias Samuelsson"
+          "id": 8476902,
+          "name": "Esa Lindell"
         },
-        "key": "8474716:8480807",
-        "message_id": 298,
-        "rec_id": "add-2026-10-09-1230-8474716",
-        "value": 0.1108,
-        "when": "2026-10-09",
+        "key": "8474716:8476902",
+        "message_id": 308,
+        "rec_id": "add-2026-10-10-0400-8474716",
+        "value": 0.108,
+        "when": "2026-10-10",
         "why": "spare"
-      },
-      {
-        "add": {
-          "id": 8473419,
-          "name": "Brad Marchand",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "team": "FLA"
-        },
-        "drop": null,
-        "key": "8473419:0:IR",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.1008,
-        "when": "2026-10-12",
-        "why": "monday"
       }
     ],
     "week": 2
@@ -798,7 +798,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784620,
+  "telegram_offset": 929784622,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
