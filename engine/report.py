@@ -187,6 +187,11 @@ SKATER_PARTS = [("Goals", ("g",)), ("Assists", ("a",)), ("PP, SH, GWG", ("ppg", 
 GOALIE_PARTS = [("Start", ("gs",)), ("Win", ("w",)), ("Saves", ("sv",)), ("Goals against", ("ga",)),
                 ("Shutout", ("so",))]
 GOALIES = "Goalies"  # the team breakdown's one goalie row, net of the minimum
+# The same lines as real stats, for the dashboard's stats view (counts, not points).
+SKATER_STATS = [("Goals", ("g",)), ("Assists", ("a",)), ("PP points", ("ppg", "ppa")), ("SH points", ("shg", "sha")),
+                ("GWG", ("gwg",)), ("Shots", ("sog",)), ("Hits", ("hit",)), ("Blocks", ("blk",)),
+                ("Faceoff wins", ("fow",)), ("+/-", ("pm",)), ("PIM", ("pim",))]
+GOALIE_STATS = [("Wins", ("w",)), ("Saves", ("sv",)), ("Goals against", ("ga",)), ("Shutouts", ("so",))]
 
 
 def stat_parts(stats: dict[str, float], goalie: bool = False) -> dict[str, float]:
@@ -194,6 +199,19 @@ def stat_parts(stats: dict[str, float], goalie: bool = False) -> dict[str, float
     (or per-start) stat line split the way the scoring adds it up."""
     weights, parts = (GOALIE_WEIGHTS, GOALIE_PARTS) if goalie else (SKATER_WEIGHTS, SKATER_PARTS)
     return {name: sum(weights[s] * stats.get(s, 0.0) for s in keys) for name, keys in parts}
+
+
+def stat_counts(stats: dict[str, float], goalie: bool = False) -> dict[str, float]:
+    """The stat line itself, in SKATER_STATS / GOALIE_STATS rows."""
+    return {name: sum(stats.get(s, 0.0) for s in keys) for name, keys in (GOALIE_STATS if goalie else SKATER_STATS)}
+
+
+def avg_toi(ctx, player_id: int) -> tuple[float, float] | None:
+    """(ice time, PP ice time) a game this season, in minutes; None before his first game."""
+    games = [g for g in getattr(ctx, "skater_games", {}).get(player_id, []) if g.date < ctx.today]
+    if not games:
+        return None
+    return sum(g.toi for g in games) / len(games) / 60, sum(g.pp_toi for g in games) / len(games) / 60
 
 
 def _r(x: float | None, digits: int = 2) -> float | None:
@@ -207,6 +225,7 @@ def team_view(week: matchup.TeamWeek, roster: list[RosterPlayer], ctx) -> dict:
     goalies one row, net of what the minimum costs). Adds up to `week.expected`
     with the points banked so far."""
     players, by_stat = [], {name: 0.0 for name, _ in SKATER_PARTS}
+    counts = {name: 0.0 for name, _ in SKATER_STATS}
     for p in roster:
         pts, games, bench = week.by_player.get(p.id, (0.0, 0.0, 0.0))
         players.append({"id": p.id, "pts": _r(pts), "games": _r(games, 1), "bench_pts": _r(bench),
@@ -216,10 +235,14 @@ def team_view(week: matchup.TeamWeek, roster: list[RosterPlayer], ctx) -> dict:
             if proj.xfp > 0:
                 for name, v in stat_parts(proj.per_game).items():
                     by_stat[name] += pts * v / proj.xfp
+                for name, v in stat_counts(proj.per_game).items():
+                    counts[name] += pts * v / proj.xfp
     goalie_pts = sum(week.by_player.get(p.id, (0.0,))[0] for p in roster if p.is_goalie)
     by_stat[GOALIES] = goalie_pts - week.goalie_lost
     players.sort(key=lambda r: (-(r["pts"] or 0), -(r["bench_pts"] or 0)))
     return {"players": players, "by_stat": {k: _r(v) for k, v in by_stat.items()},
+            "stats": {k: _r(v) for k, v in counts.items()},
+            "goalie_starts": _r(sum(week.by_player.get(p.id, (0.0, 0.0))[1] for p in roster if p.is_goalie), 1),
             "goalie_lost": _r(week.goalie_lost), "rest": _r(week.expected - week.so_far)}
 
 
@@ -227,7 +250,8 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
                 later: dict | None = None) -> dict:
     """One player's numbers as the model has them: points per game (goalies:
     per start, against his next opponent, this week's `schedule` or else the
-    `later` one's) by stat group, ice time, the sample behind it, tonight's
+    `later` one's) by stat group and as a stat line, ice time a game this season, the
+    sample behind it, tonight's
     availability, and how much of his long-run points survive the games he's
     projected to miss (matchup.durability). Goalies: each start left this week
     with its odds. `owner`: "me", "them" or "fa"."""
@@ -259,6 +283,7 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
         share = availability.start_share(p.id, today, info, ctx.team_starts.get(p.team, []),
                                          ctx.prior_start_share(p.id))
         out.update({"per_game": {k: _r(v) for k, v in stat_parts(line, goalie=True).items()} if line else None,
+                    "stats": {k: _r(v) for k, v in stat_counts(line, goalie=True).items()} if line else None,
                     "xfp": _r(line["xfp"]) if line else None, "share": _r(share, 3), "starts": starts,
                     "next": {"date": nxt["date"], "opp": nxt["opp"]} if nxt else None,
                     "gp": len([g for g in ctx.goalie_games.get(p.id, []) if g.date < today])})
@@ -267,8 +292,10 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
     status = availability.skater(info, bool(lines.get(p.team)))
     dur = ctx.durability(p.id)
     repl = (getattr(ctx, "replacement_xfp", None) or {}).get(matchup._position(p))
+    toi, pp_toi = avg_toi(ctx, p.id) or (proj.toi / 60, proj.pp_toi / 60)  # the projection's when no games yet
     out.update({"per_game": {k: _r(v, 3) for k, v in stat_parts(proj.per_game).items()}, "xfp": _r(proj.xfp, 3),
-                "toi": _r(proj.toi, 1), "pp_toi": _r(proj.pp_toi, 1), "gp": proj.games,
+                "stats": {k: _r(v, 3) for k, v in stat_counts(proj.per_game).items()},
+                "toi": _r(toi, 2), "pp_toi": _r(pp_toi, 2), "gp": proj.games,
                 "play": _r(status.prob, 3), "note": status.note,
                 "durability": _r(dur, 3), "kept": _r(matchup.durability(ctx, p, proj.xfp), 3),
                 "replacement": _r(repl, 3)})

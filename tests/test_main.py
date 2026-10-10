@@ -417,9 +417,10 @@ def _tx(kind, when, teams_, players):
             "players": [{"name": n, "positions": ["C"], "action": a} for n, a in players]}
 
 
-def _transactions(monkeypatch, tmp_path, shots, league=None, players=None):
+def _transactions(monkeypatch, tmp_path, shots, league=None, players=None, pending=None):
     updates = [_photo(name, 40 + i, WEEK1 + i) for i, name in enumerate(shots)]
     settings, state, default_players, sent, _ = _setup(monkeypatch, tmp_path, updates)
+    state["pending"].update(pending or {})
     monkeypatch.setattr(parse, "registry", lambda: TX_REGISTRY)
     monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
     monkeypatch.setattr(screenshot, "read", lambda image, now=None: {"kind": "transactions", "rows": shots[image.decode()]})
@@ -449,6 +450,19 @@ def test_transactions_move_players_between_teams_and_the_free_agents(monkeypatch
     assert 704 in [p.id for p in players]  # my own add, onto my roster
     assert sent[0].startswith("Transactions: 3 new (Wed 30 Sep 10:59 - Wed 30 Sep 14:04).")
     assert "Pastasauce: +Jared McCann, -Justin Faulk, -Dylan Cozens, +John Tavares" in sent[0]
+
+
+def test_only_suggested_adds_these_transactions_give_away_are_named_once(monkeypatch, tmp_path):
+    def card(pid, name):
+        return {"type": "add", "date": "2026-09-30", "add": {"id": pid, "name": name}, "drop": None}
+    pending = {"a": card(700, "Jared McCann"), "b": card(700, "Jared McCann"),  # two cards, one player
+               "c": card(703, "John Tavares")}  # taken long ago: not news
+    shot = [_tx("add", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot}, pending=pending)
+    assert "Taken since I suggested them: Jared McCann. Send /week" in sent[0]
+    shot = [_tx("add", (9, 30, 14, 3), ["Nico's Groovy Team"], [("J. McCann", "add")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"t": shot}, pending=pending)
+    assert "Taken since" not in sent[0]  # my own add
 
 
 def test_transactions_already_applied_are_skipped_and_a_gap_is_flagged(monkeypatch, tmp_path):

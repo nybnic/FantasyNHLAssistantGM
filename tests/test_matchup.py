@@ -438,6 +438,18 @@ def _goalie(pid, team):
     return RosterPlayer(pid, f"G{pid}", team, ["G"], "G")
 
 
+def test_a_relief_appearance_counts_toward_the_goalie_minimum():
+    # Vejmelka, week 2: started Tuesday, came on in relief Thursday (0 GS): that's 2 games, not 1.
+    ctx = FakeContext()
+    ctx.today = WED + dt.timedelta(days=1)
+    ctx.goalie_games = {1: [_Log(MON, {"gs": 1, "sv": 30}), _Log(WED, {"sv": 11}, started=False)],
+                        2: [_Log(MON, {"gs": 1, "sv": 20}), _Log(TUE, {"gs": 1, "sv": 25})],
+                        3: [_Log(MON, {"gs": 1, "sv": 25})]}  # three played Monday: two count
+    roster = [_goalie(1, "UTA"), _goalie(2, "CHI"), _goalie(3, "TOR")]
+    _, _, games = matchup._so_far(roster, ctx, [MON, TUE, WED, ctx.today])
+    assert games == 4
+
+
 def test_the_long_run_checks_the_goalie_minimum_week_by_week():
     ctx = FakeContext()
     ctx.prior_start_share = lambda pid: 1.0  # certain starters, to keep the arithmetic plain

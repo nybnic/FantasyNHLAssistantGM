@@ -130,11 +130,25 @@ class _BreakdownContext:
         return 0
 
 
+def test_ice_time_is_his_average_a_game_this_season_in_minutes():
+    from clients.nhl_stats import SkaterGame
+    ctx = _BreakdownContext()
+    games = [(THU - dt.timedelta(days=3), 1200, 120), (THU - dt.timedelta(days=1), 1500, 60),
+             (THU, 9999, 999)]  # Thursday's is tonight's: not played yet
+    ctx.skater_games = {1: [SkaterGame(1, "", "C", "WPG", "CHI", d, 0, toi=t, pp_toi=pp) for d, t, pp in games]}
+    view = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")
+    assert view["toi"] == 22.5 and view["pp_toi"] == 1.5  # seconds a game, as minutes
+    ctx.skater_games = {}
+    view = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")
+    assert view["toi"] == pytest.approx(19.5 / 60, abs=0.01)  # no games yet: the projection's
+
+
 def test_a_players_points_split_by_stat_add_up_to_his_projection():
     ctx = _BreakdownContext()
     view = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")
     assert sum(view["per_game"].values()) == pytest.approx(view["xfp"], abs=0.01)
     assert view["per_game"]["Faceoffs"] == pytest.approx(0.8) and view["per_game"]["PP, SH, GWG"] == pytest.approx(0.1)
+    assert view["stats"]["Faceoff wins"] == 8.0 and view["stats"]["PP points"] == pytest.approx(0.2)  # counts, not points
     # Missed games cost only his edge over a streamer: 20% of games x (xFP - 1.5) / xFP.
     assert view["durability"] == 0.8 and view["kept"] == pytest.approx(1 - 0.2 * (view["xfp"] - 1.5) / view["xfp"],
                                                                        abs=0.001)
@@ -142,6 +156,7 @@ def test_a_players_points_split_by_stat_add_up_to_his_projection():
     goalie = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, sched, "me")
     assert goalie["starts"][0]["opp"] == "CHI" and goalie["xfp"] == pytest.approx(9.45)
     assert goalie["per_game"]["Goals against"] == pytest.approx(-2.6)
+    assert goalie["stats"]["Goals against"] == pytest.approx(2.6) and goalie["stats"]["Saves"] == 25.0
     assert goalie["next"] == {"date": "2026-10-02", "opp": "CHI"}
     # No start left this week: his line is his next start's, next week.
     idle = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, {}, "me", sched)

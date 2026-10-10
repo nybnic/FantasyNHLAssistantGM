@@ -594,6 +594,11 @@ function budgetCard() {
 
 // ---- breakdowns: shared pieces ------------------------------------------------------
 const f0 = v => (v ?? 0).toFixed(0), f1 = v => (v ?? 0).toFixed(1), f2 = v => (v ?? 0).toFixed(2);
+const mmss = min => { const s = Math.round((min ?? 0) * 60); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+// Fantasy points by stat, or the stat line itself (goals, shots, hits...): one switch for the page.
+let statView = recall("statView", "points");
+const statTabs = () => tabsEl([["points", "Fantasy pts"], ["stats", "Stats"]], statView,
+                              v => { statView = v; remember("statView", v); render(); });
 const person = id => (data.players || {})[String(id)];
 const shortName = n => { const [a, ...b] = n.split(" "); return b.length ? `${a[0]}. ${b.join(" ")}` : n; };
 const lastName = n => n.split(" ").slice(1).join(" ") || n;
@@ -671,54 +676,60 @@ function whyCard() {
     score.append(el("span", { class: "lbl" }, name === "You" ? "You" : "Them"),
                  track([{ v: t.so_far, token: solid, tip: [name, `Banked so far: ${f1(t.so_far)}`] },
                         { v: rest, token: soft, tip: [name, `Rest of the week: ${f1(rest)} expected`,
-                                                       `Goalies reach 3 starts: ${pct(t.goalie_min)}`] }], 0, hi, "pair"),
+                                                       `Goalies reach 3 games: ${pct(t.goalie_min)}`] }], 0, hi, "pair"),
                  el("span", { class: "val" }, t.so_far ? `${f0(t.so_far)} + ${f0(rest)} = ${f0(t.expected)}` : f0(t.expected)));
   });
   card.append(score);
   card.append(el("div", { class: "note", style: "margin-top:6px" }, `Solid: banked so far. Light: still to come. Them: ${opp}.`));
 
-  // The final margin's spread: P(win) is the share above zero.
+  // How the week could end: the final margin's spread, split where they win and where you do.
   const mu = h.margin, sd = h.sd;
-  const W = width(), H = 160, m = { l: 10, r: 10, t: 22, b: 26 };
-  const lo = Math.min(mu - 3 * sd, -0.4 * sd), top = Math.max(mu + 3 * sd, 0.4 * sd);
+  const W = width(), H = 170, m = { l: 10, r: 10, t: 24, b: 40 };
+  const lo = Math.min(mu - 2.5 * sd, -0.5 * sd), top = Math.max(mu + 2.5 * sd, 0.5 * sd);
   const X = v => m.l + (v - lo) / (top - lo) * (W - m.l - m.r);
   const Y = d => m.t + (1 - d) * (H - m.t - m.b);
   const dens = v => Math.exp(-0.5 * ((v - mu) / sd) ** 2);
-  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Final margin: ${signed(mu, 0)} expected, win ${pct(h.win)}` });
+  const by = v => `${v < 0 ? "lose" : "win"} by ${f0(Math.abs(v))}`;
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Most likely you ${by(mu)}; you win ${pct(h.win)}` });
   const area = (a, b) => {
     if (b <= a) return "";
     const n = 60, pts = [];
     for (let i = 0; i <= n; i++) { const v = a + (b - a) * i / n; pts.push(`${X(v).toFixed(1)},${Y(dens(v)).toFixed(1)}`); }
     return `M${X(a)},${Y(0)} L${pts.join(" L")} L${X(b)},${Y(0)} Z`;
   };
-  svg.append(svgEl("path", { d: area(lo, Math.min(0, top)), fill: css("--neutral"), opacity: 0.45 }));
-  svg.append(svgEl("path", { d: area(Math.max(0, lo), top), fill: css("--blue"), opacity: 0.75 }));
-  const curve = [];
-  for (let i = 0; i <= 120; i++) { const v = lo + (top - lo) * i / 120; curve.push(`${X(v).toFixed(1)},${Y(dens(v)).toFixed(1)}`); }
-  svg.append(svgEl("polyline", { points: curve.join(" "), fill: "none", stroke: css("--text-2"), "stroke-width": 2 }));
-  svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: css("--grid") }));
-  svg.append(svgEl("line", { x1: X(0), x2: X(0), y1: m.t - 8, y2: Y(0), stroke: css("--text"), "stroke-dasharray": "3 3" }));
-  svg.append(svgEl("text", { x: X(0) + 4, y: m.t - 10, fill: css("--text") }, `tie: win ${pct(h.win)}`));
-  svg.append(svgEl("line", { x1: X(mu), x2: X(mu), y1: Y(1), y2: Y(0), stroke: css("--text-2") }));
+  svg.append(svgEl("path", { d: area(lo, 0), fill: css("--orange"), opacity: 0.6 }));
+  svg.append(svgEl("path", { d: area(0, top), fill: css("--blue"), opacity: 0.75 }));
+  svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: css("--muted") }));
+  svg.append(svgEl("line", { x1: X(0), x2: X(0), y1: m.t - 6, y2: Y(0), stroke: css("--text"), "stroke-width": 1.5 }));
+  svg.append(svgEl("text", { x: X(0), y: m.t - 10, "text-anchor": "middle", fill: css("--text") }, "even"));
+  svg.append(svgEl("line", { x1: X(mu), x2: X(mu), y1: Y(1), y2: Y(0), stroke: css("--text"), "stroke-dasharray": "3 3" }));
+  const near = Math.abs(X(mu) - X(0)) < 70;  // keep "most likely" clear of "even"
+  svg.append(svgEl("text", { x: X(mu), y: Y(1) - 4 + (near ? 14 : 0), fill: css("--text"), "font-weight": 600,
+                             "text-anchor": X(mu) > W - 90 ? "end" : X(mu) < 90 ? "start" : "middle" }, `most likely: ${by(mu)}`));
   const step = sd > 60 ? 50 : 25;
   for (let t = Math.ceil(lo / step) * step; t <= top; t += step)
-    svg.append(svgEl("text", { x: X(t), y: H - 8, "text-anchor": "middle" }, t > 0 ? `+${t}` : t));
-  svg.append(svgEl("text", { x: X(mu), y: Y(1) - 4, "text-anchor": X(mu) > W - 90 ? "end" : X(mu) < 90 ? "start" : "middle" },
-                   `expected ${signed(mu, 0)}`));
+    svg.append(svgEl("text", { x: X(t), y: H - 24, "text-anchor": "middle" }, Math.abs(t)));
+  svg.append(svgEl("text", { x: m.l, y: H - 6 }, "← they win by"));
+  svg.append(svgEl("text", { x: W - m.r, y: H - 6, "text-anchor": "end" }, "you win by →"));
   const hit = svgEl("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" });
   hit.addEventListener("pointermove", e => {
     const r = svg.getBoundingClientRect(), v = lo + ((e.clientX - r.left) * W / r.width - m.l) / (W - m.l - m.r) * (top - lo);
-    showTip(e, [`Final margin ${signed(v, 0)}`, `Chance you finish above it: ${pct(1 - Phi((v - mu) / sd))}`]);
+    const z = (v - mu) / sd;
+    showTip(e, v >= 0 ? [`You win by ${f0(v)} or more`, `${pct(1 - Phi(z))} of outcomes`]
+                      : [`They win by ${f0(-v)} or more`, `${pct(Phi(z))} of outcomes`]);
   });
   hit.addEventListener("pointerleave", hideTip);
   svg.append(hit);
-  card.append(el("h3", { style: "margin:14px 0 2px;font-size:14px" }, "The final margin, you minus them"));
+  card.append(el("h3", { style: "margin:14px 0 2px;font-size:14px" }, "How the week could end"));
   card.append(svg);
+  const legend = el("div", { class: "legend" });
+  legend.append(key("--orange", `They win: ${pct(1 - h.win)}`), key("--blue", `You win: ${pct(h.win)}`));
+  card.append(legend);
   const lost = [["you", h.me], ["they", h.them]].filter(([, t]) => t.goalie_lost > 0.5)
-    .map(([who, t]) => `${who === "you" ? "Your" : "Their"} goalies reach 3 starts ${pct(t.goalie_min)}: the minimum costs ${f1(t.goalie_lost)} pts expected.`);
-  card.append(el("div", { class: "note" },
-    `${signed(mu, 0)} ± ${f0(sd)} pts. Blue: the outcomes you win. Banked points count in full, the rest at 80% of its ` +
-    `projected size (how projected margins have come true). ${lost.join(" ")}`));
+    .map(([who, t]) => `${who === "you" ? "Your" : "Their"} goalies reach 3 games ${pct(t.goalie_min)}: the minimum costs ${f1(t.goalie_lost)} pts expected.`);
+  card.append(el("div", { class: "note", style: "margin-top:6px" },
+    `Most likely you ${by(mu)} pts, give or take ${f0(sd)}. The area is how often each final margin happens: ` +
+    `blue is the share you win. ${lost.join(" ")}`));
   return card;
 }
 
@@ -747,7 +758,7 @@ function playersCard() {
            r.pts ? "" : "muted");
   });
   if (t.goalie_lost > 0.05)
-    barRow(box, "Goalie minimum", "", el("span", { class: "note" }, `${pct(h.goalie_min)} to reach 3 starts`),
+    barRow(box, "Goalie minimum", "", el("span", { class: "note" }, `${pct(h.goalie_min)} to reach 3 games`),
            `−${f1(t.goalie_lost)}`, null);
   box.append(el("div", { class: "rule" }));
   const sum = el("div", { class: "row" });
@@ -763,12 +774,14 @@ function playersCard() {
 function statsCard() {
   const T = data.teams;
   if (!T || !T.me || !T.them) return null;
+  if (statView === "stats" && T.me.stats && T.them.stats) return statCountsCard(T);
   const cats = Object.keys(T.me.by_stat).filter(c => c !== "Goalies");
   const vals = cats.flatMap(c => [T.me.by_stat[c], T.them.by_stat[c] ?? 0]);
   const lo = Math.min(0, ...vals), hi = Math.max(1, ...vals);
   const card = el("section", { class: "card" });
+  if (T.me.stats) card.append(statTabs());
   card.append(el("h2", {}, "Where the points come from"));
-  card.append(el("div", { class: "note" }, "Rest of the week by stat, you and them."));
+  card.append(el("div", { class: "note" }, "Rest of the week: fantasy points by stat, you and them."));
   const box = el("div", { class: "bars", style: "margin-top:8px" });
   cats.forEach(c => {
     const a = T.me.by_stat[c], b = T.them.by_stat[c] ?? 0;
@@ -787,7 +800,35 @@ function statsCard() {
   });
   card.append(box);
   card.append(el("div", { class: "note", style: "margin-top:6px" },
-    "Goalies are net of what the 3-start minimum costs (it can zero the week's goalie points, banked ones too)."));
+    "Goalies are net of what the 3-game minimum costs (it can zero the week's goalie points, banked ones too)."));
+  const legend = el("div", { class: "legend" });
+  legend.append(key("--blue", "You"), key("--orange", data.opponent));
+  card.append(legend);
+  return card;
+}
+
+// The same rest of the week as a stat line: expected totals, each row on its own scale.
+function statCountsCard(T) {
+  const card = el("section", { class: "card" });
+  card.append(statTabs(), el("h2", {}, "Where the points come from"));
+  card.append(el("div", { class: "note" }, "Rest of the week: expected stat totals, you and them."));
+  const box = el("div", { class: "bars", style: "margin-top:8px" });
+  Object.keys(T.me.stats).forEach(c => {
+    const a = T.me.stats[c], b = T.them.stats[c] ?? 0;
+    const tip = [c, `You: ${f1(a)}`, `${data.opponent}: ${f1(b)}`, `Difference: ${signed(a - b)}`];
+    const bar = track([{ v: a, token: "--blue", alone: true, top: "0", h: "45%", tip },
+                       { v: b, token: "--orange", alone: true, top: "55%", h: "45%", tip }],
+                      Math.min(0, a, b), Math.max(0.1, a, b), "pair");
+    barRow(box, c, "", bar, valSub(f1(a), `/ ${f1(b)}`), null);
+  });
+  box.append(el("div", { class: "rule" }));
+  const row = el("div", { class: "row" });
+  row.append(el("span", { class: "lbl", style: "grid-column: span 2" }, "Goalie starts"),
+             el("span", { class: "val num" }, `${f1(T.me.goalie_starts)} / ${f1(T.them.goalie_starts)}`));
+  box.append(row);
+  card.append(box);
+  card.append(el("div", { class: "note", style: "margin-top:6px" },
+    "Each bar is scaled to its own row: compare you and them, not one stat with another."));
   const legend = el("div", { class: "legend" });
   legend.append(key("--blue", "You"), key("--orange", data.opponent));
   card.append(legend);
@@ -799,7 +840,8 @@ let sheet = null;  // {kind: "player" | "move", id}
 function openSheet(kind, id) { sheet = { kind, id }; drawSheet(); }
 function closeSheet() { sheet = null; hideTip(); document.querySelector(".backdrop")?.remove(); }
 function drawSheet() {
-  document.querySelector(".backdrop")?.remove();
+  const old = document.querySelector(".backdrop"), scrolled = old ? old.firstChild.scrollTop : 0;
+  old?.remove();
   if (!sheet || CARD) return;
   const body = sheet.kind === "player" ? playerSheet(sheet.id) : moveSheet(sheet.id);
   if (!body) { sheet = null; return; }
@@ -811,6 +853,7 @@ function drawSheet() {
   back.append(box);
   back.addEventListener("click", e => { if (e.target === back) closeSheet(); });
   document.body.append(back);
+  box.scrollTop = scrolled;
   close.focus({ preventScroll: true });
 }
 addEventListener("keydown", e => { if (e.key === "Escape" && sheet) closeSheet(); });
@@ -826,6 +869,11 @@ function kvTable(head, rows, sumLast = false) {
   return t;
 }
 function perGameBars(players, tokens) {
+  if (statView === "stats" && players.every(p => p.stats)) {  // the stat line a game (a start), side by side
+    const per = players[0].goalie ? "a start" : "a game";
+    return kvTable(["", ...players.map(p => players.length > 1 ? lastName(p.name) : per)],
+                   Object.keys(players[0].stats).map(c => [c, ...players.map(p => f2(p.stats[c]))]));
+  }
   // One row per stat group: each player's points per game (one bar each; paired when two).
   const cats = Object.keys(players[0].per_game || {});
   const vals = cats.flatMap(c => players.map(p => (p.per_game || {})[c] || 0));
@@ -869,7 +917,7 @@ function playerSheet(id) {
   if (p.goalie) {
     add("Start share", pct(p.share));
   } else {
-    add("Ice time", `${f1(p.toi)} min (PP ${f1(p.pp_toi)})`);
+    add("Ice time", `${mmss(p.toi)} a game (PP ${mmss(p.pp_toi)})${p.gp ? ", this season" : ", projected"}`);
     add("Tonight", p.play >= 0.95 ? "plays" : `${pct(p.play)} to play${p.note ? ` (${p.note})` : ""}`);
     add("Games projected", pct(p.durability));
     add("Long-run points kept", p.replacement != null ? `${pct(p.kept)} (missed games streamed at ${f2(p.replacement)})` : pct(p.kept));
@@ -881,7 +929,9 @@ function playerSheet(id) {
   hero.append(facts);
   out.push(hero);
   if (p.per_game) {
-    out.push(el("h3", {}, p.goalie ? "A start, by stat" : "A game, by stat"));
+    const tabs = statTabs();
+    tabs.style.marginTop = "10px";
+    out.push(tabs, el("h3", {}, p.goalie ? "A start, by stat" : "A game, by stat"));
     out.push(perGameBars([p], ["--blue"]));
   }
   if (p.goalie && p.starts && !p.starts.length) out.push(el("p", { class: "aside" }, "No starts left this week."));
@@ -982,15 +1032,17 @@ function moveSheet(moveKey) {
   const a = person(r.add.id), d = r.drop ? person(r.drop.id) : null;
   if (a) {
     const both = d && !!d.goalie === !!a.goalie;
-    out.push(el("h3", {}, both ? `${a.goalie ? "A start" : "A game"}: ${lastName(a.name)} vs ${lastName(d.name)}` : `${lastName(a.name)}, ${a.goalie ? "a start" : "a game"}`));
+    const tabs = statTabs();
+    tabs.style.marginTop = "10px";
+    out.push(tabs, el("h3", {}, both ? `${a.goalie ? "A start" : "A game"}: ${lastName(a.name)} vs ${lastName(d.name)}` : `${lastName(a.name)}, ${a.goalie ? "a start" : "a game"}`));
     out.push(perGameBars(both ? [a, d] : [a], ["--blue", "--orange"]));
     if (both) {
       const legend = el("div", { class: "legend" });
       legend.append(key("--blue", `${a.name} (add)`), key("--orange", `${d.name} (drop)`));
-      out.push(legend);
+      if (statView !== "stats") out.push(legend);  // the stat table names its columns
       if (!a.goalie)
         out.push(kvTable(["", lastName(a.name), lastName(d.name)], [
-          ["Ice time (PP)", `${f1(a.toi)} (${f1(a.pp_toi)})`, `${f1(d.toi)} (${f1(d.pp_toi)})`],
+          ["Ice time a game (PP)", `${mmss(a.toi)} (${mmss(a.pp_toi)})`, `${mmss(d.toi)} (${mmss(d.pp_toi)})`],
           ["Games this season", String(a.gp), String(d.gp)],
           ["Tonight", pct(a.play) + (a.note ? ` ${a.note}` : ""), pct(d.play) + (d.note ? ` ${d.note}` : "")],
           ["Games projected", pct(a.durability), pct(d.durability)],

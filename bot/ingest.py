@@ -398,6 +398,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     mine_ids = {p.id for p in players}
     rostered = teams.rostered_ids(league) | mine_ids
     changes: dict[str, list[str]] = {}
+    taken_by_others: set[int] = set()
     problems = []
 
     def find(shown: dict, prefer: set[int]):
@@ -428,8 +429,10 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
                 gm_state.record_add(state, p.id, p.name, _tx_nhl_date(when), "transactions", already_mine)
             if already_mine:
                 return
-        elif when:  # how much each team streams (opponent profiles, logged before they're used)
-            state["league_adds"].setdefault(team, []).append(_tx_nhl_date(when).isoformat())
+        else:
+            taken_by_others.add(p.id)
+            if when:  # how much each team streams (opponent profiles, logged before they're used)
+                state["league_adds"].setdefault(team, []).append(_tx_nhl_date(when).isoformat())
         changes.setdefault(team, []).append(f"+{p.name}")
 
     def drop(team: str, p, when: str | None = None) -> None:
@@ -484,8 +487,11 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     times = sorted(f[0] for f in fresh)
     lines = [f"Transactions: {len(fresh)} new ({_tx_label(times[0])} - {_tx_label(times[-1])})."]
     lines += [f"{team}: {', '.join(moves)}" for team, moves in changes.items()]
-    pending = [rec["add"]["name"] for rec in state["pending"].values()
-               if rec["type"] == "add" and rec["add"]["id"] in teams.rostered_ids(league)]
+    # Suggested adds these transactions show going to another team, each once
+    # (pending keeps every card of a week, many for the same player).
+    pending = list(dict.fromkeys(rec["add"]["name"] for rec in state["pending"].values()
+                                 if rec["type"] == "add" and rec["add"]["id"] in taken_by_others
+                                 and holder(rec["add"]["id"]) not in (None, MY_TEAM)))
     if pending:
         lines.append(f"Taken since I suggested them: {', '.join(pending)}. Send /week for the next best.")
     if had_seen and not overlap:

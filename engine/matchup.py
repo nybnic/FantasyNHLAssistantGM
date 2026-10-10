@@ -46,6 +46,10 @@ from league.roster import BENCH, IR_SLOTS, RosterPlayer, active
 SKATER_VARIANCE_PER_XFP = 2.5
 GOALIE_START_VARIANCE = 21.0
 TYPICAL_START_XFP = 8.8  # 2025-26 average points per goalie start
+# A relief appearance counts toward the goalie minimum (Yahoo's goalie games
+# are games played), so a finished day's lineup keeps him in a G slot over an
+# empty one, behind a starter. Only the order matters: a judgment call.
+RELIEF_SHARE = 0.5
 MODEL_SD_SHARE = 0.08  # projection error, as a share of a team's rest-of-week points (a guess)
 
 ACTIVE_SPOTS = sum(STARTERS.values()) + BENCH_SLOTS
@@ -296,7 +300,7 @@ def _so_far(roster, ctx, days, history: dict[dt.date, list[RosterPlayer]] | None
                 played[p.id] = (p, game)
         candidates = [
             lineup.Candidate(pid, tuple(p.positions),
-                             TYPICAL_START_XFP * game.started if p.is_goalie else ctx.skater(pid, _position(p)).xfp)
+                             TYPICAL_START_XFP * (1.0 if game.started else RELIEF_SHARE) if p.is_goalie else ctx.skater(pid, _position(p)).xfp)
             for pid, (p, game) in played.items()
         ]
         for pid, slot in lineup.optimize(candidates).items():
