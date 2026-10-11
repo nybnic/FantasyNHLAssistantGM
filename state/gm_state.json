@@ -544,6 +544,24 @@
       "message_id": 321,
       "type": "add"
     },
+    "add-2026-10-11-0652-8474716": {
+      "add": {
+        "id": 8474716,
+        "name": "Jared Spurgeon",
+        "positions": [
+          "D"
+        ],
+        "slot": null,
+        "team": "MIN"
+      },
+      "add_slot": null,
+      "date": "2026-10-11",
+      "drop": 8476902,
+      "drop_name": "Esa Lindell",
+      "ir": {},
+      "message_id": 325,
+      "type": "add"
+    },
     "lineup-2026-10-01-1630": {
       "assignment": {
         "8474564": "RW",
@@ -693,7 +711,7 @@
     }
   },
   "plan": {
-    "at": "2026-10-11T05:09+00:00",
+    "at": "2026-10-11T06:52+00:00",
     "moves": [
       {
         "add": {
@@ -705,13 +723,13 @@
           "team": "MIN"
         },
         "drop": {
-          "id": 8480807,
-          "name": "Mattias Samuelsson"
+          "id": 8476902,
+          "name": "Esa Lindell"
         },
-        "key": "8474716:8480807",
-        "message_id": 321,
-        "rec_id": "add-2026-10-11-0509-8474716",
-        "value": 0.2598,
+        "key": "8474716:8476902",
+        "message_id": 325,
+        "rec_id": "add-2026-10-11-0652-8474716",
+        "value": 0.1033,
         "when": "2026-10-11",
         "why": "spare"
       }
@@ -857,7 +875,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784627,
+  "telegram_offset": 929784628,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -869,7 +887,7 @@
       "sent": "2026-10-01T07:15+00:00"
     },
     "2": {
-      "midweek": "2026-10-10T05:19+00:00",
+      "midweek": "2026-10-11T06:52+00:00",
       "sent": "2026-10-05T05:13+00:00"
     }
   },
