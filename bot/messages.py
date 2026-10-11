@@ -33,7 +33,8 @@ def _detail(p: Planned) -> str:
         if m.later_value + sum(m.ahead_wins) >= 0.01:
             head += f", +{100 * m.value:.0f} win-pts in all"
     else:
-        head = f"+{100 * m.value:.0f} win-pts, a keeper"
+        # A streaming swap pays in the weeks ahead, not the season (matchup.keep_share).
+        head = f"+{100 * m.value:.0f} win-pts, " + ("a keeper" if m.keep >= 0.5 else "for the weeks ahead")
     when = {"spare": "uses this week's slot, so next week's two adds stay free",
             "monday": "it does nothing this week, so it takes next week's add",
             "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)

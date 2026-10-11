@@ -1,5 +1,6 @@
 """The plan's words (bot/messages.py), read whole: a phone-sized message
 that leads with the action and never contradicts itself."""
+import dataclasses
 import datetime as dt
 
 from bot import messages
@@ -37,6 +38,8 @@ def test_the_plan_message_leads_with_the_matchup_then_what_to_do_and_stays_short
                         "week's slot, so next week's two adds stay free).")
     assert lines[2] == ("For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. "
                         "Not worth an add: 6 win-pts in all, against the 10 an add costs.")
+    swap = dataclasses.replace(kelly, keep=0.0, held=True)  # a streaming swap pays in the weeks ahead, not the season
+    assert "(+31 win-pts, for the weeks ahead; uses" in _text([plan.Planned(swap, FRIDAY, "spare")]).splitlines()[1]
     costly = _move("Mathieu Olivier", LINDELL, 0.22, long_term=-11.0, week_gain=5.8)  # -10 win-pts later
     assert "Not worth an add: -4 win-pts in all, as dropping Esa Lindell costs 10 later, against the 10" in _text(
         [plan.Planned(kelly, FRIDAY, "spare")], best=costly)

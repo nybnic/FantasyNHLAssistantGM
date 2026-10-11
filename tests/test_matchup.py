@@ -687,3 +687,31 @@ def test_projected_missed_games_cost_only_a_players_edge_over_a_streamer():
     assert matchup.durability(ctx, star, 8.0) == pytest.approx(1 - 0.2 * 4.0 / 8.0)  # a missed game costs 8 - 4
     assert matchup.durability(ctx, fringe, 4.1) == pytest.approx(1 - 0.2 * 0.1 / 4.1)  # streamed at about his level
     assert matchup.durability(ctx, fringe, 3.5) == 1.0  # below replacement: nothing to lose
+
+
+def test_a_swaps_later_points_ramp_from_the_hold_to_the_season_above_the_streaming_line():
+    start = dt.date(2026, 10, 12)
+    future = {start + dt.timedelta(days=i): [] for i in range(42)}
+    gain = {d: 1.0 for d in future}
+    held = set(sorted(future)[:21])
+    season = matchup.horizon(gain, future, [], 20, 0.009, held, keep=1.0)[2]
+    hold = matchup.horizon(gain, future, [], 20, 0.009, held, keep=0.0)[2]
+    assert season == pytest.approx(0.5 * 7 * 20) and hold == pytest.approx(21.0)
+    assert matchup.horizon(gain, future, [], 20, 0.009, held, keep=0.25)[2] == pytest.approx(0.75 * hold + 0.25 * season)
+
+    ctx = FakeContext()
+    ctx.xfp = {1: 3.0, 2: 3.5, 3: 4.0, 9: 3.6}  # free agents' level 3.6 (one in the sample)
+    me = [RosterPlayer(i, f"P{i}", "SEA", ["C"]) for i in (1, 2, 3)]
+    fa = [RosterPlayer(9, "Free", "NYR", ["C"])]
+    levels = matchup.waiver_levels(fa, ctx, {})
+    spots, line = {1}, matchup.waiver_gap(me[0], levels, ctx, {})  # P1 streams: line -0.6
+    keeper = RosterPlayer(8, "Keeper", "NYR", ["C"])
+    ctx.xfp[8] = 5.0
+    assert matchup.keep_share(keeper, me[0], spots, line, levels, ctx, {}) == 0.0  # a streaming spot's drop
+    # P2 is 0.5 a game above the line: half the season; the lower of the two counts.
+    assert matchup.keep_share(keeper, me[1], spots, line, levels, ctx, {}) == pytest.approx(0.5)
+    weak = RosterPlayer(7, "Weak", "NYR", ["C"])
+    ctx.xfp[7] = 3.2  # he'd be streamed himself
+    assert matchup.keep_share(weak, me[2], spots, line, levels, ctx, {}) == pytest.approx(0.2)
+    assert matchup.keep_share(keeper, me[2], spots, line, levels, ctx, {}) == 1.0  # P3 is 1.0 above: a keeper
+    assert matchup.keep_share(keeper, None, spots, line, levels, ctx, {}) == 1.0  # an open spot: the add's own

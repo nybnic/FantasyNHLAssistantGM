@@ -74,6 +74,7 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "ahead_pts": _r(move.ahead_pts),
         "ahead_week_pts": [_r(x) for x in move.ahead_week_pts],
         "held": move.held,
+        "keep": _r(move.keep, 3),  # the season's share of the later points (matchup.keep_share)
         "later_wins": _r(move.later_value, 4),
         "value": _r(move.value, 4),
         "status": state,

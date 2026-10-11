@@ -1105,7 +1105,9 @@ function moveSheet(moveKey) {
                pts == null ? "" : signed(pts), w.win == null ? "" : `${pct(w.win)} → ${pct(w.win + dw)}`, wp(dw)]);
   });
   const lr = h.long_run || {};
-  const laterName = r.held ? `Later (a streaming spot: only the ~${lr.hold_days ?? "?"} days he'd be held)`
+  const keep = r.keep ?? (r.held ? 0 : 1);
+  const laterName = keep <= 0 ? `Later (a streaming swap: only the ~${lr.hold_days ?? "?"} days he'd be held)`
+    : keep < 1 ? `Later (${pct(keep)} the season's, ${pct(1 - keep)} only the ~${lr.hold_days ?? "?"} days a streamer is held)`
     : lr.weeks ? `Later (${signed(r.later_pts / (lr.discount * lr.weeks))} a week × ${lr.weeks} weeks × ${lr.discount})` : "Later";
   rows.push([laterName, signed(r.later_pts), `× ${(100 * h.later_weight).toFixed(2)} each`, wp(r.later_wins)]);
   rows.push(["In all", "", h.price ? `the price: ${Math.round(100 * h.price.lam)}` : "", wp(r.value)]);
@@ -1115,7 +1117,8 @@ function moveSheet(moveKey) {
   if (r.plays_from) flags.push(`On waivers: plays from ${fmtDay(r.plays_from)}.`);
   if (r.ir_slot) flags.push(`Goes straight into ${r.ir_slot}; once he's back, ${r.later_drop || "your cheapest player"} is dropped.`);
   if (r.until_back) flags.push(`Later points allow for ${r.until_back} coming back from IR: then the roster's cheapest player is cut.`);
-  if (r.held) flags.push("Drops one of your streaming spots, which get swapped again within a few weeks.");
+  if (keep <= 0) flags.push("A streaming swap: the drop is one of your streaming spots, or the add would be one himself. Either gets swapped again within a few weeks.");
+  else if (keep < 1) flags.push(`Near your streaming spots: the closer the weaker of the two is to waiver level, the less of the season counts (${pct(keep)} here).`);
   if (flags.length) { const ul = el("ul", { class: "flags" }); flags.forEach(f => ul.append(el("li", {}, f))); out.push(ul); }
   const a = person(r.add.id), d = r.drop ? person(r.drop.id) : null;
   if (a) {

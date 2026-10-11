@@ -131,7 +131,7 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
   dashboard and its Telegram card), plus exact days, IR returns in every move, and
   durability over replacement (after Nico's review of the slides).
 - Next: step 5, one replay harness on 2025-26 to score rule changes (wins, playoff and
-  title odds, plan changes a week, adds used). First candidates: `LONG_RUN_DISCOUNT` 0.5,
+  title odds, plan changes a week, adds used). First candidates: `LONG_RUN_DISCOUNT` 0.5, `KEEP_RAMP` 1.0,
   `plan.CHANGE_MARGIN` 0.02, keepers waiting for Wednesday.
 - Untested, and labeled so: durability (DFO projected GP, not archived), the 0.5 long-run
   discount, the 0.02 change margin, opponents streaming (frozen rosters). The add price's

@@ -20,7 +20,8 @@ what they do to P(win):
   whole-lineup projection run over the next LONG_RUN_WEEKS (so an empty D
   slot or thin goalie depth counts), per week, times the weeks left,
   discounted; a swap into one of my streaming spots is credited only its
-  scheduled gain while the streamer would be held (hold_weeks).
+  scheduled gain while the streamer would be held (hold_weeks), and swaps
+  near the streaming spots a blend of the two (keep_share).
 - A move that costs points this week, or a keeper that gains little this
   week, waits for next week's adds. Two goalies or three is judged by
   value too: each week's goalie minimum is priced, never less than two kept.
@@ -91,6 +92,15 @@ STREAMING_SPOTS = 3
 # Plus a third goalie, when I carry one: he's swapped goalie for goalie like
 # any streaming spot. Two goalies are both core (the minimum rests on them).
 GOALIE_STREAMING_SPOTS = 1
+# Between a streaming spot and a keeper, a skater swap's later points are a
+# blend (keep_share, Nico 2026-10-11): the season's share grows from 0 at the
+# streaming line (my 3rd skater from waiver level) to 1 at KEEP_RAMP points a
+# game above it, judged on the lower of the add and the drop (the swap lasts
+# until either would be streamed). It replaced an on/off switch: Samuelsson,
+# 0.003 a game above the line, was credited 22 weeks and McBain on it 3. The
+# ramp's width is a judgment call (1.0: Scheifele and Tuch are keepers, Larsson
+# 42%); the replay harness should fit it.
+KEEP_RAMP = 1.0
 REPLACEMENT_SAMPLE = 3  # free agents averaged for a position's replacement level
 # Drops tried: your lowest long-run players per group (forwards, D, goalies).
 # Per group, because per-player value ranks D low (fewer points a game), so a
@@ -179,6 +189,7 @@ class Move:
     ahead_pts: float = 0.0
     ahead_week_pts: tuple[float, ...] = ()  # ahead_pts week by week
     held: bool = False  # into one of my streaming spots: later points only while he'd be held
+    keep: float = 1.0  # the season's share of the later points (keep_share): 0 = a streaming swap
     # An add into a spot an injured player's IR move opened: who takes it back
     # (his later points count until then, see ir_crunch).
     until_back: str = ""
@@ -527,22 +538,48 @@ def _group(p: RosterPlayer) -> str:
     return "G" if p.is_goalie else "D" if p.positions == ["D"] else "F"
 
 
-def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], ctx,
-                    lines: dict[str, dict[str, LineInfo]]) -> set[int]:
-    """Ids of my STREAMING_SPOTS skaters with the least long-run value above
-    the best free agents at their position (so D and forwards compare fairly),
-    and my GOALIE_STREAMING_SPOTS weakest goalies beyond MIN_GOALIES."""
+def waiver_levels(free_agents: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> dict[str, float]:
+    """Position -> the long-run value of the best free agents there (REPLACEMENT_SAMPLE)."""
     def replacement(position: str) -> float:
         values = sorted((season_value(p, ctx, lines) for p in free_agents
                          if position in p.positions and not p.is_goalie), reverse=True)[:REPLACEMENT_SAMPLE]
         return sum(values) / len(values) if values else 0.0
 
-    levels = {pos: replacement(pos) for pos in ("C", "LW", "RW", "D")}
+    return {pos: replacement(pos) for pos in ("C", "LW", "RW", "D")}
+
+
+def waiver_gap(p: RosterPlayer, levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
+    """A skater's long-run points a game above the free agents at his position."""
+    return season_value(p, ctx, lines) - levels.get(p.positions[0], 0.0)
+
+
+def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], ctx,
+                    lines: dict[str, dict[str, LineInfo]]) -> set[int]:
+    """Ids of my STREAMING_SPOTS skaters with the least long-run value above
+    the best free agents at their position (so D and forwards compare fairly),
+    and my GOALIE_STREAMING_SPOTS weakest goalies beyond MIN_GOALIES."""
+    levels = waiver_levels(free_agents, ctx, lines)
     skaters = [p for p in mine if not p.is_goalie]
-    by_gap = sorted(skaters, key=lambda p: season_value(p, ctx, lines) - levels.get(p.positions[0], 0.0))
+    by_gap = sorted(skaters, key=lambda p: waiver_gap(p, levels, ctx, lines))
     goalies = sorted((p for p in mine if p.is_goalie), key=lambda p: season_value(p, ctx, lines))
     spare_goalies = goalies[:GOALIE_STREAMING_SPOTS] if len(goalies) > MIN_GOALIES else []
     return {p.id for p in by_gap[:STREAMING_SPOTS] + spare_goalies}
+
+
+def keep_share(add: RosterPlayer, drop: RosterPlayer | None, spots: set[int], line: float,
+               levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
+    """How much of the season a swap's later gain is credited (KEEP_RAMP): 0 =
+    only while a streamer is held, 1 = the discounted long run. A drop in a
+    streaming spot is 0; goalie swaps stay on/off. `line`: the waiver gap of
+    my streaming spots' best skater."""
+    if drop and drop.id in spots:
+        return 0.0
+    if add.is_goalie or (drop and drop.is_goalie):
+        return 1.0
+    gap = waiver_gap(add, levels, ctx, lines)
+    if drop:
+        gap = min(gap, waiver_gap(drop, levels, ctx, lines))
+    return min(max((gap - line) / KEEP_RAMP, 0.0), 1.0)
 
 
 def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:
@@ -689,6 +726,9 @@ def candidate_moves(
     current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
     current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
     spots = streaming_spots(mine, candidates, ctx, lines)
+    levels = waiver_levels(candidates, ctx, lines)
+    line = max((waiver_gap(p, levels, ctx, lines) for p in mine if p.id in spots and not p.is_goalie),
+               default=-math.inf)  # no streaming spots: every swap is a keeper's
     before = win_prob(current, opponent)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
@@ -711,10 +751,10 @@ def candidate_moves(
         for drop, week, gain in tried:
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
-            # A streaming spot is swapped again after the hold: its scheduled gain, no season.
-            streamer = bool(drop and drop.id in spots)
-            ahead_wins, week_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight,
-                                                      held if streamer else None)
+            # A streaming spot is swapped again after the hold: its scheduled gain, no
+            # season; nearer the keepers, a blend (keep_share).
+            keep = keep_share(add, drop, spots, line, levels, ctx, lines)
+            ahead_wins, week_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight, held, keep)
             moves.append(Move(
                 add=add, drop=drop,
                 week_gain=week.expected - current.expected,
@@ -724,14 +764,17 @@ def candidate_moves(
                 win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
                 plays_from=plays_from,
-                ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=streamer,
+                ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=keep == 0.0,
+                keep=keep,
             ))
-            gains[id(moves[-1])] = (gain, held if streamer else None)
+            gains[id(moves[-1])] = (gain, held)
     moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, weeks_after, later_weight)
     stashes = [p for p in candidates if _ir_status(p, lines)]
     if stashes and current_future and ir.free_slots(roster):
+        keeps = {p.id: (held, keep_share(p, None, spots, line, levels, ctx, lines)) for p in stashes}
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
-                              available_from, so_far, current, current_future, later_weight, team_games, ahead)
+                              available_from, so_far, current, current_future, later_weight, team_games, ahead,
+                              keeps)
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
 
@@ -782,7 +825,7 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
     move's. So an add that would be the one cut when they're back (Kelly when
     Celebrini returns) counts only until then, and one that takes an open
     spot holds it only that long. `gains`: id(move) -> (gain by day, the
-    streaming hold's days or None)."""
+    streaming hold's days); the move keeps its keep_share."""
     hurt = [p for p in roster if p.slot in IR_SLOTS]
     if not hurt or not future:
         return moves
@@ -795,7 +838,7 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
         trial = with_returns(_swap(roster, m.add, m.drop), ctx, future, lines, starters)
         after = {d: trial.by_day.get(d, 0.0) - base.by_day.get(d, 0.0) for d in future}
         mixed = {d: (1 - odds[d]) * gain.get(d, 0.0) + odds[d] * after[d] for d in future}
-        ahead_wins, week_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held)
+        ahead_wins, week_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held, m.keep)
         changed = abs(sum(after.values()) - sum(gain.values())) > 0.5
         out.append(dataclasses.replace(m, ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
                                        long_term=long_term,
@@ -806,31 +849,44 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
 
 
 def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], weeks_after: int,
-            later_weight: float, held: set | None = None) -> tuple[tuple[float, ...], tuple[float, ...], float]:
+            later_weight: float, held: set | None = None, keep: float = 0.0
+            ) -> tuple[tuple[float, ...], tuple[float, ...], float]:
     """A move's gain by day after this week, valued: (P(win) change in each week
     ahead, the points counted in each, long-run points after them). The long
     run: the gain per week over all of `future` (LONG_RUN_WEEKS: fewer weeks
     let one team's schedule swing it, 2026-10-01; the weeks ahead are in the
     average but not counted again), times the weeks left after the ones
     ahead, discounted (LONG_RUN_DISCOUNT). `held`: a streaming spot's days
-    (hold_weeks): only those count, ahead or later, and no season."""
-    ahead_wins, ahead_pts = ahead_value(gain, ahead, later_weight, held)
-    if held is not None:
-        near = set().union(*(w.days for w in ahead)) if ahead else set()
-        return ahead_wins, ahead_pts, sum(gain.get(d, 0.0) for d in future if d in held and d not in near)
+    (hold_weeks): only those count, ahead or later, and no season; with `keep`
+    (keep_share) between 0 and 1, that and the season blended."""
+    ahead_wins, ahead_pts = ahead_value(gain, ahead, later_weight)
     per_week = sum(gain.get(d, 0.0) for d in future) / (len(future) / 7) if future else 0.0
-    return ahead_wins, ahead_pts, LONG_RUN_DISCOUNT * per_week * max(weeks_after - len(ahead), 0)
+    season = LONG_RUN_DISCOUNT * per_week * max(weeks_after - len(ahead), 0)
+    if held is None or keep >= 1.0:
+        return ahead_wins, ahead_pts, season
+    held_wins, held_pts = ahead_value(gain, ahead, later_weight, held)
+    near = set().union(*(w.days for w in ahead)) if ahead else set()
+    while_held = sum(gain.get(d, 0.0) for d in future if d in held and d not in near)
+    if keep <= 0.0:
+        return held_wins, held_pts, while_held
+
+    def mix(a: float, b: float) -> float:
+        return (1 - keep) * a + keep * b
+
+    return (tuple(mix(a, b) for a, b in zip(held_wins, ahead_wins)),
+            tuple(mix(a, b) for a, b in zip(held_pts, ahead_pts)), mix(while_held, season))
 
 
 def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after, available_from,
                  so_far, current: TeamWeek, current_future: TeamWeek, later_weight, team_games,
-                 ahead: list[WeekAhead] | None = None) -> list[Move]:
+                 ahead: list[WeekAhead] | None = None, keeps: dict | None = None) -> list[Move]:
     """Injured free agents added straight into an empty IR or IR+ slot: no drop
     now; once he's back, the player cheapest to lose goes. Valued as an extra
     player whose games follow the return curves, less that drop's points on
     each day times the odds the stash is back by then. Slightly conservative:
     the drop's points are counted as they are without the stash competing for
-    his slot."""
+    his slot. `keeps`: id -> (the streaming hold's days, his keep_share): a
+    stash near waiver level is streamed out again too."""
     free = ir.free_slots(roster)
     mine = active(roster)
     goalies = sum(p.is_goalie for p in mine)
@@ -868,13 +924,14 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
         week = dataclasses.replace(week, expected=week.expected - cost(current, week_without, current.by_day))
         gain = {d: later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0)
                 - back(d) * (current_future.by_day.get(d, 0.0) - future_without.by_day.get(d, 0.0)) for d in future}
-        ahead_wins, week_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight)
+        held, keep = (keeps or {}).get(add.id, (None, 1.0))
+        ahead_wins, week_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight, held, keep)
         moves.append(Move(
             add=add, drop=None, week_gain=week.expected - current.expected,
             long_term=long_term, next_weeks=sum(gain[d] for d in soon),
             games=team_games.get(add.team, 0), win_before=before, win_after=win_after(current, week, opponent),
             later_weight=later_weight, plays_from=plays_from, ir_slot=slot, later_drop=drop,
-            ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
+            ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=keep == 0.0, keep=keep,
         ))
     return moves
 

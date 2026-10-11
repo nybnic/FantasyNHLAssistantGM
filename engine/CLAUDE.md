@@ -56,6 +56,12 @@
   credited only its scheduled gain while the streamer would be held: spots /
   the affordable adds a week (`hold_weeks`, ~3 weeks at 1.3 adds a week),
   counting the rest of this week; the weeks ahead count only those days too.
+  Other skater swaps blend the two (`keep_share`): the season's share is 0 at
+  the streaming line (the best of those 3 skaters' gap over waiver level) and
+  grows to 1 at `KEEP_RAMP` (1.0) points a game above it, on the lower of the
+  add's gap and the drop's (the swap lasts until either would be streamed).
+  An add who'd be a streaming spot himself, or an IR stash near waiver level,
+  is counted the same way. Goalie swaps stay on/off.
 - **Value** (in win-pts, percentage points of a weekly win) = this week's change
   in P(win) + each week ahead's + later points x `later_weight` (what a point
   does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), sigma = a typical full
@@ -94,6 +100,7 @@
 | Date | Decision | Why |
 |---|---|---|
 | 2026-10-10 | **DFO's injury status decides, not its injured section** (Nico) | DFO lists every injured player in its injured section ("ir" group) whatever his status; the bot read all of them as NHL IR (the slow, 3+ game return curve, and IR-slot eligible). Celebrini sat there "dtd" after 2 missed games: read as IR, 29% to play 3-6 days on and 59% at six weeks. On Oct 10, 53 of 86 players in that section were "out" (27) or "dtd" (26). Now: "ir", or the section with no status, is IR; "out" follows the curve for his games missed (Yahoo tag O: IR+ only); "dtd" there is out tonight (off the chart), then `DTD_RETURN`. Effect that day: Spurgeon for Lindell +10.9 -> +9.5, for Samuelsson +10.7 -> +10.8 (the plan kept, under the change margin); the Marchand stash went (out, so IR+ only, which Celebrini holds). `DTD_RETURN` stays a judgment call: the DFO archive (`bot/dfo_archive.py`, daily since Oct 6) is what can fit it |
+| 2026-10-11 | **Later points ramp from the streaming hold to the season** (Nico: option 2 of three), on the lower of the add's and the drop's gap over waiver level (`keep_share`, `KEEP_RAMP` 1.0 points a game) | The on/off switch credited the 4th skater from waiver level the season and the 3rd only the ~3-week hold. Samuelsson and McBain were 0.003 a game apart (-0.36 each): Spurgeon for Samuelsson +19 win-pts (12 later), the same D upgrade for Lindell +10 (1.5 later). An add who'd be a streaming spot himself got the season too (Dach, Landeskog). After: Spurgeon for Samuelsson keeps 1% of the season, +7.7, under the 9.0 price; the plan became Spurgeon for Lindell (+10). Ramp width untested: for the replay harness |
 | 2026-09-29 | Optimize P(win this week), not season points | H2H: only beating this week's opponent counts |
 | 2026-09-29 | ~~**Always keep 3 goalies** (policy A, Nico)~~ Superseded 2026-10-02: goalie count by value | Season sim: 2G + a skater = +35 pts, but 2.5 vs 1.1 weeks with goalie points zeroed, plus goalie streams cost adds |
 | 2026-10-02 | **Two goalies or three is judged by value** (Nico: "based on analytical estimates"); never fewer than two | The long run now checks the goalie minimum each week (it had checked a 6-week block: "100%") and weighs a goalie lost for the week (`availability.GOALIE_KEEP`, fit on game logs), so a third goalie is kept, dropped or added like any move. `scripts/sim_goalies.py`, 2025-26, 8 leagues x 16 teams: by-value + like-for-like swaps +0.05 wins a season vs always-3 + swaps (+/- 0.10), carrying 2.87 goalies; always-2 -0.65 (+/- 0.18) vs always-3, -1.01 with swaps, with twice the weeks zeroed. So by value is as good as three and clearly better than two |
@@ -131,4 +138,4 @@
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
-`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
+`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `KEEP_RAMP` 1.0 (points a game above the streaming line where a swap counts the whole season), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
