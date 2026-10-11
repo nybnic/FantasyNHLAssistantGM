@@ -1,0 +1,479 @@
+"""The replay harness: the 2025-26 season played under rule variants, scored in wins.
+
+Leagues of 16 teams snake-drafted on preseason projections (scripts/check_sigma.py:
+3 C, 2 LW, 2 RW, 4 D, 3 G, NHL positions). Every team in turn is managed by
+the bot's add rule while the other 15 are managed lazily (a goalie who lost
+his role, or a skater out 10+ team games, is replaced by the best free agent
+at his position). Each Monday the managed team weighs every skater swap
+(free agents shortlisted per position by this week and by season value,
+times its 2 weakest forwards and D) the way engine/matchup.py does:
+- this week: the change in P(win) against that week's real opponent
+  (margin at MARGIN_REALIZES, the gain in full);
+- the next 2 weeks against their opponents (matchup.ahead_value: margins at
+  MARGIN_REALIZES_AHEAD, gains at GAP_REALIZES);
+- later points (matchup.horizon: the 6-week rate x the weeks left x
+  LONG_RUN_DISCOUNT, a streaming swap only over the hold, the keep share in
+  between) x later_weight (a typical week's sigma and the league's tau);
+and makes the best one (then the next, at most 2 a week) when it beats the
+add price, within the budget's pace (30 regular-season adds; 6 kept for the
+playoffs). Projections: priors aged as the bot's, this season's games before
+that Monday; a skater who missed games returns along availability's curves.
+Scored on what happened: each day's best projected lineup among the players
+who played, the goalie minimum. Wins against the week's opponent (random
+pairings, the same for every variant), paired by team.
+
+Variants (--variants, default all): the keep share (`KEEP_RAMP`, the on/off
+switch it replaced, all hold, all season), the streaming spots
+(`STREAMING_SPOTS`), `LONG_RUN_DISCOUNT`, and the price. One variant is the
+reference; the others are reported as wins a season vs it (+/- SE, paired).
+
+Simplifications, labeled: single NHL positions (Yahoo gives many two); goalies
+aren't streamed (a third goalie kept, replaced only when he loses his role);
+decisions on Mondays only; each team manages alone (the free-agent pool
+ignores the other teams' pickups); no IR slots; lineups set knowing who plays.
+
+    python -m scripts.replay                       # 4 leagues, all variants
+    python -m scripts.replay --leagues 8 --workers 4
+    python -m scripts.replay --variants "ramp 1.0" "switch" "spots 2"
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import math
+import random
+from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
+from statistics import mean
+
+from clients import nhl_stats
+from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
+from engine import addprice, availability, matchup
+from league.roster import RosterPlayer
+from model.projections import aged, project_goalie, project_skater
+from scripts.backtest import history_of
+from scripts.check_sigma import POS, TARGET, draft, load
+
+SLOTS = {"C": 2, "LW": 2, "RW": 2, "D": 4}
+REGULAR_ADDS = 30  # 36 less the 6 kept for the playoffs
+PRICE = 0.09  # win-pts an add must buy: about the bot's (8.9-9.1, Oct 10-11)
+LAZY_OUT_GAMES = 10  # a lazy manager replaces a skater out this many team games
+LOST_ROLE = 0.15  # a goalie under this share of his team's last 10 starts has lost his role
+REFERENCE = "ramp 1.0"
+# name -> (keep rule, streaming spots, long-run discount, price). keep: a ramp
+# width in points a game, "switch" (the rule before 2026-10-11: a streaming
+# spot's drop holds, any other the season), 0.0 (every swap only while held)
+# or "season" (every swap the season).
+VARIANTS = {
+    "ramp 1.0": (1.0, 3, 0.5, PRICE),
+    "ramp 0.5": (0.5, 3, 0.5, PRICE),
+    "ramp 2.0": (2.0, 3, 0.5, PRICE),
+    "switch": ("switch", 3, 0.5, PRICE),
+    "all hold": (0.0, 3, 0.5, PRICE),
+    "all season": ("season", 3, 0.5, PRICE),
+    "spots 2": (1.0, 2, 0.5, PRICE),
+    "spots 4": (1.0, 4, 0.5, PRICE),
+    "spots 5": (1.0, 5, 0.5, PRICE),
+    "discount 0.35": (1.0, 3, 0.35, PRICE),
+    "no swaps": (1.0, 3, 0.5, math.inf),
+}
+
+
+class Ctx:
+    """What matchup's streaming-spot and keep-share helpers ask of a context."""
+
+    def __init__(self, xfp: dict[int, float]):
+        self._xfp = xfp
+
+    def skater(self, pid, position, before=None):
+        return type("P", (), {"xfp": self._xfp.get(pid, 0.0)})()
+
+
+class Season:
+    """2025-26 as the replay sees it: games, projections by Monday, availability."""
+
+    def __init__(self, season: int = TARGET):
+        s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load(season)
+        born = {}
+        for season_id in (season, *history_of(season)):
+            born.update(nhl_stats.skater_birth_dates(season_id))
+        start = dt.date(season // 10_000, 10, 1)
+        self.s_priors = {pid: aged(p, (start - born[pid]).days / 365.25 if pid in born else None)
+                         for pid, p in s_priors.items()}
+        self.s_fallback, self.g_priors, self.g_fallback = s_fallback, g_priors, g_fallback
+        self.by_skater, self.by_goalie = defaultdict(list), defaultdict(list)
+        for g in skaters:
+            self.by_skater[g.player_id].append(g)
+        for g in goalies:
+            self.by_goalie[g.player_id].append(g)
+        self.goalie_ids = {pid for pid in self.by_goalie if pid not in self.by_skater}
+        self.position = {pid: POS[gs[0].position] for pid, gs in self.by_skater.items()}
+        self.points = {(g.player_id, g.date): fantasy_points(g.stats, SKATER_WEIGHTS) for g in skaters}
+        self.g_points = {(g.player_id, g.date): fantasy_points(g.stats, GOALIE_WEIGHTS) for g in goalies if g.started}
+        self.team_days = defaultdict(set)  # team -> its game dates
+        self.starts = defaultdict(list)  # team -> [(date, goalie id)]
+        for g in goalies:
+            self.team_days[g.team].add(g.date)
+            if g.started:
+                self.starts[g.team].append((g.date, g.player_id))
+        for seq in self.starts.values():
+            seq.sort()
+        self.sorted_days = {t: sorted(ds) for t, ds in self.team_days.items()}
+        first, last = skaters[0].date, skaters[-1].date
+        monday = first + dt.timedelta(days=14 + (7 - (first + dt.timedelta(days=14)).weekday()) % 7)
+        self.mondays = []
+        while monday + dt.timedelta(days=7) <= last:
+            self.mondays.append(monday)
+            monday += dt.timedelta(days=7)
+        self._proj, self._team, self._missed = {}, {}, {}
+
+    def eligible(self, m: dt.date) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
+        """Skaters with 3+ games before `m`, per position: (by this week's
+        expected points, by points a game), best first."""
+        if ("eligible", m) not in self._proj:
+            xfp = self.proj(m)[0]
+            this = [m + dt.timedelta(days=i) for i in range(7)]
+            by_week, by_xfp = {pos: [] for pos in SLOTS}, {pos: [] for pos in SLOTS}
+            for pid, gs in self.by_skater.items():
+                if sum(1 for g in gs if g.date < m) < 3:
+                    continue
+                team = self.team(pid, m)
+                week = sum(xfp.get(pid, 0.0) * self.play(pid, m, d) for d in this if d in self.team_days[team])
+                by_week[self.position[pid]].append((week, pid))
+                by_xfp[self.position[pid]].append((xfp.get(pid, 0.0), pid))
+            self._proj[("eligible", m)] = ({p: [q for _, q in sorted(v, reverse=True)] for p, v in by_week.items()},
+                                           {p: [q for _, q in sorted(v, reverse=True)] for p, v in by_xfp.items()})
+        return self._proj[("eligible", m)]
+
+    def s_prior(self, pid):
+        return self.s_priors.get(pid) or self.s_fallback["D" if self.position[pid] == "D" else "F"]
+
+    def draft_pool(self) -> dict[str, list[tuple[float, int]]]:
+        pool = defaultdict(list)
+        for pid, gs in self.by_skater.items():
+            if len(gs) >= 20:
+                pool[self.position[pid]].append((project_skater(self.s_prior(pid), []).xfp, pid))
+        for pid in self.goalie_ids:
+            if sum(g.started for g in self.by_goalie[pid]) >= 15:
+                pool["G"].append((project_goalie(self.g_priors.get(pid, self.g_fallback), []).xfp * 0.55, pid))
+        return pool
+
+    def proj(self, m: dt.date) -> tuple[dict[int, float], dict[int, float]]:
+        """Skaters' points a game and goalies' a start, from the games before `m`."""
+        if m not in self._proj:
+            s = {pid: project_skater(self.s_prior(pid), [g for g in gs if g.date < m]).xfp
+                 for pid, gs in self.by_skater.items()}
+            g = {pid: project_goalie(self.g_priors.get(pid, self.g_fallback), [x for x in self.by_goalie[pid]
+                                                                                if x.date < m]).xfp
+                 for pid in self.goalie_ids}
+            self._proj[m] = (s, g)
+        return self._proj[m]
+
+    def team(self, pid: int, m: dt.date) -> str:
+        """His team as of `m` (his last game before it; else his first)."""
+        key = (pid, m)
+        if key not in self._team:
+            gs = self.by_skater.get(pid) or self.by_goalie.get(pid)
+            before = [g for g in gs if g.date < m]
+            self._team[key] = (before[-1] if before else gs[0]).team
+        return self._team[key]
+
+    def missed(self, pid: int, m: dt.date) -> int:
+        """His team's games in a row he missed before `m`."""
+        key = (pid, m)
+        if key not in self._missed:
+            played = {g.date for g in self.by_skater[pid] if g.date < m}
+            n = 0
+            for d in reversed([d for d in self.sorted_days.get(self.team(pid, m), []) if d < m]):
+                if d in played:
+                    break
+                n += 1
+            self._missed[key] = n
+        return self._missed[key]
+
+    def play(self, pid: int, m: dt.date, d: dt.date) -> float:
+        n = self.missed(pid, m)
+        return availability.HEALTHY_PLAY if n == 0 else availability.skater(None, True, (d - m).days, n).prob
+
+    def share(self, pid: int, m: dt.date) -> float:
+        recent = [p for d, p in self.starts[self.team(pid, m)] if d < m][-10:]
+        return recent.count(pid) / len(recent) if recent else 0.0
+
+    def played_games(self, pid: int, m: dt.date) -> int:
+        return sum(1 for g in (self.by_skater.get(pid) or self.by_goalie.get(pid)) if g.date < m)
+
+
+def _top(values: list[float], k: int) -> float:
+    return sum(sorted(values, reverse=True)[:k])
+
+
+class Week:
+    """One roster's projected days, by position, from a Monday: what a swap gains each day."""
+
+    def __init__(self, s: Season, roster: list[int], m: dt.date, days: list[dt.date]):
+        self.s, self.m = s, m
+        xfp, gx = s.proj(m)
+        self.vals: dict[dt.date, dict[str, list[float]]] = {}
+        self.goalie_pts: dict[dt.date, float] = {}
+        for d in days:
+            by_pos = {pos: [] for pos in SLOTS}
+            for pid in roster:
+                if pid in s.goalie_ids or d not in s.team_days[s.team(pid, m)]:
+                    continue
+                by_pos[s.position[pid]].append(xfp.get(pid, 0.0) * s.play(pid, m, d))
+            self.vals[d] = by_pos
+            self.goalie_pts[d] = _top([s.share(pid, m) * gx.get(pid, 0.0) for pid in roster
+                                       if pid in s.goalie_ids and d in s.team_days[s.team(pid, m)]], 2)
+
+    def total(self, days) -> tuple[float, float]:
+        """(expected points, variance) over `days`."""
+        sk = sum(_top(self.vals[d][pos], k) for d in days for pos, k in SLOTS.items())
+        g = sum(self.goalie_pts[d] for d in days)
+        return sk + g, matchup.SKATER_VARIANCE_PER_XFP * sk + matchup.GOALIE_START_VARIANCE * g / matchup.TYPICAL_START_XFP
+
+    def gain(self, add: int, drop: int, days) -> dict[dt.date, float]:
+        s, m = self.s, self.m
+        xfp = s.proj(m)[0]
+        pa, pd = s.position[add], s.position[drop]
+        ta, td = s.team_days[s.team(add, m)], s.team_days[s.team(drop, m)]
+        out = {}
+        for d in days:
+            a_plays, d_plays = d in ta, d in td
+            if not a_plays and not d_plays:
+                continue
+            g = 0.0
+            for pos in {pa, pd}:
+                vals = list(self.vals[d][pos])
+                before = _top(vals, SLOTS[pos])
+                if d_plays and pos == pd:
+                    vals.remove(xfp.get(drop, 0.0) * s.play(drop, m, d))
+                if a_plays and pos == pa:
+                    vals.append(xfp.get(add, 0.0) * s.play(add, m, d))
+                g += _top(vals, SLOTS[pos]) - before
+            if g:
+                out[d] = g
+        return out
+
+
+def actual(s: Season, roster: list[int], m: dt.date) -> float:
+    """The week's real score: each day the best projected lineup among those who played."""
+    xfp, gx = s.proj(m)
+    sk = gp = 0.0
+    starts = 0
+    for i in range(7):
+        d = m + dt.timedelta(days=i)
+        for pos, k in SLOTS.items():
+            played = sorted(((xfp.get(pid, 0.0), pid) for pid in roster if pid not in s.goalie_ids
+                             and s.position[pid] == pos and (pid, d) in s.points), reverse=True)[:k]
+            sk += sum(s.points[(pid, d)] for _, pid in played)
+        started = sorted(((gx.get(pid, 0.0), pid) for pid in roster if (pid, d) in s.g_points), reverse=True)[:2]
+        gp += sum(s.g_points[(pid, d)] for _, pid in started)
+        starts += len(started)
+    return sk + (gp if starts >= MIN_GOALIE_GAMES_PER_WEEK else 0.0)
+
+
+def lazy(s: Season, roster: list[int], m: dt.date, taken: set[int]) -> list[int]:
+    """A manager who only replaces a goalie who lost his role or a skater out LAZY_OUT_GAMES."""
+    roster = list(roster)
+    xfp, gx = s.proj(m)
+    for i, pid in enumerate(list(roster)):
+        if pid in s.goalie_ids:
+            if not (s.share(pid, m) < LOST_ROLE and [x for x in s.starts[s.team(pid, m)] if x[0] < m]):
+                continue
+            new = best_goalie(s, m, taken)
+        elif s.missed(pid, m) >= LAZY_OUT_GAMES:
+            new = next((q for q in s.eligible(m)[1][s.position[pid]] if q not in taken and s.missed(q, m) == 0), None)
+        else:
+            continue
+        if new:
+            roster[i] = new
+            taken.add(new)
+    return roster
+
+
+def best_goalie(s: Season, m: dt.date, taken: set[int]) -> int | None:
+    gx = s.proj(m)[1]
+    return max(((s.share(q, m) * gx.get(q, 0.0), q) for q in s.goalie_ids
+                if q not in taken and s.share(q, m) >= 0.3), default=(0, None))[1]
+
+
+def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
+    """One league: every team managed under every variant. Returns wins, points and adds per (team, variant)."""
+    league_no, seed, names, managed, price_all = args
+    s = Season()
+    OPP_WEEKS.clear()
+    rng = random.Random(seed * 1000 + league_no)
+    rosters = draft(s.draft_pool(), 16, rng)
+    drafted = {pid for r in rosters for ids in r.values() for pid in ids}
+    mondays = s.mondays
+    n_weeks = len(mondays)
+    order = list(range(16))
+    pairs = []
+    for _ in mondays:
+        rng.shuffle(order)
+        pairs.append({a: b for a, b in zip(order[::2], order[1::2])} | {b: a for a, b in zip(order[::2], order[1::2])})
+
+    # The lazy league: every team's roster and real score each week.
+    lazy_rosters = [[pid for ids in r.values() for pid in ids] for r in rosters]
+    lazy_by_week, lazy_score = [], []
+    taken = set(drafted)
+    for m in mondays:
+        lazy_rosters = [lazy(s, r, m, taken) for r in lazy_rosters]
+        lazy_by_week.append([list(r) for r in lazy_rosters])
+        lazy_score.append([actual(s, r, m) for r in lazy_rosters])
+
+    out = {}
+    for t in range(managed):
+        for name in names:
+            keep_rule, spots, discount, price = VARIANTS[name]
+            if price_all is not None and price != math.inf:
+                price = price_all
+            roster = list(lazy_by_week[0][t])
+            used, wins, pts = 0, 0, 0.0
+            mine_taken = set(drafted)
+            for w, m in enumerate(mondays):
+                if w:  # forced like the lazy managers: a goalie who lost his role
+                    for i, pid in enumerate(list(roster)):
+                        if pid in s.goalie_ids and s.share(pid, m) < LOST_ROLE:
+                            new = best_goalie(s, m, mine_taken | set(roster))
+                            if new:
+                                roster[i] = new
+                                used += 1
+                cap = math.ceil(REGULAR_ADDS * (w + 1) / n_weeks)
+                for _ in range(2):
+                    if used >= cap or price == math.inf:
+                        break
+                    move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
+                                     discount, n_weeks, used)
+                    if move is None or move[0] < price:
+                        break
+                    _, add, drop = move
+                    roster[roster.index(drop)] = add
+                    mine_taken.add(add)
+                    used += 1
+                score = actual(s, roster, m)
+                wins += score > lazy_score[w][pairs[w][t]]
+                pts += score
+            out[(t, name)] = (wins, pts / n_weeks, used)
+        print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
+    return out
+
+
+OPP_WEEKS: dict = {}  # (week index, team) -> its lazy roster's Week, this league's
+
+
+def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used):
+    """(value, add, drop) of the best skater swap this Monday, valued as matchup.candidate_moves does."""
+    xfp = s.proj(m)[0]
+    this = [m + dt.timedelta(days=i) for i in range(7)]
+    future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
+    mine = Week(s, roster, m, this + future)
+    def opp(k):
+        key = (w, pairs[min(w + k, n_weeks - 1)][t])
+        if key not in OPP_WEEKS:
+            OPP_WEEKS[key] = Week(s, lazy_by_week[w][key[1]], m, this + future)
+        return OPP_WEEKS[key]
+
+    me_now, var_now = mine.total(this)
+    them_now, them_var = opp(0).total(this)
+    sd_now = math.sqrt(var_now + them_var) or 1.0  # a week with no games (the Olympic break)
+    margin_now = matchup.MARGIN_REALIZES * (me_now - them_now)
+    ahead = []
+    for k in range(1, matchup.AHEAD_WEEKS + 1):
+        days = future[7 * (k - 1):7 * k]
+        if w + k >= n_weeks:
+            break
+        me_k, v_k = mine.total(days)
+        them_k, tv_k = opp(k).total(days)
+        ahead.append(matchup.WeekAhead(w + k, frozenset(days), matchup.MARGIN_REALIZES_AHEAD[k] * (me_k - them_k),
+                                       math.sqrt(v_k + tv_k) or 1.0))
+    # A point later: a typical week's sigma (mine and the opponent's) and the league's tau.
+    tau = 18.5  # the league's, Oct 2026 (bot/weekly.league_tau); replay leagues are drafted alike
+    later_weight = addprice.later_weight(math.sqrt(var_now + them_var), tau)
+    spare = REGULAR_ADDS - used
+    rate = min(max(spare / max(n_weeks - w, 1), 0.5), 2.0)
+    hold_days = max(0, round(7 * (spots + 1) / rate) - 7)
+    held = set(future[:hold_days])
+    weeks_after = n_weeks - w - 1
+
+    skaters = [pid for pid in roster if pid not in s.goalie_ids]
+    mine_rp = [RosterPlayer(pid, str(pid), s.team(pid, m), [s.position[pid]]) for pid in skaters]
+    by_week, by_xfp = s.eligible(m)
+    shortlist = set()
+    for pos in SLOTS:
+        shortlist |= set([q for q in by_week[pos] if q not in taken and q not in roster][:5])
+        shortlist |= set([q for q in by_xfp[pos] if q not in taken and q not in roster][:3])
+    fa_rp = [RosterPlayer(q, str(q), s.team(q, m), [s.position[q]]) for q in shortlist]
+    ctx = Ctx(xfp)
+    saved = matchup.STREAMING_SPOTS, matchup.KEEP_RAMP
+    matchup.STREAMING_SPOTS = spots
+    try:
+        spot_ids = matchup.streaming_spots(mine_rp, fa_rp, ctx, {})
+        levels = matchup.waiver_levels(fa_rp, ctx, {})
+        line = max((matchup.waiver_gap(p, levels, ctx, {}) for p in mine_rp if p.id in spot_ids), default=-math.inf)
+        drops = [p for p in matchup.drop_candidates(mine_rp, ctx, {})]
+        best = None
+        future_d = {d: None for d in future}
+        for a in fa_rp:
+            for d in drops:
+                week_gain = sum(mine.gain(a.id, d.id, this).values())
+                if week_gain < -matchup.MAX_WEEK_COST:
+                    continue
+                if keep_rule == "switch":
+                    keep = 0.0 if d.id in spot_ids else 1.0
+                elif keep_rule == "season":
+                    keep = 1.0
+                elif keep_rule == 0.0:
+                    keep = 0.0
+                else:
+                    matchup.KEEP_RAMP = keep_rule
+                    keep = matchup.keep_share(a, d, spot_ids, line, levels, ctx, {})
+                gain = mine.gain(a.id, d.id, future)
+                saved_discount = matchup.LONG_RUN_DISCOUNT
+                matchup.LONG_RUN_DISCOUNT = discount
+                try:
+                    ahead_wins, _, long_term = matchup.horizon(gain, future_d, ahead, weeks_after, later_weight,
+                                                               held, keep)
+                finally:
+                    matchup.LONG_RUN_DISCOUNT = saved_discount
+                now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
+                value = now + sum(ahead_wins) + later_weight * long_term
+                if best is None or value > best[0]:
+                    best = (value, a.id, d.id)
+    finally:
+        matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
+    return best
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--leagues", type=int, default=4)
+    parser.add_argument("--seed", type=int, default=11)
+    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--variants", nargs="*", default=list(VARIANTS))
+    parser.add_argument("--teams", type=int, default=16, help="teams managed per league (all 16 by default)")
+    parser.add_argument("--price", type=float, help="every variant's add price (0: the budget's pace decides)")
+    args = parser.parse_args()
+    names = [REFERENCE] + [v for v in args.variants if v != REFERENCE]
+    jobs = [(k, args.seed, names, args.teams, args.price) for k in range(args.leagues)]
+    results = {}
+    with ProcessPoolExecutor(max_workers=args.workers) as pool:
+        for k, out in enumerate(pool.map(run_league, jobs)):
+            results.update({(k, t, name): v for (t, name), v in out.items()})
+    teams = sorted({(k, t) for k, t, _ in results})
+    n = len(teams)
+    print(f"\n{args.leagues} leagues x 16 teams, 2025-26 replayed; each team managed alone, the others lazily; "
+          f"price {PRICE if args.price is None else args.price}")
+    print(f"{'variant':16}{'wins':>7}{'vs ' + REFERENCE:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}")
+    ref = [results[(k, t, REFERENCE)] for k, t in teams]
+    for name in names:
+        rows = [results[(k, t, name)] for k, t in teams]
+        diff = [a[0] - b[0] for a, b in zip(rows, ref)]
+        se = (sum((x - mean(diff)) ** 2 for x in diff) / (n - 1)) ** 0.5 / math.sqrt(n) if n > 1 else 0.0
+        pdiff = mean(a[1] - b[1] for a, b in zip(rows, ref))
+        print(f"{name:16}{mean(r[0] for r in rows):7.2f}{mean(diff):+16.2f}{se:9.2f}"
+              f"{mean(r[1] for r in rows):9.1f}{mean(r[2] for r in rows):7.1f}   pts/wk vs ref {pdiff:+.2f}")
+
+
+if __name__ == "__main__":
+    main()

@@ -75,6 +75,7 @@ python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, s
 python -m scripts.backtest                        # model accuracy (--season, --horizon)
 python -m scripts.check_sigma                     # do projected margins come true? (--ahead 1|2, --season 20242025)
 python -m scripts.check_gaps                      # do fringe players' projected gaps come true? by horizon
+python -m scripts.replay                          # 2025-26 replayed under rule variants, in wins (--leagues 8 --price 0)
 python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
 python -m scripts.fit_absence                     # how fast absent players return (availability curves)
 python -m scripts.sim_goalies                     # two goalies or three: 2025-26 replayed under each policy
@@ -130,11 +131,11 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
   opponents and calibrated margins; the coherent, committed plan and short messages; the
   dashboard and its Telegram card), plus exact days, IR returns in every move, and
   durability over replacement (after Nico's review of the slides).
-- Next: step 5, one replay harness on 2025-26 to score rule changes (wins, playoff and
-  title odds, plan changes a week, adds used). First candidates: `LONG_RUN_DISCOUNT` 0.5, `KEEP_RAMP` 1.0,
-  `plan.CHANGE_MARGIN` 0.02, keepers waiting for Wednesday.
-- Untested, and labeled so: durability (DFO projected GP, not archived), the 0.5 long-run
-  discount, the 0.02 change margin, opponents streaming (frozen rosters). The add price's
+- Step 5, the replay harness: built (`python -m scripts.replay`, ~35 min for 8 leagues on 4
+  cores). First results (`engine/CLAUDE.md`, "Replayed"): `KEEP_RAMP`, `STREAMING_SPOTS` and
+  `LONG_RUN_DISCOUNT` don't matter. Next on it: `plan.CHANGE_MARGIN` 0.02, keepers waiting for
+  Wednesday, more weight on later points, the add price.
+- Untested, and labeled so: durability (DFO projected GP, not archived), the 0.02 change margin, opponents streaming (frozen rosters). The add price's
   logged pools for weeks 1-2 predate the 2026-10-09 valuation changes (recalibrate
   mid-November). IR stashes don't see the others' returns. A plan run takes ~1 min locally.
 - Calibration so far: projected team margins come true at 0.80 (0.75 / 0.70 one and two

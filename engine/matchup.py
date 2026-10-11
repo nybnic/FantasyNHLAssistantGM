@@ -75,7 +75,8 @@ AHEAD_WEEKS = 2
 # Injuries, role changes and later adds make a long-run edge worth less
 # than it projects to. Calibration alone takes ~0.75-0.84 of it out to 20
 # weeks (check_gaps); the rest of the 0.5 is for swaps that end the hold early
-# (a judgment call).
+# (a judgment call). Replayed (scripts/replay.py, 2025-26, 2026-10-11): 0.35
+# instead +0.05 wins a season (+/- 0.04), no difference.
 LONG_RUN_DISCOUNT = 0.5
 # The long run is judged on the weeks after this one: averaged over 6 (one
 # week's schedule swings a swap by 5-10 pts; 2 weeks times the season turned
@@ -87,7 +88,9 @@ STREAM_WEEKS = 2
 # position. A player added into one is swapped out again within the time it
 # takes the add pace to cycle the spots (3 spots at ~1.3 adds a week: ~2.3
 # weeks, see hold_weeks), so the swap is credited its scheduled gain over that
-# hold only, never the season (Nico, 2026-10-01). Judgment calls; calibrate.
+# hold only, never the season (Nico, 2026-10-01). Replayed (scripts/replay.py,
+# 2025-26, 2026-10-11): 2, 4 or 5 spots -0.07 / +0.08 / -0.05 wins a season
+# vs 3 (+/- 0.13): no difference, so 3 stays.
 STREAMING_SPOTS = 3
 # Plus a third goalie, when I carry one: he's swapped goalie for goalie like
 # any streaming spot. Two goalies are both core (the minimum rests on them).
@@ -98,8 +101,12 @@ GOALIE_STREAMING_SPOTS = 1
 # game above it, judged on the lower of the add and the drop (the swap lasts
 # until either would be streamed). It replaced an on/off switch: Samuelsson,
 # 0.003 a game above the line, was credited 22 weeks and McBain on it 3. The
-# ramp's width is a judgment call (1.0: Scheifele and Tuch are keepers, Larsson
-# 42%); the replay harness should fit it.
+# width: 1.0 makes Scheifele and Tuch keepers, Larsson 42%. Replayed
+# (scripts/replay.py, 2025-26, 2026-10-11): 0.5 / 2.0 -0.07 / +0.03 wins a
+# season vs 1.0 (+/- 0.07), the old switch +0.00 (+/- 0.12): the width doesn't
+# matter. Counting every swap the season was +0.24 (+/- 0.13, +1.5 pts a
+# week), every swap only the hold -0.11 (+/- 0.08): no sign later points weigh
+# too much.
 KEEP_RAMP = 1.0
 REPLACEMENT_SAMPLE = 3  # free agents averaged for a position's replacement level
 # Drops tried: your lowest long-run players per group (forwards, D, goalies).

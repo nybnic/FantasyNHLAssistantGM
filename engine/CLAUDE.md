@@ -136,6 +136,18 @@
 | 2026-10-09 | Every Telegram message links the dashboard, as a "Dashboard" button on its own row (Nico) | The dashboard is where a plan is evaluated; a button, not the URL in the text, so no link preview is added to each message. It stays on a card after Done/Taken/Skip (`notify/telegram.py`) |
 | 2026-09-29 | Keep our projections (age-fixed), use Yahoo as a cross-check | After the age fix they match Yahoo closely, and ours update daily |
 
+## Replayed (`scripts/replay.py`, 2025-26, 2026-10-11)
+8 leagues x 16 teams, every team in turn managed by this valuation (the others lazily), each using its
+30 regular-season adds; wins a season vs the live settings (+/- SE, paired). Simplified: single NHL
+positions, Monday decisions, goalies not streamed, no free-agent competition, no IR slots.
+- `KEEP_RAMP` 1.0: 0.5 -0.07 (0.07), 2.0 +0.03 (0.06), the old switch +0.00 (0.12). The width doesn't matter.
+- `STREAMING_SPOTS` 3: 2 -0.07, 4 +0.08, 5 -0.05 (0.12-0.13). The count doesn't matter.
+- `LONG_RUN_DISCOUNT` 0.5: 0.35 +0.05 (0.04). No difference.
+- Later points: every swap credited the season +0.24 (0.13), +1.5 pts a week; every swap only the
+  streaming hold -0.11 (0.08). Under 2 SE each, but no sign later points weigh too much.
+- Adds themselves: no swaps -4.1 wins a season (0.23) at the bot's price, which spent 19 of 30 adds
+  here (all 30 used: 15.65 wins vs 15.49, same leagues; not paired-tested).
+
 ## Judgment calls (untested)
-`MODEL_SD_SHARE` 0.08, `LONG_RUN_DISCOUNT` 0.5, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
-`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `KEEP_RAMP` 1.0 (points a game above the streaming line where a swap counts the whole season), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `STREAMING_SPOTS` 3, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
+`MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
+`PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
