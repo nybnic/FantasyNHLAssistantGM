@@ -11,7 +11,7 @@
 | `season.py` | Playoff and title odds and this week's leverage (P(playoffs) if won - if lost) next to a typical week left: the rest of the season simulated from the standings, my real schedule, the others paired at random. A line in the plan; not yet used by the add price (Nico to decide) |
 | `matchup.py` | The week: both teams' projections, P(win), the goalie minimum, every add/drop's value (this week, the weeks ahead, the long run), the add budget |
 | `plan.py` | The plan: which add/drops and when, as one coherent set (`compose`, `search`), and whether a new one replaces the one Nico has seen (`decide`, `CHANGE_MARGIN`) |
-| `report.py` | What the dashboard and charts show, as plain data (the schedule grid, the add budget, last week's result and score race; each team's week player by player and by stat group, `team_view`; a player's per-game numbers by stat, availability and durability, `player_view`); `site/index.html` and `notify/charts.py` draw it |
+| `report.py` | What the dashboard and charts show, as plain data (the schedule grid, the add budget, last week's result and score race; each team's week player by player and by stat group, `team_view`; a player's per-game numbers by stat, availability and durability, `player_view`, and his season so far against what was projected before each game, `season_view`; every team's games this week and the next two, `team_games`); `site/index.html` and `notify/charts.py` draw it |
 | `trade.py` | `/trade`: both teams' points per week before and after, over the 6 weeks after the review (`LONG_RUN_WEEKS`, as an add's long run). Open spots are filled from free agents before and after (so a trade gets no credit for a hole the plan fills anyway), and you keep 3 goalies. Shows F/D/G counts (and injured) and flags a trade that leaves them unable to fill their starters. `/trade` alone: screen all 1-for-1 and 2-for-1 with a quick per-player value, keep those they wouldn't see as a loss by how the players feel to a manager (draft round, `league/draft.py`, blended toward this season's fantasy-point rank: `PERCEPTION_GAMES`) and that don't leave them short, judge the top 12 in full (~30 s on GitHub, 2026-10-03), reply with the best per team |
 
 ## How the weekly plan works (`matchup.py`)
@@ -58,7 +58,9 @@
   counting the rest of this week; the weeks ahead count only those days too.
 - **Value** (in win-pts, percentage points of a weekly win) = this week's change
   in P(win) + each week ahead's + later points x `later_weight` (what a point
-  does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), tau = the league's
+  does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), sigma = a typical full
+  week's spread, mine and an average team's (`weekly.typical_sigma`; until 2026-10-11 it
+  was the days left scaled to 7, 1.5x the weight on a Sunday), tau = the league's
   matchup spread from all known rosters, x 0.80 as margins realize). The add
   price's simulation counts the weeks ahead's points as later points.
 - **Accept** if value >= the add price (`addprice.solve`): set so spending at

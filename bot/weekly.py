@@ -117,7 +117,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         available_from = after_this_week(available_from, pool, days)
     strengths = team_strengths(players, league, ctx, future, lines, starters)
     tau = league_tau(strengths)
-    sigma_week = math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1))
+    sigma_week = typical_sigma(strengths, math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1)))
     return WeekInputs(
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
         me=me, them=them, tau=tau, strengths=strengths, later_weight=addprice.later_weight(sigma_week, tau),
@@ -182,6 +182,19 @@ def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
         return addprice.DEFAULT_TAU
     mean = sum(totals) / len(totals)
     return matchup.MARGIN_REALIZES * math.sqrt(2 * sum((t - mean) ** 2 for t in totals) / (len(totals) - 1))
+
+
+def typical_sigma(strengths: dict[str, tuple[float, float]], fallback: float) -> float:
+    """The spread of a typical week's result for me: my full week's sd and an
+    average team's, combined (the later points' worth, addprice.later_weight).
+    It was this week's days left scaled to seven, right on a Monday but 0.57 of
+    a typical week's on Sunday 11 Oct (one light night left), which made later
+    points weigh 1.5x and the add price rise with them. `fallback` without
+    known rosters."""
+    if MY_TEAM not in strengths or len(strengths) < 4:
+        return fallback
+    others = [sd * sd for team, (_, sd) in strengths.items() if team != MY_TEAM]
+    return math.sqrt(strengths[MY_TEAM][1] ** 2 + sum(others) / len(others))
 
 
 def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOdds | None, str]:
@@ -424,7 +437,7 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
                                                   wk.price if wk.max_moves else None, wk.max_moves),
         "weeks": weeks_shown,
         "moves": sorted(b["moves"], key=lambda r: -r["value"])[:DASHBOARD_MOVES],
-        "teams": b.get("teams"), "players": b.get("players"),
+        "teams": b.get("teams"), "players": b.get("players"), "games": b.get("games"),
         **(views or {}),
     }
 
@@ -444,8 +457,9 @@ def write_dashboard(data: dict, dry_run: bool) -> Path:
 
 def player_details(p: PlanMoves, players: list, league: dict, opponent: str) -> dict:
     """The Board's breakdowns: both teams' rest of week player by player and by
-    stat group, and the per-game numbers of everyone on either roster and every
-    add and drop the dashboard shows (engine/report.py)."""
+    stat group, the per-game numbers of everyone on either roster and every
+    add and drop the dashboard shows, and every team's games this week and the
+    weeks ahead (engine/report.py)."""
     wk = p.wk
     them_roster = teams.players(league, opponent)
     shown = sorted(p.ranked, key=lambda m: -m.value)[:DASHBOARD_MOVES] + p.moves
@@ -455,9 +469,13 @@ def player_details(p: PlanMoves, players: list, league: dict, opponent: str) -> 
     for q, owner in people:
         if q.id not in details:
             details[q.id] = report.player_view(q, wk.ctx, wk.lines, wk.starters, wk.schedule, owner, wk.future)
+    week = weeks.week_of(wk.days[0])
+    spans = [(week, wk.schedule)] + [
+        (w, {d: g for d, g in wk.future.items() if weeks.week_of(d) == w})
+        for w in range(week + 1, week + matchup.AHEAD_WEEKS + 1)]
     return {"teams": {"me": report.team_view(wk.me, players, wk.ctx),
                       "them": report.team_view(wk.them, them_roster, wk.ctx)},
-            "players": details}
+            "players": details, "games": report.team_games(spans, wk.ctx.today)}
 
 
 def save_board(p: PlanMoves, week: int, opponent: str, now: dt.datetime, date: dt.date,

@@ -900,6 +900,91 @@ function weekRow(p) {
   return t ? t.players.find(r => r.id === p.id) : null;
 }
 
+// The season so far (report.season_view): totals side by side, one column a player.
+function seasonTable(players) {
+  const seasons = players.map(p => p.season);
+  const rows = [["Games", ...seasons.map((s, i) => s ? String(s.gp) + (players[i].goalie && s.relief ? ` (${s.relief} in relief)` : "") : "0")],
+                ["Fantasy pts", ...seasons.map(s => s ? `${f1(s.pts)} (${f2(s.pts / s.gp)} a game)` : "-")],
+                ["Projected before each game", ...seasons.map(s => s ? `${f1(s.proj)} (${signed(s.pts_projected - s.proj)})` : "-")]];
+  const first = seasons.find(Boolean);
+  if (first) Object.keys(first.stats).forEach(c => rows.push([c, ...seasons.map(s => s ? f0(s.stats[c][0]) : "-")]));
+  return kvTable(players.length > 1 ? ["", ...players.map(p => lastName(p.name))] : null, rows);
+}
+// Each player's team's games this week (from today) and the weeks ahead (report.team_games).
+function scheduleTable(players) {
+  const G = data.games;
+  if (!G || !G.days.length) return null;
+  const weeksShown = [...new Set(G.days.map(d => d.week))];
+  const table = el("table", { class: "grid" });
+  const top = el("tr"), head = el("tr");
+  top.append(el("th", { class: "name" }, "")); head.append(el("th", { class: "name" }, ""));
+  weeksShown.forEach((w, k) => {
+    const n = G.days.filter(d => d.week === w).length;
+    top.append(el("th", { class: "wkh" + (k ? " brk" : ""), colspan: n + 1 }, `Wk ${w}`));
+    G.days.filter(d => d.week === w).forEach((d, i) =>
+      head.append(el("th", { class: (k && !i ? "brk" : "") + (d.date === data.date ? " today" : "") },
+                     `${fmtDay(d.date, { weekday: "narrow" })}${new Date(d.date + "T12:00:00").getDate()}`)));
+    head.append(el("th", {}, "GP"));
+  });
+  const thead = el("thead"); thead.append(top, head); table.append(thead);
+  const tbody = el("tbody");
+  players.forEach((p, j) => {
+    const games = (G.teams || {})[p.team] || [];
+    const tr = el("tr");
+    tr.append(el("td", { class: "name" }, `${lastName(p.name)} ${p.team}`));
+    weeksShown.forEach((w, k) => {
+      let n = 0;
+      G.days.forEach((d, i) => {
+        if (d.week !== w) return;
+        const opp = games[i];
+        const td = el("td", { class: k && G.days[i - 1]?.week !== w ? "brk" : "" });
+        if (opp) {
+          n++;
+          const c = el("div", { class: "cell " + (j ? "bench" : "start") }, opp.replace("@", ""));
+          c.style.width = "30px";
+          hover(c, [`${p.name}`, `${fmtDay(d.date)}: ${opp.startsWith("@") ? "at " + opp.slice(1) : "vs " + opp}`]);
+          td.append(c);
+        }
+        tr.append(td);
+      });
+      tr.append(el("td", { class: "num" }, String(n)));
+    });
+    tbody.append(tr);
+  });
+  table.append(tbody);
+  const wrap = el("div", { class: "scroll" });
+  wrap.append(table);
+  return wrap;
+}
+// What the model said before each game against what he scored (report.season_view).
+function seasonVsProjection(p) {
+  const s = p.season, out = [];
+  out.push(el("h3", {}, "Season so far: projected vs actual"));
+  if (!s) { out.push(el("p", { class: "aside" }, "No games yet this season.")); return out; }
+  const games = p.goalie ? s.starts : s.gp, actual = s.pts_projected, diff = actual - s.proj;
+  const unit = p.goalie ? "start" : "game";
+  const facts = el("div", { class: "facts num" });
+  const add = (k, v) => facts.append(el("span", {}, k), el("span", {}, v));
+  add(p.goalie ? "Starts" : "Games", String(games) + (p.goalie && s.relief ? ` (+${s.relief} in relief, ${f1(s.pts - actual)} pts)` : ""));
+  if (games) {
+    add("Actual", `${f1(actual)} pts (${f2(actual / games)} a ${unit})`);
+    add("Projected", `${f1(s.proj)} pts (${f2(s.proj / games)} a ${unit})`);
+    add("Difference", `${signed(diff)} pts (${signed(diff / games, 2)} a ${unit})`);
+  }
+  out.push(facts);
+  const rows = Object.entries(s.stats).map(([c, [a, x]]) => [c, f0(a), f1(x), signed(a - x)]);
+  out.push(kvTable(["", "Actual", "Projected", "Diff"], rows));
+  if ((s.last || []).length) {
+    out.push(el("h3", {}, `Last ${s.last.length} game${s.last.length === 1 ? "" : "s"}`));
+    out.push(kvTable(["", "Pts", "Projected"], s.last.map(g => [
+      `${fmtDay(g.date, { weekday: "short", day: "numeric", month: "short" })} ${g.opp}`,
+      f1(g.pts), g.proj == null ? "relief" : f1(g.proj)])));
+  }
+  out.push(el("div", { class: "note" }, "Projected: what the model said before each game, from his games until then (today's prior and team ratings). " +
+                                        (p.goalie ? "Relief appearances are counted as played, not projected." : "")));
+  return out;
+}
+
 function playerSheet(id) {
   const p = person(id);
   if (!p) return null;
@@ -949,6 +1034,9 @@ function playerSheet(id) {
   }
   if (!p.goalie && p.durability < 1)
     out.push(el("p", { class: "aside" }, "A projected missed game costs only his edge over the streamer who'd fill it, so a fringe player's durability barely matters."));
+  if ("season" in p) out.push(...seasonVsProjection(p));
+  const sched = scheduleTable([p]);
+  if (sched) out.push(el("h3", {}, "Games this week and the next two"), sched);
   return out;
 }
 
@@ -1048,6 +1136,21 @@ function moveSheet(moveKey) {
           ["Games projected", pct(a.durability), pct(d.durability)],
           ["Long-run points kept", pct(a.kept), pct(d.kept)],
         ]));
+    }
+    const sides = [a, d].filter(Boolean);
+    const sched = scheduleTable(sides);
+    if (sched) {
+      out.push(el("h3", {}, "Games this week and the next two"), sched);
+      if (d) {
+        const legend = el("div", { class: "legend" });
+        legend.append(key("--blue", `${a.name} (add)`), key("--orange", `${d.name} (drop)`));
+        out.push(legend);
+      }
+    }
+    if (sides.some(p => "season" in p)) {
+      out.push(el("h3", {}, "Season so far"));
+      if (d && !!d.goalie === !!a.goalie) out.push(seasonTable(sides));
+      else sides.forEach(p => out.push(el("div", { class: "sub" }, p.name), seasonTable([p])));
     }
     const btns = el("div");
     [a, d].filter(Boolean).forEach(p => {

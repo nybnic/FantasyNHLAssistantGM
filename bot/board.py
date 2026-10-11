@@ -10,7 +10,9 @@ A move's value = this week's change in P(win) + the change in each week
 ahead's P(win) against its opponent (header "ahead") + later points' worth.
 With the plan run's details (bot/weekly.player_details): "teams", each team's
 rest of week player by player and by stat group (engine/report.team_view), and
-"players", each one's per-game numbers (report.player_view), by id.
+"players", each one's per-game numbers and season so far (report.player_view),
+by id, and "games", every team's games this week and the weeks ahead
+(report.team_games).
 """
 from __future__ import annotations
 
@@ -148,9 +150,11 @@ def _line(x) -> str:
 
 def save(board: dict, path: Path = BOARD_FILE) -> Path:
     """One move (and one player) per line: small, and a git diff shows which changed."""
-    head = json.dumps({k: v for k, v in board.items() if k not in ("moves", "players")}, indent=1,
+    head = json.dumps({k: v for k, v in board.items() if k not in ("moves", "players", "games")}, indent=1,
                       ensure_ascii=False)
     tail = ',\n "moves": [\n' + ",\n".join("  " + _line(r) for r in board["moves"]) + "\n ]"
+    if "games" in board:
+        tail += ',\n "games": ' + _line(board["games"])
     if "players" in board:
         tail += ',\n "players": {\n' + ",\n".join(f"  {_line(str(k))}: {_line(v)}"
                                                     for k, v in board["players"].items()) + "\n }"

@@ -39,13 +39,18 @@ class ModelContext:
     projected_gp: dict[int, float] = field(default_factory=dict)  # DFO season GP, skaters
     last_results: dict[str, str] = field(default_factory=dict)  # team -> its last start's availability.start_result
 
-    def skater(self, player_id: int, position: str) -> SkaterProjection:
+    def skater(self, player_id: int, position: str, before: dt.date | None = None) -> SkaterProjection:
+        """His projection from the games before `before` (default today): an
+        earlier date gives what the model said before that game (today's prior)."""
         group = "D" if position == "D" else "F"
         prior = self.skater_priors.get(player_id) or self.skater_fallback[group]
-        return project_skater(prior, [g for g in self.skater_games.get(player_id, []) if g.date < self.today])
+        cutoff = before or self.today
+        return project_skater(prior, [g for g in self.skater_games.get(player_id, []) if g.date < cutoff])
 
-    def goalie_start(self, player_id: int, team: str, opponent: str, home: bool) -> dict[str, float]:
-        past = [g for g in self.goalie_games.get(player_id, []) if g.date < self.today]
+    def goalie_start(self, player_id: int, team: str, opponent: str, home: bool,
+                     before: dt.date | None = None) -> dict[str, float]:
+        cutoff = before or self.today
+        past = [g for g in self.goalie_games.get(player_id, []) if g.date < cutoff]
         sv = games_model.save_pct(self.goalie_history.get(player_id, []), past, self.league.save_pct)
         return games_model.goalie_start(team, opponent, home, sv, self.team_ratings, self.league)
 

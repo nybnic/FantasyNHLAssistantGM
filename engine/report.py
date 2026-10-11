@@ -8,7 +8,8 @@ from __future__ import annotations
 import datetime as dt
 
 from clients.names import normalize_name
-from config.league import GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS
+from config.league import (GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
+                           fantasy_points)
 from engine import availability, matchup
 from league import weeks
 from league.roster import BENCH, IR_SLOTS, RosterPlayer, active
@@ -246,6 +247,74 @@ def team_view(week: matchup.TeamWeek, roster: list[RosterPlayer], ctx) -> dict:
             "goalie_lost": _r(week.goalie_lost), "rest": _r(week.expected - week.so_far)}
 
 
+SEASON_LAST_GAMES = 10  # the season view's game-by-game rows, most recent
+
+
+def season_view(p: RosterPlayer, ctx) -> dict | None:
+    """His season so far against what the model said before each game (its
+    projection from the games before that day, today's prior): games, fantasy
+    points and the stat line, actual vs projected, and the last games one by
+    one. Goalies: starts are projected; relief appearances count as played and
+    in "pts", not in "pts_projected" (the points of the projected games) or the
+    stat lines. None before his first game."""
+    today = ctx.today
+    if p.is_goalie:
+        games = [g for g in getattr(ctx, "goalie_games", {}).get(p.id, []) if g.date < today]
+    else:
+        games = [g for g in getattr(ctx, "skater_games", {}).get(p.id, []) if g.date < today]
+    if not games:
+        return None
+    pts = proj = matched = 0.0
+    names = [n for n, _ in (GOALIE_STATS if p.is_goalie else SKATER_STATS)]
+    actual, expected = dict.fromkeys(names, 0.0), dict.fromkeys(names, 0.0)
+    rows, relief = [], 0
+    for g in games:
+        if p.is_goalie:
+            got = fantasy_points(g.stats, GOALIE_WEIGHTS)
+            if not g.started:
+                relief += 1
+                pts += got
+                rows.append({"date": g.date.isoformat(), "opp": ("" if g.home else "@") + g.opponent,
+                             "pts": _r(got, 1), "proj": None})
+                continue
+            line = ctx.goalie_start(p.id, p.team, g.opponent, g.home, before=g.date)
+            said = line["xfp"]
+            counts_now, counts_said = stat_counts(g.stats, goalie=True), stat_counts(line, goalie=True)
+            opp = ("" if g.home else "@") + g.opponent
+        else:
+            got = fantasy_points(g.stats, SKATER_WEIGHTS)
+            before = ctx.skater(p.id, matchup._position(p), before=g.date)
+            said = before.xfp
+            counts_now, counts_said = stat_counts(g.stats), stat_counts(before.per_game)
+            opp = g.opponent
+        pts += got
+        proj += said
+        matched += got
+        for n in names:
+            actual[n] += counts_now[n]
+            expected[n] += counts_said[n]
+        rows.append({"date": g.date.isoformat(), "opp": opp, "pts": _r(got, 1), "proj": _r(said, 1)})
+    out = {"gp": len(games), "pts": _r(pts, 1), "proj": _r(proj, 1), "pts_projected": _r(matched, 1),
+           "stats": {n: [_r(actual[n], 1), _r(expected[n], 1)] for n in names},
+           "last": rows[-SEASON_LAST_GAMES:][::-1]}
+    if p.is_goalie:
+        out.update({"starts": len(games) - relief, "relief": relief})
+    return out
+
+
+def team_games(spans: list[tuple[int, dict]], today: dt.date) -> dict:
+    """Each team's games over the given weeks ((week, schedule)) from today:
+    {"days": [{"date", "week"}], "teams": {team: [opponent ("@" away) or None, by day]}}."""
+    days, by_team = [], {}
+    for week, schedule in spans:
+        for d in sorted(x for x in schedule if x >= today):
+            days.append({"date": d.isoformat(), "week": week})
+            for team, game in matchup._game_of(schedule[d]).items():
+                home = game.home == team
+                by_team.setdefault(team, {})[d.isoformat()] = ("" if home else "@") + (game.away if home else game.home)
+    return {"days": days, "teams": {t: [g.get(d["date"]) for d in days] for t, g in sorted(by_team.items())}}
+
+
 def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dict, owner: str,
                 later: dict | None = None) -> dict:
     """One player's numbers as the model has them: points per game (goalies:
@@ -253,11 +322,12 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
     `later` one's) by stat group and as a stat line, ice time a game this season, the
     sample behind it, tonight's
     availability, and how much of his long-run points survive the games he's
-    projected to miss (matchup.durability). Goalies: each start left this week
+    projected to miss (matchup.durability), and his season so far against
+    its projections (season_view). Goalies: each start left this week
     with its odds. `owner`: "me", "them" or "fa"."""
     info = lines.get(p.team, {}).get(normalize_name(p.name))
     out = {"id": p.id, "name": p.name, "team": p.team, "positions": "/".join(p.positions), "owner": owner,
-           "goalie": p.is_goalie}
+           "goalie": p.is_goalie, "season": season_view(p, ctx)}
     today = ctx.today
     if p.is_goalie:
         starts, line = [], None

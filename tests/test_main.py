@@ -1172,3 +1172,11 @@ def test_week_1s_rebuilt_forecast_is_marked_retro(tmp_path):
     assert len(ours["teams"]) == 16 and ours["retro"].startswith("rebuilt")
     assert ours["teams"]["Nico's Groovy Team"]["expected"] == 160.91
     assert state["results"]["1"]["retro"]["win"] == pytest.approx(0.509, abs=0.001)
+
+
+def test_later_points_weigh_a_typical_week_not_the_days_left():
+    from config.league import MY_TEAM
+    strengths = {MY_TEAM: (300.0, 30.0), "A": (290.0, 30.0), "B": (280.0, 40.0), "C": (310.0, 20.0)}
+    # Mine and an average team's full-week spread: sqrt(30^2 + (30^2 + 40^2 + 20^2) / 3).
+    assert weekly.typical_sigma(strengths, 25.8) == pytest.approx((900 + 2900 / 3) ** 0.5)
+    assert weekly.typical_sigma({MY_TEAM: (300.0, 30.0)}, 25.8) == 25.8  # rosters unknown: the days left's

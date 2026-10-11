@@ -112,11 +112,11 @@ class _BreakdownContext:
     lines = {1: {"g": 0.4, "a": 0.6, "ppa": 0.2, "sog": 3.0, "hit": 1.0, "blk": 0.5, "fow": 8.0, "pm": 0.1},
              2: {"a": 0.3, "sog": 1.5, "hit": 2.0, "blk": 2.0}}
 
-    def skater(self, pid, position):
+    def skater(self, pid, position, before=None):
         from model.projections import SkaterProjection
         return SkaterProjection(pid, "", position, "WPG", 5, 19.5, 2.5, dict(self.lines[pid]))
 
-    def goalie_start(self, pid, team, opp, home):
+    def goalie_start(self, pid, team, opp, home, before=None):
         stats = {"gs": 1.0, "w": 0.5, "ga": 2.6, "sv": 25.0, "so": 0.06}
         return {**stats, "xfp": 1 + 4 * 0.5 - 2.6 + 0.35 * 25 + 5 * 0.06}
 
@@ -161,6 +161,47 @@ def test_a_players_points_split_by_stat_add_up_to_his_projection():
     # No start left this week: his line is his next start's, next week.
     idle = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, {}, "me", sched)
     assert idle["starts"] == [] and idle["xfp"] == pytest.approx(9.45) and idle["next"]["opp"] == "CHI"
+
+
+def test_a_players_season_so_far_is_set_against_what_was_projected_before_each_game():
+    from clients.nhl_stats import GoalieGame, SkaterGame
+    ctx = _BreakdownContext()
+    asked = []
+    real = ctx.skater
+    ctx.skater = lambda pid, pos, before=None: asked.append(before) or real(pid, pos)
+    ctx.skater_games = {1: [SkaterGame(1, "", "C", "WPG", "CHI", THU - dt.timedelta(days=2), 0,
+                                       stats={"g": 1, "sog": 4, "hit": 2}),
+                            SkaterGame(1, "", "C", "WPG", "DAL", THU - dt.timedelta(days=1), 0, stats={"a": 1, "blk": 1}),
+                            SkaterGame(1, "", "C", "WPG", "MIN", THU, 0, stats={"g": 5})]}  # tonight's: not yet
+    s = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")["season"]
+    assert asked[:2] == [THU - dt.timedelta(days=2), THU - dt.timedelta(days=1)]  # each game's projection from before it
+    xfp = ctx.skater(1, "C").xfp
+    # 1 goal (4) + 4 shots (2) + 2 hits (1.2), then 1 assist (2.75) + 1 block (0.8)
+    assert s["gp"] == 2 and s["pts"] == pytest.approx(10.75, abs=0.06) and s["proj"] == pytest.approx(2 * xfp, abs=0.05)
+    assert s["pts_projected"] == s["pts"]
+    assert s["stats"]["Goals"] == [1.0, 0.8] and s["stats"]["Shots"] == [4.0, 6.0]  # [actual, projected]
+    assert [g["opp"] for g in s["last"]] == ["DAL", "CHI"] and s["last"][0]["pts"] == pytest.approx(3.55, abs=0.06)
+    ctx.goalie_games = {3: [GoalieGame(3, "", "WPG", "CHI", THU - dt.timedelta(days=3), 0, True, True,
+                                       stats={"gs": 1, "w": 1, "sv": 30, "ga": 2}),
+                            GoalieGame(3, "", "WPG", "DAL", THU - dt.timedelta(days=1), 0, False, False,
+                                       stats={"sv": 10, "ga": 1})]}
+    g = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, {}, "me")["season"]
+    assert g["gp"] == 2 and g["starts"] == 1 and g["relief"] == 1
+    assert g["proj"] == pytest.approx(9.45, abs=0.06) and g["stats"]["Saves"] == [30.0, 25.0]  # the start only
+    assert g["last"][0] == {"date": "2026-09-30", "opp": "@DAL", "pts": g["pts"] - g["pts_projected"], "proj": None}
+    assert report.player_view(RosterPlayer(2, "Neal Pionk", "WPG", ["D"]), ctx, {}, {}, {}, "me")["season"] is None
+
+
+def test_team_games_lists_each_teams_opponents_by_day_from_today():
+    game = lambda d, home, away: ScheduledGame(1, dt.datetime(d.year, d.month, d.day, 23, tzinfo=dt.timezone.utc),
+                                               home, away)
+    nxt = FRI + dt.timedelta(days=4)
+    view = report.team_games([(1, {THU - dt.timedelta(days=1): [game(THU, "WPG", "CHI")], THU: [game(THU, "WPG", "CHI")],
+                                   FRI: [game(FRI, "DAL", "WPG")]}),
+                              (2, {nxt: [game(nxt, "CHI", "DAL")]})], THU)
+    assert view["days"] == [{"date": "2026-10-01", "week": 1}, {"date": "2026-10-02", "week": 1},
+                            {"date": "2026-10-06", "week": 2}]
+    assert view["teams"]["WPG"] == ["CHI", "@DAL", None] and view["teams"]["CHI"] == ["@WPG", None, "DAL"]
 
 
 def test_a_teams_breakdown_reconciles_to_its_projection():
