@@ -21,8 +21,9 @@ def test_injured_players_fit_the_free_ir_slots_ir_first():
 def test_a_healed_player_in_an_ir_slot_needs_a_spot():
     roster = [_p(1, "Healed", "IR+"), _p(2, "Long Out", "IR"), _p(3, "Fine", "C")]
     assert [p.id for p in ir.returning(roster, LINES)] == [1]
-    text = ir.text([], ir.returning(roster, LINES), roster[2])
-    assert "Healed is back in BOS's lineup" in text and "the weakest to drop is Fine" in text
+    text = ir.text([], ir.returning(roster, LINES), {1: "Fine"})
+    assert "Healed is back in BOS's lineup" in text and "the plan drops Fine" in text
+    assert ir.text([], ir.returning(roster, LINES)).endswith("any other move.")  # no plan yet: no name
 
 
 def test_the_plan_assumes_the_ir_moves_without_touching_the_roster():

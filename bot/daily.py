@@ -13,7 +13,7 @@ from engine import briefing, ir, trade
 from league import draft, teams, weeks
 from league import roster as roster_mod
 from model import context
-from bot.common import NHL_TIME, Outbox, _safe, free_agents, _weakest
+from bot.common import NHL_TIME, Outbox, _safe, free_agents
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +79,9 @@ def _new_ir_note(state: dict, players: list, ctx, team_lines: dict) -> str:
     state["ir_noted"] = sorted(keys)
     if not new:
         return ""
-    weakest = _weakest(players, ctx, team_lines)
+    cuts = {a["back"]: a["drop_name"] for a in (state.get("plan") or {}).get("activations", [])}
     return ir.text([m for k, m in keys.items() if k in new and isinstance(m, ir.IrMove)],
-                   [p for k, p in keys.items() if k in new and not isinstance(p, ir.IrMove)], weakest)
+                   [p for k, p in keys.items() if k in new and not isinstance(p, ir.IrMove)], cuts)
 
 
 def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,

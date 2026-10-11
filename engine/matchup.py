@@ -573,30 +573,76 @@ def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], c
     return {p.id for p in by_gap[:STREAMING_SPOTS] + spare_goalies}
 
 
-def keep_share(add: RosterPlayer, drop: RosterPlayer | None, spots: set[int], line: float,
+def keep_share(add: RosterPlayer | None, drop: RosterPlayer | None, spots: set[int], line: float,
                levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
     """How much of the season a swap's later gain is credited (KEEP_RAMP): 0 =
     only while a streamer is held, 1 = the discounted long run. A drop in a
     streaming spot is 0; goalie swaps stay on/off. `line`: the waiver gap of
-    my streaming spots' best skater."""
+    my streaming spots' best skater. No add: a player cut (cut_costs)."""
     if drop and drop.id in spots:
         return 0.0
-    if add.is_goalie or (drop and drop.is_goalie):
+    if (add and add.is_goalie) or (drop and drop.is_goalie):
         return 1.0
-    gap = waiver_gap(add, levels, ctx, lines)
-    if drop:
-        gap = min(gap, waiver_gap(drop, levels, ctx, lines))
+    gap = min(waiver_gap(p, levels, ctx, lines) for p in (add, drop) if p)
     return min(max((gap - line) / KEEP_RAMP, 0.0), 1.0)
 
 
-def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]) -> list[RosterPlayer]:
-    """The players worth trying as a drop: the DROPS_PER_GROUP lowest long-run
-    value per group, lowest first."""
-    ranked = sorted(mine, key=lambda p: season_value(p, ctx, lines))
+def streaming_line(mine: list[RosterPlayer], spots: set[int], levels: dict[str, float], ctx,
+                   lines: dict[str, dict[str, LineInfo]]) -> float:
+    """The waiver gap of my streaming spots' best skater (keep_share's 0)."""
+    return max((waiver_gap(p, levels, ctx, lines) for p in mine if p.id in spots and not p.is_goalie),
+               default=-math.inf)  # no streaming spots: every swap is a keeper's
+
+
+def cut_costs(roster: list[RosterPlayer], opponent: TeamWeek, ctx, schedule: dict[dt.date, list[ScheduledGame]],
+              lines: dict[str, dict[str, LineInfo]], starters: dict, future: dict, weeks_after: int,
+              free_agents: list[RosterPlayer], so_far: tuple[float, float, int] | None = None,
+              hold_days: int = 7 * STREAM_WEEKS, later_weight: float = 0.0,
+              ahead: list[WeekAhead] | None = None) -> dict[int, float]:
+    """Active player id -> what losing him costs, valued as a move is (win
+    probability, so a positive cost is a loss): this week's P(win) and each
+    week ahead's against its opponent, from the nights he'd be in my best
+    lineup (a game on a night his slot is full costs nothing), plus his later
+    points (keep_share: a streaming spot's only while he'd be held). Ranks the
+    drops tried (drop_candidates) and picks the cut for a player back from IR
+    (Nico, 2026-10-11: Lindell, cheapest by points a game, plays on full nights)."""
+    ahead = ahead or []
+    mine = active(roster)
+    so_far = so_far or _so_far(mine, ctx, sorted(schedule))
+    current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
+    current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
+    spots = streaming_spots(mine, free_agents, ctx, lines)
+    levels = waiver_levels(free_agents, ctx, lines)
+    line = streaming_line(mine, spots, levels, ctx, lines)
+    held = set(sorted(future)[:hold_days])
+    before = win_prob(current, opponent)
+    costs = {}
+    for p in mine:
+        rest = [q for q in roster if q.id != p.id]
+        week = project("me", rest, ctx, schedule, lines, starters, so_far=so_far)
+        gain = {}
+        if current_future:
+            rest_future = project("me", rest, ctx, future, lines, starters, True)
+            gain = {d: rest_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
+        keep = keep_share(None, p, spots, line, levels, ctx, lines)
+        ahead_wins, _, long_term = horizon(gain, future, ahead, weeks_after, later_weight, held, keep)
+        costs[p.id] = before - win_after(current, week, opponent) - sum(ahead_wins) - later_weight * long_term
+    return costs
+
+
+def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]],
+                    costs: dict[int, float] | None = None) -> list[RosterPlayer]:
+    """The players worth trying as a drop: the DROPS_PER_GROUP cheapest to lose
+    per group (`costs`, cut_costs: the schedule and my best lineup in; else
+    the lowest long-run value a game), cheapest first."""
+    def rank(p: RosterPlayer) -> float:
+        return costs.get(p.id, math.inf) if costs is not None else season_value(p, ctx, lines)
+
+    ranked = sorted(mine, key=rank)
     picked = []
     for group in ("F", "D", "G"):
         picked += [p for p in ranked if _group(p) == group][:DROPS_PER_GROUP]
-    return sorted(picked, key=lambda p: season_value(p, ctx, lines))
+    return sorted(picked, key=rank)
 
 
 def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
@@ -734,12 +780,13 @@ def candidate_moves(
     current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
     spots = streaming_spots(mine, candidates, ctx, lines)
     levels = waiver_levels(candidates, ctx, lines)
-    line = max((waiver_gap(p, levels, ctx, lines) for p in mine if p.id in spots and not p.is_goalie),
-               default=-math.inf)  # no streaming spots: every swap is a keeper's
+    line = streaming_line(mine, spots, levels, ctx, lines)
     before = win_prob(current, opponent)
+    costs = cut_costs(roster, opponent, ctx, schedule, lines, starters, future, weeks_after, candidates, so_far,
+                      hold_days, later_weight, ahead)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
-    drops += drop_candidates(mine, ctx, lines)
+    drops += drop_candidates(mine, ctx, lines, costs)
     moves, gains = [], {}
     for add in candidates:
         plays_from = (available_from or {}).get(add.id)
@@ -781,7 +828,7 @@ def candidate_moves(
         keeps = {p.id: (held, keep_share(p, None, spots, line, levels, ctx, lines)) for p in stashes}
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
                               available_from, so_far, current, current_future, later_weight, team_games, ahead,
-                              keeps)
+                              keeps, costs)
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
 
@@ -886,21 +933,23 @@ def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], we
 
 def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after, available_from,
                  so_far, current: TeamWeek, current_future: TeamWeek, later_weight, team_games,
-                 ahead: list[WeekAhead] | None = None, keeps: dict | None = None) -> list[Move]:
+                 ahead: list[WeekAhead] | None = None, keeps: dict | None = None,
+                 costs: dict[int, float] | None = None) -> list[Move]:
     """Injured free agents added straight into an empty IR or IR+ slot: no drop
     now; once he's back, the player cheapest to lose goes. Valued as an extra
     player whose games follow the return curves, less that drop's points on
     each day times the odds the stash is back by then. Slightly conservative:
     the drop's points are counted as they are without the stash competing for
     his slot. `keeps`: id -> (the streaming hold's days, his keep_share): a
-    stash near waiver level is streamed out again too."""
+    stash near waiver level is streamed out again too. `costs`: cut_costs, to
+    pick the drops tried."""
     free = ir.free_slots(roster)
     mine = active(roster)
     goalies = sum(p.is_goalie for p in mine)
     before = win_prob(current, opponent)
     soon = sorted(future)[:7 * STREAM_WEEKS]
     without = {}
-    for d in drop_candidates(mine, ctx, lines):
+    for d in drop_candidates(mine, ctx, lines, costs):
         rest = [p for p in roster if p.id != d.id]
         without[d.id] = (d, project("me", rest, ctx, schedule, lines, starters, so_far=so_far),
                          project("me", rest, ctx, future, lines, starters, True))

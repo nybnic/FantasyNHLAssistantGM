@@ -25,8 +25,9 @@
   constants come from `model/CLAUDE.md`). Banked points count in full, the
   margin still to play at `MARGIN_REALIZES` 0.80 (how projected margins realize).
 - **Candidate moves:** free agents shortlisted per position (and by schedule fit),
-  times drops (the open spot first, then my 2 lowest long-run players per group:
-  forwards, D, goalies). An add who can't play yet (waivers, or this week's adds
+  times drops (the open spot first, then my 2 cheapest to lose per group: forwards,
+  D, goalies; `cut_costs`: losing him valued as a move, from the nights he'd be in my
+  best lineup this week and the next two, plus later points with `keep_share`). An add who can't play yet (waivers, or this week's adds
   spent: everyone joins Monday) counts from that day, and his drop plays until
   then (`_deferred`): Yahoo makes both at once.
 - **IR stashes:** with an IR or IR+ slot empty, the best injured free agents
@@ -42,7 +43,7 @@
   point in a close week ahead is worth far more than in a lopsided one.
 - **Back from IR now** (`bot/weekly.activate_returns`): a player in an IR slot whom DFO lists in his
   team's lineup takes an active spot first (Yahoo allows no other move until he has one), and the
-  weakest active skater is cut when the roster is full. The plan's adds are built on that roster, and
+  active player cheapest to lose (`cut_costs`, never a goalie below 2) is cut when the roster is full. The plan's adds are built on that roster, and
   the activation is the plan's first line (2026-10-11: the plan had dropped Lindell for Spurgeon while
   Celebrini's return had to cut Lindell).
 - **IR returns** (`ir_returns`, the top `IR_RETURN_MOVES` 30 moves): with players in IR slots, each
@@ -106,6 +107,7 @@
 |---|---|---|
 | 2026-10-10 | **DFO's injury status decides, not its injured section** (Nico) | DFO lists every injured player in its injured section ("ir" group) whatever his status; the bot read all of them as NHL IR (the slow, 3+ game return curve, and IR-slot eligible). Celebrini sat there "dtd" after 2 missed games: read as IR, 29% to play 3-6 days on and 59% at six weeks. On Oct 10, 53 of 86 players in that section were "out" (27) or "dtd" (26). Now: "ir", or the section with no status, is IR; "out" follows the curve for his games missed (Yahoo tag O: IR+ only); "dtd" there is out tonight (off the chart), then `DTD_RETURN`. Effect that day: Spurgeon for Lindell +10.9 -> +9.5, for Samuelsson +10.7 -> +10.8 (the plan kept, under the change margin); the Marchand stash went (out, so IR+ only, which Celebrini holds). `DTD_RETURN` stays a judgment call: the DFO archive (`bot/dfo_archive.py`, daily since Oct 6) is what can fit it |
 | 2026-10-11 | **Later points ramp from the streaming hold to the season** (Nico: option 2 of three), on the lower of the add's and the drop's gap over waiver level (`keep_share`, `KEEP_RAMP` 1.0 points a game) | The on/off switch credited the 4th skater from waiver level the season and the 3rd only the ~3-week hold. Samuelsson and McBain were 0.003 a game apart (-0.36 each): Spurgeon for Samuelsson +19 win-pts (12 later), the same D upgrade for Lindell +10 (1.5 later). An add who'd be a streaming spot himself got the season too (Dach, Landeskog). After: Spurgeon for Samuelsson keeps 1% of the season, +7.7, under the 9.0 price; the plan became Spurgeon for Lindell (+10). Ramp width untested: for the replay harness |
+| 2026-10-11 | **Every drop is judged with the schedule and my best lineup** (Nico), the IR-return cut included: the cheapest to lose (`matchup.cut_costs`), not the lowest points a game | The cut for Celebrini was Lindell by points a game alone; Nico: he plays on a light night. A game on a night the slot is full is worth nothing, one on an open night in full. Lindell stays the likely cut (week 3: 3.5 pts lost, only his Wednesday game makes the lineup; the next cheapest 4.6), but a week like week 4 would favor another (Samuelsson 7.7 vs Lindell 10.4) |
 | 2026-10-11 | **Keep the settings after the first replay** (Nico): `KEEP_RAMP` 1.0, 3 streaming spots, `LONG_RUN_DISCOUNT` 0.5; no more weight on later points for now | `scripts/replay.py`, 2025-26 (see "Replayed"): none of the alternatives differed by more than its error (ramp width +/- 0.07, spots +/- 0.13, discount +/- 0.04 wins a season). Every swap credited the season +0.24 (+/- 0.13) is a hint, not evidence: a 16-league run would settle it |
 | 2026-09-29 | Optimize P(win this week), not season points | H2H: only beating this week's opponent counts |
 | 2026-09-29 | ~~**Always keep 3 goalies** (policy A, Nico)~~ Superseded 2026-10-02: goalie count by value | Season sim: 2G + a skater = +35 pts, but 2.5 vs 1.1 weeks with goalie points zeroed, plus goalie streams cost adds |

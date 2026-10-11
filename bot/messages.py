@@ -78,7 +78,8 @@ def activation_items(activations: list, today: dt.date) -> list[dict]:
     return [{"day": day_label(today, today), "today": True,
              "swap": f"Activate {back.name}" + (f", drop {drop.name}" if drop else ""),
              "detail": f"back in {back.team}'s lineup; Yahoo allows no other move until he's active. "
-                       "Then send your team page", "key": None}
+                       + (f"{drop.name} costs least to lose, counting the nights he'd be in your lineup. "
+                          if drop else "") + "Then send your team page", "key": None}
             for back, drop in activations]
 
 

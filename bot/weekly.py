@@ -21,7 +21,7 @@ from league import roster as roster_mod
 from model import context
 from notify import charts, snapshot, telegram
 from bot import board, messages
-from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents, _weakest
+from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents
 
 logger = logging.getLogger(__name__)
 
@@ -620,11 +620,17 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
     ir_moves = ir.moves(players, wk.lines)
     planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
-    # A player back from IR takes an active spot first: Yahoo allows no other move until he has one.
-    planned, activations = activate_returns(planned, ir.returning(players, wk.lines), wk.ctx, wk.lines)
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
     candidates += [p for p in wk.pool if p.id in extra_ids and p not in candidates]
+
+    def costs(roster: list) -> dict[int, float]:
+        return matchup.cut_costs(roster, wk.them, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
+                                 wk.weeks_after, candidates, wk.so_far, wk.hold_days, wk.later_weight,
+                                 weeks_ahead(state, league, week, roster, wk))
+
+    # A player back from IR takes an active spot first: Yahoo allows no other move until he has one.
+    planned, activations = activate_returns(planned, ir.returning(players, wk.lines), costs)
     wk.ahead = weeks_ahead(state, league, week, planned, wk)
     ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
@@ -643,17 +649,27 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
                      max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held, activations)
 
 
-def activate_returns(roster: list, back: list, ctx, lines: dict) -> tuple[list, list]:
+def activate_returns(roster: list, back: list, costs) -> tuple[list, list]:
     """The roster with the players back from IR in active spots, each taking
-    the weakest active player's (_weakest) when the roster is full; and the
-    steps, [(player back, the drop or None)]. The plan's adds are built on it
-    (until 2026-10-11 they assumed Celebrini still on IR+, and the plan dropped
-    Lindell, the one his return had to cut)."""
+    the spot of the active player cheapest to lose when the roster is full
+    (`costs`: roster -> id -> cost, matchup.cut_costs: this week's nights, the
+    next two weeks' against their opponents, later points; never a goalie
+    below MIN_GOALIES); and the steps, [(player back, the drop or None)]. The
+    plan's adds are built on it (until 2026-10-11 they assumed Celebrini still
+    on IR+, and the plan dropped Lindell, the one his return had to cut; the
+    cut was the lowest points a game until Nico asked for the schedule)."""
     roster, steps = list(roster), []
     for p in back:
-        drop = _weakest(roster, ctx, lines) if len(roster_mod.active(roster)) >= matchup.ACTIVE_SPOTS else None
         roster = [roster_mod.RosterPlayer(q.id, q.name, q.team, q.positions, roster_mod.BENCH if q.id == p.id else q.slot)
-                  for q in roster if not drop or q.id != drop.id]
+                  for q in roster]
+        drop = None
+        mine = roster_mod.active(roster)
+        if len(mine) > matchup.ACTIVE_SPOTS:
+            cost = costs(roster)
+            goalies = sum(q.is_goalie for q in mine)
+            drop = min((q for q in mine if q.id != p.id and not (q.is_goalie and goalies <= matchup.MIN_GOALIES)),
+                       key=lambda q: cost.get(q.id, math.inf))
+            roster = [q for q in roster if q.id != drop.id]
         steps.append((p, drop))
     return roster, steps
 
@@ -758,7 +774,8 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
                 outbox.mark(rec["message_id"], label)
     stored = [_stored(q, by_key.get(q.key)) for q in p.plan]
     send_cards(state, p, stored, date, now, outbox)
-    state["plan"] = {"week": week, "at": now.isoformat(timespec="minutes"), "moves": stored}
+    state["plan"] = {"week": week, "at": now.isoformat(timespec="minutes"), "moves": stored,
+                     "activations": [{"back": b.id, "drop": d.id, "drop_name": d.name} for b, d in p.activations if d]}
     return p
 
 

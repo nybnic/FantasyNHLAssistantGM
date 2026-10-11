@@ -1,3 +1,4 @@
+import dataclasses
 import datetime as dt
 
 import pytest
@@ -729,11 +730,15 @@ def test_the_briefing_mentions_each_ir_move_once(monkeypatch, tmp_path):
     from clients.dfo_lines import LineInfo
     _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
     lines = {"TOR": {"b": LineInfo(groups={"f2"}, injury="out")}}
-    monkeypatch.setattr(matchup, "drop_candidates", lambda roster, ctx, lines: [])
     assert "move B to IR+" in daily._new_ir_note(state, players, None, lines)
     assert daily._new_ir_note(state, players, None, lines) == ""  # said already
     assert daily._new_ir_note(state, players, None, {}) == "" and state["ir_noted"] == []  # healed: forgotten
     assert "move B to IR+" in daily._new_ir_note(state, players, None, lines)  # out again: said again
+    # Back from IR: the drop is the plan's (cheapest to lose, schedule in), not a second guess.
+    players[1] = dataclasses.replace(players[1], slot="IR+")
+    state["plan"] = {"activations": [{"back": players[1].id, "drop": players[0].id, "drop_name": players[0].name}]}
+    note = daily._new_ir_note(state, players, None, {"TOR": {"b": LineInfo(groups={"f2"})}})
+    assert "B is back in TOR's lineup" in note and f"the plan drops {players[0].name}." in note
 
 
 def test_a_weeks_plans_are_logged_first_and_latest(tmp_path):
@@ -1182,14 +1187,20 @@ def test_later_points_weigh_a_typical_week_not_the_days_left():
     assert weekly.typical_sigma({MY_TEAM: (300.0, 30.0)}, 25.8) == 25.8  # rosters unknown: the days left's
 
 
-def test_a_player_back_from_ir_takes_the_weakest_spot_before_any_add(monkeypatch):
+def test_a_player_back_from_ir_takes_the_spot_cheapest_to_lose_before_any_add():
     from engine import matchup as m
-    roster = [RosterPlayer(i, f"P{i}", "SJS", ["C"], "C") for i in range(1, 15)]
+    roster = [RosterPlayer(i, f"P{i}", "SJS", ["C"], "C") for i in range(1, 13)]
+    roster += [RosterPlayer(13, "G13", "SJS", ["G"], "G"), RosterPlayer(14, "G14", "SJS", ["G"], "G")]
     roster.append(RosterPlayer(99, "Macklin Celebrini", "SJS", ["C"], "IR+"))
-    monkeypatch.setattr(weekly, "_weakest", lambda players, ctx, lines: min(
-        (p for p in players if p.slot not in ("IR", "IR+")), key=lambda p: p.id))
-    planned, steps = weekly.activate_returns(roster, [roster[-1]], None, {})
-    assert [(b.name, d.name) for b, d in steps] == [("Macklin Celebrini", "P1")]
+    seen = []
+
+    def costs(r):  # matchup.cut_costs: here P5 is the cheapest skater, the goalies cheaper still
+        seen.append(sorted(p.id for p in m.active(r)))
+        return {p.id: (0.0 if p.is_goalie else 1.0 if p.id == 5 else 2.0) for p in m.active(r)}
+
+    planned, steps = weekly.activate_returns(roster, [roster[-1]], costs)
+    assert [(b.name, d.name) for b, d in steps] == [("Macklin Celebrini", "P5")]  # never a goalie of two
+    assert 99 in seen[0]  # judged with him back in the lineup
     assert len(planned) == m.ACTIVE_SPOTS and next(p for p in planned if p.id == 99).slot == "BN"
-    _, steps = weekly.activate_returns(roster[1:], [roster[-1]], None, {})  # an open spot: no drop
+    _, steps = weekly.activate_returns(roster[1:], [roster[-1]], costs)  # an open spot: no drop
     assert steps[0][1] is None

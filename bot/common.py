@@ -11,7 +11,6 @@ from zoneinfo import ZoneInfo
 
 from clients import health, nhl_client
 from config.settings import Settings
-from engine import matchup
 from league import parse, positions, teams, weeks
 from league import roster as roster_mod
 from notify import telegram
@@ -89,11 +88,6 @@ def _safe(fetch, *args, default=None):
         logger.warning("%s failed; continuing without it", name, exc_info=True)
         health.report(name, f"failed ({type(exc).__name__})")
         return default
-
-
-def _weakest(players: list, ctx, lines: dict):
-    """The skater to drop for a player back from IR: my lowest long-run value."""
-    return next((p for p in matchup.drop_candidates(roster_mod.active(players), ctx, lines) if not p.is_goalie), None)
 
 
 def free_agents(players: list, league: dict) -> list:

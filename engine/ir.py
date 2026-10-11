@@ -79,8 +79,9 @@ def after(players: list[RosterPlayer], ir_moves: list[IrMove]) -> list[RosterPla
     return [RosterPlayer(p.id, p.name, p.team, p.positions, slot.get(p.id, p.slot)) for p in players]
 
 
-def text(ir_moves: list[IrMove], back: list[RosterPlayer], weakest: RosterPlayer | None = None) -> str:
-    """The IR lines, or "" when there's nothing to do."""
+def text(ir_moves: list[IrMove], back: list[RosterPlayer], cuts: dict[int, str] | None = None) -> str:
+    """The IR lines, or "" when there's nothing to do. `cuts`: player back ->
+    the name of the plan's drop for him (bot/weekly.activate_returns)."""
     lines = []
     for m in ir_moves:
         tag = "IR" if m.status == "IR" else "out (Yahoo's O)"
@@ -88,5 +89,5 @@ def text(ir_moves: list[IrMove], back: list[RosterPlayer], weakest: RosterPlayer
                      "It frees a roster spot, so an add needs no drop.")
     for p in back:
         lines.append(f"IR: {p.name} is back in {p.team}'s lineup. He needs an active spot before Yahoo allows "
-                     "any other move" + (f": the weakest to drop is {weakest.name}." if weakest else "."))
+                     "any other move" + (f": the plan drops {cuts[p.id]}." if p.id in (cuts or {}) else "."))
     return "\n".join(lines)

@@ -715,3 +715,19 @@ def test_a_swaps_later_points_ramp_from_the_hold_to_the_season_above_the_streami
     assert matchup.keep_share(weak, me[2], spots, line, levels, ctx, {}) == pytest.approx(0.2)
     assert matchup.keep_share(keeper, me[2], spots, line, levels, ctx, {}) == 1.0  # P3 is 1.0 above: a keeper
     assert matchup.keep_share(keeper, None, spots, line, levels, ctx, {}) == 1.0  # an open spot: the add's own
+
+
+def test_the_cheapest_to_lose_counts_the_nights_he_would_be_in_my_lineup():
+    # Six D for four slots. The weakest a game plays Wednesday, when no other D
+    # does; the next weakest plays Monday and Tuesday behind four better D, so
+    # he never makes the lineup: losing him costs nothing (Lindell, 2026-10-11).
+    ctx = FakeContext()
+    ctx.xfp = {21: 2.0, 22: 2.5, 23: 4.0, 24: 4.0, 25: 4.0, 26: 4.0}
+    d = [RosterPlayer(21, "Light Night", "DAL", ["D"], "D"), RosterPlayer(22, "Full Nights", "BUF", ["D"], "BN")] + [
+        RosterPlayer(i, f"D{i}", "NYR", ["D"], "D") for i in (23, 24, 25, 26)]
+    schedule = {MON: [_game(MON, "NYR", "BUF")], TUE: [_game(TUE, "NYR", "BUF")], WED: [_game(WED, "DAL", "SEA")]}
+    opponent = matchup.TeamWeek("them", 0, 60.0, 100.0, 20, 3, 0, 1.0)
+    costs = matchup.cut_costs(d, opponent, ctx, schedule, {}, {}, {}, 0, [])
+    assert costs[22] == pytest.approx(0.0) and costs[21] > 0 and costs[23] > costs[21]
+    assert [p.id for p in matchup.drop_candidates(d, ctx, {}, costs)] == [22, 21]
+    assert [p.id for p in matchup.drop_candidates(d, ctx, {})] == [21, 22]  # points a game alone

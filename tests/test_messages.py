@@ -97,7 +97,8 @@ def test_a_player_back_from_ir_is_the_plans_first_step():
     back, drop = RosterPlayer(99, "Macklin Celebrini", "SJS", ["C"], "IR+"), RosterPlayer(5, "Esa Lindell", "DAL", ["D"])
     text = messages.plan_text(2, "Retrot Chicken Wings", ME, THEM, [], FRIDAY, 1, 3, activations=[(back, drop)])
     assert text.splitlines()[1] == ("Fri 9 Oct (today): Activate Macklin Celebrini, drop Esa Lindell (back in SJS's "
-                                   "lineup; Yahoo allows no other move until he's active. Then send your team page).")
+                                   "lineup; Yahoo allows no other move until he's active. Esa Lindell costs least to "
+                                   "lose, counting the nights he'd be in your lineup. Then send your team page).")
     item = messages.activation_items([(back, None)], FRIDAY)[0]
     assert item["swap"] == "Activate Macklin Celebrini" and item["key"] is None
 
