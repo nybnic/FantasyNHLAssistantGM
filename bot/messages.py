@@ -72,6 +72,20 @@ def plan_items(plan: list[Planned], today: dt.date) -> list[dict]:
              "key": p.key} for p in plan]
 
 
+def activation_items(activations: list, today: dt.date) -> list[dict]:
+    """Players back from IR, as the plan's first steps (bot/weekly.activate_returns):
+    Yahoo allows no other move until each has an active spot."""
+    return [{"day": day_label(today, today), "today": True,
+             "swap": f"Activate {back.name}" + (f", drop {drop.name}" if drop else ""),
+             "detail": f"back in {back.team}'s lineup; Yahoo allows no other move until he's active. "
+                       "Then send your team page", "key": None}
+            for back, drop in activations]
+
+
+def activation_lines(activations: list, today: dt.date) -> list[str]:
+    return [f"{i['day']}: {i['swap']} ({i['detail']})." for i in activation_items(activations, today)]
+
+
 def plan_lines(plan: list[Planned], today: dt.date, adds_left_week: int) -> list[str]:
     """What to do and when, one line per day."""
     if not plan:
@@ -87,13 +101,14 @@ def plan_lines(plan: list[Planned], today: dt.date, adds_left_week: int) -> list
 def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.TeamWeek, plan: list[Planned],
               today: dt.date, adds_left_week: int, season_used: int, ahead: list[matchup.WeekAhead] = (),
               this_week_best: matchup.Move | None = None, price=None, odds=None,
-              yahoo: list | None = None, warnings: list[str] = ()) -> str:
-    """The plan message: the matchup, what to do, the weeks ahead, the budget."""
+              yahoo: list | None = None, warnings: list[str] = (), activations: list = ()) -> str:
+    """The plan message: the matchup, what to do (players back from IR first),
+    the weeks ahead, the budget."""
     yahoo_text = f" (Yahoo {yahoo[0]:.0f}-{yahoo[1]:.0f})" if yahoo else ""
     head = (f"Week {week} vs {opponent}: " + (f"{me.so_far:.0f}-{them.so_far:.0f} so far, " if me.so_far or them.so_far
                                                else "")
             + f"expect {me.expected:.0f}-{them.expected:.0f}{yahoo_text}. Win {_pct(matchup.win_prob(me, them))}.")
-    lines = [head] + plan_lines(plan, today, adds_left_week)
+    lines = [head] + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week)
     if best := this_week_line(this_week_best, plan, price, adds_left_week):
         lines.append(best)
     if ahead:
@@ -137,11 +152,12 @@ def league_warning(league_through: dt.date | None, opponent_updated: str | None,
     return ""
 
 
-def change_text(old: list[dict], plan: list[Planned], reason: str, today: dt.date, adds_left_week: int) -> str:
+def change_text(old: list[dict], plan: list[Planned], reason: str, today: dt.date, adds_left_week: int,
+                activations: list = ()) -> str:
     """The plan changed: from what, to what, and why."""
     before = "; ".join(o["add"]["name"] + (f" for {o['drop']['name']}" if o.get("drop") else "") for o in old)
     return "\n".join([f"Plan changed ({reason}). Was: {before or 'nothing'}. Now:"]
-                     + plan_lines(plan, today, adds_left_week))
+                     + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week))
 
 
 def _score(me: matchup.TeamWeek, them: matchup.TeamWeek) -> str:

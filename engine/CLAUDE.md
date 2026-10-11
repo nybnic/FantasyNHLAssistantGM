@@ -40,6 +40,11 @@
   those days, at the size fringe gaps realize (`GAP_REALIZES` 0.95 / 0.89),
   counts by the change it makes to that week's P(win) (`ahead_value`): a
   point in a close week ahead is worth far more than in a lopsided one.
+- **Back from IR now** (`bot/weekly.activate_returns`): a player in an IR slot whom DFO lists in his
+  team's lineup takes an active spot first (Yahoo allows no other move until he has one), and the
+  weakest active skater is cut when the roster is full. The plan's adds are built on that roster, and
+  the activation is the plan's first line (2026-10-11: the plan had dropped Lindell for Spurgeon while
+  Celebrini's return had to cut Lindell).
 - **IR returns** (`ir_returns`, the top `IR_RETURN_MOVES` 30 moves): with players in IR slots, each
   day after this week mixes the move's gain as it is with its gain once they're back
   (`with_returns`: the roster with them back, the cheapest to lose cut, by projection), weighted by

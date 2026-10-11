@@ -430,7 +430,7 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
     return {
         "generated": b["at"], "date": b["date"], "week": b["week"], "opponent": b["opponent"], "days": b["days"],
         "header": h,
-        "plan": messages.plan_items(p.plan, date),
+        "plan": messages.activation_items(p.activations, date) + messages.plan_items(p.plan, date),
         "plan_empty": messages.empty_text(wk.max_moves),
         "changed": changed,
         "this_week_line": messages.this_week_line(matchup.biggest_swing(p.ranked), p.plan,
@@ -605,6 +605,7 @@ class PlanMoves:
     planned: list  # the roster with them made
     open_spots: int  # spots open before any IR move
     held: bool = False  # keepers that do nothing this week wait for the mid-week plan
+    activations: list = field(default_factory=list)  # [(player back from IR, the drop that makes room)]
 
     @property
     def moves(self) -> list:
@@ -619,6 +620,8 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     wk = week_inputs(date, week, players, league, state, build_context, opponent)
     ir_moves = ir.moves(players, wk.lines)
     planned = ir.after(players, ir_moves)  # the adds assume the IR moves are made: a free spot each
+    # A player back from IR takes an active spot first: Yahoo allows no other move until he has one.
+    planned, activations = activate_returns(planned, ir.returning(players, wk.lines), wk.ctx, wk.lines)
     nxt = next_week(week, players, wk)
     candidates = add_candidates(wk, nxt)
     candidates += [p for p in wk.pool if p.id in extra_ids and p not in candidates]
@@ -637,7 +640,22 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     composed = plan_mod.time_moves(composed, planned, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
                                    wk.so_far, wk.days[-1] + dt.timedelta(days=1))
     return PlanMoves(wk, nxt, ranked, composed, ir_moves, planned,
-                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held)
+                     max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held, activations)
+
+
+def activate_returns(roster: list, back: list, ctx, lines: dict) -> tuple[list, list]:
+    """The roster with the players back from IR in active spots, each taking
+    the weakest active player's (_weakest) when the roster is full; and the
+    steps, [(player back, the drop or None)]. The plan's adds are built on it
+    (until 2026-10-11 they assumed Celebrini still on IR+, and the plan dropped
+    Lindell, the one his return had to cut)."""
+    roster, steps = list(roster), []
+    for p in back:
+        drop = _weakest(roster, ctx, lines) if len(roster_mod.active(roster)) >= matchup.ACTIVE_SPOTS else None
+        roster = [roster_mod.RosterPlayer(q.id, q.name, q.team, q.positions, roster_mod.BENCH if q.id == p.id else q.slot)
+                  for q in roster if not drop or q.id != drop.id]
+        steps.append((p, drop))
+    return roster, steps
 
 
 def skipped(state: dict, date: dt.date) -> set[str]:
@@ -682,6 +700,9 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
             problems[o["key"]] = "someone took him"
         elif o.get("drop") and o["drop"]["id"] not in mine:
             problems[o["key"]] = f"{o['drop']['name']} is no longer on your roster"
+        elif o.get("drop") and (made_room := next((b for b, d in p.activations if d and d.id == o["drop"]["id"]),
+                                                  None)):
+            problems[o["key"]] = f"{o['drop']['name']} makes room for {made_room.name}, back from IR"
     verdict = plan_mod.decide(old_open, p.plan, current, problems, wk.price)
     if verdict.keep and old_open:
         dated = {q.key: q for q in p.plan}
@@ -700,14 +721,14 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         _safe(write_dashboard, data, outbox.settings.dry_run)
 
     if mode == "full":
-        ir_text = ir.text(p.ir_moves, ir.returning(players, wk.lines), _weakest(players, wk.ctx, wk.lines))
+        ir_text = ir.text(p.ir_moves, [])  # players back from IR are the plan's first step
         odds = odds_note[0] if odds_note else None
         outbox.send(messages.plan_text(
             week, opponent, wk.me, wk.them, p.plan, date, wk.max_moves, wk.season_used, wk.ahead,
             matchup.biggest_swing(p.ranked), wk.price if wk.max_moves else None, odds, wk.yahoo_projected,
             [f"Changed since the last plan: {changed}." if changed else "",
              messages.league_warning(teams.moves_through(league), teams.updated(league, opponent), date),
-             ir_text]))
+             ir_text], activations=p.activations))
         record_plan(state, week, opponent, wk.me, wk.them, now)
         _safe(record_league, state, league, week, opponent, wk, now)
         png = _safe(snapshot.card_png, data) if data else None
@@ -716,7 +737,7 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         elif views and (png := _safe(charts.schedule_chart, views["schedule"])):  # no browser: the old chart
             outbox.send_photo(png, "Schedule, this week and next. Everything weighed: tap Dashboard.")
     elif changed:
-        outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves))
+        outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves, p.activations))
     elif p.plan and not old_open:  # moves where there were none: say so before any card
         outbox.send(messages.new_plan_text(p.plan, date, wk.max_moves, *((wk.me, wk.them) if mode == "check" else ())))
     elif mode == "check":

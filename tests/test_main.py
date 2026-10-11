@@ -1180,3 +1180,16 @@ def test_later_points_weigh_a_typical_week_not_the_days_left():
     # Mine and an average team's full-week spread: sqrt(30^2 + (30^2 + 40^2 + 20^2) / 3).
     assert weekly.typical_sigma(strengths, 25.8) == pytest.approx((900 + 2900 / 3) ** 0.5)
     assert weekly.typical_sigma({MY_TEAM: (300.0, 30.0)}, 25.8) == 25.8  # rosters unknown: the days left's
+
+
+def test_a_player_back_from_ir_takes_the_weakest_spot_before_any_add(monkeypatch):
+    from engine import matchup as m
+    roster = [RosterPlayer(i, f"P{i}", "SJS", ["C"], "C") for i in range(1, 15)]
+    roster.append(RosterPlayer(99, "Macklin Celebrini", "SJS", ["C"], "IR+"))
+    monkeypatch.setattr(weekly, "_weakest", lambda players, ctx, lines: min(
+        (p for p in players if p.slot not in ("IR", "IR+")), key=lambda p: p.id))
+    planned, steps = weekly.activate_returns(roster, [roster[-1]], None, {})
+    assert [(b.name, d.name) for b, d in steps] == [("Macklin Celebrini", "P1")]
+    assert len(planned) == m.ACTIVE_SPOTS and next(p for p in planned if p.id == 99).slot == "BN"
+    _, steps = weekly.activate_returns(roster[1:], [roster[-1]], None, {})  # an open spot: no drop
+    assert steps[0][1] is None
