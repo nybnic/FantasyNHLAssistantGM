@@ -135,6 +135,12 @@ is why the bot weighs carrying a third goalie every week (decision log in `engin
   semifinal, final, with no byes. **Reseeded** after each round. **A tied
   playoff week goes to the higher seed**, so regular-season seeding is worth
   something even after qualifying. Eliminated teams are locked.
+- **Prizes** (the pool's split, fixed, Nico 2026-10-11): regular-season winner
+  **25%**, playoff champion **45%**, runner-up **20%**, third **10%**. Third
+  place assumes the semifinal losers play for it in week 26 (unverified). So
+  the title is 45% of the pool and a playoff run's floor (reaching the
+  semifinal) is worth up to 10%: an expected prize, not the title alone, is
+  what the season's decisions are weighed on.
 
 ## Our regular-season schedule
 | Wk | Opponent | Wk | Opponent | Wk | Opponent |

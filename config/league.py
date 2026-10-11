@@ -85,6 +85,10 @@ MIN_GOALIE_GAMES_PER_WEEK = 3
 REGULAR_SEASON_WEEKS = 23
 PLAYOFF_WEEKS = (24, 25, 26)
 PLAYOFF_TEAMS = 8  # reseeded each round; a tied playoff week goes to the higher seed
+# The prize pool's split (Nico, 2026-10-11, "lyöty lukkoon"): the regular
+# season's winner (1st by wins), and the playoffs' top three. Third place
+# assumes the semifinal losers play for it in week 26 (Yahoo's 3rd-place game).
+PRIZE_SHARES = {"regular_season": 0.25, "champion": 0.45, "runner_up": 0.20, "third": 0.10}
 SEASON_END = dt.date(2027, 4, 4)
 TRADE_DEADLINE = dt.date(2027, 3, 3)
 
