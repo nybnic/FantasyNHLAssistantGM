@@ -754,7 +754,14 @@
     }
   },
   "plan": {
-    "at": "2026-10-11T16:11+00:00",
+    "activations": [
+      {
+        "back": 8484801,
+        "drop": 8476902,
+        "drop_name": "Esa Lindell"
+      }
+    ],
+    "at": "2026-10-11T17:55+00:00",
     "moves": [
       {
         "add": {
@@ -772,7 +779,7 @@
         "key": "8477498:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.2417,
+        "value": 0.2281,
         "when": "2026-10-13",
         "why": "spare"
       }
@@ -918,7 +925,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784632,
+  "telegram_offset": 929784633,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -930,7 +937,7 @@
       "sent": "2026-10-01T07:15+00:00"
     },
     "2": {
-      "midweek": "2026-10-11T16:11+00:00",
+      "midweek": "2026-10-11T17:55+00:00",
       "sent": "2026-10-05T05:13+00:00"
     }
   },
