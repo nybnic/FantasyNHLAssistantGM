@@ -755,7 +755,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-12T07:15+00:00",
+    "at": "2026-10-12T07:21+00:00",
     "moves": [
       {
         "add": {
@@ -774,7 +774,7 @@
         "key": "8476455:8485406",
         "message_id": null,
         "rec_id": null,
-        "value": 0.0895,
+        "value": 0.092,
         "when": "2026-10-16",
         "why": "now"
       },
@@ -788,35 +788,15 @@
           "team": "SJS"
         },
         "drop": {
-          "id": 8476902,
-          "name": "Esa Lindell"
-        },
-        "key": "8477498:8476902",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.1421,
-        "when": "2026-10-15",
-        "why": "now"
-      },
-      {
-        "add": {
-          "id": 8482445,
-          "name": "Devin Cooley",
-          "positions": [
-            "G"
-          ],
-          "team": "CGY"
-        },
-        "drop": {
           "id": 8476457,
           "name": "Adam Larsson"
         },
-        "key": "8482445:8476457",
+        "key": "8477498:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.2317,
-        "when": "2026-10-23",
-        "why": "monday"
+        "value": 0.2854,
+        "when": "2026-10-14",
+        "why": "held"
       }
     ],
     "week": 3
@@ -960,7 +940,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784639,
+  "telegram_offset": 929784640,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -974,6 +954,9 @@
     "2": {
       "midweek": "2026-10-11T17:55+00:00",
       "sent": "2026-10-05T05:13+00:00"
+    },
+    "3": {
+      "sent": "2026-10-12T07:21+00:00"
     }
   },
   "xfp_logged": 3
