@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-12T07:54+00:00",
+ "generated": "2026-10-12T08:23+00:00",
  "date": "2026-10-12",
  "week": 3,
  "opponent": "Löllöt Höntsääjät",
@@ -64,7 +64,7 @@
    "pace": 1.286
   },
   "later_weight": 0.00784,
-  "tau": 21.73,
+  "tau": 21.62,
   "ahead": [
    {
     "week": 4,
@@ -87,11 +87,11 @@
    "hold_days": 15
   },
   "season": {
-   "playoffs": 0.2252,
-   "title": 0.0027,
-   "leverage": 0.1215,
-   "typical": 0.1317,
-   "seed": 6.4036,
+   "playoffs": 0.2023,
+   "title": 0.0029,
+   "leverage": 0.1155,
+   "typical": 0.1244,
+   "seed": 6.4686,
    "note": " (Standings through week 1: send a new screenshot.)"
   }
  },
@@ -174,8 +174,8 @@
    ],
    "held": false,
    "keep": 0.331,
-   "later_wins": 0.1624,
-   "value": 0.2462,
+   "later_wins": 0.1625,
+   "value": 0.2463,
    "status": "plan",
    "why": "held"
   },
@@ -443,7 +443,7 @@
    "later_wins": 0.0722,
    "value": 0.0695,
    "status": "fails",
-   "why": "worth 6.9 win-pts, under the 8.6 an add costs"
+   "why": "worth 7.0 win-pts, under the 8.6 an add costs"
   },
   {
    "key": "8480448:8485406",
@@ -530,7 +530,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0337,
-   "value": 0.0637,
+   "value": 0.0638,
    "status": "fails",
    "why": "worth 6.4 win-pts, under the 8.6 an add costs"
   },
@@ -1017,8 +1017,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0374,
-   "value": 0.0365,
+   "later_wins": 0.0375,
+   "value": 0.0366,
    "status": "fails",
    "why": "worth 3.7 win-pts, under the 8.6 an add costs"
   },
@@ -1062,7 +1062,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0255,
-   "value": 0.0356,
+   "value": 0.0357,
    "status": "fails",
    "why": "worth 3.6 win-pts, under the 8.6 an add costs"
   },
@@ -1597,50 +1597,6 @@
    "why": "worth 1.7 win-pts, under the 8.6 an add costs"
   },
   {
-   "key": "8482076:8485406",
-   "add": {
-    "id": 8482076,
-    "name": "Nico Daws",
-    "team": "NJD",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 1.8,
-   "next_two_pts": -0.3,
-   "later_pts": 0.34,
-   "win": [
-    0.3011,
-    0.3144
-   ],
-   "now_wins": 0.0133,
-   "ahead_wins": [
-    0.0266,
-    -0.0262
-   ],
-   "ahead_pts": -0.07,
-   "ahead_week_pts": [
-    3.08,
-    -3.15
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0027,
-   "value": 0.0164,
-   "status": "fails",
-   "why": "worth 1.6 win-pts, under the 8.6 an add costs"
-  },
-  {
    "key": "8478468:8480855",
    "add": {
     "id": 8478468,
@@ -1680,6 +1636,50 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0337,
+   "value": 0.0164,
+   "status": "fails",
+   "why": "worth 1.6 win-pts, under the 8.6 an add costs"
+  },
+  {
+   "key": "8482076:8485406",
+   "add": {
+    "id": 8482076,
+    "name": "Nico Daws",
+    "team": "NJD",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8485406,
+    "name": "Porter Martone"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": 1.8,
+   "next_two_pts": -0.3,
+   "later_pts": 0.34,
+   "win": [
+    0.3011,
+    0.3144
+   ],
+   "now_wins": 0.0133,
+   "ahead_wins": [
+    0.0266,
+    -0.0262
+   ],
+   "ahead_pts": -0.07,
+   "ahead_week_pts": [
+    3.08,
+    -3.15
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0027,
    "value": 0.0164,
    "status": "fails",
    "why": "worth 1.6 win-pts, under the 8.6 an add costs"
@@ -1769,7 +1769,7 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0374,
+   "later_wins": 0.0375,
    "value": 0.0102,
    "status": "fails",
    "why": "worth 1.0 win-pts, under the 8.6 an add costs"
@@ -1903,7 +1903,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0011,
-   "value": 0.0047,
+   "value": 0.0048,
    "status": "fails",
    "why": "worth 0.5 win-pts, under the 8.6 an add costs"
   },
@@ -1991,7 +1991,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0266,
-   "value": -0.0006,
+   "value": -0.0005,
    "status": "fails",
    "why": "worth -0.1 win-pts, under the 8.6 an add costs"
   },
@@ -2039,50 +2039,6 @@
    "value": -0.0006,
    "status": "fails",
    "why": "worth -0.1 win-pts, under the 8.6 an add costs"
-  },
-  {
-   "key": "8478055:8485406",
-   "add": {
-    "id": 8478055,
-    "name": "Gustav Forsling",
-    "team": "FLA",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 2.15,
-   "next_two_pts": -6.15,
-   "later_pts": 3.37,
-   "win": [
-    0.3011,
-    0.3177
-   ],
-   "now_wins": 0.0166,
-   "ahead_wins": [
-    0.0075,
-    -0.0524
-   ],
-   "ahead_pts": -5.41,
-   "ahead_week_pts": [
-    0.87,
-    -6.29
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0264,
-   "value": -0.0018,
-   "status": "fails",
-   "why": "worth -0.2 win-pts, under the 8.6 an add costs"
   },
   {
    "key": "8481033:8485406",
@@ -2350,50 +2306,6 @@
    "why": "worth -0.7 win-pts, under the 8.6 an add costs"
   },
   {
-   "key": "8478055:8476457",
-   "add": {
-    "id": 8478055,
-    "name": "Gustav Forsling",
-    "team": "FLA",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 0.48,
-   "next_two_pts": -4.83,
-   "later_pts": 3.37,
-   "win": [
-    0.3011,
-    0.3047
-   ],
-   "now_wins": 0.0037,
-   "ahead_wins": [
-    -0.0238,
-    -0.0142
-   ],
-   "ahead_pts": -4.47,
-   "ahead_week_pts": [
-    -2.75,
-    -1.72
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0264,
-   "value": -0.0079,
-   "status": "fails",
-   "why": "worth -0.8 win-pts, under the 8.6 an add costs"
-  },
-  {
    "key": "8481035:8480855",
    "add": {
     "id": 8481035,
@@ -2572,18 +2484,18 @@
    "why": "worth -1.5 win-pts, under the 8.6 an add costs"
   },
   {
-   "key": "8478055:8480855",
+   "key": "8478859:8485406",
    "add": {
-    "id": 8478055,
-    "name": "Gustav Forsling",
+    "id": 8478859,
+    "name": "Niko Mikkola",
     "team": "FLA",
     "positions": [
      "D"
     ]
    },
    "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
+    "id": 8485406,
+    "name": "Porter Martone"
    },
    "ir_slot": null,
    "later_drop": null,
@@ -2591,29 +2503,29 @@
    "plays_from": null,
    "when": null,
    "games": 4,
-   "week_pts": 1.58,
-   "next_two_pts": -7.27,
-   "later_pts": 3.37,
+   "week_pts": 1.68,
+   "next_two_pts": -7.3,
+   "later_pts": 3.14,
    "win": [
     0.3011,
-    0.3133
+    0.3141
    ],
-   "now_wins": 0.0122,
+   "now_wins": 0.013,
    "ahead_wins": [
-    0.0029,
-    -0.0566
+    0.0018,
+    -0.0558
    ],
-   "ahead_pts": -6.45,
+   "ahead_pts": -6.49,
    "ahead_week_pts": [
-    0.33,
-    -6.79
+    0.21,
+    -6.7
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0264,
-   "value": -0.015,
+   "later_wins": 0.0246,
+   "value": -0.0164,
    "status": "fails",
-   "why": "worth -1.5 win-pts, under the 8.6 an add costs"
+   "why": "worth -1.6 win-pts, under the 8.6 an add costs"
   },
   {
    "key": "8481033:8480855",
@@ -2788,6 +2700,92 @@
    "value": -0.0197,
    "status": "fails",
    "why": "worth -2.0 win-pts, under the 8.6 an add costs"
+  },
+  {
+   "key": "8482113:8480855",
+   "add": {
+    "id": 8482113,
+    "name": "Anton Lundell",
+    "team": "FLA",
+    "positions": [
+     "C"
+    ]
+   },
+   "drop": {
+    "id": 8480855,
+    "name": "Jack McBain"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": 0.08,
+   "next_two_pts": -8.41,
+   "later_pts": 5.25,
+   "win": [
+    0.3011,
+    0.3017
+   ],
+   "now_wins": 0.0006,
+   "ahead_wins": [
+    0.0059,
+    -0.0678
+   ],
+   "ahead_pts": -7.44,
+   "ahead_week_pts": [
+    0.68,
+    -8.12
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0411,
+   "value": -0.0202,
+   "status": "fails",
+   "why": "worth -2.0 win-pts, under the 8.6 an add costs"
+  },
+  {
+   "key": "8473419:0:IR",
+   "add": {
+    "id": 8473419,
+    "name": "Brad Marchand",
+    "team": "FLA",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": null,
+   "ir_slot": "IR+",
+   "later_drop": "Porter Martone",
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": -2.03,
+   "next_two_pts": -4.0,
+   "later_pts": 2.75,
+   "win": [
+    0.3011,
+    0.2862
+   ],
+   "now_wins": -0.0149,
+   "ahead_wins": [
+    0.0159,
+    -0.044
+   ],
+   "ahead_pts": -3.45,
+   "ahead_week_pts": [
+    1.84,
+    -5.29
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0215,
+   "value": -0.0215,
+   "status": "fails",
+   "why": "worth -2.2 win-pts, under the 8.6 an add costs"
   }
  ],
  "teams": {
@@ -9109,124 +9107,6 @@
    "kept": 1.0,
    "replacement": 5.414
   },
-  "8478055": {
-   "id": 8478055,
-   "name": "Gustav Forsling",
-   "team": "FLA",
-   "positions": "D",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 4,
-    "pts": 16.5,
-    "proj": 14.8,
-    "pts_projected": 16.5,
-    "stats": {
-     "Goals": [
-      1.0,
-      0.3
-     ],
-     "Assists": [
-      0.0,
-      1.1
-     ],
-     "PP points": [
-      0.0,
-      0.1
-     ],
-     "SH points": [
-      0.0,
-      0.0
-     ],
-     "GWG": [
-      1.0,
-      0.1
-     ],
-     "Shots": [
-      5.0,
-      6.4
-     ],
-     "Hits": [
-      3.0,
-      3.7
-     ],
-     "Blocks": [
-      5.0,
-      4.8
-     ],
-     "Faceoff wins": [
-      0.0,
-      0.0
-     ],
-     "+/-": [
-      2.0,
-      0.7
-     ],
-     "PIM": [
-      4.0,
-      2.0
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-10",
-      "opp": "MIN",
-      "pts": 0.0,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "LAK",
-      "pts": 2.8,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-04",
-      "opp": "ANA",
-      "pts": 2.2,
-      "proj": 3.8
-     },
-     {
-      "date": "2026-09-29",
-      "opp": "CAR",
-      "pts": 11.5,
-      "proj": 3.6
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.326,
-    "Assists": 0.694,
-    "PP, SH, GWG": 0.053,
-    "Shots": 0.76,
-    "Hits": 0.495,
-    "Blocks": 0.916,
-    "Faceoffs": 0.0,
-    "+/- and PIM": 0.235
-   },
-   "xfp": 3.479,
-   "stats": {
-    "Goals": 0.081,
-    "Assists": 0.252,
-    "PP points": 0.021,
-    "SH points": 0.007,
-    "GWG": 0.015,
-    "Shots": 1.52,
-    "Hits": 0.825,
-    "Blocks": 1.145,
-    "Faceoff wins": 0.0,
-    "+/-": 0.175,
-    "PIM": 0.492
-   },
-   "toi": 20.68,
-   "pp_toi": 0.75,
-   "gp": 4,
-   "play": 0.97,
-   "note": "",
-   "durability": 1.0,
-   "kept": 1.0,
-   "replacement": 4.508
-  },
   "8481033": {
    "id": 8481033,
    "name": "Akira Schmid",
@@ -9751,6 +9631,130 @@
    "kept": 1.0,
    "replacement": 5.414
   },
+  "8478859": {
+   "id": 8478859,
+   "name": "Niko Mikkola",
+   "team": "FLA",
+   "positions": "D",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 5,
+    "pts": 10.6,
+    "proj": 17.4,
+    "pts_projected": 10.6,
+    "stats": {
+     "Goals": [
+      0.0,
+      0.3
+     ],
+     "Assists": [
+      0.0,
+      0.8
+     ],
+     "PP points": [
+      0.0,
+      0.0
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.0
+     ],
+     "Shots": [
+      9.0,
+      6.2
+     ],
+     "Hits": [
+      2.0,
+      7.8
+     ],
+     "Blocks": [
+      6.0,
+      6.1
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.0
+     ],
+     "+/-": [
+      -1.0,
+      0.5
+     ],
+     "PIM": [
+      2.0,
+      3.6
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-10",
+      "opp": "MIN",
+      "pts": 0.0,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "LAK",
+      "pts": 2.7,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-04",
+      "opp": "ANA",
+      "pts": 2.1,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "SJS",
+      "pts": 2.2,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "CAR",
+      "pts": 3.6,
+      "proj": 3.4
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.216,
+    "Assists": 0.403,
+    "PP, SH, GWG": 0.006,
+    "Shots": 0.609,
+    "Hits": 0.819,
+    "Blocks": 0.942,
+    "Faceoffs": 0.0,
+    "+/- and PIM": 0.245
+   },
+   "xfp": 3.24,
+   "stats": {
+    "Goals": 0.054,
+    "Assists": 0.146,
+    "PP points": 0.0,
+    "SH points": 0.002,
+    "GWG": 0.001,
+    "Shots": 1.219,
+    "Hits": 1.365,
+    "Blocks": 1.178,
+    "Faceoff wins": 0.0,
+    "+/-": 0.079,
+    "PIM": 0.685
+   },
+   "toi": 19.91,
+   "pp_toi": 0.12,
+   "gp": 5,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.966,
+   "kept": 1.0,
+   "replacement": 4.508
+  },
   "8482703": {
    "id": 8482703,
    "name": "Colton Dach",
@@ -9860,6 +9864,112 @@
    "play": 0.0,
    "note": "IR",
    "durability": 1.0,
+   "kept": 1.0,
+   "replacement": 5.414
+  },
+  "8473419": {
+   "id": 8473419,
+   "name": "Brad Marchand",
+   "team": "FLA",
+   "positions": "LW/RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 2,
+    "pts": 7.7,
+    "proj": 9.4,
+    "pts_projected": 7.7,
+    "stats": {
+     "Goals": [
+      1.0,
+      0.6
+     ],
+     "Assists": [
+      0.0,
+      0.8
+     ],
+     "PP points": [
+      0.0,
+      0.4
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.1
+     ],
+     "Shots": [
+      5.0,
+      4.2
+     ],
+     "Hits": [
+      2.0,
+      1.9
+     ],
+     "Blocks": [
+      0.0,
+      0.7
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.5
+     ],
+     "+/-": [
+      0.0,
+      -0.0
+     ],
+     "PIM": [
+      0.0,
+      1.4
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-06",
+      "opp": "LAK",
+      "pts": 1.1,
+      "proj": 4.6
+     },
+     {
+      "date": "2026-10-04",
+      "opp": "ANA",
+      "pts": 6.6,
+      "proj": 4.8
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 1.136,
+    "Assists": 0.948,
+    "PP, SH, GWG": 0.21,
+    "Shots": 0.977,
+    "Hits": 0.529,
+    "Blocks": 0.226,
+    "Faceoffs": 0.018,
+    "+/- and PIM": 0.179
+   },
+   "xfp": 4.224,
+   "stats": {
+    "Goals": 0.284,
+    "Assists": 0.345,
+    "PP points": 0.178,
+    "SH points": 0.011,
+    "GWG": 0.044,
+    "Shots": 1.954,
+    "Hits": 0.882,
+    "Blocks": 0.283,
+    "Faceoff wins": 0.185,
+    "+/-": -0.017,
+    "PIM": 0.625
+   },
+   "toi": 11.38,
+   "pp_toi": 1.27,
+   "gp": 2,
+   "play": 0.0,
+   "note": "out",
+   "durability": 0.754,
    "kept": 1.0,
    "replacement": 5.414
   }
