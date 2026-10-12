@@ -755,8 +755,28 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-12T07:21+00:00",
+    "at": "2026-10-12T07:54+00:00",
     "moves": [
+      {
+        "add": {
+          "id": 8477498,
+          "name": "Darnell Nurse",
+          "positions": [
+            "D"
+          ],
+          "team": "SJS"
+        },
+        "drop": {
+          "id": 8476457,
+          "name": "Adam Larsson"
+        },
+        "key": "8477498:8476457",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.2462,
+        "when": "2026-10-14",
+        "why": "held"
+      },
       {
         "add": {
           "id": 8476455,
@@ -774,29 +794,9 @@
         "key": "8476455:8485406",
         "message_id": null,
         "rec_id": null,
-        "value": 0.092,
+        "value": 0.0868,
         "when": "2026-10-16",
         "why": "now"
-      },
-      {
-        "add": {
-          "id": 8477498,
-          "name": "Darnell Nurse",
-          "positions": [
-            "D"
-          ],
-          "team": "SJS"
-        },
-        "drop": {
-          "id": 8476457,
-          "name": "Adam Larsson"
-        },
-        "key": "8477498:8476457",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.2854,
-        "when": "2026-10-14",
-        "why": "held"
       }
     ],
     "week": 3
@@ -974,7 +974,7 @@
     "team": "L\u00f6ll\u00f6t H\u00f6nts\u00e4\u00e4j\u00e4t"
   },
   "standings_rows": [],
-  "telegram_offset": 929784646,
+  "telegram_offset": 929784647,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
