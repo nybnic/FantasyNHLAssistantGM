@@ -15,6 +15,7 @@ from league.roster import RosterPlayer
 
 SCHENN, MURASHOV = 8475170, 8483703
 STOLARZ, NIKISHIN, LINDHOLM = 8476932, 8482100, 8477496
+ERIKSSON_EK = 8478493
 
 
 def apply(state: dict, players: list[RosterPlayer], league: dict) -> None:
@@ -187,10 +188,22 @@ def _week_1_standings(state: dict, players: list[RosterPlayer], league: dict) ->
     state.setdefault("results", {}).setdefault("1", {"opponent": "Bahelin Boys"}).setdefault(
         "yahoo_final", {"score": [163.85, 189.40], "at": "2026-10-05T12:00+00:00"})
 
+def _eriksson_ek_unread(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-12: Löllöt Höntsääjät's team screenshots read "J. ERIKSSONEK" (Joel
+    # Eriksson Ek, their C), which matched no one; the roster was saved without
+    # him: first the plan offered him as an add, then (marked taken by Nico) their
+    # projection went without him. Left alone if a later screenshot or
+    # transaction has put him on a team's roster.
+    team = "Löllöt Höntsääjät"
+    if team in league["teams"] and all(p["id"] != ERIKSSON_EK for e in league["teams"].values() for p in e["players"]):
+        teams.add_player(league, team, RosterPlayer(ERIKSSON_EK, "Joel Eriksson Ek", "MIN", ["C"], None))
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
            ("2026-10-03 week 1 orig proj", _week_1_orig_proj),
            ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast),
            ("2026-10-05 stolarz misread", _stolarz_misread),
-           ("2026-10-05 week 1 standings", _week_1_standings)]
+           ("2026-10-05 week 1 standings", _week_1_standings),
+           ("2026-10-12 eriksson ek unread", _eriksson_ek_unread)]

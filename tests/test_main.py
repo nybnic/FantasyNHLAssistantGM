@@ -1204,3 +1204,18 @@ def test_a_player_back_from_ir_takes_the_spot_cheapest_to_lose_before_any_add():
     assert len(planned) == m.ACTIVE_SPOTS and next(p for p in planned if p.id == 99).slot == "BN"
     _, steps = weekly.activate_returns(roster[1:], [roster[-1]], costs)  # an open spot: no drop
     assert steps[0][1] is None
+
+
+def test_the_2026_10_12_repair_puts_eriksson_ek_on_the_opponents_roster_unless_placed(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-12 eriksson ek unread"]
+    league = {"teams": {"Löllöt Höntsääjät": {"players": []}, "Gwp": {"players": []}}, "taken": [8478493]}
+    repairs.apply(state, [], league)  # marked taken (Nico's /taken), on no roster
+    assert [p["name"] for p in league["teams"]["Löllöt Höntsääjät"]["players"]] == ["Joel Eriksson Ek"]
+    assert league["taken"] == []
+    state["repairs_done"].pop()
+    gwp = {"id": 8478493, "name": "Joel Eriksson Ek", "team": "MIN", "positions": ["C"], "slot": None}
+    league = {"teams": {"Löllöt Höntsääjät": {"players": []}, "Gwp": {"players": [gwp]}}, "taken": []}
+    repairs.apply(state, [], league)  # a later read put him elsewhere: left alone
+    assert league["teams"]["Löllöt Höntsääjät"]["players"] == []

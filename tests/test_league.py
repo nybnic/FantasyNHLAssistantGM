@@ -175,3 +175,15 @@ def test_shown_names_match_full_names_even_run_together():
                 {"id": 2, "name": "JJ Peterka", "team": "UTA", "position": "R"}]
     found = parse.match_shown_names([{"name": "Jack McBain"}, {"name": "JJPeterka"}], registry)
     assert [p.id for p in found.players] == [1, 2] and not found.problems
+
+
+def test_shown_names_match_a_two_word_last_name_run_together():
+    # 2026-10-12: Yahoo's "J. Eriksson Ek" read as "J. ERIKSSONEK"; he went unmatched,
+    # off the opponent's saved roster, and the plan offered him as an add.
+    registry = [{"id": 1, "name": "Joel Eriksson Ek", "team": "MIN", "position": "C"},
+                {"id": 2, "name": "Olle Eriksson Ek", "team": "ANA", "position": "G"},
+                {"id": 3, "name": "Brady Tkachuk", "team": "OTT", "position": "L"}]
+    found = parse.match_shown_names([_row("J. ERIKSSONEK", "MIN", ["C"], "C"), _row("O. ERIKSSONEK")], registry)
+    assert [p.id for p in found.players] == [1, 2] and not found.problems
+    found = parse.match_shown_names([_row("J. SONEK"), _row("B. ERIKSSONEK")], registry)
+    assert found.players == [] and len(found.problems) == 2

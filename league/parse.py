@@ -112,6 +112,12 @@ def find_players(text: str, players: list[dict]) -> Found:
     return found
 
 
+def _ends_run_together(words: list[str], squashed: str) -> bool:
+    """Whether the name's last words, spaces dropped, are `squashed`:
+    ["joel", "eriksson", "ek"] ends "erikssonek" and "joelerikssonek", not "sonek"."""
+    return any("".join(words[i:]) == squashed for i in range(len(words)))
+
+
 def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = frozenset()) -> Found:
     """Players from screenshot rows (clients/screenshot.py): {"slot", "name" as
     shown, e.g. "M. SCHEIFELE" or "Jack McBain", "team" or "", "positions" or []}.
@@ -127,9 +133,10 @@ def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = 
         last = " ".join(shown[1:] if initial else shown)
         candidates = [p for p in unique if (" " + normalize_name(p["name"])).endswith(" " + last)
                       and (initial is None or normalize_name(p["name"]).startswith(initial))]
-        if not candidates and not initial:  # a full name OCR ran together: "jjpeterka"
+        if not candidates:  # a name OCR ran together: "jjpeterka", "j erikssonek" (Joel Eriksson Ek)
             squashed = last.replace(" ", "")
-            candidates = [p for p in unique if normalize_name(p["name"]).replace(" ", "") == squashed]
+            candidates = [p for p in unique if _ends_run_together(normalize_name(p["name"]).split(), squashed)
+                          and (initial is None or normalize_name(p["name"]).startswith(initial))]
         positions = list(row.get("positions") or [])
         team = YAHOO_TO_NHL_TEAM.get(row.get("team") or "", row.get("team") or "")
         if len(candidates) > 1 and positions:
