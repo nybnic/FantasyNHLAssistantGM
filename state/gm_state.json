@@ -754,15 +754,30 @@
     }
   },
   "plan": {
-    "activations": [
-      {
-        "back": 8484801,
-        "drop": 8476902,
-        "drop_name": "Esa Lindell"
-      }
-    ],
-    "at": "2026-10-12T03:50+00:00",
+    "activations": [],
+    "at": "2026-10-12T07:15+00:00",
     "moves": [
+      {
+        "add": {
+          "id": 8476455,
+          "name": "Gabriel Landeskog",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "team": "COL"
+        },
+        "drop": {
+          "id": 8485406,
+          "name": "Porter Martone"
+        },
+        "key": "8476455:8485406",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.0895,
+        "when": "2026-10-16",
+        "why": "now"
+      },
       {
         "add": {
           "id": 8477498,
@@ -773,18 +788,38 @@
           "team": "SJS"
         },
         "drop": {
+          "id": 8476902,
+          "name": "Esa Lindell"
+        },
+        "key": "8477498:8476902",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.1421,
+        "when": "2026-10-15",
+        "why": "now"
+      },
+      {
+        "add": {
+          "id": 8482445,
+          "name": "Devin Cooley",
+          "positions": [
+            "G"
+          ],
+          "team": "CGY"
+        },
+        "drop": {
           "id": 8476457,
           "name": "Adam Larsson"
         },
-        "key": "8477498:8476457",
+        "key": "8482445:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.2281,
-        "when": "2026-10-13",
-        "why": "spare"
+        "value": 0.2317,
+        "when": "2026-10-23",
+        "why": "monday"
       }
     ],
-    "week": 2
+    "week": 3
   },
   "plan_check": false,
   "relay_alert": "2026-09-29",
@@ -925,7 +960,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784636,
+  "telegram_offset": 929784638,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
