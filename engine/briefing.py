@@ -23,7 +23,7 @@ from clients.dfo_lines import LineInfo
 from clients.names import normalize_name
 from clients.nhl_client import ScheduledGame
 from config.league import STARTERS, TIMEZONE
-from engine import availability, lineup
+from engine import availability, lineup, matchup
 from league.roster import BENCH, RosterPlayer, active, lineup_known
 from model.context import ModelContext
 
@@ -114,6 +114,7 @@ def plan(
                 p.id, p.name, date, info, dfo_starters.get(p.team),
                 ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id),
                 last_result=ctx.last_results.get(p.team) if game else None,
+                **dict(zip(("absent", "rivals"), matchup.goalie_absences(p, ctx, lines, date))),
             )
             per_start = ctx.goalie_start(p.id, p.team, game.away if game.home == p.team else game.home,
                                          game.home == p.team)["xfp"] if game else 0.0

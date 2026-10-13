@@ -59,6 +59,12 @@ RECENT_STARTS = 10
 SHARE_PRIOR_GAMES = 4
 DEPTH_SHARE = {1: 0.65, 2: 0.35}
 UNKNOWN_SHARE = 0.3
+# When a teammate goalie is out (DFO injured), the starts he'd have made go to
+# the healthy goalies in proportion to their shares, this part of them (the
+# rest to a call-up). Without it the absent starter's starts went nowhere and
+# his backup's share rose only as he started (Nico, 2026-10-13: Garand behind
+# an injured Shesterkin). scripts/fit_goalie_absence.py; 0 = off until fit.
+ABSENT_TO_TEAMMATES = 0.0
 # The goalie who started last night starts tonight at this share of his usual
 # rate. scripts/fit_goalie_starts.py: 0.09 in 2023-24, 0.13 in 2024-25, 0.16 in
 # 2025-26 (rising); 0.15 = 2024-26 pooled. Was 0.35, a judgment call.
@@ -143,16 +149,22 @@ def goalie(
     prior_share: float | None,
     days_ahead: int = 0,
     last_result: str | None = None,
+    absent: float = 0.0,
+    rivals: float = 0.0,
+    missed: int = 0,
 ) -> Availability:
     """`dfo_starter` is DailyFaceoff's pick for his team tonight
     ({"goalie_name", "confirmed"}) or None; `team_starts` is his team's
     (date, starter id) history this season, oldest first. An injured goalie
     `days_ahead` from tonight starts at his usual share once back (the skater
     return curves; goalies' weren't fit separately). `last_result` is how the
-    team's last start went (`start_result`), given only for the team's next game."""
+    team's last start went (`start_result`), given only for the team's next game.
+    `absent`, `rivals`: his injured teammates' starts that day and his healthy
+    teammates' shares (`absences`); `missed`: team games in a row he has missed,
+    when he's injured (his return curve)."""
     injured = _injured(info)
     if injured or _sidelined_dtd(info):
-        back = ahead(_curve(injured, 0) if injured else DTD_RETURN, days_ahead, 0.0)
+        back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0)
         return Availability(back * start_share(player_id, date, info, team_starts, prior_share) if back else 0.0,
                             injured or "day-to-day")
 
@@ -165,7 +177,7 @@ def goalie(
         return Availability(1 - (CONFIRMED_START if confirmed else LIKELY_START),
                             f"{other} {'confirmed' if confirmed else 'likely'} to start")
 
-    share = start_share(player_id, date, info, team_starts, prior_share)
+    share = start_share(player_id, date, info, team_starts, prior_share, absent, rivals)
     past = [(d, pid) for d, pid in team_starts if d < date]
     if past and past[-1][0] == date - dt.timedelta(days=1):
         if past[-1][1] == player_id:
@@ -210,12 +222,40 @@ def start_share(
     info: LineInfo | None,
     team_starts: list[tuple[dt.date, int]],
     prior_share: float | None,
+    absent: float = 0.0,
+    rivals: float = 0.0,
 ) -> float:
-    """His share of his team's starts: the last 10 blended with a prior."""
+    """His share of his team's starts: the last 10 blended with a prior, plus
+    his part of `absent` (the starts injured teammates would have made) by his
+    share against `rivals` (his healthy teammates' shares)."""
     if prior_share is None:
         prior_share = DEPTH_SHARE.get(info.goalie_depth, UNKNOWN_SHARE) if info else UNKNOWN_SHARE
     recent = [pid for d, pid in team_starts if d < date][-RECENT_STARTS:]
-    return (SHARE_PRIOR_GAMES * prior_share + recent.count(player_id)) / (SHARE_PRIOR_GAMES + len(recent))
+    share = (SHARE_PRIOR_GAMES * prior_share + recent.count(player_id)) / (SHARE_PRIOR_GAMES + len(recent))
+    if absent > 0 and share + rivals > 0:
+        share = min(share + absent * share / (share + rivals), CONFIRMED_START)
+    return share
+
+
+def absences(player_id: int, date: dt.date, days_ahead: int, teammates: list[tuple], team_starts,
+             share_of) -> tuple[float, float]:
+    """(absent, rivals) for `start_share`: `teammates` are his team's other
+    goalies as (id, LineInfo or None, games missed in a row); `share_of(id, info)`
+    is a goalie's own blended share. An injured teammate's share counts as absent
+    times his odds of still being out that day (his return curve), times
+    ABSENT_TO_TEAMMATES; a healthy one's is a rival's."""
+    absent = rivals = 0.0
+    for pid, info, missed in teammates:
+        if pid == player_id:
+            continue
+        share = share_of(pid, info)
+        injured = _injured(info)
+        if injured or _sidelined_dtd(info):
+            back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0)
+            absent += ABSENT_TO_TEAMMATES * share * (1 - back)
+        else:
+            rivals += share
+    return absent, rivals
 
 
 def second_of_back_to_back(share: float) -> float:

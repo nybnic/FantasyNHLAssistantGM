@@ -351,7 +351,8 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
                 nxt = {"date": d.isoformat(), "opp": ("" if home else "@") + (game.away if home else game.home)}
                 break
         share = availability.start_share(p.id, today, info, ctx.team_starts.get(p.team, []),
-                                         ctx.prior_start_share(p.id))
+                                         ctx.prior_start_share(p.id),
+                                         *matchup.goalie_absences(p, ctx, lines.get(p.team, {}), today))
         out.update({"per_game": {k: _r(v) for k, v in stat_parts(line, goalie=True).items()} if line else None,
                     "stats": {k: _r(v) for k, v in stat_counts(line, goalie=True).items()} if line else None,
                     "xfp": _r(line["xfp"]) if line else None, "share": _r(share, 3), "starts": starts,

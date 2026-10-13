@@ -118,3 +118,29 @@ def test_return_curves_are_slower_the_longer_the_absence():
     curves = [curve for _, curve in availability.RETURN_CURVES]
     assert all(a > b for earlier, later in zip(curves, curves[1:]) for a, b in zip(earlier, later))
     assert all(list(c) == sorted(c) for c in curves)  # and rise with time
+
+
+def test_an_injured_starters_starts_go_to_his_healthy_teammates(monkeypatch):
+    # Garand (backup, share 0.25) behind Shesterkin (0.70, out on IR), a third goalie at 0.05.
+    from clients.dfo_lines import LineInfo
+    day = dt.date(2026, 10, 14)
+    base = availability.start_share(2, day, None, [], 0.25)
+    assert availability.start_share(2, day, None, [], 0.25, absent=0.7, rivals=0.05) == pytest.approx(
+        base + 0.7 * base / (base + 0.05))
+    assert availability.start_share(2, day, None, [], 0.25, absent=5.0, rivals=0.0) == availability.CONFIRMED_START
+
+    shares = {1: 0.70, 2: 0.25, 3: 0.05}
+    mates = [(1, LineInfo(groups={"ir"}, injury="ir"), 20), (2, LineInfo(groups={"g"}), 0), (3, None, 0)]
+
+    def share_of(pid, info):
+        return shares[pid]
+
+    monkeypatch.setattr(availability, "ABSENT_TO_TEAMMATES", 0.0)
+    assert availability.absences(2, day, 0, mates, [], share_of) == (0.0, 0.05)  # off: nothing freed
+    monkeypatch.setattr(availability, "ABSENT_TO_TEAMMATES", 1.0)
+    absent, rivals = availability.absences(2, day, 0, mates, [], share_of)
+    assert (absent, rivals) == (pytest.approx(0.70), 0.05)  # out tonight: all of his share
+    later, _ = availability.absences(2, day, 30, mates, [], share_of)
+    curve = availability.return_curve(max(21, availability.IR_MIN_MISSED))
+    assert later == pytest.approx(0.70 * (1 - availability.ahead(curve, 30, 0.0)))  # some chance he's back
+    assert later < absent

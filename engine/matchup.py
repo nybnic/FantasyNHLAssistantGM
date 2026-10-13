@@ -247,6 +247,26 @@ def _game_of(games: list[ScheduledGame]) -> dict[str, ScheduledGame]:
     return out
 
 
+def goalie_absences(p, ctx, team_lines: dict, date: dt.date) -> tuple[float, float]:
+    """(absent, rivals) for his start share on `date`: his injured teammates'
+    starts and his healthy teammates' shares (availability.absences). Nothing
+    while ABSENT_TO_TEAMMATES is 0. Cached on the context per goalie and day."""
+    if not availability.ABSENT_TO_TEAMMATES or not hasattr(ctx, "team_goalies"):
+        return 0.0, 0.0
+    cache = ctx.__dict__.setdefault("_absences", {})
+    key = (p.id, p.team, date)
+    if key not in cache:
+        team_starts = ctx.team_starts.get(p.team, [])
+        mates = [(pid, team_lines.get(normalize_name(name)), ctx.goalie_missed(pid, p.team))
+                 for pid, name in ctx.team_goalies(p.team)]
+
+        def share_of(pid, info):
+            return availability.start_share(pid, date, info, team_starts, ctx.prior_start_share(pid))
+
+        cache[key] = availability.absences(p.id, date, (date - ctx.today).days, mates, team_starts, share_of)
+    return cache[key]
+
+
 def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
                 long_run: bool = False, next_game: bool = False) -> tuple[float, float, float]:
     """(expected points, variance, start probability) for one game. Start
@@ -259,13 +279,15 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
     days_ahead = (date - ctx.today).days
     if p.is_goalie:
         team_starts, prior = ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id)
+        absent, rivals = goalie_absences(p, ctx, team_lines, date)
         avail = availability.goalie(p.id, p.name, date, info, starters.get(p.team) if date == ctx.today else None,
                                     team_starts, prior, days_ahead,
-                                    ctx.last_results.get(p.team) if next_game else None)
+                                    ctx.last_results.get(p.team) if next_game else None, absent, rivals)
         prob = avail.prob
         if date > ctx.today and played_yesterday and prob and avail.note not in ("IR", "out"):
             # Who starts the night before isn't known yet.
-            prob = availability.second_of_back_to_back(availability.start_share(p.id, date, info, team_starts, prior))
+            prob = availability.second_of_back_to_back(
+                availability.start_share(p.id, date, info, team_starts, prior, absent, rivals))
         home = game.home == p.team
         x = ctx.goalie_start(p.id, p.team, game.away if home else game.home, home)["xfp"]
         return prob * x, prob * (GOALIE_START_VARIANCE + x * x) - (prob * x) ** 2, prob
@@ -650,7 +672,8 @@ def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) ->
     if p.is_goalie:
         info = lines.get(p.team, {}).get(normalize_name(p.name))
         share = availability.start_share(p.id, ctx.today, info, ctx.team_starts.get(p.team, []),
-                                         ctx.prior_start_share(p.id))
+                                         ctx.prior_start_share(p.id),
+                                         *goalie_absences(p, ctx, lines.get(p.team, {}), ctx.today))
         return share * TYPICAL_START_XFP
     return ctx.skater(p.id, _position(p)).xfp
 
