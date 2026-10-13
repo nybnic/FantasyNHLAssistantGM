@@ -703,8 +703,10 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     mine = {p.id for p in players}
     old_open = [o for o in old.get("moves", []) if o["add"]["id"] not in mine]  # the rest were made
     skips = skipped(state, date)
+    # The plan's adds are always scored again, and so are the free agents the
+    # breakout watch is asking about (bot/watch.py).
     p = plan_moves(state, players, league, date, week, opponent, build_context,
-                   {o["add"]["id"] for o in old_open}, skips)
+                   {o["add"]["id"] for o in old_open} | set(state.get("watch_score") or []), skips)
     wk = p.wk
     current = {plan_mod.key(m): m for m in p.ranked}
     pool = {x.id for x in wk.pool}

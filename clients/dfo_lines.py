@@ -83,7 +83,9 @@ def rows(team: str) -> list[dict]:
             for p in combos["players"]
         ]
 
-    return cached_json(f"dfo_lines/{team}", 3 * HOUR, fetch)
+    # An hour: injuries and line changes reach the plan and the breakout watch
+    # (bot/watch.py) within one or two runs (was 3 hours).
+    return cached_json(f"dfo_lines_v2/{team}", HOUR, fetch)  # v2: with the news (2026-10-13)
 
 
 def team_lines(team: str) -> dict[str, LineInfo]:

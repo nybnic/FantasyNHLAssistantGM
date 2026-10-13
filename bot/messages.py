@@ -180,3 +180,45 @@ def new_plan_text(plan: list[Planned], today: dt.date, adds_left_week: int, me: 
     made): what to do; with the score first when it answers a screenshot."""
     return "\n".join(([_score(me, them)] if me and them else []) + ["New plan:"]
                      + plan_lines(plan, today, adds_left_week))
+
+
+GROUP_TEXT = {"f1": "the first line", "f2": "the second line", "d1": "the top D pair", "pp1": "the first power play"}
+
+
+def group_text(group: str) -> str:
+    return GROUP_TEXT.get(group, group)
+
+
+def _minutes(seconds: float) -> str:
+    return f"{int(seconds // 60)}:{int(seconds % 60):02d}"
+
+
+def _watch_value(value: tuple | None) -> str:
+    """The plan's verdict on adding him: (best move's value, the add price, in the plan)."""
+    if not value:
+        return "Not valued yet: the plan weighs him at its next run."
+    worth, price, planned = value
+    head = f"+{100 * worth:.0f} win-pts against the {100 * price:.1f} an add costs"
+    if planned:
+        return head + ": in the plan now."
+    return head + (": worth an add, but the plan's moves beat it." if worth >= price else ": not yet worth one.")
+
+
+def watch_text(signals: list, values: dict) -> str:
+    """The breakout watch (bot/watch.py): each free agent whose role just
+    changed, why, and what the plan makes of him."""
+    blocks = []
+    for s in signals:
+        p, n = s.player, s.numbers
+        head = f"Watch: {p.name} ({p.team} {'/'.join(p.positions)}), a free agent"
+        if s.kind == "goalie":
+            why = f"{s.reason}. His share of the starts {_pct(n['before'])} -> {_pct(n['after'])}."
+        elif s.kind == "no1":
+            why = f"{s.reason}; the model has him at {_pct(n['after'])} of the starts."
+        elif s.kind == "promoted":
+            why = f"DFO {s.reason}."
+        else:
+            why = (f"Ice time {_minutes(n['recent'])} a game in his last 3, up from {_minutes(n['usual'])}. "
+                   "The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.")
+        blocks.append("\n".join([head, why, _watch_value(values.get(p.id))]))
+    return "\n\n".join(blocks)

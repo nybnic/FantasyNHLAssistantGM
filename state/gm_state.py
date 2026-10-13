@@ -176,6 +176,8 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
     state.setdefault("plan_check", False)
+    state.setdefault("watch", {"groups": {}, "alerted": {}})  # bot/watch.py: DFO groups last seen, alerts sent
+    state.setdefault("watch_score", [])
     state.setdefault("plan", None)
     state.setdefault("trade_request", None)
     state.setdefault("standings", None)

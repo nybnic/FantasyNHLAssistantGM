@@ -36,7 +36,7 @@ from bot.common import Outbox, _safe, nhl_today, remember_mine
 from bot.daily import alert_health, briefing_step, sync_teams, trade_step
 from bot.ingest import process_updates, report_relay, sync_webhook
 from bot.weekly import plan_check_step, report_step, snapshot_rosters, weekly_step
-from bot import dfo_archive, xfp_log
+from bot import dfo_archive, watch, xfp_log
 from clients import health
 from config.settings import Settings, load_settings
 from league import roster as roster_mod
@@ -115,6 +115,7 @@ def main() -> None:
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
         ("plan check", lambda: plan_check_step(state, players, league, now, outbox, build_context)),
+        ("breakout watch", lambda: watch.watch_step(state, players, league, now, outbox, build_context)),
         ("xfp log", lambda: xfp_log.log_step(state, players, league, now, build_context, settings.dry_run)),
         ("DFO archive", lambda: dfo_archive.archive_step(state, now, settings.dry_run)),
         ("data check", lambda: alert_health(state, outbox, now)),
