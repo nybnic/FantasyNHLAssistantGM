@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-13T15:33+00:00",
+ "generated": "2026-10-13T16:33+00:00",
  "date": "2026-10-13",
  "week": 3,
  "opponent": "Löllöt Höntsääjät",
@@ -85,11 +85,11 @@
    "hold_days": 16
   },
   "season": {
-   "playoffs": 0.2498,
-   "title": 0.0025,
-   "leverage": 0.1277,
-   "typical": 0.1397,
-   "seed": 6.4696,
+   "playoffs": 0.25,
+   "title": 0.0026,
+   "leverage": 0.1276,
+   "typical": 0.1398,
+   "seed": 6.4684,
    "note": " (Standings through week 1: send a new screenshot.)"
   }
  },
@@ -1010,6 +1010,50 @@
    "why": "worth 1.3 win-pts, under the 8.5 an add costs"
   },
   {
+   "key": "8476463:8485406",
+   "add": {
+    "id": 8476463,
+    "name": "Jonas Brodin",
+    "team": "MIN",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8485406,
+    "name": "Porter Martone"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 1.01,
+   "next_two_pts": 0.7,
+   "later_pts": -1.22,
+   "win": [
+    0.2491,
+    0.2574
+   ],
+   "now_wins": 0.0083,
+   "ahead_wins": [
+    0.0355,
+    -0.027
+   ],
+   "ahead_pts": 0.88,
+   "ahead_week_pts": [
+    4.13,
+    -3.25
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0094,
+   "value": 0.0074,
+   "status": "fails",
+   "why": "dropping Porter Martone costs about 1 pts later, more than this week's +1 win-pts make up for"
+  },
+  {
    "key": "8478462:8485406",
    "add": {
     "id": 8478462,
@@ -1053,50 +1097,6 @@
    "value": 0.0066,
    "status": "fails",
    "why": "worth 0.7 win-pts, under the 8.5 an add costs"
-  },
-  {
-   "key": "8476463:8485406",
-   "add": {
-    "id": 8476463,
-    "name": "Jonas Brodin",
-    "team": "MIN",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.94,
-   "next_two_pts": 0.44,
-   "later_pts": -1.25,
-   "win": [
-    0.2491,
-    0.2569
-   ],
-   "now_wins": 0.0078,
-   "ahead_wins": [
-    0.0343,
-    -0.0278
-   ],
-   "ahead_pts": 0.65,
-   "ahead_week_pts": [
-    3.99,
-    -3.34
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0097,
-   "value": 0.0046,
-   "status": "fails",
-   "why": "dropping Porter Martone costs about 1 pts later, more than this week's +1 win-pts make up for"
   },
   {
    "key": "8475768:8485406",
@@ -1318,6 +1318,50 @@
    "why": "dropping Porter Martone costs about 1 pts later, more than this week's +2 win-pts make up for"
   },
   {
+   "key": "8476463:8480855",
+   "add": {
+    "id": 8476463,
+    "name": "Jonas Brodin",
+    "team": "MIN",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8480855,
+    "name": "Jack McBain"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 0.45,
+   "next_two_pts": -0.43,
+   "later_pts": -1.4,
+   "win": [
+    0.2491,
+    0.253
+   ],
+   "now_wins": 0.0039,
+   "ahead_wins": [
+    0.0309,
+    -0.0312
+   ],
+   "ahead_pts": -0.16,
+   "ahead_week_pts": [
+    3.59,
+    -3.75
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0109,
+   "value": -0.0072,
+   "status": "fails",
+   "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
+  },
+  {
    "key": "8478462:8480855",
    "add": {
     "id": 8478462,
@@ -1405,50 +1449,6 @@
    "value": -0.0081,
    "status": "fails",
    "why": "worth -0.8 win-pts, under the 8.5 an add costs"
-  },
-  {
-   "key": "8476463:8480855",
-   "add": {
-    "id": 8476463,
-    "name": "Jonas Brodin",
-    "team": "MIN",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.37,
-   "next_two_pts": -0.68,
-   "later_pts": -1.44,
-   "win": [
-    0.2491,
-    0.2524
-   ],
-   "now_wins": 0.0033,
-   "ahead_wins": [
-    0.0298,
-    -0.032
-   ],
-   "ahead_pts": -0.39,
-   "ahead_week_pts": [
-    3.45,
-    -3.84
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0112,
-   "value": -0.0101,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
   },
   {
    "key": "8475768:8480855",
@@ -2374,50 +2374,6 @@
    "why": "worth -7.4 win-pts, under the 8.5 an add costs"
   },
   {
-   "key": "8479292:8485406",
-   "add": {
-    "id": 8479292,
-    "name": "Charlie Lindgren",
-    "team": "WSH",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 1.0,
-   "next_two_pts": -10.46,
-   "later_pts": -2.45,
-   "win": [
-    0.2491,
-    0.2563
-   ],
-   "now_wins": 0.0072,
-   "ahead_wins": [
-    -0.0238,
-    -0.056
-   ],
-   "ahead_pts": -9.48,
-   "ahead_week_pts": [
-    -2.76,
-    -6.72
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.019,
-   "value": -0.0917,
-   "status": "fails",
-   "why": "dropping Porter Martone costs about 2 pts later, more than this week's +1 win-pts make up for"
-  },
-  {
    "key": "8477942:0:IR",
    "add": {
     "id": 8477942,
@@ -2457,50 +2413,6 @@
    "value": -0.0948,
    "status": "fails",
    "why": "worth -9.5 win-pts, under the 8.5 an add costs"
-  },
-  {
-   "key": "8479292:8480855",
-   "add": {
-    "id": 8479292,
-    "name": "Charlie Lindgren",
-    "team": "WSH",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.43,
-   "next_two_pts": -11.58,
-   "later_pts": -2.64,
-   "win": [
-    0.2491,
-    0.2519
-   ],
-   "now_wins": 0.0028,
-   "ahead_wins": [
-    -0.0285,
-    -0.0602
-   ],
-   "ahead_pts": -10.52,
-   "ahead_week_pts": [
-    -3.29,
-    -7.22
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0205,
-   "value": -0.1064,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 3 pts later, more than this week's +0 win-pts make up for"
   },
   {
    "key": "8482097:8485406",
@@ -8021,6 +7933,136 @@
    "kept": 1.0,
    "replacement": 5.388
   },
+  "8476463": {
+   "id": 8476463,
+   "name": "Jonas Brodin",
+   "team": "MIN",
+   "positions": "D",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 6,
+    "pts": 16.7,
+    "proj": 20.8,
+    "pts_projected": 16.7,
+    "stats": {
+     "Goals": [
+      0.0,
+      0.4
+     ],
+     "Assists": [
+      0.0,
+      1.4
+     ],
+     "PP points": [
+      0.0,
+      0.0
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.1
+     ],
+     "Shots": [
+      5.0,
+      6.9
+     ],
+     "Hits": [
+      2.0,
+      2.1
+     ],
+     "Blocks": [
+      14.0,
+      11.7
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.0
+     ],
+     "+/-": [
+      0.0,
+      0.8
+     ],
+     "PIM": [
+      6.0,
+      2.2
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-12",
+      "opp": "VGK",
+      "pts": 3.2,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "FLA",
+      "pts": 3.0,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "TBL",
+      "pts": 2.7,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "BUF",
+      "pts": 3.0,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "BOS",
+      "pts": 0.8,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "NSH",
+      "pts": 4.0,
+      "proj": 3.4
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.263,
+    "Assists": 0.604,
+    "PP, SH, GWG": 0.038,
+    "Shots": 0.575,
+    "Hits": 0.227,
+    "Blocks": 1.59,
+    "Faceoffs": 0.0,
+    "+/- and PIM": 0.196
+   },
+   "xfp": 3.493,
+   "stats": {
+    "Goals": 0.066,
+    "Assists": 0.22,
+    "PP points": 0.006,
+    "SH points": 0.005,
+    "GWG": 0.014,
+    "Shots": 1.149,
+    "Hits": 0.378,
+    "Blocks": 1.987,
+    "Faceoff wins": 0.0,
+    "+/-": 0.142,
+    "PIM": 0.417
+   },
+   "toi": 21.45,
+   "pp_toi": 0.15,
+   "gp": 6,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.808,
+   "kept": 1.0,
+   "replacement": 4.289
+  },
   "8478462": {
    "id": 8478462,
    "name": "Nicolas Roy",
@@ -8144,136 +8186,6 @@
    "durability": 0.906,
    "kept": 1.0,
    "replacement": 5.388
-  },
-  "8476463": {
-   "id": 8476463,
-   "name": "Jonas Brodin",
-   "team": "MIN",
-   "positions": "D",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 6,
-    "pts": 15.9,
-    "proj": 20.8,
-    "pts_projected": 15.9,
-    "stats": {
-     "Goals": [
-      0.0,
-      0.4
-     ],
-     "Assists": [
-      0.0,
-      1.4
-     ],
-     "PP points": [
-      0.0,
-      0.0
-     ],
-     "SH points": [
-      0.0,
-      0.0
-     ],
-     "GWG": [
-      0.0,
-      0.1
-     ],
-     "Shots": [
-      5.0,
-      6.9
-     ],
-     "Hits": [
-      2.0,
-      2.1
-     ],
-     "Blocks": [
-      13.0,
-      11.7
-     ],
-     "Faceoff wins": [
-      0.0,
-      0.0
-     ],
-     "+/-": [
-      0.0,
-      0.8
-     ],
-     "PIM": [
-      6.0,
-      2.2
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-12",
-      "opp": "VGK",
-      "pts": 2.4,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "FLA",
-      "pts": 3.0,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "TBL",
-      "pts": 2.7,
-      "proj": 3.4
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "BUF",
-      "pts": 3.0,
-      "proj": 3.4
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "BOS",
-      "pts": 0.8,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "NSH",
-      "pts": 4.0,
-      "proj": 3.4
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.263,
-    "Assists": 0.604,
-    "PP, SH, GWG": 0.038,
-    "Shots": 0.575,
-    "Hits": 0.227,
-    "Blocks": 1.553,
-    "Faceoffs": 0.0,
-    "+/- and PIM": 0.196
-   },
-   "xfp": 3.455,
-   "stats": {
-    "Goals": 0.066,
-    "Assists": 0.22,
-    "PP points": 0.006,
-    "SH points": 0.005,
-    "GWG": 0.014,
-    "Shots": 1.149,
-    "Hits": 0.378,
-    "Blocks": 1.941,
-    "Faceoff wins": 0.0,
-    "+/-": 0.142,
-    "PIM": 0.417
-   },
-   "toi": 21.45,
-   "pp_toi": 0.15,
-   "gp": 6,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.808,
-   "kept": 1.0,
-   "replacement": 4.289
   },
   "8475768": {
    "id": 8475768,
@@ -10345,88 +10257,6 @@
    "durability": 0.91,
    "kept": 1.0,
    "replacement": 5.388
-  },
-  "8479292": {
-   "id": 8479292,
-   "name": "Charlie Lindgren",
-   "team": "WSH",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 1,
-    "pts": 8.4,
-    "proj": 8.3,
-    "pts_projected": 8.4,
-    "stats": {
-     "Wins": [
-      0.0,
-      0.4
-     ],
-     "Saves": [
-      27.0,
-      23.9
-     ],
-     "Goals against": [
-      2.0,
-      2.9
-     ],
-     "Shutouts": [
-      0.0,
-      0.0
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-03",
-      "opp": "@TBL",
-      "pts": 8.4,
-      "proj": 8.3
-     }
-    ],
-    "starts": 1,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.51,
-    "Saves": 9.18,
-    "Goals against": -3.15,
-    "Shutout": 0.16
-   },
-   "stats": {
-    "Wins": 0.38,
-    "Saves": 26.23,
-    "Goals against": 3.15,
-    "Shutouts": 0.03
-   },
-   "xfp": 8.7,
-   "share": 0.279,
-   "starts": [
-    {
-     "date": "2026-10-13",
-     "opp": "@CAR",
-     "prob": 0.548,
-     "xfp": 8.7
-    },
-    {
-     "date": "2026-10-14",
-     "opp": "MTL",
-     "prob": 0.655,
-     "xfp": 8.51
-    },
-    {
-     "date": "2026-10-17",
-     "opp": "NJD",
-     "prob": 0.279,
-     "xfp": 8.97
-    }
-   ],
-   "next": {
-    "date": "2026-10-13",
-    "opp": "@CAR"
-   },
-   "gp": 1
   },
   "8477942": {
    "id": 8477942,
