@@ -30,7 +30,8 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
    (every swap the season: +0.24 +/- 0.13, a 16-league run would settle it); and the add price (at
    0.09 it spent 19 of 30 adds in the replay, where adds are worth more than in a league that competes).
    Planned exits (Nico, 2026-10-13, Landeskog: add him for week 4, stream him out before his weak week 5):
-   variants `exit` (free) and `exit charged` in the replay, run on GitHub (Check: replay); result pending.
+   no gain at equal adds (free exits -0.05 +/- 0.09, `engine/CLAUDE.md` "Replayed"); the full hold stays.
+   Mid-week exits would need mid-week decisions in the replay.
 
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
@@ -202,3 +203,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-12 | Eriksson Ek on this week's opponent (Nico: the bot didn't see him on Löllöt Höntsääjät). Their team screenshot read "J. ERIKSSONEK" (the space in "Eriksson Ek" lost); `parse.match_shown_names` tried a run-together name only without an initial ("JJPeterka"), so he matched no one and their roster was saved with 15. He'd been offered as an add (+7.7 for Martone, not worth one), then, marked taken, left out of their projection. Now a run-together last name matches the name's last words with spaces dropped (whole words: "sonek" doesn't), initial or not; repair `2026-10-12 eriksson ek unread` puts him on their roster. Live dry run not possible here (the NHL API blocked in this session): checked on the saved screenshot rows (16 of 16 matched) and the saved league | (this commit) |
 | 2026-10-12 | The Check workflow's `schedule` takes optional weeks (`weeks: 24 25 26`), so a sandbox without network can see any week's games (Nico asked how his roster's schedule looks in the playoff weeks) | (this commit) |
 | 2026-10-13 | Replay variants for planned exits (`exit`, `exit charged`: a streamer's hold may end at a week boundary, then he's offered as a drop); Check workflow runs the replay (`replay`, variants, leagues) | (this commit) |
+| 2026-10-13 | Planned exits replayed (16 leagues): +0.19 (0.09) at the 0.09 price, but with 2.6 more adds; at equal adds (price 0) -0.05 (0.09). No change to the plan: the gain was the adds. Check workflow takes a replay price | (this commit) |

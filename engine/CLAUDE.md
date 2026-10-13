@@ -155,6 +155,12 @@ positions, Monday decisions, goalies not streamed, no free-agent competition, no
   streaming hold -0.11 (0.08). Under 2 SE each, but no sign later points weigh too much.
 - Adds themselves: no swaps -4.1 wins a season (0.23) at the bot's price, which spent 19 of 30 adds
   here (all 30 used: 15.65 wins vs 15.49, same leagues; not paired-tested).
+- Planned exits (Nico, 2026-10-13: add Landeskog for week 4, stream him out before his weak week 5),
+  16 leagues: a streamer's hold may end after this week or a week ahead, then he's offered as a drop.
+  At the 0.09 price, free exits +0.19 (0.09), charged the unused share of an add +0.07 (0.07), but
+  spending 21.4 and 19.5 adds vs 18.8. At equal adds (price 0, all ~30 spent) free exits -0.05 (0.09),
+  with 9.8 planned and 6.2 made a season. So the gain was the extra adds, not the exit: the full hold
+  stays. Untested: mid-week exits (the replay decides on Mondays only).
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
