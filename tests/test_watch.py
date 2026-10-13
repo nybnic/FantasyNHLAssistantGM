@@ -45,31 +45,35 @@ LINES = {"NYR": {"igor shesterkin": LineInfo(groups={"ir"}, injury="out", out_un
 
 def test_a_backup_whose_starter_is_out_for_the_season_is_flagged():
     sig = watch.goalie_signals(Ctx(), [GARAND], LINES, TODAY)
-    assert [s.kind for s in sig] == ["goalie"]
-    assert sig[0].reason == "Igor Shesterkin out for the season"
-    assert sig[0].numbers["after"] - sig[0].numbers["before"] >= watch.SHARE_JUMP
+    assert [(s.kind, s.reason) for s in sig] == [("goalie", "Igor Shesterkin out for the season")]
+    assert sig[0].numbers["projected"] == 0.25
+    assert sig[0].numbers["expected"] - 0.25 >= watch.SHARE_OVER_PROJECTED
 
 
-def test_dfos_no1_is_flagged_when_the_model_has_him_low(monkeypatch):
+def test_a_backups_one_start_is_no_watch_but_a_run_of_starts_is():
     healthy = {"NYR": {"igor shesterkin": LineInfo(groups={"g"}, goalie_depth=2),
-                       "dylan garand": LineInfo(groups={"g"}, goalie_depth=1)}}
-    assert watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY) == []  # No. 1 all along (a 1A/1B pair)
-    assert watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY, {"3": ["g", "g1"]}) == []
-    moved = watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY, {"3": ["g", "g2"]})
-    assert [(s.kind, s.reason) for s in moved] == [("no1", "DFO has moved him up to the No. 1")]
-    assert watch.promotions([GARAND], healthy, {})[1] == {"3": ["g", "g1"]}  # his depth, remembered
-    monkeypatch.setattr(availability, "ABSENT_TO_TEAMMATES", 0.0)  # nothing redistributed: no jump
-    out = {"NYR": {**LINES["NYR"], "dylan garand": LineInfo(groups={"g"}, goalie_depth=2)}}
-    assert watch.goalie_signals(Ctx(), [GARAND], out, TODAY) == []
+                       "dylan garand": LineInfo(groups={"g"}, goalie_depth=1)}}  # DFO: Garand starts tonight
+    assert watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY) == []  # 2 of the last 10: as projected
+    ctx = Ctx()
+    ctx.team_starts["NYR"] = [(TODAY - dt.timedelta(days=2 * i + 1), 3 if i < 6 else 1) for i in range(10)]
+    sig = watch.goalie_signals(ctx, [GARAND], healthy, TODAY)
+    assert [s.reason for s in sig] == ["he has started 6 of his team's last 10"]
+    assert sig[0].numbers["expected"] == pytest.approx((4 * 0.25 + 6) / 14)
 
 
-def test_a_promotion_is_flagged_against_the_groups_seen_last_time():
-    first, seen = watch.promotions([SKATER], LINES, {})
-    assert first == [] and seen == {"10": ["f2", "pp1"]}  # first sighting: no alert
-    same, _ = watch.promotions([SKATER], LINES, seen)
-    assert same == []
-    moved, _ = watch.promotions([SKATER], LINES, {"10": ["f3", "pp2"]})
-    assert [s.reason for s in moved] == ["moved up to the second line and the first power play"]
+def test_a_promotion_is_flagged_once_it_has_held():
+    first, seen = watch.promotions([SKATER], LINES, {}, TODAY)
+    assert first == [] and seen == {"10": {"groups": ["f2", "pp1"], "since": {"f2": None, "pp1": None}}}
+    assert watch.promotions([SKATER], LINES, seen, TODAY + dt.timedelta(days=5))[0] == []  # there all along
+    moved, seen = watch.promotions([SKATER], LINES, {"10": {"groups": ["f3", "pp2"], "since": {}}}, TODAY)
+    assert moved == [] and seen["10"]["since"] == {"f2": "2026-10-13", "pp1": "2026-10-13"}  # one game: no role yet
+    held, _ = watch.promotions([SKATER], LINES, seen, TODAY + dt.timedelta(days=watch.PROMOTION_HOLDS))
+    assert [(s.reason, s.numbers["days"]) for s in held] == [
+        ("moved up to the second line and the first power play", watch.PROMOTION_HOLDS)]
+    back = {"NYR": {"will cuylle": LineInfo(groups={"f3", "pp2"})}}
+    gone, seen = watch.promotions([SKATER], back, seen, TODAY + dt.timedelta(days=1))
+    assert gone == [] and seen["10"]["since"] == {}  # sent back down before it held
+    assert watch.promotions([SKATER], LINES, {"10": ["f3"]}, TODAY)[1]["10"]["since"]["f2"] == "2026-10-13"  # old record
 
 
 def test_an_ice_time_jump_is_flagged_only_with_enough_games():
@@ -95,7 +99,9 @@ def test_an_alert_is_sent_once_and_waits_out_quiet_hours(monkeypatch):
     found, sent = _step(monkeypatch, NIGHT, state)
     assert [s.kind for s in found] == ["goalie"] and sent == []  # quiet hours: still due
     found, sent = _step(monkeypatch, NOON, state, {3: (0.14, 0.093, True)})
-    assert len(sent) == 1 and sent[0].startswith("Watch: Dylan Garand (NYR G), a free agent")
+    assert len(sent) == 1 and sent[0].startswith("Watch: Dylan Garand (NYR G), a free agent\nIgor Shesterkin out "
+                                                  "for the season. Expected to start 56% of the games ahead, "
+                                                  "against 25% projected before the season.")
     assert "+14 win-pts against the 9.3 an add costs: in the plan now." in sent[0]
     assert state["watch"]["alerted"] == {"3:goalie": "2026-10-13"} and state["watch_score"] == []
     _, sent = _step(monkeypatch, NOON + dt.timedelta(hours=1), state)

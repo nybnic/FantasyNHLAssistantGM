@@ -212,11 +212,10 @@ def watch_text(signals: list, values: dict) -> str:
         p, n = s.player, s.numbers
         head = f"Watch: {p.name} ({p.team} {'/'.join(p.positions)}), a free agent"
         if s.kind == "goalie":
-            why = f"{s.reason}. His share of the starts {_pct(n['before'])} -> {_pct(n['after'])}."
-        elif s.kind == "no1":
-            why = f"{s.reason}; the model has him at {_pct(n['after'])} of the starts."
+            why = (f"{s.reason[0].upper()}{s.reason[1:]}. Expected to start {_pct(n['expected'])} of the games ahead, "
+                   f"against {_pct(n['projected'])} projected before the season.")
         elif s.kind == "promoted":
-            why = f"DFO {s.reason}."
+            why = f"DFO {s.reason}, and it has held for {n['days']} days."
         else:
             why = (f"Ice time {_minutes(n['recent'])} a game in his last 3, up from {_minutes(n['usual'])}. "
                    "The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.")

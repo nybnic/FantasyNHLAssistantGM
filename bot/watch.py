@@ -1,11 +1,13 @@
 """The breakout watch (Nico, 2026-10-13): free agents whose role just changed,
 flagged as it happens, beside the plan rather than in it. Every run (every 30
 minutes, and on each Telegram message) it looks for:
-- a goalie whose share of his team's starts jumps because teammates are
-  injured (availability.absences: the model's own redistribution), or whom
-  DFO has just moved up to his team's No. 1 while the model has him under half;
+- a goalie expected to start far more than projected before the season: his
+  share of the starts ahead (his team's last 10, injured teammates' starts
+  redistributed, availability.absences) against his preseason share. Not DFO's
+  No. 1 on its own: DFO lists tonight's starter there, so a backup's one start
+  made him "No. 1" (Nico, 2026-10-13: "not a watch if a FA gets one start");
 - a skater DFO moved up to a top line, the top D pair or the first power
-  play since the last run;
+  play, still there PROMOTION_HOLDS days later (one game there is no role);
 - a skater whose ice time jumped: his last 3 games 3+ minutes over the games
   before (model/CLAUDE.md: such players are under-projected by ~0.25-0.3 pts a
   game the next week; the model follows ice time on purpose slowly).
@@ -29,8 +31,12 @@ from league import weeks
 
 logger = logging.getLogger(__name__)
 
-SHARE_JUMP = 0.15  # a goalie's start share up this much from injured teammates
-NO1_UNDER = 0.5  # DFO's No. 1 while the model gives him less than this share
+# A goalie's expected share of the starts ahead this much over his preseason
+# share, and at least GOALIE_MIN_SHARE: one start moves the blended share ~0.07,
+# so it takes an injury or a run of starts (judgment calls).
+SHARE_OVER_PROJECTED = 0.20
+GOALIE_MIN_SHARE = 0.40
+PROMOTION_HOLDS = 2  # days a DFO promotion must last before it's flagged
 TOP_GROUPS = ("f1", "f2", "d1", "pp1")  # DFO groups a promotion into is flagged
 TOI_JUMP = 180.0  # seconds a game, last 3 over the (up to 10) games before
 TOI_MIN_GAMES = 8
@@ -41,7 +47,7 @@ MAX_ALERTS = 3  # per message
 @dataclass
 class Signal:
     player: object  # RosterPlayer
-    kind: str  # "goalie", "no1", "promoted", "ice time"
+    kind: str  # "goalie", "promoted", "ice time"
     reason: str
     numbers: dict = field(default_factory=dict)
 
@@ -59,11 +65,10 @@ def _injured_mates(team: str, pid: int, ctx, lines: dict) -> list[str]:
     return out
 
 
-def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date,
-                   seen: dict | None = None) -> list[Signal]:
-    """`seen`: id -> the DFO groups last seen (promotions); the No. 1 signal
-    needs him listed No. 2 or lower there (DFO's 1A/1B pairs stay quiet)."""
-    seen = seen or {}
+def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date) -> list[Signal]:
+    """Free-agent goalies expected to start far more than projected: the share
+    the plan uses (recent starts, injured teammates' starts) against his
+    preseason share (DFO's projected starts; without one, his depth's)."""
     out = []
     for g in fa_goalies:
         lines = lines_by_team.get(g.team, {})
@@ -71,38 +76,46 @@ def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date,
         if info and availability._injured(info):
             continue
         starts, prior = ctx.team_starts.get(g.team, []), ctx.prior_start_share(g.id)
-        before = availability.start_share(g.id, today, info, starts, prior)
-        after = availability.start_share(g.id, today, info, starts, prior,
-                                         *matchup.goalie_absences(g, ctx, lines, today))
-        numbers = {"before": before, "after": after}
-        if after - before >= SHARE_JUMP:
-            mates = _injured_mates(g.team, g.id, ctx, lines)
-            out.append(Signal(g, "goalie", ", ".join(mates) or "a teammate out", numbers))
-        elif (info and info.goalie_depth == 1 and after < NO1_UNDER
-              and "g1" not in seen.get(str(g.id), ["g1"])):
-            out.append(Signal(g, "no1", "DFO has moved him up to the No. 1", numbers))
+        projected = prior if prior is not None else availability.start_share(g.id, today, info, [], None)
+        expected = availability.start_share(g.id, today, info, starts, prior,
+                                            *matchup.goalie_absences(g, ctx, lines, today))
+        if expected - projected < SHARE_OVER_PROJECTED or expected < GOALIE_MIN_SHARE:
+            continue
+        mates = _injured_mates(g.team, g.id, ctx, lines)
+        recent = [pid for d, pid in starts if d < today][-availability.RECENT_STARTS:]
+        reason = ", ".join(mates) or f"he has started {recent.count(g.id)} of his team's last {len(recent)}"
+        out.append(Signal(g, "goalie", reason, {"projected": projected, "expected": expected}))
     return out
 
 
-def promotions(fa_skaters: list, lines_by_team: dict, seen: dict) -> tuple[list[Signal], dict]:
-    """Skaters moved into TOP_GROUPS since the groups in `seen` (id -> groups);
-    returns the signals and every free agent's groups now (goalies' with their
-    depth, "g1"/"g2", for goalie_signals). A player seen for the first time
-    sets his groups without a signal."""
+def promotions(fa_skaters: list, lines_by_team: dict, seen: dict, today: dt.date) -> tuple[list[Signal], dict]:
+    """Skaters in TOP_GROUPS who moved there since an earlier run and are still
+    there PROMOTION_HOLDS days on. `seen`: id -> {"groups", "since": {group:
+    the day he was first seen there, or None when he already was at his first
+    sighting}}. Returns the signals and the record now."""
     out, now = [], {}
     for p in fa_skaters:
         info = lines_by_team.get(p.team, {}).get(normalize_name(p.name))
-        if not info or availability._injured(info):
+        if not info or availability._injured(info) or p.is_goalie:
             continue
-        groups = sorted(info.groups | ({f"g{info.goalie_depth}"} if info.goalie_depth else set()))
-        now[str(p.id)] = groups
-        if p.is_goalie:
-            continue
-        before = seen.get(str(p.id))
-        new = [g for g in TOP_GROUPS if g in groups and before is not None and g not in before]
-        if new:
-            out.append(Signal(p, "promoted", "moved up to " + " and ".join(messages.group_text(g) for g in new),
-                              {"groups": new}))
+        groups = sorted(info.groups)
+        prev = seen.get(str(p.id))
+        prev_groups = prev if isinstance(prev, list) else (prev or {}).get("groups", [])
+        prev_since = {} if isinstance(prev, list) else (prev or {}).get("since", {})
+        since = {}
+        for g in TOP_GROUPS:
+            if g not in groups:
+                continue
+            if g in prev_since:
+                since[g] = prev_since[g]
+            else:
+                since[g] = today.isoformat() if prev is not None and g not in prev_groups else None
+        now[str(p.id)] = {"groups": groups, "since": since}
+        days = {g: (today - dt.date.fromisoformat(d)).days for g, d in since.items() if d}
+        held = [g for g, n in days.items() if n >= PROMOTION_HOLDS]
+        if held:
+            out.append(Signal(p, "promoted", "moved up to " + " and ".join(messages.group_text(g) for g in held),
+                              {"groups": held, "days": min(days[g] for g in held)}))
     return out, now
 
 
@@ -142,9 +155,8 @@ def watch_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     ctx = build_context(today)
     goalies = [p for p in pool if p.is_goalie]
     skaters = [p for p in pool if not p.is_goalie]
-    promoted, groups = promotions(pool, lines_by_team, watch["groups"])
-    signals = (goalie_signals(ctx, goalies, lines_by_team, today, watch["groups"]) + promoted
-               + ice_time_signals(ctx, skaters))
+    promoted, groups = promotions(skaters, lines_by_team, watch["groups"], today)
+    signals = goalie_signals(ctx, goalies, lines_by_team, today) + promoted + ice_time_signals(ctx, skaters)
     watch["groups"] = groups
     new = due(signals, watch["alerted"], today)
     if not new or briefing.quiet(now):
