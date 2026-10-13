@@ -53,7 +53,11 @@ def test_a_backup_whose_starter_is_out_for_the_season_is_flagged():
 def test_dfos_no1_is_flagged_when_the_model_has_him_low(monkeypatch):
     healthy = {"NYR": {"igor shesterkin": LineInfo(groups={"g"}, goalie_depth=2),
                        "dylan garand": LineInfo(groups={"g"}, goalie_depth=1)}}
-    assert [s.kind for s in watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY)] == ["no1"]
+    assert watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY) == []  # No. 1 all along (a 1A/1B pair)
+    assert watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY, {"3": ["g", "g1"]}) == []
+    moved = watch.goalie_signals(Ctx(), [GARAND], healthy, TODAY, {"3": ["g", "g2"]})
+    assert [(s.kind, s.reason) for s in moved] == [("no1", "DFO has moved him up to the No. 1")]
+    assert watch.promotions([GARAND], healthy, {})[1] == {"3": ["g", "g1"]}  # his depth, remembered
     monkeypatch.setattr(availability, "ABSENT_TO_TEAMMATES", 0.0)  # nothing redistributed: no jump
     out = {"NYR": {**LINES["NYR"], "dylan garand": LineInfo(groups={"g"}, goalie_depth=2)}}
     assert watch.goalie_signals(Ctx(), [GARAND], out, TODAY) == []
@@ -103,4 +107,6 @@ def test_the_watch_text_says_what_the_plan_makes_of_him():
     text = messages.watch_text([sig], {10: (0.04, 0.093, False)})
     assert "Ice time 18:40 a game in his last 3, up from 14:10." in text
     assert text.endswith("+4 win-pts against the 9.3 an add costs: not yet worth one.")
-    assert messages.watch_text([sig], {}).endswith("Not valued yet: the plan weighs him at its next run.")
+    assert messages.watch_text([sig], {}).endswith("passes the plan's checks this week (waivers, or he'd cost points now).")
+    assert messages.watch_text([sig], {10: (-0.06, 0.092, False)}).endswith(
+        "-6 win-pts against the 9.2 an add costs: not yet worth one.")

@@ -3,7 +3,7 @@ flagged as it happens, beside the plan rather than in it. Every run (every 30
 minutes, and on each Telegram message) it looks for:
 - a goalie whose share of his team's starts jumps because teammates are
   injured (availability.absences: the model's own redistribution), or whom
-  DFO now lists as his team's No. 1 while the model has him under half;
+  DFO has just moved up to his team's No. 1 while the model has him under half;
 - a skater DFO moved up to a top line, the top D pair or the first power
   play since the last run;
 - a skater whose ice time jumped: his last 3 games 3+ minutes over the games
@@ -59,7 +59,11 @@ def _injured_mates(team: str, pid: int, ctx, lines: dict) -> list[str]:
     return out
 
 
-def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date) -> list[Signal]:
+def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date,
+                   seen: dict | None = None) -> list[Signal]:
+    """`seen`: id -> the DFO groups last seen (promotions); the No. 1 signal
+    needs him listed No. 2 or lower there (DFO's 1A/1B pairs stay quiet)."""
+    seen = seen or {}
     out = []
     for g in fa_goalies:
         lines = lines_by_team.get(g.team, {})
@@ -74,22 +78,26 @@ def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date) -
         if after - before >= SHARE_JUMP:
             mates = _injured_mates(g.team, g.id, ctx, lines)
             out.append(Signal(g, "goalie", ", ".join(mates) or "a teammate out", numbers))
-        elif info and info.goalie_depth == 1 and after < NO1_UNDER:
-            out.append(Signal(g, "no1", "DFO lists him as the No. 1", numbers))
+        elif (info and info.goalie_depth == 1 and after < NO1_UNDER
+              and "g1" not in seen.get(str(g.id), ["g1"])):
+            out.append(Signal(g, "no1", "DFO has moved him up to the No. 1", numbers))
     return out
 
 
 def promotions(fa_skaters: list, lines_by_team: dict, seen: dict) -> tuple[list[Signal], dict]:
     """Skaters moved into TOP_GROUPS since the groups in `seen` (id -> groups);
-    returns the signals and the groups now. A skater seen for the first time
+    returns the signals and every free agent's groups now (goalies' with their
+    depth, "g1"/"g2", for goalie_signals). A player seen for the first time
     sets his groups without a signal."""
     out, now = [], {}
     for p in fa_skaters:
         info = lines_by_team.get(p.team, {}).get(normalize_name(p.name))
         if not info or availability._injured(info):
             continue
-        groups = sorted(info.groups)
+        groups = sorted(info.groups | ({f"g{info.goalie_depth}"} if info.goalie_depth else set()))
         now[str(p.id)] = groups
+        if p.is_goalie:
+            continue
         before = seen.get(str(p.id))
         new = [g for g in TOP_GROUPS if g in groups and before is not None and g not in before]
         if new:
@@ -134,8 +142,9 @@ def watch_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     ctx = build_context(today)
     goalies = [p for p in pool if p.is_goalie]
     skaters = [p for p in pool if not p.is_goalie]
-    promoted, groups = promotions(skaters, lines_by_team, watch["groups"])
-    signals = goalie_signals(ctx, goalies, lines_by_team, today) + promoted + ice_time_signals(ctx, skaters)
+    promoted, groups = promotions(pool, lines_by_team, watch["groups"])
+    signals = (goalie_signals(ctx, goalies, lines_by_team, today, watch["groups"]) + promoted
+               + ice_time_signals(ctx, skaters))
     watch["groups"] = groups
     new = due(signals, watch["alerted"], today)
     if not new or briefing.quiet(now):

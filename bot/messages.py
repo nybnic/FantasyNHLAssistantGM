@@ -196,9 +196,9 @@ def _minutes(seconds: float) -> str:
 def _watch_value(value: tuple | None) -> str:
     """The plan's verdict on adding him: (best move's value, the add price, in the plan)."""
     if not value:
-        return "Not valued yet: the plan weighs him at its next run."
+        return "No move with him passes the plan's checks this week (waivers, or he'd cost points now)."
     worth, price, planned = value
-    head = f"+{100 * worth:.0f} win-pts against the {100 * price:.1f} an add costs"
+    head = f"{100 * worth:+.0f} win-pts against the {100 * price:.1f} an add costs"
     if planned:
         return head + ": in the plan now."
     return head + (": worth an add, but the plan's moves beat it." if worth >= price else ": not yet worth one.")
