@@ -24,7 +24,9 @@ pairings, the same for every variant), paired by team.
 
 Variants (--variants, default all): the keep share (`KEEP_RAMP`, the on/off
 switch it replaced, all hold, all season), the streaming spots
-(`STREAMING_SPOTS`), `LONG_RUN_DISCOUNT`, and the price. One variant is the
+(`STREAMING_SPOTS`), `LONG_RUN_DISCOUNT`, the price, and planned exits (EXITS:
+a streamer's hold may end at a week boundary, so a bad week after it doesn't
+count against him, and that Monday he is offered as a drop). One variant is the
 reference; the others are reported as wins a season vs it (+/- SE, paired).
 
 Simplifications, labeled: single NHL positions (Yahoo gives many two); goalies
@@ -76,7 +78,17 @@ VARIANTS = {
     "spots 5": (1.0, 5, 0.5, PRICE),
     "discount 0.35": (1.0, 3, 0.35, PRICE),
     "no swaps": (1.0, 3, 0.5, math.inf),
+    "exit": (1.0, 3, 0.5, PRICE),
+    "exit charged": (1.0, 3, 0.5, PRICE),
 }
+# Planned exits (Nico, 2026-10-13: add Landeskog for week 4's games, stream him
+# out before his weak week 5). A streaming swap's counted hold may end after
+# this week or a week ahead instead of running the full hold; the variant takes
+# whichever is worth most, and that Monday the add is offered as a drop (the
+# exit happens only if a move then clears the price). "free": cutting the hold
+# short costs nothing (the replacement add is a move of its own); "charged": it
+# costs the unused share of the hold's add (price x days cut / days held).
+EXITS = {"exit": "free", "exit charged": "charged"}
 
 
 class Ctx:
@@ -329,7 +341,8 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
             if price_all is not None and price != math.inf:
                 price = price_all
             roster = list(lazy_by_week[0][t])
-            used, wins, pts = 0, 0, 0.0
+            used, wins, pts, planned, done = 0, 0, 0.0, 0, 0
+            exits = {}  # add -> the Monday his planned exit is due
             mine_taken = set(drafted)
             for w, m in enumerate(mondays):
                 if w:  # forced like the lazy managers: a goalie who lost his role
@@ -343,18 +356,24 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                 for _ in range(2):
                     if used >= cap or price == math.inf:
                         break
+                    leaving = {pid for pid, due in exits.items() if due <= m}
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
-                                     discount, n_weeks, used)
+                                     discount, n_weeks, used, EXITS.get(name), price, leaving)
                     if move is None or move[0] < price:
                         break
-                    _, add, drop = move
+                    _, add, drop, due = move
                     roster[roster.index(drop)] = add
                     mine_taken.add(add)
                     used += 1
+                    done += drop in leaving
+                    exits.pop(drop, None)
+                    if due:
+                        exits[add] = due
+                        planned += 1
                 score = actual(s, roster, m)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
-            out[(t, name)] = (wins, pts / n_weeks, used)
+            out[(t, name)] = (wins, pts / n_weeks, used, planned, done)
         print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
     return out
 
@@ -362,8 +381,38 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
 OPP_WEEKS: dict = {}  # (week index, team) -> its lazy roster's Week, this league's
 
 
-def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used):
-    """(value, add, drop) of the best skater swap this Monday, valued as matchup.candidate_moves does."""
+def best_exit(gain: dict, future: list[dt.date], ahead: list, weeks_after: int, later_weight: float,
+              hold_days: int, keep: float, rule: str | None, price: float) -> tuple[float, int | None]:
+    """A move's value after this week (the weeks ahead and later points) and its
+    planned exit: None to hold the full `hold_days`, else the number of weeks
+    after this one it is held (0: out next Monday). Without an exit `rule`, or
+    for a move kept the season (keep 1), the full hold. See EXITS."""
+    future_d = {d: None for d in future}
+
+    def worth(days: list[dt.date]) -> float:
+        ahead_wins, _, long_term = matchup.horizon(gain, future_d, ahead, weeks_after, later_weight, set(days), keep)
+        return sum(ahead_wins) + later_weight * long_term
+
+    held = future[:hold_days]
+    best = (worth(held), None)
+    if rule is None or keep >= 1.0 or not held:
+        return best
+    for k in range(len(ahead) + 1):
+        cut = future[:min(7 * k, hold_days)]
+        if len(cut) >= len(held):
+            break
+        charge = price * (len(held) - len(cut)) / len(held) if rule == "charged" else 0.0
+        value = worth(cut) - charge
+        if value > best[0]:
+            best = (value, k)
+    return best
+
+
+def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
+              exit_rule=None, price=PRICE, leaving=()):
+    """(value, add, drop, exit Monday or None) of the best skater swap this Monday, valued as
+    matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
+    offered as drops too."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
     future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
@@ -393,7 +442,6 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     spare = REGULAR_ADDS - used
     rate = min(max(spare / max(n_weeks - w, 1), 0.5), 2.0)
     hold_days = max(0, round(7 * (spots + 1) / rate) - 7)
-    held = set(future[:hold_days])
     weeks_after = n_weeks - w - 1
 
     skaters = [pid for pid in roster if pid not in s.goalie_ids]
@@ -412,8 +460,8 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
         levels = matchup.waiver_levels(fa_rp, ctx, {})
         line = max((matchup.waiver_gap(p, levels, ctx, {}) for p in mine_rp if p.id in spot_ids), default=-math.inf)
         drops = [p for p in matchup.drop_candidates(mine_rp, ctx, {})]
+        drops += [p for p in mine_rp if p.id in leaving and p not in drops]
         best = None
-        future_d = {d: None for d in future}
         for a in fa_rp:
             for d in drops:
                 week_gain = sum(mine.gain(a.id, d.id, this).values())
@@ -432,14 +480,14 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 saved_discount = matchup.LONG_RUN_DISCOUNT
                 matchup.LONG_RUN_DISCOUNT = discount
                 try:
-                    ahead_wins, _, long_term = matchup.horizon(gain, future_d, ahead, weeks_after, later_weight,
-                                                               held, keep)
+                    after, exit_k = best_exit(gain, future, ahead, weeks_after, later_weight, hold_days, keep,
+                                              exit_rule, price)
                 finally:
                     matchup.LONG_RUN_DISCOUNT = saved_discount
                 now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
-                value = now + sum(ahead_wins) + later_weight * long_term
+                value = now + after
                 if best is None or value > best[0]:
-                    best = (value, a.id, d.id)
+                    best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
     finally:
         matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
     return best
@@ -464,7 +512,8 @@ def main() -> None:
     n = len(teams)
     print(f"\n{args.leagues} leagues x 16 teams, 2025-26 replayed; each team managed alone, the others lazily; "
           f"price {PRICE if args.price is None else args.price}")
-    print(f"{'variant':16}{'wins':>7}{'vs ' + REFERENCE:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}")
+    print(f"{'variant':16}{'wins':>7}{'vs ' + REFERENCE:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}"
+          f"{'exits planned':>15}{'made':>6}")
     ref = [results[(k, t, REFERENCE)] for k, t in teams]
     for name in names:
         rows = [results[(k, t, name)] for k, t in teams]
@@ -472,7 +521,8 @@ def main() -> None:
         se = (sum((x - mean(diff)) ** 2 for x in diff) / (n - 1)) ** 0.5 / math.sqrt(n) if n > 1 else 0.0
         pdiff = mean(a[1] - b[1] for a, b in zip(rows, ref))
         print(f"{name:16}{mean(r[0] for r in rows):7.2f}{mean(diff):+16.2f}{se:9.2f}"
-              f"{mean(r[1] for r in rows):9.1f}{mean(r[2] for r in rows):7.1f}   pts/wk vs ref {pdiff:+.2f}")
+              f"{mean(r[1] for r in rows):9.1f}{mean(r[2] for r in rows):7.1f}"
+              f"{mean(r[3] for r in rows):15.1f}{mean(r[4] for r in rows):6.1f}   pts/wk vs ref {pdiff:+.2f}")
 
 
 if __name__ == "__main__":
