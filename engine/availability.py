@@ -63,8 +63,14 @@ UNKNOWN_SHARE = 0.3
 # the healthy goalies in proportion to their shares, this part of them (the
 # rest to a call-up). Without it the absent starter's starts went nowhere and
 # his backup's share rose only as he started (Nico, 2026-10-13: Garand behind
-# an injured Shesterkin). scripts/fit_goalie_absence.py; 0 = off until fit.
-ABSENT_TO_TEAMMATES = 0.0
+# an injured Shesterkin). scripts/fit_goalie_absence.py, fit 2023-25, checked
+# on 2025-26: a starter out 3+ games, back along the return curve, 0.30 (each
+# season alone 0.25-0.35; 2025-26 log loss 0.599 -> 0.587, the backup's
+# predicted starts 38% -> 47%, actual 47%); out long (15+ games, as news with a
+# timeline tells), all of his share, 0.45 (alone 0.35-0.65; 2025-26 log loss
+# 0.811 -> 0.724, the backup 28% -> 44%, actual 48%).
+ABSENT_TO_TEAMMATES = 0.30
+ABSENT_TO_TEAMMATES_KNOWN = 0.45
 # The goalie who started last night starts tonight at this share of his usual
 # rate. scripts/fit_goalie_starts.py: 0.09 in 2023-24, 0.13 in 2024-25, 0.16 in
 # 2025-26 (rising); 0.15 = 2024-26 pooled. Was 0.35, a judgment call.
@@ -104,6 +110,20 @@ def _sidelined_dtd(info: LineInfo | None) -> bool:
     return info is not None and info.injury == "dtd" and "ir" in info.groups
 
 
+def news_back(info: LineInfo | None, today: dt.date | None, days_ahead: int) -> float | None:
+    """P(plays) `days_ahead` days on by the news's timeline (`LineInfo.out_until`),
+    or None when the news gives none: 0 until the first day he could be back,
+    then the return curve of a 3-game absence from that day (a judgment call:
+    when players come back after a stated span isn't fit yet; the DFO archive
+    keeps the news from 2026-10-13 to fit it)."""
+    if info is None or info.out_until is None or today is None:
+        return None
+    day = today + dt.timedelta(days=days_ahead)
+    if day < info.out_until:
+        return 0.0
+    return ahead(return_curve(IR_MIN_MISSED), (day - info.out_until).days + 1, 0.0)
+
+
 def ahead(curve: tuple[float, ...], days_ahead: int, tonight: float) -> float:
     """P(plays) `days_ahead` days from now, given tonight's odds and a return curve."""
     if days_ahead <= 0:
@@ -121,14 +141,17 @@ def _curve(injured: str | None, missed_before: int) -> tuple[float, ...]:
     return return_curve(max(missed, IR_MIN_MISSED) if injured == "IR" else missed)
 
 
-def skater(info: LineInfo | None, team_has_lines: bool, days_ahead: int = 0, missed: int = 0) -> Availability:
+def skater(info: LineInfo | None, team_has_lines: bool, days_ahead: int = 0, missed: int = 0,
+           today: dt.date | None = None) -> Availability:
     """His odds of playing `days_ahead` days from tonight's status, after
     `missed` team games in a row before tonight. `team_has_lines` is False
     when DFO had no chart for the team (fetch failed): then being unlisted
-    says nothing and he's assumed to play."""
+    says nothing and he's assumed to play. With `today`, an injury's news
+    timeline beats the return curve (`news_back`)."""
     injured = _injured(info)
     if injured:
-        return Availability(ahead(_curve(injured, missed), days_ahead, 0.0), injured)
+        news = news_back(info, today, days_ahead)
+        return Availability(ahead(_curve(injured, missed), days_ahead, 0.0) if news is None else news, injured)
     if info is None:
         if not team_has_lines:
             return Availability(HEALTHY_PLAY)
@@ -164,7 +187,8 @@ def goalie(
     when he's injured (his return curve)."""
     injured = _injured(info)
     if injured or _sidelined_dtd(info):
-        back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0)
+        news = news_back(info, date - dt.timedelta(days=days_ahead), days_ahead) if injured else None
+        back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0) if news is None else news
         return Availability(back * start_share(player_id, date, info, team_starts, prior_share) if back else 0.0,
                             injured or "day-to-day")
 
@@ -243,7 +267,8 @@ def absences(player_id: int, date: dt.date, days_ahead: int, teammates: list[tup
     goalies as (id, LineInfo or None, games missed in a row); `share_of(id, info)`
     is a goalie's own blended share. An injured teammate's share counts as absent
     times his odds of still being out that day (his return curve), times
-    ABSENT_TO_TEAMMATES; a healthy one's is a rival's."""
+    ABSENT_TO_TEAMMATES; with a news timeline (`news_back`), times
+    ABSENT_TO_TEAMMATES_KNOWN. A healthy one's is a rival's."""
     absent = rivals = 0.0
     for pid, info, missed in teammates:
         if pid == player_id:
@@ -251,8 +276,12 @@ def absences(player_id: int, date: dt.date, days_ahead: int, teammates: list[tup
         share = share_of(pid, info)
         injured = _injured(info)
         if injured or _sidelined_dtd(info):
-            back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0)
-            absent += ABSENT_TO_TEAMMATES * share * (1 - back)
+            news = news_back(info, date - dt.timedelta(days=days_ahead), days_ahead) if injured else None
+            if news is None:
+                back = ahead(_curve(injured, missed) if injured else DTD_RETURN, days_ahead, 0.0)
+                absent += ABSENT_TO_TEAMMATES * share * (1 - back)
+            else:
+                absent += ABSENT_TO_TEAMMATES_KNOWN * share * (1 - news)
         else:
             rivals += share
     return absent, rivals

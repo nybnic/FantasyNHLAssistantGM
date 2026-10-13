@@ -13,10 +13,12 @@ DFO_TO_NHL. Matching on names instead is fragile: the NHL still calls Utah
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 import re
 from dataclasses import dataclass, field
 
+from clients import injury_news
 from clients.cache import DAY, HOUR, cached_json, get
 from clients.names import normalize_name
 
@@ -32,6 +34,9 @@ class LineInfo:
     goalie_depth: int | None = None  # 1 for g1, 2 for g2
     injury: str | None = None  # "out", "dtd", "ir"
     game_time_decision: bool = False
+    # The first day an injured player could be back by DFO's latest news
+    # (clients/injury_news.py; SEASON: out for the season), else None.
+    out_until: dt.date | None = None
 
 
 def _page_props(path: str) -> dict:
@@ -72,6 +77,8 @@ def rows(team: str) -> list[dict]:
                 "slot": p["positionIdentifier"],
                 "injury": p.get("injuryStatus"),
                 "gtd": bool(p.get("gameTimeDecision")),
+                "news": (p.get("latestNews") or {}).get("details"),
+                "news_at": ((p.get("latestNews") or {}).get("createdAt") or "")[:10] or None,
             }
             for p in combos["players"]
         ]
@@ -89,4 +96,6 @@ def team_lines(team: str) -> dict[str, LineInfo]:
             info.goalie_depth = int(row["slot"][1])
         info.injury = info.injury or row["injury"]
         info.game_time_decision = info.game_time_decision or row["gtd"]
+        if row["injury"] and row.get("news") and row.get("news_at"):
+            info.out_until = injury_news.out_until(row["news"], dt.date.fromisoformat(row["news_at"]))
     return out

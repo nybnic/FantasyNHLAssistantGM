@@ -144,3 +144,32 @@ def test_an_injured_starters_starts_go_to_his_healthy_teammates(monkeypatch):
     curve = availability.return_curve(max(21, availability.IR_MIN_MISSED))
     assert later == pytest.approx(0.70 * (1 - availability.ahead(curve, 30, 0.0)))  # some chance he's back
     assert later < absent
+
+
+def test_a_news_timeline_beats_the_return_curve():
+    out_season = LineInfo(groups={"ir"}, injury="out", out_until=dt.date.max)
+    four_weeks = LineInfo(groups={"ir"}, injury="ir", out_until=TONIGHT + dt.timedelta(days=28))
+    curve_only = LineInfo(groups={"ir"}, injury="ir")
+    assert availability.skater(out_season, True, 40, 2, TONIGHT).prob == 0.0
+    assert availability.skater(four_weeks, True, 20, 0, TONIGHT).prob == 0.0
+    after = availability.skater(four_weeks, True, 30, 0, TONIGHT).prob
+    assert 0 < after == availability.ahead(availability.return_curve(availability.IR_MIN_MISSED), 3, 0.0)
+    # No timeline, or no date to read it against: the return curve as before.
+    assert availability.skater(curve_only, True, 20, 0, TONIGHT).prob == availability.skater(curve_only, True, 20).prob
+    assert availability.skater(four_weeks, True, 20).prob == availability.skater(curve_only, True, 20).prob
+    # A goalie out for the season starts nothing, however far ahead.
+    later = TONIGHT + dt.timedelta(days=40)
+    assert availability.goalie(1, "Igor Shesterkin", later, out_season, None, [], 0.7, days_ahead=40).prob == 0.0
+
+
+def test_a_teammate_known_out_frees_more_of_his_starts():
+    curve = LineInfo(groups={"ir"}, injury="out")
+    season = LineInfo(groups={"ir"}, injury="out", out_until=dt.date.max)
+
+    def share_of(pid, info):
+        return 0.7
+
+    by_curve, _ = availability.absences(2, TONIGHT, 7, [(1, curve, 2)], [], share_of)
+    by_news, _ = availability.absences(2, TONIGHT, 7, [(1, season, 2)], [], share_of)
+    assert by_news == pytest.approx(availability.ABSENT_TO_TEAMMATES_KNOWN * 0.7)
+    assert by_curve < by_news

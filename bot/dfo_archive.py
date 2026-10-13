@@ -26,7 +26,9 @@ ARCHIVE_DIR = Path("archive")
 # first game starts before then (judgment call).
 SNAPSHOT_TIME = dt.time(13, 0)
 BEFORE_FIRST_PUCK = dt.timedelta(minutes=30)
-COLUMNS = ["date", "team", "name", "id", "group", "slot", "injury", "gtd"]
+# news, news_at: DFO's latest news on an injured player (from 2026-10-13), to fit
+# when players come back after the timeline it states (availability.news_back).
+COLUMNS = ["date", "team", "name", "id", "group", "slot", "injury", "gtd", "news", "news_at"]
 # The archive's README, kept current by the bot (its first write proved the
 # deploy key can push, 2026-10-03).
 README = """# FantasyNHLAssistantGM-data
@@ -34,7 +36,7 @@ Private data archive for FantasyNHLAssistantGM: third-party data, never in the p
 Written by the bot's GitHub Actions run; don't edit by hand.
 
 - `dfo_lines/YYYY/DATE.csv`: DailyFaceoff line charts, all 32 teams, once a game day
-  (bot/dfo_archive.py)
+  (bot/dfo_archive.py); from 2026-10-13 with DFO's latest news on each injured player
 - `yahoo_matchup/YYYY/TIME.csv`: every player row of Nico's Yahoo matchup screenshots,
   with Yahoo's week projection, both teams (bot/ingest.archive_matchup)
 - `screenshots/YYYY/TIME_MESSAGE_KIND.jpg|png` + `.json`: every screenshot Nico sends, as
@@ -59,7 +61,9 @@ def rows(date: dt.date, nhl_players: list[dict]) -> list[dict]:
         for r in _safe(dfo_lines.rows, team, default=[]):
             out.append({"date": date.isoformat(), "team": team, "name": r["name"],
                         "id": ids.get((team, normalize_name(r["name"])), ""), "group": r["group"],
-                        "slot": r["slot"], "injury": r["injury"] or "", "gtd": int(r["gtd"])})
+                        "slot": r["slot"], "injury": r["injury"] or "", "gtd": int(r["gtd"]),
+                        "news": (r.get("news") or "").strip() if r["injury"] else "",
+                        "news_at": (r.get("news_at") or "") if r["injury"] else ""})
     return out
 
 

@@ -294,7 +294,7 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
     x = ctx.skater(p.id, _position(p)).xfp
     status = availability.skater(info, bool(team_lines))
     if days_ahead and status.prob < availability.HEALTHY_PLAY:  # how long he's been out sets his return
-        status = availability.skater(info, bool(team_lines), days_ahead, ctx.games_missed(p.id, p.team))
+        status = availability.skater(info, bool(team_lines), days_ahead, ctx.games_missed(p.id, p.team), ctx.today)
     prob = status.prob
     if long_run:
         prob *= durability(ctx, p, x)
@@ -869,7 +869,7 @@ def ir_back(hurt: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]]
     def back(p: RosterPlayer, day: dt.date) -> float:
         info = lines.get(p.team, {}).get(normalize_name(p.name))
         return availability.skater(info, bool(lines.get(p.team)), (day - ctx.today).days,
-                                   ctx.games_missed(p.id, p.team)).prob
+                                   ctx.games_missed(p.id, p.team), ctx.today).prob
 
     return {d: math.prod(back(p, d) for p in hurt) for d in future}
 
@@ -985,7 +985,7 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
         missed = ctx.games_missed(add.id, add.team)
 
         def back(day: dt.date) -> float:
-            return availability.skater(info, True, (day - ctx.today).days, missed).prob
+            return availability.skater(info, True, (day - ctx.today).days, missed, ctx.today).prob
 
         def cost(base: TeamWeek, alt: TeamWeek, days) -> float:
             return sum(back(d) * (base.by_day.get(d, 0.0) - alt.by_day.get(d, 0.0)) for d in days)

@@ -29,7 +29,8 @@ NHL = [{"id": 1, "name": "Anton Lundell", "team": "FLA", "position": "C"},
        {"id": 2, "name": "Sam Reinhart", "team": "FLA", "position": "C"}]
 CHART = [{"name": "Anton Lundell", "group": "f1", "slot": "c1", "injury": None, "gtd": False},
          {"name": "Anton Lundell", "group": "pp1", "slot": "pp1c", "injury": None, "gtd": False},
-         {"name": "Aleksander Barkov", "group": "ir", "slot": "ir1", "injury": "ir", "gtd": False}]
+         {"name": "Aleksander Barkov", "group": "ir", "slot": "ir1", "injury": "ir", "gtd": False,
+          "news": "Barkov (knee) is expected to miss six months. \r\n", "news_at": "2026-10-01"}]
 
 
 def test_archives_every_chart_row_with_nhl_ids_once_a_day(tmp_path, monkeypatch):
@@ -42,8 +43,9 @@ def test_archives_every_chart_row_with_nhl_ids_once_a_day(tmp_path, monkeypatch)
     dfo_archive.archive_step(state, _at(13), dry_run=False, root=tmp_path)
     lines = (tmp_path / "dfo_lines" / "2026" / "2026-10-06.csv").read_text(encoding="utf-8").splitlines()
     assert lines[0] == ",".join(dfo_archive.COLUMNS)
-    assert "2026-10-06,FLA,Anton Lundell,1,pp1,pp1c,,0" in lines
-    assert "2026-10-06,FLA,Aleksander Barkov,,ir,ir1,ir,0" in lines  # not on the NHL roster: no id
+    assert "2026-10-06,FLA,Anton Lundell,1,pp1,pp1c,,0,," in lines
+    # Not on the NHL roster: no id. Injured: DFO's latest news, for when he's back.
+    assert "2026-10-06,FLA,Aleksander Barkov,,ir,ir1,ir,0,Barkov (knee) is expected to miss six months.,2026-10-01" in lines
     assert state["dfo_archived"] == "2026-10-06"
 
 
