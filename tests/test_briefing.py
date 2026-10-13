@@ -120,3 +120,19 @@ def test_start_active_overrides_say_who_and_why():
     text = briefing.start_active_text(result)
     assert text.startswith("Tonight (Tue 10 Nov): tap Start Active, then 2 changes (+")
     assert "- Bench Top Center (out)" in text and "- Start Depth Center at C (vs BOS): 2.9 pts" in text
+
+
+class _CloseCenters(FakeContext):
+    def skater(self, pid, position):
+        return _Proj({1: 8.7, 2: 6.0, 3: 5.7}[pid])
+
+
+def test_changes_are_counted_from_start_active_not_the_saved_slots():
+    # 2026-10-13: the saved lineup (Pinto at C, Scheifele on the bench) was stale; Start Active
+    # starts Scheifele, and benching him for Pinto (5.7 vs 6.0) must not win on the saved slots.
+    now = dt.datetime(2026, 11, 10, 19, 30, tzinfo=briefing.LOCAL)
+    roster = _roster(["C", "BN", "C", "G"])
+    roster[1].team = "TOR"
+    result = briefing.plan(roster, _CloseCenters(), DATE, [EVENING_GAME], {}, {}, now)
+    assert result.optimal[2] == "C" and result.optimal[3] == "BN"
+    assert briefing.start_active_text(result) == "Tonight (Tue 10 Nov): tap Start Active, nothing to change."

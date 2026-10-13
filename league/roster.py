@@ -62,20 +62,33 @@ def apply_lineup(players: list[RosterPlayer], assignment: dict[int, str]) -> Non
 
 def replace(players: list[RosterPlayer], pasted: list[RosterPlayer], tagged: set[int]) -> list[str]:
     """Make `players` the pasted roster and say what changed. Slots come from
-    the paste, or stay as they were for a player it gives none; if they then
-    overfill a slot, the active ones are cleared so tonight's briefing lists a
-    full lineup. Positions come from Yahoo's tag, else stay as they were."""
+    the paste, or stay as they were for a player it gives none; if that
+    overfills his old slot, he takes the one slot left that he fits (a
+    screenshot that missed Forsberg's LW badge, his old BN full: LW). If
+    slots are still overfilled, the active ones are cleared so tonight's
+    briefing lists a full lineup. Positions come from Yahoo's tag, else stay
+    as they were."""
     old = {p.id: p for p in players}
     new = {p.id: p for p in pasted}
+    unread = []  # shown without a slot: his old one is a guess
     for p in pasted:
         prev = old.get(p.id)
         if prev and p.id not in tagged:
             p.positions = prev.positions
-        if prev and p.slot is None:
-            p.slot = prev.slot
+        if p.slot is None:
+            unread.append(p)
+            p.slot = prev.slot if prev else None
     counts: dict[str | None, int] = {}
     for p in pasted:
         counts[p.slot] = counts.get(p.slot, 0) + 1
+    for p in unread:
+        if p.slot and counts[p.slot] > SLOT_CAPACITY.get(p.slot, 0):
+            room = [s for s in (*STARTERS, BENCH) if (s in p.positions or s == BENCH)
+                    and counts.get(s, 0) < SLOT_CAPACITY[s]]
+            if len(room) == 1:
+                counts[p.slot] -= 1
+                p.slot = room[0]
+                counts[p.slot] = counts.get(p.slot, 0) + 1
     overfilled = [s for s, n in counts.items() if s and n > SLOT_CAPACITY.get(s, 0)]
     if overfilled:
         for p in active(pasted):

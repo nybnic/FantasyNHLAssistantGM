@@ -39,6 +39,28 @@ def test_rows_pair_each_name_with_the_line_below(monkeypatch):
     ]
 
 
+def test_a_position_and_team_line_is_not_read_as_a_name(monkeypatch):
+    # 2026-10-13: "C • SJ" came out as "C. SJ" and "D • WPG" as "D. WPG", read as players.
+    lines = [(358, 587, 40, "M. CELEBRINI"), (360, 636, 40, "C. SJ"),
+             (358, 787, 40, "N. PIONK"), (360, 836, 40, "D. WPG")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_slot", lambda img, y, h: "C")
+    buf = io.BytesIO()
+    Image.new("RGB", (1179, 2556)).save(buf, "PNG")
+    assert [(r["name"], r["team"]) for r in screenshot.read_roster(buf.getvalue())] == [
+        ("M. CELEBRINI", "SJ"), ("N. PIONK", "WPG")]
+
+
+def test_a_wing_badge_that_wont_read_is_a_one_wing_players_wing(monkeypatch):
+    lines = [(358, 587, 40, "F. FORSBERG"), (360, 636, 40, "LW • NSH"),
+             (358, 787, 40, "A. TUCH"), (360, 836, 40, "LW,RW • WSH")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_slot", lambda img, y, h: "TEAL")
+    buf = io.BytesIO()
+    Image.new("RGB", (1179, 2556)).save(buf, "PNG")
+    assert [r["slot"] for r in screenshot.read_roster(buf.getvalue())] == ["LW", None]
+
+
 def test_a_matchup_reads_both_sides_the_slot_between_them_and_the_score(monkeypatch):
     # OCR lines as read from Nico's scrolled matchup screenshot (922 px wide).
     lines = [(300, 151, 38, "13.40 / 51.50"), (309, 202, 28, "159.79"), (445, 202, 28, "164.52"),

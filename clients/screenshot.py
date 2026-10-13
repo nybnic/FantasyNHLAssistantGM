@@ -17,8 +17,9 @@ header's score and projected totals.
 OCR reads names and "C • WPG" lines well but misses single-letter slot
 badges, so the slot comes from the badge's colour where Yahoo gives each its
 own (C blue, D gold, G lime) and from OCR of the badge crop otherwise (LW/RW
-share teal, BN/IR/IR+ are grey). A slot that can't be read is None, and the
-player keeps the slot they had. Checked on Nico's dark-mode iPhone
+share teal, BN/IR/IR+ are grey; a teal badge that won't read is a one-wing
+player's wing). A slot that can't be read is None, and the player keeps the
+slot they had (league/roster.replace). Checked on Nico's dark-mode iPhone
 screenshots (2026-10-01); a light-mode or desktop layout may need new hues.
 
 league/parse.match_shown_names turns the rows into players.
@@ -134,12 +135,15 @@ def _roster_rows(img: Image.Image, lines: list) -> list[dict]:
     rows = []
     for i, (x, y, h, text) in enumerate(lines):
         m = _NAME.match(text)
-        if not m or x < 0.2 * img.width:
+        if not m or x < 0.2 * img.width or _pos_team(text)[1] in _TEAMS:  # "C • SJ" read as "C. SJ"
             continue
         below = [t for bx, by, _, t in lines[i + 1:i + 4] if abs(bx - x) < 2 * h and 0 < by - y < 2 * h]
         positions, team = _pos_team(below[0]) if below else ([], "")
-        rows.append({"slot": _slot(img, y, h), "name": f"{m.group(1)}. {m.group(2)}", "team": team,
-                     "positions": positions})
+        slot = _slot(img, y, h)
+        if slot == "TEAL":  # a wing badge whose letters didn't read: a one-wing player's wing
+            wings = [p for p in positions if p in ("LW", "RW")]
+            slot = wings[0] if len(wings) == 1 else None
+        rows.append({"slot": slot, "name": f"{m.group(1)}. {m.group(2)}", "team": team, "positions": positions})
     return rows
 
 
@@ -652,7 +656,8 @@ def _read_lines(img: Image.Image) -> list[tuple[float, float, float, str]]:
 
 
 def _slot(img: Image.Image, y: float, h: float) -> str | None:
-    """The slot badge left of the photo, level with the name line at y."""
+    """The slot badge left of the photo, level with the name line at y
+    ("TEAL" for a wing badge whose letters didn't read)."""
     w = img.width
     badge = img.crop((int(0.02 * w), int(y - 0.4 * h), int(0.14 * w), int(y + 3.4 * h)))
     colour = _badge_colour(badge)
@@ -663,7 +668,7 @@ def _slot(img: Image.Image, y: float, h: float) -> str | None:
     result, _ = _ocr()(np.asarray(big), use_det=False, use_cls=False, use_rec=True)
     text = "".join(r[1] for r in result or []).replace(" ", "").upper()
     if colour == "TEAL":
-        return "RW" if "R" in text else "LW" if "L" in text else None
+        return "RW" if "R" in text else "LW" if "L" in text else "TEAL"
     if "IR+" in text or "IR*" in text:
         return "IR+"
     return "IR" if "IR" in text else "BN" if "BN" in text or "B" in text else None

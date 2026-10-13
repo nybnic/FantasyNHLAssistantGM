@@ -947,6 +947,15 @@ def test_the_2026_10_01_repair_undoes_the_totals_view_damage_once(tmp_path):
     assert league["waivers"] == {"8483703": "2026-10-03"} and len(state["repairs_done"]) == len(repairs.REPAIRS)
 
 
+def test_the_2026_10_13_repair_restores_the_lineup_the_screenshots_cleared(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-13 forsberg slot unread"]
+    players = [RosterPlayer(pid, str(pid), "TOR", ["C"], None) for pid in repairs.LINEUP_OCT_13]
+    repairs.apply(state, players, {"teams": {}, "taken": []})
+    assert {p.id: p.slot for p in players} == repairs.LINEUP_OCT_13
+
+
 def test_the_2026_10_05_repair_takes_stolarz_off_and_puts_misread_moves_back(tmp_path):
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")

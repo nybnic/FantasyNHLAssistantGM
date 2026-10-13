@@ -199,6 +199,21 @@ def _eriksson_ek_unread(state: dict, players: list[RosterPlayer], league: dict) 
         teams.add_player(league, team, RosterPlayer(ERIKSSON_EK, "Joel Eriksson Ek", "MIN", ["C"], None))
 
 
+# Nico's Team tab screenshots of 2026-10-13 19:42 Helsinki: player id -> slot.
+LINEUP_OCT_13 = {8484801: "C", 8476460: "C", 8477949: "LW", 8476887: "LW", 8485406: "RW", 8474564: "RW",
+                 8480807: "D", 8476457: "D", 8480865: "D", 8480145: "D", 8481519: "G", 8478872: "G",
+                 8480855: "BN", 8481596: "BN"}
+
+
+def _forsberg_slot_unread(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-13: the screenshots read no slot for Forsberg (his old BN was
+    # full) and a "C • SJ" line as a player, so every slot was cleared.
+    # Left alone if the roster has changed since.
+    if {p.id for p in players} == set(LINEUP_OCT_13) and all(p.slot is None for p in players):
+        for p in players:
+            p.slot = LINEUP_OCT_13[p.id]
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -206,4 +221,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-03 week 1 retro forecast", _week_1_retro_forecast),
            ("2026-10-05 stolarz misread", _stolarz_misread),
            ("2026-10-05 week 1 standings", _week_1_standings),
-           ("2026-10-12 eriksson ek unread", _eriksson_ek_unread)]
+           ("2026-10-12 eriksson ek unread", _eriksson_ek_unread),
+           ("2026-10-13 forsberg slot unread", _forsberg_slot_unread)]

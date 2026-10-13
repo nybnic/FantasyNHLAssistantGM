@@ -16,7 +16,7 @@ overflow night, sits the lower-ranked player (modeled by season value).
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from zoneinfo import ZoneInfo
 
 from clients.dfo_lines import LineInfo
@@ -129,11 +129,15 @@ def plan(
             if p.slot in capacity:
                 capacity[p.slot] -= 1
             continue
-        candidates.append(lineup.Candidate(p.id, tuple(p.positions), val, season, p.slot))
+        candidates.append(lineup.Candidate(p.id, tuple(p.positions), val, season))
         active_candidates.append(lineup.Candidate(p.id, tuple(p.positions), 1.0 if game else 0.0, season))
 
-    optimal = lineup.optimize(candidates, capacity)
     start_active = lineup.optimize(active_candidates, capacity)
+    # Each change is counted from Start Active, which Nico taps first, not from the
+    # slots last saved: anchored there, a stale lineup (Pinto at C, Scheifele on
+    # the bench, 2026-10-13) had Scheifele (6.0) benched for Pinto (5.7).
+    candidates = [replace(c, current_slot=start_active[c.player_id]) for c in candidates]
+    optimal = lineup.optimize(candidates, capacity)
     for pt in players:
         if pt.locked:
             optimal[pt.player.id] = start_active[pt.player.id] = pt.player.slot

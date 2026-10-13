@@ -187,3 +187,16 @@ def test_shown_names_match_a_two_word_last_name_run_together():
     assert [p.id for p in found.players] == [1, 2] and not found.problems
     found = parse.match_shown_names([_row("J. SONEK"), _row("B. ERIKSSONEK")], registry)
     assert found.players == [] and len(found.problems) == 2
+
+
+def test_a_shown_player_without_his_slot_takes_the_one_left_he_fits():
+    # 2026-10-13: the screenshots missed Forsberg's LW badge; his saved BN was full,
+    # which cleared the whole lineup. LW is the one slot with room that he fits.
+    players = [RosterPlayer(1, "Filip Forsberg", "NSH", ["LW"], "BN")]
+    pasted = [RosterPlayer(1, "Filip Forsberg", "NSH", ["LW"], None),
+              RosterPlayer(2, "Alex Tuch", "WSH", ["LW", "RW"], "LW"),
+              RosterPlayer(3, "Jack McBain", "UTA", ["C", "LW"], "BN"),
+              RosterPlayer(4, "Shane Pinto", "OTT", ["C"], "BN")]
+    changes = roster.replace(players, pasted, tagged={1, 2, 3, 4})
+    assert [p.slot for p in players] == ["LW", "LW", "BN", "BN"]
+    assert not any("Too many" in c for c in changes)
