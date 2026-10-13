@@ -50,9 +50,12 @@ def team_games(season: int) -> dict[str, list[TeamGame]]:
     return {t: sorted(gs, key=lambda g: g.date) for t, gs in out.items()}
 
 
-def rows(games_by_team: dict[str, list[TeamGame]], missed_to_start: int = MISSED_TO_START) -> list[dict]:
+def rows(games_by_team: dict[str, list[TeamGame]], missed_to_start: int = MISSED_TO_START,
+         known_out: int | None = None) -> list[dict]:
     """One row per (absence, teammate, game ahead); `top`: the teammate with the
-    biggest share (the backup)."""
+    biggest share (the backup). `known_out`: only absences that lasted this many
+    team games, the starter certainly out over the games scored (as an injury
+    report saying "out for months" tells; hindsight stands in for it here)."""
     last_team: dict[int, list[tuple[dt.date, str]]] = defaultdict(list)
     for team, games in games_by_team.items():
         for g in games:
@@ -71,6 +74,8 @@ def rows(games_by_team: dict[str, list[TeamGame]], missed_to_start: int = MISSED
             later = sorted(d for d, t in last_team[starter] if d >= games[i].date)
             if later and dict(last_team[starter])[later[0]] != team:
                 continue  # traded
+            if known_out and any(starter in g.appeared for g in games[i:i + known_out]):
+                continue
             today = games[i].date
             starts = [(g.date, g.starter) for g in games[:i] if g.starter is not None]
             window = [pid for _, pid in starts[-PRIOR_GAMES:]]
@@ -89,7 +94,7 @@ def rows(games_by_team: dict[str, list[TeamGame]], missed_to_start: int = MISSED
                 if g.starter is None:
                     continue
                 days = (g.date - today).days
-                out_odds = 1 - availability.ahead(curve, days, 0.0)
+                out_odds = 1.0 if known_out else 1 - availability.ahead(curve, days, 0.0)
                 for pid, s in shares.items():
                     out.append({"share": s, "freed": absent_share * out_odds,
                                 "rivals": sum(shares.values()) - s, "y": g.starter == pid, "days": days,
@@ -139,6 +144,14 @@ def main() -> None:
             report("the backup (top share)", [r for r in data[s] if r["top"]], factor)
             for lo, hi in ((0, 6), (7, 13), (14, 99)):
                 report(f"{lo}-{hi} days on", [r for r in data[s] if lo <= r["days"] <= hi], factor)
+    long = {s: rows(games[s], MISSED_TO_START, known_out=AHEAD_GAMES + MISSED_TO_START + 3) for s in games}
+    train = [r for s in TRAIN for r in long[s]]
+    factor = fit(train)
+    print(f"\nKnown long absences (15+ team games, all of his share freed): factor {factor:.2f} (fit {TRAIN})")
+    for s in (*TRAIN, TEST):
+        print(f"{s}: fit alone {fit(long[s]):.2f}")
+        report("all", long[s], factor)
+        report("the backup (top share)", [r for r in long[s] if r["top"]], factor)
     print(f"availability.ABSENT_TO_TEAMMATES = {availability.ABSENT_TO_TEAMMATES}")
 
 
