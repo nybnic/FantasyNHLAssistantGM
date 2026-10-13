@@ -1,13 +1,15 @@
 """The breakout watch (Nico, 2026-10-13): free agents whose role just changed,
 flagged as it happens, beside the plan rather than in it. Every run (every 30
 minutes, and on each Telegram message) it looks for:
+- a goalie whose team's starter is injured: at once (Nico, 2026-10-13: "the
+  injury info of a starter should weigh much and trigger immediately");
 - a goalie expected to start far more than projected before the season: his
   share of the starts ahead (his team's last 10, injured teammates' starts
   redistributed, availability.absences) against his preseason share. Not DFO's
   No. 1 on its own: DFO lists tonight's starter there, so a backup's one start
   made him "No. 1" (Nico, 2026-10-13: "not a watch if a FA gets one start");
-- a skater DFO moved up to a top line, the top D pair or the first power
-  play, still there PROMOTION_HOLDS days later (one game there is no role);
+- a skater DFO moved up to a top-6 line, the top D pair or the first power
+  play, from the first game there (Nico, 2026-10-13);
 - a skater whose ice time jumped: his last 3 games 3+ minutes over the games
   before (model/CLAUDE.md: such players are under-projected by ~0.25-0.3 pts a
   game the next week; the model follows ice time on purpose slowly).
@@ -36,7 +38,8 @@ logger = logging.getLogger(__name__)
 # so it takes an injury or a run of starts (judgment calls).
 SHARE_OVER_PROJECTED = 0.20
 GOALIE_MIN_SHARE = 0.40
-PROMOTION_HOLDS = 2  # days a DFO promotion must last before it's flagged
+PROMOTION_HOLDS = 0  # days a DFO promotion must last before it's flagged: none (Nico)
+STARTER_SHARE = 0.5  # a teammate with this share of the starts is the team's starter
 TOP_GROUPS = ("f1", "f2", "d1", "pp1")  # DFO groups a promotion into is flagged
 TOI_JUMP = 180.0  # seconds a game, last 3 over the (up to 10) games before
 TOI_MIN_GAMES = 8
@@ -52,8 +55,10 @@ class Signal:
     numbers: dict = field(default_factory=dict)
 
 
-def _injured_mates(team: str, pid: int, ctx, lines: dict) -> list[str]:
+def _injured_mates(team: str, pid: int, ctx, lines: dict, today: dt.date) -> list[tuple[str, float]]:
+    """His injured teammates: (what DFO says, that teammate's share of the starts)."""
     out = []
+    starts = ctx.team_starts.get(team, [])
     for mate_id, name in ctx.team_goalies(team):
         info = lines.get(normalize_name(name))
         if mate_id == pid or not info or not availability._injured(info):
@@ -61,14 +66,16 @@ def _injured_mates(team: str, pid: int, ctx, lines: dict) -> list[str]:
         until = info.out_until
         how = ("out for the season" if until == SEASON else
                f"out until about {messages.date_text(until)}" if until else f"out ({info.injury})")
-        out.append(f"{name} {how}")
+        out.append((f"{name} {how}",
+                    availability.start_share(mate_id, today, info, starts, ctx.prior_start_share(mate_id))))
     return out
 
 
 def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date) -> list[Signal]:
-    """Free-agent goalies expected to start far more than projected: the share
-    the plan uses (recent starts, injured teammates' starts) against his
-    preseason share (DFO's projected starts; without one, his depth's)."""
+    """Free-agent goalies whose team's starter is injured (at once), or who are
+    expected to start far more than projected: the share the plan uses (recent
+    starts, injured teammates' starts) against his preseason share (DFO's
+    projected starts; without one, his depth's)."""
     out = []
     for g in fa_goalies:
         lines = lines_by_team.get(g.team, {})
@@ -79,12 +86,15 @@ def goalie_signals(ctx, fa_goalies: list, lines_by_team: dict, today: dt.date) -
         projected = prior if prior is not None else availability.start_share(g.id, today, info, [], None)
         expected = availability.start_share(g.id, today, info, starts, prior,
                                             *matchup.goalie_absences(g, ctx, lines, today))
-        if expected - projected < SHARE_OVER_PROJECTED or expected < GOALIE_MIN_SHARE:
+        mates = _injured_mates(g.team, g.id, ctx, lines, today)
+        starter_out = any(share >= STARTER_SHARE for _, share in mates)
+        if not starter_out and (expected - projected < SHARE_OVER_PROJECTED or expected < GOALIE_MIN_SHARE):
             continue
-        mates = _injured_mates(g.team, g.id, ctx, lines)
         recent = [pid for d, pid in starts if d < today][-availability.RECENT_STARTS:]
-        reason = ", ".join(mates) or f"he has started {recent.count(g.id)} of his team's last {len(recent)}"
-        out.append(Signal(g, "goalie", reason, {"projected": projected, "expected": expected}))
+        reason = (", ".join(("his starter " if share >= STARTER_SHARE else "") + text for text, share in mates)
+                  or f"he has started {recent.count(g.id)} of his team's last {len(recent)}")
+        out.append(Signal(g, "goalie", reason, {"projected": projected, "expected": expected,
+                                                "starter_out": starter_out}))
     return out
 
 

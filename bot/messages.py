@@ -215,7 +215,7 @@ def watch_text(signals: list, values: dict) -> str:
             why = (f"{s.reason[0].upper()}{s.reason[1:]}. Expected to start {_pct(n['expected'])} of the games ahead, "
                    f"against {_pct(n['projected'])} projected before the season.")
         elif s.kind == "promoted":
-            why = f"DFO {s.reason}, and it has held for {n['days']} days."
+            why = f"DFO {s.reason}" + (f", and it has held for {n['days']} days." if n.get("days") else ".")
         else:
             why = (f"Ice time {_minutes(n['recent'])} a game in his last 3, up from {_minutes(n['usual'])}. "
                    "The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.")
