@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-13T08:13+00:00",
+ "generated": "2026-10-13T11:32+00:00",
  "date": "2026-10-13",
  "week": 3,
  "opponent": "Löllöt Höntsääjät",
@@ -57,12 +57,12 @@
    "week": 2
   },
   "price": {
-   "lam": 0.0932,
-   "later_weight": 0.00789,
+   "lam": 0.0916,
+   "later_weight": 0.00776,
    "pace": 1.286
   },
-  "later_weight": 0.00789,
-  "tau": 20.87,
+  "later_weight": 0.00776,
+  "tau": 23.09,
   "ahead": [
    {
     "week": 4,
@@ -85,11 +85,11 @@
    "hold_days": 16
   },
   "season": {
-   "playoffs": 0.2134,
-   "title": 0.0036,
-   "leverage": 0.117,
-   "typical": 0.1276,
-   "seed": 6.5211,
+   "playoffs": 0.2322,
+   "title": 0.0028,
+   "leverage": 0.1189,
+   "typical": 0.134,
+   "seed": 6.5116,
    "note": " (Standings through week 1: send a new screenshot.)"
   }
  },
@@ -103,7 +103,7 @@
   }
  ],
  "plan_empty": "No add is worth one of yours now.",
- "changed": "Darnell Nurse for Adam Larsson: someone took him",
+ "changed": "",
  "this_week_line": "For this week alone, the best is Gabriel Landeskog for Porter Martone: win 22% -> 25%. Not worth an add: 8 win-pts in all, against the 9 an add costs.",
  "weeks": [
   {
@@ -165,8 +165,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0318,
-   "value": 0.0991,
+   "later_wins": 0.0313,
+   "value": 0.0985,
    "status": "plan",
    "why": "held"
   },
@@ -209,8 +209,8 @@
    ],
    "held": false,
    "keep": 0.244,
-   "later_wins": 0.0739,
-   "value": 0.0952,
+   "later_wins": 0.0726,
+   "value": 0.094,
    "status": "passes",
    "why": "worth an add, but it does nothing this week: Wednesday's plan, if the week holds"
   },
@@ -253,10 +253,10 @@
    ],
    "held": false,
    "keep": 0.084,
-   "later_wins": 0.052,
-   "value": 0.0917,
+   "later_wins": 0.0511,
+   "value": 0.0908,
    "status": "fails",
-   "why": "worth 9.2 win-pts, under the 9.3 an add costs"
+   "why": "worth 9.1 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476892:8480807",
@@ -297,10 +297,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0331,
-   "value": 0.0816,
+   "later_wins": 0.0325,
+   "value": 0.081,
    "status": "fails",
-   "why": "worth 8.2 win-pts, under the 9.3 an add costs"
+   "why": "worth 8.1 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476455:8485406",
@@ -342,10 +342,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0305,
-   "value": 0.0799,
+   "later_wins": 0.03,
+   "value": 0.0794,
    "status": "fails",
-   "why": "worth 8.0 win-pts, under the 9.3 an add costs"
+   "why": "worth 7.9 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8480049:8480807",
@@ -386,10 +386,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0295,
-   "value": 0.074,
+   "later_wins": 0.029,
+   "value": 0.0735,
    "status": "fails",
-   "why": "worth 7.4 win-pts, under the 9.3 an add costs"
+   "why": "worth 7.3 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8482087:8480807",
@@ -430,10 +430,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0318,
-   "value": 0.0689,
+   "later_wins": 0.0312,
+   "value": 0.0684,
    "status": "fails",
-   "why": "worth 6.9 win-pts, under the 9.3 an add costs"
+   "why": "worth 6.8 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476455:8480855",
@@ -475,10 +475,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.029,
-   "value": 0.0654,
+   "later_wins": 0.0285,
+   "value": 0.0649,
    "status": "fails",
-   "why": "worth 6.5 win-pts, under the 9.3 an add costs"
+   "why": "worth 6.5 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8479378:8476457",
@@ -519,54 +519,10 @@
    ],
    "held": false,
    "keep": 0.236,
-   "later_wins": 0.0331,
-   "value": 0.0539,
+   "later_wins": 0.0326,
+   "value": 0.0534,
    "status": "fails",
-   "why": "worth 5.4 win-pts, under the 9.3 an add costs"
-  },
-  {
-   "key": "8482087:8476457",
-   "add": {
-    "id": 8482087,
-    "name": "Kaiden Guhle",
-    "team": "MTL",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.95,
-   "next_two_pts": 2.45,
-   "later_pts": 5.19,
-   "win": [
-    0.2198,
-    0.213
-   ],
-   "now_wins": -0.0068,
-   "ahead_wins": [
-    -0.0078,
-    0.0247
-   ],
-   "ahead_pts": 2.12,
-   "ahead_week_pts": [
-    -0.9,
-    3.02
-   ],
-   "held": false,
-   "keep": 0.073,
-   "later_wins": 0.0409,
-   "value": 0.0511,
-   "status": "fails",
-   "why": "worth 5.1 win-pts, under the 9.3 an add costs"
+   "why": "worth 5.3 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8480448:8485406",
@@ -608,10 +564,54 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0258,
-   "value": 0.051,
+   "later_wins": 0.0253,
+   "value": 0.0506,
    "status": "fails",
-   "why": "worth 5.1 win-pts, under the 9.3 an add costs"
+   "why": "worth 5.1 win-pts, under the 9.2 an add costs"
+  },
+  {
+   "key": "8482087:8476457",
+   "add": {
+    "id": 8482087,
+    "name": "Kaiden Guhle",
+    "team": "MTL",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": -0.95,
+   "next_two_pts": 2.45,
+   "later_pts": 5.19,
+   "win": [
+    0.2198,
+    0.213
+   ],
+   "now_wins": -0.0068,
+   "ahead_wins": [
+    -0.0078,
+    0.0247
+   ],
+   "ahead_pts": 2.12,
+   "ahead_week_pts": [
+    -0.9,
+    3.02
+   ],
+   "held": false,
+   "keep": 0.073,
+   "later_wins": 0.0403,
+   "value": 0.0504,
+   "status": "fails",
+   "why": "worth 5.0 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8483425:8480807",
@@ -652,10 +652,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0297,
-   "value": 0.0492,
+   "later_wins": 0.0292,
+   "value": 0.0488,
    "status": "fails",
-   "why": "worth 4.9 win-pts, under the 9.3 an add costs"
+   "why": "worth 4.9 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8479378:8480807",
@@ -699,7 +699,7 @@
    "later_wins": 0.0,
    "value": 0.0479,
    "status": "fails",
-   "why": "worth 4.8 win-pts, under the 9.3 an add costs"
+   "why": "worth 4.8 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8480448:8480855",
@@ -741,10 +741,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0243,
-   "value": 0.0398,
+   "later_wins": 0.0239,
+   "value": 0.0394,
    "status": "fails",
-   "why": "worth 4.0 win-pts, under the 9.3 an add costs"
+   "why": "worth 3.9 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8478042:8480855",
@@ -786,10 +786,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0376,
-   "value": 0.0367,
+   "later_wins": 0.037,
+   "value": 0.0361,
    "status": "fails",
-   "why": "worth 3.7 win-pts, under the 9.3 an add costs"
+   "why": "worth 3.6 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8478416:8480807",
@@ -830,10 +830,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0307,
-   "value": 0.0301,
+   "later_wins": 0.0302,
+   "value": 0.0296,
    "status": "fails",
-   "why": "worth 3.0 win-pts, under the 9.3 an add costs"
+   "why": "worth 3.0 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8482122:0:IR",
@@ -874,7 +874,7 @@
    "later_wins": -0.0001,
    "value": 0.0264,
    "status": "fails",
-   "why": "worth 2.6 win-pts, under the 9.3 an add costs"
+   "why": "worth 2.6 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8477932:8480807",
@@ -915,10 +915,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0299,
-   "value": 0.0229,
+   "later_wins": 0.0294,
+   "value": 0.0224,
    "status": "fails",
-   "why": "worth 2.3 win-pts, under the 9.3 an add costs"
+   "why": "worth 2.2 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8484390:8485406",
@@ -959,10 +959,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0062,
-   "value": 0.0176,
+   "later_wins": 0.0061,
+   "value": 0.0175,
    "status": "fails",
-   "why": "worth 1.8 win-pts, under the 9.3 an add costs"
+   "why": "worth 1.8 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8486171:8485406",
@@ -1003,10 +1003,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0183,
-   "value": 0.0138,
+   "later_wins": 0.018,
+   "value": 0.0135,
    "status": "fails",
-   "why": "worth 1.4 win-pts, under the 9.3 an add costs"
+   "why": "worth 1.4 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8478042:8485406",
@@ -1048,10 +1048,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0391,
-   "value": 0.0131,
+   "later_wins": 0.0384,
+   "value": 0.0125,
    "status": "fails",
-   "why": "worth 1.3 win-pts, under the 9.3 an add costs"
+   "why": "worth 1.2 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8478462:8485406",
@@ -1093,10 +1093,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0168,
-   "value": 0.0065,
+   "later_wins": 0.0165,
+   "value": 0.0062,
    "status": "fails",
-   "why": "worth 0.6 win-pts, under the 9.3 an add costs"
+   "why": "worth 0.6 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476463:8485406",
@@ -1137,8 +1137,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0099,
-   "value": 0.0041,
+   "later_wins": -0.0097,
+   "value": 0.0042,
    "status": "fails",
    "why": "dropping Porter Martone costs about 1 pts later, more than this week's +1 win-pts make up for"
   },
@@ -1182,10 +1182,93 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0161,
-   "value": 0.0032,
+   "later_wins": 0.0158,
+   "value": 0.0029,
    "status": "fails",
-   "why": "worth 0.3 win-pts, under the 9.3 an add costs"
+   "why": "worth 0.3 win-pts, under the 9.2 an add costs"
+  },
+  {
+   "key": "8475168:0:IR",
+   "add": {
+    "id": 8475168,
+    "name": "Matt Duchene",
+    "team": "DAL",
+    "positions": [
+     "C"
+    ]
+   },
+   "drop": null,
+   "ir_slot": "IR",
+   "later_drop": "Mattias Samuelsson",
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 0.0,
+   "next_two_pts": 0.0,
+   "later_pts": 0.0,
+   "win": [
+    0.2198,
+    0.2198
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.0,
+    0.0
+   ],
+   "ahead_pts": 0.0,
+   "ahead_week_pts": [
+    0.0,
+    0.0
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0,
+   "value": 0.0,
+   "status": "fails",
+   "why": "worth 0.0 win-pts, under the 9.2 an add costs"
+  },
+  {
+   "key": "8473419:0:IR",
+   "add": {
+    "id": 8473419,
+    "name": "Brad Marchand",
+    "team": "FLA",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": null,
+   "ir_slot": "IR",
+   "later_drop": "Porter Martone",
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 0.0,
+   "next_two_pts": 0.0,
+   "later_pts": 0.0,
+   "win": [
+    0.2198,
+    0.2198
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.0,
+    0.0
+   ],
+   "ahead_pts": 0.0,
+   "ahead_week_pts": [
+    0.0,
+    0.0
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0,
+   "value": 0.0,
+   "status": "fails",
+   "why": "worth 0.0 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8486171:8480855",
@@ -1226,10 +1309,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0168,
-   "value": -0.0003,
+   "later_wins": 0.0165,
+   "value": -0.0006,
    "status": "fails",
-   "why": "worth -0.0 win-pts, under the 9.3 an add costs"
+   "why": "worth -0.1 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8477451:8485406",
@@ -1271,8 +1354,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0051,
-   "value": -0.0068,
+   "later_wins": -0.005,
+   "value": -0.0067,
    "status": "fails",
    "why": "dropping Porter Martone costs about 1 pts later, more than this week's +2 win-pts make up for"
   },
@@ -1316,10 +1399,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0153,
-   "value": -0.0079,
+   "later_wins": 0.015,
+   "value": -0.0082,
    "status": "fails",
-   "why": "worth -0.8 win-pts, under the 9.3 an add costs"
+   "why": "worth -0.8 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8482742:8485406",
@@ -1360,10 +1443,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0138,
-   "value": -0.0081,
+   "later_wins": 0.0136,
+   "value": -0.0083,
    "status": "fails",
-   "why": "worth -0.8 win-pts, under the 9.3 an add costs"
+   "why": "worth -0.8 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476463:8480855",
@@ -1404,8 +1487,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0114,
-   "value": -0.0103,
+   "later_wins": -0.0112,
+   "value": -0.0101,
    "status": "fails",
    "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
   },
@@ -1449,10 +1532,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0146,
-   "value": -0.0112,
+   "later_wins": 0.0144,
+   "value": -0.0115,
    "status": "fails",
-   "why": "worth -1.1 win-pts, under the 9.3 an add costs"
+   "why": "worth -1.1 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8482742:8480855",
@@ -1493,10 +1576,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0123,
-   "value": -0.0225,
+   "later_wins": 0.0121,
+   "value": -0.0227,
    "status": "fails",
-   "why": "worth -2.3 win-pts, under the 9.3 an add costs"
+   "why": "worth -2.3 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8484170:8485406",
@@ -1537,8 +1620,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0071,
-   "value": -0.023,
+   "later_wins": -0.007,
+   "value": -0.0229,
    "status": "fails",
    "why": "dropping Porter Martone costs about 1 pts later, more than this week's +1 win-pts make up for"
   },
@@ -1581,52 +1664,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0318,
-   "value": -0.024,
+   "later_wins": 0.0312,
+   "value": -0.0246,
    "status": "fails",
-   "why": "worth -2.4 win-pts, under the 9.3 an add costs"
-  },
-  {
-   "key": "8473419:0:IR",
-   "add": {
-    "id": 8473419,
-    "name": "Brad Marchand",
-    "team": "FLA",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": null,
-   "ir_slot": "IR",
-   "later_drop": "Porter Martone",
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.87,
-   "next_two_pts": -2.92,
-   "later_pts": -0.33,
-   "win": [
-    0.2198,
-    0.2138
-   ],
-   "now_wins": -0.006,
-   "ahead_wins": [
-    0.0162,
-    -0.0361
-   ],
-   "ahead_pts": -2.48,
-   "ahead_week_pts": [
-    1.87,
-    -4.35
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0026,
-   "value": -0.0286,
-   "status": "fails",
-   "why": "worth -2.9 win-pts, under the 9.3 an add costs"
+   "why": "worth -2.5 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8482703:0:IR",
@@ -1665,10 +1706,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0196,
-   "value": -0.0316,
+   "later_wins": -0.0193,
+   "value": -0.0313,
    "status": "fails",
-   "why": "worth -3.2 win-pts, under the 9.3 an add costs"
+   "why": "worth -3.1 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8476874:8485406",
@@ -1709,8 +1750,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0136,
-   "value": -0.0325,
+   "later_wins": -0.0134,
+   "value": -0.0323,
    "status": "fails",
    "why": "dropping Porter Martone costs about 2 pts later, more than this week's +0 win-pts make up for"
   },
@@ -1753,10 +1794,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0082,
-   "value": -0.0356,
+   "later_wins": 0.0081,
+   "value": -0.0357,
    "status": "fails",
-   "why": "worth -3.6 win-pts, under the 9.3 an add costs"
+   "why": "worth -3.6 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8484170:8480855",
@@ -1797,8 +1838,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0086,
-   "value": -0.0375,
+   "later_wins": -0.0084,
+   "value": -0.0373,
    "status": "fails",
    "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
   },
@@ -1841,8 +1882,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0342,
-   "value": -0.0445,
+   "later_wins": -0.0336,
+   "value": -0.044,
    "status": "fails",
    "why": "dropping Porter Martone costs about 4 pts later, more than this week's -0 win-pts make up for"
   },
@@ -1886,7 +1927,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0018,
-   "value": -0.0465,
+   "value": -0.0464,
    "status": "fails",
    "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
   },
@@ -1929,8 +1970,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0151,
-   "value": -0.0468,
+   "later_wins": -0.0148,
+   "value": -0.0466,
    "status": "fails",
    "why": "dropping Jack McBain costs about 2 pts later, more than this week's -0 win-pts make up for"
   },
@@ -1974,7 +2015,7 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.002,
+   "later_wins": -0.0019,
    "value": -0.0474,
    "status": "fails",
    "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
@@ -2064,8 +2105,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0023,
-   "value": -0.0495,
+   "later_wins": -0.0022,
+   "value": -0.0494,
    "status": "fails",
    "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
   },
@@ -2108,10 +2149,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0068,
-   "value": -0.05,
+   "later_wins": 0.0066,
+   "value": -0.0501,
    "status": "fails",
-   "why": "worth -5.0 win-pts, under the 9.3 an add costs"
+   "why": "worth -5.0 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8478499:8485406",
@@ -2152,10 +2193,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0254,
-   "value": -0.0516,
+   "later_wins": 0.025,
+   "value": -0.052,
    "status": "fails",
-   "why": "worth -5.2 win-pts, under the 9.3 an add costs"
+   "why": "worth -5.2 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8471214:8480855",
@@ -2197,51 +2238,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0016,
+   "later_wins": -0.0015,
    "value": -0.0526,
    "status": "fails",
    "why": "dropping Jack McBain costs about 0 pts later, more than this week's -0 win-pts make up for"
-  },
-  {
-   "key": "8475168:0:IR",
-   "add": {
-    "id": 8475168,
-    "name": "Matt Duchene",
-    "team": "DAL",
-    "positions": [
-     "C"
-    ]
-   },
-   "drop": null,
-   "ir_slot": "IR",
-   "later_drop": "Porter Martone",
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.01,
-   "next_two_pts": -5.28,
-   "later_pts": -1.7,
-   "win": [
-    0.2198,
-    0.22
-   ],
-   "now_wins": 0.0002,
-   "ahead_wins": [
-    -0.007,
-    -0.0326
-   ],
-   "ahead_pts": -4.75,
-   "ahead_week_pts": [
-    -0.81,
-    -3.93
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0134,
-   "value": -0.0529,
-   "status": "fails",
-   "why": "worth -5.3 win-pts, under the 9.3 an add costs"
   },
   {
    "key": "8479671:8485406",
@@ -2285,7 +2285,7 @@
    "later_wins": 0.0024,
    "value": -0.0553,
    "status": "fails",
-   "why": "worth -5.5 win-pts, under the 9.3 an add costs"
+   "why": "worth -5.5 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8481035:8480855",
@@ -2326,8 +2326,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0357,
-   "value": -0.0589,
+   "later_wins": -0.0351,
+   "value": -0.0583,
    "status": "fails",
    "why": "dropping Jack McBain costs about 5 pts later, more than this week's -1 win-pts make up for"
   },
@@ -2370,8 +2370,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0141,
-   "value": -0.0632,
+   "later_wins": -0.0139,
+   "value": -0.063,
    "status": "fails",
    "why": "dropping Porter Martone costs about 2 pts later, more than this week's -0 win-pts make up for"
   },
@@ -2414,8 +2414,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0249,
-   "value": -0.0642,
+   "later_wins": -0.0245,
+   "value": -0.0638,
    "status": "fails",
    "why": "dropping Porter Martone costs about 3 pts later, more than this week's +2 win-pts make up for"
   },
@@ -2458,7 +2458,7 @@
    "later_wins": -0.0007,
    "value": -0.0691,
    "status": "fails",
-   "why": "worth -6.9 win-pts, under the 9.3 an add costs"
+   "why": "worth -6.9 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8471214:8485406",
@@ -2501,7 +2501,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0001,
-   "value": -0.0723,
+   "value": -0.0722,
    "status": "fails",
    "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
   },
@@ -2545,9 +2545,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0009,
-   "value": -0.0733,
+   "value": -0.0734,
    "status": "fails",
-   "why": "worth -7.3 win-pts, under the 9.3 an add costs"
+   "why": "worth -7.3 win-pts, under the 9.2 an add costs"
   },
   {
    "key": "8479292:8485406",
@@ -2588,8 +2588,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0194,
-   "value": -0.0757,
+   "later_wins": -0.019,
+   "value": -0.0754,
    "status": "fails",
    "why": "dropping Porter Martone costs about 2 pts later, more than this week's +2 win-pts make up for"
   },
@@ -2632,8 +2632,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0156,
-   "value": -0.0777,
+   "later_wins": -0.0153,
+   "value": -0.0774,
    "status": "fails",
    "why": "dropping Jack McBain costs about 2 pts later, more than this week's -0 win-pts make up for"
   },
@@ -2676,8 +2676,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0264,
-   "value": -0.0788,
+   "later_wins": -0.026,
+   "value": -0.0784,
    "status": "fails",
    "why": "dropping Jack McBain costs about 3 pts later, more than this week's +1 win-pts make up for"
   },
@@ -2720,51 +2720,54 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0183,
-   "value": -0.0832,
+   "later_wins": -0.018,
+   "value": -0.0829,
    "status": "fails",
    "why": "dropping Porter Martone costs about 2 pts later, more than this week's +2 win-pts make up for"
   },
   {
-   "key": "8477942:0:IR",
+   "key": "8479292:8480855",
    "add": {
-    "id": 8477942,
-    "name": "Kevin Fiala",
-    "team": "LAK",
+    "id": 8479292,
+    "name": "Charlie Lindgren",
+    "team": "WSH",
     "positions": [
-     "LW"
+     "G"
     ]
    },
-   "drop": null,
-   "ir_slot": "IR+",
-   "later_drop": "Porter Martone",
+   "drop": {
+    "id": 8480855,
+    "name": "Jack McBain"
+   },
+   "ir_slot": null,
+   "later_drop": null,
    "until_back": null,
    "plays_from": null,
    "when": null,
-   "games": 2,
-   "week_pts": -0.87,
-   "next_two_pts": -3.94,
-   "later_pts": -6.04,
+   "games": 3,
+   "week_pts": 2.78,
+   "next_two_pts": -11.58,
+   "later_pts": -2.64,
    "win": [
     0.2198,
-    0.2138
+    0.239
    ],
-   "now_wins": -0.006,
+   "now_wins": 0.0192,
    "ahead_wins": [
-    -0.0105,
-    -0.0197
+    -0.0285,
+    -0.0602
    ],
-   "ahead_pts": -3.59,
+   "ahead_pts": -10.52,
    "ahead_week_pts": [
-    -1.21,
-    -2.38
+    -3.29,
+    -7.22
    ],
-   "held": false,
-   "keep": 0.215,
-   "later_wins": -0.0477,
-   "value": -0.0838,
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0205,
+   "value": -0.09,
    "status": "fails",
-   "why": "worth -8.4 win-pts, under the 9.3 an add costs"
+   "why": "dropping Jack McBain costs about 3 pts later, more than this week's +2 win-pts make up for"
   }
  ],
  "teams": {
@@ -8519,6 +8522,153 @@
    "kept": 1.0,
    "replacement": 5.388
   },
+  "8475168": {
+   "id": 8475168,
+   "name": "Matt Duchene",
+   "team": "DAL",
+   "positions": "C",
+   "owner": "fa",
+   "goalie": false,
+   "season": null,
+   "per_game": {
+    "Goals": 1.055,
+    "Assists": 1.281,
+    "PP, SH, GWG": 0.253,
+    "Shots": 0.785,
+    "Hits": 0.288,
+    "Blocks": 0.3,
+    "Faceoffs": 0.44,
+    "+/- and PIM": 0.095
+   },
+   "xfp": 4.498,
+   "stats": {
+    "Goals": 0.264,
+    "Assists": 0.466,
+    "PP points": 0.218,
+    "SH points": 0.001,
+    "GWG": 0.063,
+    "Shots": 1.569,
+    "Hits": 0.48,
+    "Blocks": 0.375,
+    "Faceoff wins": 4.401,
+    "+/-": 0.057,
+    "PIM": 0.222
+   },
+   "toi": 16.09,
+   "pp_toi": 2.26,
+   "gp": 0,
+   "play": 0.0,
+   "note": "IR",
+   "durability": 0.978,
+   "kept": 1.0,
+   "replacement": 5.388
+  },
+  "8473419": {
+   "id": 8473419,
+   "name": "Brad Marchand",
+   "team": "FLA",
+   "positions": "LW/RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 2,
+    "pts": 7.7,
+    "proj": 9.4,
+    "pts_projected": 7.7,
+    "stats": {
+     "Goals": [
+      1.0,
+      0.6
+     ],
+     "Assists": [
+      0.0,
+      0.8
+     ],
+     "PP points": [
+      0.0,
+      0.4
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.1
+     ],
+     "Shots": [
+      5.0,
+      4.2
+     ],
+     "Hits": [
+      2.0,
+      1.9
+     ],
+     "Blocks": [
+      0.0,
+      0.7
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.5
+     ],
+     "+/-": [
+      0.0,
+      -0.0
+     ],
+     "PIM": [
+      0.0,
+      1.4
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-06",
+      "opp": "LAK",
+      "pts": 1.1,
+      "proj": 4.6
+     },
+     {
+      "date": "2026-10-04",
+      "opp": "ANA",
+      "pts": 6.6,
+      "proj": 4.8
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 1.136,
+    "Assists": 0.948,
+    "PP, SH, GWG": 0.21,
+    "Shots": 0.977,
+    "Hits": 0.529,
+    "Blocks": 0.226,
+    "Faceoffs": 0.018,
+    "+/- and PIM": 0.179
+   },
+   "xfp": 4.224,
+   "stats": {
+    "Goals": 0.284,
+    "Assists": 0.345,
+    "PP points": 0.178,
+    "SH points": 0.011,
+    "GWG": 0.044,
+    "Shots": 1.954,
+    "Hits": 0.882,
+    "Blocks": 0.283,
+    "Faceoff wins": 0.185,
+    "+/-": -0.017,
+    "PIM": 0.625
+   },
+   "toi": 11.38,
+   "pp_toi": 1.27,
+   "gp": 2,
+   "play": 0.0,
+   "note": "IR",
+   "durability": 0.754,
+   "kept": 1.0,
+   "replacement": 5.388
+  },
   "8477451": {
    "id": 8477451,
    "name": "Ryan Hartman",
@@ -8982,112 +9132,6 @@
    "play": 0.97,
    "note": "",
    "durability": 0.998,
-   "kept": 1.0,
-   "replacement": 5.388
-  },
-  "8473419": {
-   "id": 8473419,
-   "name": "Brad Marchand",
-   "team": "FLA",
-   "positions": "LW/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 2,
-    "pts": 7.7,
-    "proj": 9.4,
-    "pts_projected": 7.7,
-    "stats": {
-     "Goals": [
-      1.0,
-      0.6
-     ],
-     "Assists": [
-      0.0,
-      0.8
-     ],
-     "PP points": [
-      0.0,
-      0.4
-     ],
-     "SH points": [
-      0.0,
-      0.0
-     ],
-     "GWG": [
-      0.0,
-      0.1
-     ],
-     "Shots": [
-      5.0,
-      4.2
-     ],
-     "Hits": [
-      2.0,
-      1.9
-     ],
-     "Blocks": [
-      0.0,
-      0.7
-     ],
-     "Faceoff wins": [
-      0.0,
-      0.5
-     ],
-     "+/-": [
-      0.0,
-      -0.0
-     ],
-     "PIM": [
-      0.0,
-      1.4
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-06",
-      "opp": "LAK",
-      "pts": 1.1,
-      "proj": 4.6
-     },
-     {
-      "date": "2026-10-04",
-      "opp": "ANA",
-      "pts": 6.6,
-      "proj": 4.8
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 1.136,
-    "Assists": 0.948,
-    "PP, SH, GWG": 0.21,
-    "Shots": 0.977,
-    "Hits": 0.529,
-    "Blocks": 0.226,
-    "Faceoffs": 0.018,
-    "+/- and PIM": 0.179
-   },
-   "xfp": 4.224,
-   "stats": {
-    "Goals": 0.284,
-    "Assists": 0.345,
-    "PP points": 0.178,
-    "SH points": 0.011,
-    "GWG": 0.044,
-    "Shots": 1.954,
-    "Hits": 0.882,
-    "Blocks": 0.283,
-    "Faceoff wins": 0.185,
-    "+/-": -0.017,
-    "PIM": 0.625
-   },
-   "toi": 11.38,
-   "pp_toi": 1.27,
-   "gp": 2,
-   "play": 0.0,
-   "note": "IR",
-   "durability": 0.754,
    "kept": 1.0,
    "replacement": 5.388
   },
@@ -10277,47 +10321,6 @@
    "kept": 1.0,
    "replacement": 5.388
   },
-  "8475168": {
-   "id": 8475168,
-   "name": "Matt Duchene",
-   "team": "DAL",
-   "positions": "C",
-   "owner": "fa",
-   "goalie": false,
-   "season": null,
-   "per_game": {
-    "Goals": 1.055,
-    "Assists": 1.281,
-    "PP, SH, GWG": 0.253,
-    "Shots": 0.785,
-    "Hits": 0.288,
-    "Blocks": 0.3,
-    "Faceoffs": 0.44,
-    "+/- and PIM": 0.095
-   },
-   "xfp": 4.498,
-   "stats": {
-    "Goals": 0.264,
-    "Assists": 0.466,
-    "PP points": 0.218,
-    "SH points": 0.001,
-    "GWG": 0.063,
-    "Shots": 1.569,
-    "Hits": 0.48,
-    "Blocks": 0.375,
-    "Faceoff wins": 4.401,
-    "+/-": 0.057,
-    "PIM": 0.222
-   },
-   "toi": 16.09,
-   "pp_toi": 2.26,
-   "gp": 0,
-   "play": 0.0,
-   "note": "IR",
-   "durability": 0.978,
-   "kept": 1.0,
-   "replacement": 5.388
-  },
   "8479671": {
    "id": 8479671,
    "name": "Mathieu Olivier",
@@ -10860,47 +10863,6 @@
     "opp": "COL"
    },
    "gp": 1
-  },
-  "8477942": {
-   "id": 8477942,
-   "name": "Kevin Fiala",
-   "team": "LAK",
-   "positions": "LW",
-   "owner": "fa",
-   "goalie": false,
-   "season": null,
-   "per_game": {
-    "Goals": 1.344,
-    "Assists": 0.984,
-    "PP, SH, GWG": 0.253,
-    "Shots": 1.245,
-    "Hits": 0.467,
-    "Blocks": 0.29,
-    "Faceoffs": 0.023,
-    "+/- and PIM": 0.148
-   },
-   "xfp": 4.753,
-   "stats": {
-    "Goals": 0.336,
-    "Assists": 0.358,
-    "PP points": 0.276,
-    "SH points": 0.001,
-    "GWG": 0.044,
-    "Shots": 2.491,
-    "Hits": 0.778,
-    "Blocks": 0.363,
-    "Faceoff wins": 0.23,
-    "+/-": -0.04,
-    "PIM": 0.558
-   },
-   "toi": 18.14,
-   "pp_toi": 3.11,
-   "gp": 0,
-   "play": 0.0,
-   "note": "out",
-   "durability": 0.987,
-   "kept": 1.0,
-   "replacement": 5.388
   }
  },
  "games": {
