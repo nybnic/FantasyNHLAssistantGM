@@ -38,7 +38,10 @@ Duplicates and extras are safe; each kind is checked before it changes anything:
 
 ## 2. What the bot fetches itself
 - **NHL API**: schedule, rosters, box scores and game logs (the results, re-fetchable any time), standings, past seasons' stats.
-- **DailyFaceoff**: line charts and injuries, confirmed starting goalies, preseason projections.
+- **DailyFaceoff**: line charts and injuries (with each injured player's latest news, whose timeline
+  "rest of the season", "four more weeks" sets his return: `clients/injury_news.py`), confirmed
+  starting goalies, preseason projections. ESPN's injury feed has a structured return date too
+  (`scripts/injury_sources.py`), not used yet.
 
 Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current data expires in hours).
 
@@ -62,7 +65,7 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 
 | Folder | Holds | Used for |
 |---|---|---|
-| `dfo_lines/YYYY/DATE.csv` | DFO line charts, all 32 teams, once a game day | Whether line and PP roles predict points; stash candidates (roadmap item 8) |
+| `dfo_lines/YYYY/DATE.csv` | DFO line charts, all 32 teams, once a game day; from 2026-10-13 with injured players' latest news | Whether line and PP roles predict points; stash candidates (roadmap item 8) |
 | `yahoo_matchup/YYYY/TIME.csv` | Every player row of my matchup screenshots: view, slot, points so far, Yahoo's projection, both teams | Yahoo's player projections against ours and the results |
 | `screenshots/YYYY/TIME_MESSAGE_KIND.jpg` + `.json` | Every screenshot Nico sends, as Telegram delivered it (kind `unread` if nothing could be read), and what the bot read from it | Checking misreads, and turning real screenshots into tests (Nico, 2026-10-05) |
 

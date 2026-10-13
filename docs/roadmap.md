@@ -32,6 +32,10 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
    Planned exits (Nico, 2026-10-13, Landeskog: add him for week 4, stream him out before his weak week 5):
    no gain at equal adds (free exits -0.05 +/- 0.09, `engine/CLAUDE.md` "Replayed"); the full hold stays.
    Mid-week exits would need mid-week decisions in the replay.
+6. **Role changes** (Nico, 2026-10-13): goalie starts and injury news done (see the log). Next: the
+   DFO promotion test (does a move to a top line or PP1 predict points beyond ice time?) once the
+   archive has ~6 weeks (mid-November); fit the news timeline's after-part on the archived news; the
+   breakout watch's thresholds against what the flagged players then scored (`state.watch.alerted`).
 
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
@@ -204,3 +208,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-12 | The Check workflow's `schedule` takes optional weeks (`weeks: 24 25 26`), so a sandbox without network can see any week's games (Nico asked how his roster's schedule looks in the playoff weeks) | (this commit) |
 | 2026-10-13 | Replay variants for planned exits (`exit`, `exit charged`: a streamer's hold may end at a week boundary, then he's offered as a drop); Check workflow runs the replay (`replay`, variants, leagues) | (this commit) |
 | 2026-10-13 | Planned exits replayed (16 leagues): +0.19 (0.09) at the 0.09 price, but with 2.6 more adds; at equal adds (price 0) -0.05 (0.09). No change to the plan: the gain was the adds. Check workflow takes a replay price | (this commit) |
+| 2026-10-13 | Role changes read as they happen (Nico: Garand behind an injured Shesterkin). An injured goalie's starts go to his healthy teammates by share (`availability.ABSENT_TO_TEAMMATES` 0.30 / 0.45 with a news timeline, `scripts/fit_goalie_absence.py`: fit 2023-25, better on 2025-26); DFO's latest injury news sets a return (`clients/injury_news.py`; "rest of the season", "four more weeks"), archived to fit the after-part; the breakout watch (`bot/watch.py`) flags free agents with a role change every run, valued by the plan; DFO charts refresh hourly. Check workflow: `goalie-absence`, `injury-sources`, `goalie-shares`, and any branch | (this commit) |

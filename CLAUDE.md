@@ -41,12 +41,14 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    its `?card` view screenshotted for Telegram (`notify/snapshot.py`).
    When: Monday and Wednesday noon and `/week` = the full plan; a screenshot or
    Taken/Skip tap = a check; once an evening = silent unless the plan changed.
+7. **The breakout watch** (`bot/watch.py`), every run: a free agent whose role just changed (a goalie
+   whose teammates are hurt, a DFO promotion, an ice-time jump) gets one message with the plan's verdict.
 
 ## Map
 | Path | What lives there |
 |---|---|
 | `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
-| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `common.py` (outbox, dates, free agents) |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `watch.py` (the breakout watch: free agents whose role just changed), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule (every regular-season opponent), calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` (evidence table) |
 | `engine/` | Decisions: `matchup.py` (the week, every move's value), `plan.py` (the plan), `addprice.py`, `lineup.py`, `availability.py`, `ir.py`, `season.py`, `trade.py`. See `engine/CLAUDE.md` (how the plan works, **the decision log**, judgment calls) |

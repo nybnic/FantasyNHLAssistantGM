@@ -92,6 +92,11 @@
   worth an add) or a new plan is `CHANGE_MARGIN` (0.02 wins) better. Its old
   adds are always scored again (`extra_ids`), so a shortlist reshuffle can't drop
   them. A change is one message with its reason; replaced cards lose their buttons.
+- **Breakout watch** (`bot/watch.py`, Nico 2026-10-13): every run, free agents whose role just changed:
+  a goalie whose start share jumps from injured teammates (the redistribution above) or whom DFO lists
+  No. 1 below a 50% share, a DFO promotion to a top-6 line, the top D pair or PP1, an ice-time jump
+  (last 3 games 3+ min over the 10 before). Valued by a quiet plan run that scores them; one message,
+  once per player and kind in 14 days, held through quiet hours. Thresholds are judgment calls.
 - **Messages** (`bot/messages.py`): the plan message (Monday and Wednesday noon,
   /week): matchup, what to do and when, the week's best stream if it isn't the
   plan's, the weeks ahead, the budget, warnings. A card per move on its day,
