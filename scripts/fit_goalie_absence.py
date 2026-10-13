@@ -50,8 +50,9 @@ def team_games(season: int) -> dict[str, list[TeamGame]]:
     return {t: sorted(gs, key=lambda g: g.date) for t, gs in out.items()}
 
 
-def rows(games_by_team: dict[str, list[TeamGame]]) -> list[dict]:
-    """One row per (absence, teammate, game ahead)."""
+def rows(games_by_team: dict[str, list[TeamGame]], missed_to_start: int = MISSED_TO_START) -> list[dict]:
+    """One row per (absence, teammate, game ahead); `top`: the teammate with the
+    biggest share (the backup)."""
     last_team: dict[int, list[tuple[dt.date, str]]] = defaultdict(list)
     for team, games in games_by_team.items():
         for g in games:
@@ -59,13 +60,13 @@ def rows(games_by_team: dict[str, list[TeamGame]]) -> list[dict]:
                 last_team[pid].append((g.date, team))
     out = []
     for team, games in games_by_team.items():
-        for i in range(10 + MISSED_TO_START, len(games)):
+        for i in range(10 + missed_to_start, len(games)):
             recent = [g.starter for g in games[i - 10:i]]
             starter = max(set(recent) - {None}, key=recent.count, default=None)
             if starter is None or recent.count(starter) < 5:
                 continue
-            missed = games[i - MISSED_TO_START:i]
-            if any(starter in g.appeared for g in missed) or starter not in games[i - MISSED_TO_START - 1].appeared:
+            missed = games[i - missed_to_start:i]
+            if any(starter in g.appeared for g in missed) or starter not in games[i - missed_to_start - 1].appeared:
                 continue
             later = sorted(d for d, t in last_team[starter] if d >= games[i].date)
             if later and dict(last_team[starter])[later[0]] != team:
@@ -82,7 +83,8 @@ def rows(games_by_team: dict[str, list[TeamGame]]) -> list[dict]:
 
             absent_share = share(starter)
             shares = {pid: share(pid) for pid in mates}
-            curve = availability.return_curve(MISSED_TO_START + 1)
+            curve = availability.return_curve(missed_to_start + 1)
+            top = max(shares, key=shares.get)
             for g in games[i:i + AHEAD_GAMES]:
                 if g.starter is None:
                     continue
@@ -90,7 +92,8 @@ def rows(games_by_team: dict[str, list[TeamGame]]) -> list[dict]:
                 out_odds = 1 - availability.ahead(curve, days, 0.0)
                 for pid, s in shares.items():
                     out.append({"share": s, "freed": absent_share * out_odds,
-                                "rivals": sum(shares.values()) - s, "y": g.starter == pid, "days": days})
+                                "rivals": sum(shares.values()) - s, "y": g.starter == pid, "days": days,
+                                "top": pid == top})
     return out
 
 
@@ -123,16 +126,19 @@ def report(name: str, rs: list[dict], factor: float) -> None:
 
 
 def main() -> None:
-    data = {s: rows(team_games(s)) for s in (*TRAIN, TEST)}
-    train = [r for s in TRAIN for r in data[s]]
-    factor = fit(train)
-    print(f"Absent starter's starts to his teammates (fit {TRAIN}): factor {factor:.2f} "
-          f"(1 = all to known goalies, in proportion to their shares)")
-    for s in (*TRAIN, TEST):
-        print(f"{s}: fit alone {fit(data[s]):.2f}")
-        report("all", data[s], factor)
-        for lo, hi in ((0, 6), (7, 13), (14, 99)):
-            report(f"{lo}-{hi} days on", [r for r in data[s] if lo <= r["days"] <= hi], factor)
+    games = {s: team_games(s) for s in (*TRAIN, TEST)}
+    for missed in (MISSED_TO_START, 3, 4):
+        data = {s: rows(games[s], missed) for s in games}
+        train = [r for s in TRAIN for r in data[s]]
+        factor = fit(train)
+        print(f"\nAn absence = {missed} team games missed in a row. Absent starter's starts to his teammates "
+              f"(fit {TRAIN}): factor {factor:.2f} (1 = all to known goalies, in proportion to their shares)")
+        for s in (*TRAIN, TEST):
+            print(f"{s}: fit alone {fit(data[s]):.2f}")
+            report("all", data[s], factor)
+            report("the backup (top share)", [r for r in data[s] if r["top"]], factor)
+            for lo, hi in ((0, 6), (7, 13), (14, 99)):
+                report(f"{lo}-{hi} days on", [r for r in data[s] if lo <= r["days"] <= hi], factor)
     print(f"availability.ABSENT_TO_TEAMMATES = {availability.ABSENT_TO_TEAMMATES}")
 
 
