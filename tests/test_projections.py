@@ -79,3 +79,25 @@ def test_games_missed_counts_his_teams_games_since_he_last_played():
                        goalie_games={}, team_starts={"BOS": [(d, 30) for d in days]}, team_ratings={}, league=None)
     assert ctx.games_missed(5, "BOS") == 2  # played the 9th, missed the 11th and 13th
     assert ctx.games_missed(6, "BOS") == 4  # never played
+
+
+def test_a_newcomers_pp_time_is_implied_by_his_projected_pp_points():
+    # The fallback: a fringe forward's 10 PP seconds a game, the average PP rate 0.0008 points a second.
+    fallback = SkaterPrior(position="F", toi=12 * 60, pp_toi=10.0,
+                           per_toi={s: (0.001 if s not in PP_STATS else 0.0004) for s in SKATER_STATS})
+    row = {"gp": 80.0, "toi": 17.0, "stats": {"g": 20.0, "a": 24.0, "ppg": 6.0, "ppa": 10.0}}
+    rookie = with_projection(fallback, row, 1.0, implied_pp=True)
+    assert rookie.pp_toi == pytest.approx(0.2 / 0.0008)  # 250 s: where 0.2 PP points a game come at the average rate
+    assert rookie.per_toi["ppg"] + rookie.per_toi["ppa"] == pytest.approx(0.0008)
+    assert sum(project_skater(rookie, []).per_game[s] for s in PP_STATS) == pytest.approx(0.2)  # DFO's, before games
+    # On PP1 (3 min a game) for 7 games with one PP point: near the average rate times his PP time,
+    # not DFO's points over the fringe player's 10 seconds times it, as before.
+    games = [SkaterGame(1, "Rookie", "RW", "CHI", "BOS", dt.date(2026, 10, d), d,
+                        stats={s: (1.0 if s == "ppa" and d == 1 else 0.0) for s in SKATER_STATS},
+                        toi=18 * 60, pp_toi=180.0) for d in range(1, 8)]
+    pp = sum(project_skater(rookie, games).per_game[s] for s in PP_STATS)
+    assert 0.12 < pp < 0.2  # the average rate x 3 min = 0.14, his PP time still between 250 s and 180 s
+    old = with_projection(fallback, row, 1.0)
+    assert sum(project_skater(old, games).per_game[s] for s in PP_STATS) > 0.6  # as Kantserov: 0.64
+    # A projection with few PP points keeps the fallback's PP time as its floor.
+    assert with_projection(fallback, {**row, "stats": {"ppg": 0.0}}, 1.0, implied_pp=True).pp_toi == 10.0

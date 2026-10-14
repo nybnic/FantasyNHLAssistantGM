@@ -194,21 +194,34 @@ def aged(prior: SkaterPrior, age: float | None) -> SkaterPrior:
     return SkaterPrior(prior.position, prior.toi, prior.pp_toi, {s: r * f for s, r in prior.per_toi.items()})
 
 
-def with_projection(prior: SkaterPrior, row: dict, weight: float) -> SkaterPrior:
+def with_projection(prior: SkaterPrior, row: dict, weight: float, implied_pp: bool = False) -> SkaterPrior:
     """Blend an outside full-season projection into a prior, per game.
 
     `row` has gp, toi (minutes per game) and season-total stats (the shape of
     clients.dfo_projections rows). Stats it doesn't cover (e.g. SHG, SHA, GWG)
-    and power-play ice time keep the prior's values."""
+    keep the prior's values, and so does power-play ice time (the row has
+    none) unless `implied_pp`: for a player with no NHL history, whose prior
+    is the fallback, his PP time is the one at which the row's PP points come
+    at the fallback's (the position's average) rate, at least the fallback's.
+    Without it the row's PP points were spread over a fringe player's few PP
+    seconds, a rate 2-3x any real PP scorer's, then multiplied by his real PP
+    time: Kantserov, a rookie on PP1, was projected 13 PP points per 60 PP
+    minutes (Makar 5.4, Celebrini 7.4) and 0.64 a game, nearly all his
+    points (Nico, 2026-10-14). A fix of units, not fit: DFO rows aren't archived."""
     toi = weight * row["toi"] * 60 + (1 - weight) * prior.toi
+    pp_toi = prior.pp_toi
+    if implied_pp:
+        pp_per_game = sum(row["stats"].get(s, 0.0) for s in PP_STATS) / row["gp"]
+        pp_rate = sum(prior.per_toi[s] for s in PP_STATS)
+        pp_toi = max(prior.pp_toi, pp_per_game / pp_rate if pp_rate else 0.0)
     per_toi = dict(prior.per_toi)
     for s, total in row["stats"].items():
         pp = s in PP_STATS
         prior_exposure = prior.pp_toi if pp else prior.toi
         blended_per_game = weight * total / row["gp"] + (1 - weight) * prior.per_toi[s] * prior_exposure
-        exposure = prior.pp_toi if pp else toi
+        exposure = pp_toi if pp else toi
         per_toi[s] = blended_per_game / exposure if exposure else 0.0
-    return SkaterPrior(position=prior.position, toi=toi, pp_toi=prior.pp_toi, per_toi=per_toi)
+    return SkaterPrior(position=prior.position, toi=toi, pp_toi=pp_toi, per_toi=per_toi)
 
 
 # Weight of an outside preseason projection vs our history prior. It can't be
@@ -234,7 +247,7 @@ def season_skater_priors(
             continue
         base = priors.get(pid)
         priors[pid] = with_projection(
-            base or fallback[_position_group(row["position"])], row, weight if base else 1.0
+            base or fallback[_position_group(row["position"])], row, weight if base else 1.0, implied_pp=not base
         )
     return priors, fallback
 

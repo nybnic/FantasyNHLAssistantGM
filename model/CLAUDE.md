@@ -10,6 +10,9 @@ run. `ModelContext.skater()` and `.goalie_start()` are what the engines call.
 2. **Aged:** rates are scaled by `AGE_CURVES` (F peak 26, D peak 23.5).
 3. **Blended 50/50 with DailyFaceoff's preseason projection**
    (`PROJECTION_WEIGHT`). A player with no NHL history takes DFO whole.
+   DFO has no PP ice time: his PP time is the one at which DFO's PP points come at
+   the position's average PP rate (since 2026-10-14; before, a fringe player's few
+   PP seconds, which made rookies on PP1 2-3x any real PP scorer: Kantserov 0.64 PP pts a game).
 4. **In-season:** Bayesian update per stat (`SKATER_K` = games of prior evidence)
    times role = recency-weighted TOI (half-life 6 games).
 
@@ -44,6 +47,8 @@ matchup, so start odds live in `engine/availability.py`.
 ## Judgment calls (untested, labeled in code)
 - `PROJECTION_WEIGHT = 0.5`: DFO projections aren't archived, so they can't be backtested.
 - The DFO half isn't age-adjusted (the curve was fit on history only).
+- A newcomer's PP rate starts at the position's average (`with_projection(implied_pp=True)`): a fix of
+  units (2026-10-14), not fit. Check in-season: newcomers' PP points per 60 PP minutes vs veterans'.
 - Durability = DFO projected GP / (82 x 0.97). It is only used for long-run value, and since
   2026-10-09 only on a player's edge over a replacement-level free agent (`matchup.durability`).
 
