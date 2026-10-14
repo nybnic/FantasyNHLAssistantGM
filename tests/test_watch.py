@@ -127,3 +127,60 @@ def test_the_watch_text_says_what_the_plan_makes_of_him():
     assert messages.watch_text([sig], {}).endswith("passes the plan's checks this week (waivers, or he'd cost points now).")
     assert messages.watch_text([sig], {10: (-0.06, 0.092, False)}).endswith(
         "-6 win-pts against the 9.2 an add costs: not yet worth one.")
+
+
+def _skater_step(monkeypatch, state, values, signals):
+    """The watch with given skater signals, valued by `values` (id -> (value, price, in the plan))."""
+    sent = []
+    monkeypatch.setattr(watch, "free_agents", lambda players, league: [SKATER])
+    monkeypatch.setattr(watch.nhl_client, "current_teams", lambda: ["NYR"])
+    monkeypatch.setattr(watch.dfo_lines, "team_lines", lambda team: LINES[team])
+    monkeypatch.setattr(watch, "current_opponent", lambda state, week: "Them")
+    monkeypatch.setattr(watch, "goalie_signals", lambda *a: [])
+    monkeypatch.setattr(watch, "promotions", lambda *a: ([s for s in signals if s.kind == "promoted"], {}))
+    monkeypatch.setattr(watch, "ice_time_signals", lambda *a: [s for s in signals if s.kind == "ice time"])
+    scored = []
+    outbox = SimpleNamespace(send=lambda text, buttons=None: sent.append(text))
+    found = watch.watch_step(state, [GARAND], {}, NOON, outbox, lambda d: Ctx(),
+                             value_moves=lambda st, *a: scored.append(list(st["watch_score"])) or values)
+    return found, sent, scored
+
+
+PROMOTED = watch.Signal(SKATER, "promoted", "moved up to the second line", {"groups": ["f2"], "days": 0})
+MORE_ICE = watch.Signal(SKATER, "ice time", "more ice time", {"recent": 18 * 60, "usual": 14 * 60})
+
+
+def test_a_promotion_under_half_the_add_price_is_logged_not_sent(monkeypatch):
+    state = {"watch": {"groups": {}, "alerted": {}}}
+    found, sent, scored = _skater_step(monkeypatch, state, {10: (0.04, 0.093, False)}, [PROMOTED])
+    assert found == [] and sent == [] and scored == [[10]]
+    assert state["watch"]["alerted"] == {"10:promoted": "2026-10-13"}  # not valued again
+    [row] = state["watch"]["log"]
+    assert (row["sent"], row["kinds"], row["value"]) == (False, ["promoted"], 0.04)
+    assert row["why"] == "DFO moved up to the second line." and row["verdict"].endswith("not yet worth one.")
+    assert watch.watch_view(state, TODAY) == [row]
+    assert watch.watch_view(state, TODAY + dt.timedelta(days=watch.LOG_DAYS)) == []
+
+
+def test_a_promotion_worth_half_the_add_price_or_in_the_plan_is_sent(monkeypatch):
+    for value in [(0.05, 0.093, False), (0.01, 0.093, True)]:
+        state = {"watch": {"groups": {}, "alerted": {}}}
+        found, sent, _ = _skater_step(monkeypatch, state, {10: value}, [PROMOTED])
+        assert found == [PROMOTED] and len(sent) == 1 and state["watch"]["log"][0]["sent"]
+    state = {"watch": {"groups": {}, "alerted": {}}}
+    assert _skater_step(monkeypatch, state, {}, [PROMOTED])[1] == []  # no move with him passes: logged
+
+
+def test_an_ice_time_jump_is_sent_whatever_its_value_with_his_promotion_in_one_alert(monkeypatch):
+    state = {"watch": {"groups": {}, "alerted": {}}}
+    found, sent, _ = _skater_step(monkeypatch, state, {10: (-0.02, 0.093, False)}, [PROMOTED, MORE_ICE])
+    assert found == [PROMOTED, MORE_ICE] and len(sent) == 1
+    assert sent[0].count("Watch: Will Cuylle") == 1
+    assert "DFO moved up to the second line.\nIce time 18:00 a game" in sent[0]
+    assert [r["kinds"] for r in state["watch"]["log"]] == [["promoted", "ice time"]]
+
+
+def test_a_player_alerted_for_one_kind_waits_out_the_realert_days_for_another():
+    alerted = {"10:promoted": "2026-10-10"}
+    assert watch.due([MORE_ICE], alerted, TODAY) == []
+    assert watch.due([MORE_ICE], alerted, dt.date(2026, 10, 24)) == [MORE_ICE]

@@ -315,6 +315,27 @@ def team_games(spans: list[tuple[int, dict]], today: dt.date) -> dict:
     return {"days": days, "teams": {t: [g.get(d["date"]) for d in days] for t, g in sorted(by_team.items())}}
 
 
+def streaming_view(spans: list[tuple[int, str, dict, matchup.TeamWeek | None]], today: dt.date) -> dict:
+    """Every NHL team's games from today over the given weeks ((week, opponent,
+    schedule, my week)), from a streamer's side: each night's NHL games and my
+    open starting slots by position (None without my week), and each team's
+    opponent ("@" away) or None, by night. The dashboard counts a team's games
+    on nights a position is open."""
+    days, by_team = [], {}
+    for week, _, schedule, mine in spans:
+        for d in sorted(x for x in schedule if x >= today):
+            days.append({"date": d.isoformat(), "label": f"{d:%a}", "day": d.day, "week": week,
+                         "games": len(schedule[d]),
+                         "open": _slots(mine.lineups.get(d, {}))[1] if mine else None})
+            for team, game in matchup._game_of(schedule[d]).items():
+                home = game.home == team
+                by_team.setdefault(team, {})[d.isoformat()] = ("" if home else "@") + (game.away if home else game.home)
+    return {"days": days, "slots": dict(STARTERS),
+            "weeks": [{"week": w, "opponent": opp} for w, opp, schedule, _ in spans
+                      if any(d >= today for d in schedule)],
+            "teams": [{"team": t, "cells": [g.get(d["date"]) for d in days]} for t, g in sorted(by_team.items())]}
+
+
 def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dict, owner: str,
                 later: dict | None = None) -> dict:
     """One player's numbers as the model has them: points per game (goalies:

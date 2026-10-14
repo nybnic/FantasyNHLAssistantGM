@@ -379,7 +379,8 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
                ranked: list, moves: list, plan: list = ()) -> dict:
     """The dashboard's schedule grid (this week and next, with the best
-    streamer per position) and the add budget."""
+    streamer per position), the streaming schedule (every team, this week
+    and the next two), the add budget and the breakout watch's list."""
     spans = [(week, current_opponent(state, week), wk.me, wk.them)]
     if nxt.week:
         opp = current_opponent(state, nxt.week)
@@ -389,8 +390,34 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
                                 wk.available_from)
     plan_entries, after = plan_weeks(players, plan, wk, nxt)
+    from bot import watch
     return {"schedule": report.schedule_view(players, spans, streams, moves, plan_entries, after),
-            "budget": report.budget_view(state["adds"], week)}
+            "streaming": streaming(state, players, plan, week, wk, nxt, after),
+            "budget": report.budget_view(state["adds"], week), "watch": watch.watch_view(state, wk.ctx.today)}
+
+
+def streaming(state: dict, players: list, plan: list, week: int, wk: WeekInputs, nxt: NextWeek,
+              after: list) -> dict:
+    """The dashboard's streaming schedule: every team's games this week and the
+    next two against my open slots, with the plan's moves made (else my roster)."""
+    mine = [after[0] if after else wk.me, (after[1] if after else None) or nxt.mine]
+    spans = [(week, current_opponent(state, week), wk.schedule, mine[0])]
+    if nxt.week:
+        spans.append((nxt.week, current_opponent(state, nxt.week), nxt.schedule, mine[1]))
+        sched = {d: g for d, g in wk.future.items() if weeks.week_of(d) == nxt.week + 1}
+        if sched:
+            third = matchup.project(MY_TEAM, plan_roster(players, plan, drops=True), wk.ctx, sched, wk.lines, wk.starters, True)
+            spans.append((nxt.week + 1, current_opponent(state, nxt.week + 1), sched, third))
+    return report.streaming_view(spans, wk.ctx.today)
+
+
+def plan_roster(players: list, plan: list, drops: bool = False) -> list:
+    """My roster with the plan's adds in (the lineup is solved each night).
+    Their drops stay (plan_weeks leaves each from his day) unless `drops`."""
+    roster = players
+    for q in plan:
+        roster = matchup._swap(roster, q.move.add, q.move.drop if drops else None, q.move.ir_slot or roster_mod.BENCH)
+    return roster
 
 
 def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tuple[list[dict], list]:
@@ -399,10 +426,9 @@ def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tupl
     each planned add's grid row, and the weeks for the grid's "with the plan"."""
     if not plan:
         return [], []
-    roster, joins, leaves = players, {}, {}
+    roster, joins, leaves = plan_roster(players, plan), {}, {}
     for q in plan:
         m = q.move
-        roster = matchup._swap(roster, m.add, None, m.ir_slot or roster_mod.BENCH)
         joins[m.add.id] = max(q.when, m.plays_from or q.when)
         if m.drop:
             leaves[m.drop.id] = joins[m.add.id]
@@ -453,6 +479,16 @@ def write_dashboard(data: dict, dry_run: bool) -> Path:
     path = folder / "data.json"
     path.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     return path
+
+
+def patch_dashboard(fields: dict, dry_run: bool) -> None:
+    """Update a few of data.json's fields between plan runs (the breakout
+    watch's list); nothing before a plan run has written it."""
+    path = (CHART_DIR if dry_run else SITE_DIR) / "data.json"
+    if path.exists():
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data.update(fields)
+        path.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 def player_details(p: PlanMoves, players: list, league: dict, opponent: str) -> dict:

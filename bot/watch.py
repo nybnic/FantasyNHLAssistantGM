@@ -15,7 +15,11 @@ minutes, and on each Telegram message) it looks for:
   game the next week; the model follows ice time on purpose slowly).
 Each signal is valued by the plan (a quiet plan run that scores him, so a
 move that now beats the plan changes it with its reason) and sent once, at
-most every REALERT_DAYS per player and kind; in quiet hours it waits.
+most every REALERT_DAYS per player, all his signals in one alert; in quiet
+hours it waits. A promotion alone is sent only when his best move is worth
+ALERT_SHARE of the add price (Nico, 2026-10-14: 26 alerts in a day, mostly
+line shuffles); the rest are logged (state.watch.log) for the dashboard.
+Goalies and ice-time jumps are always sent.
 """
 from __future__ import annotations
 
@@ -45,6 +49,12 @@ TOI_JUMP = 180.0  # seconds a game, last 3 over the (up to 10) games before
 TOI_MIN_GAMES = 8
 REALERT_DAYS = 14
 MAX_ALERTS = 3  # per message
+# A promotion is sent when his best move is worth this share of the add price,
+# else only logged (Nico, 2026-10-14: "50% enough"; a judgment call: check it
+# against state.watch.log once the DFO promotion test has its weeks).
+ALERT_SHARE = 0.5
+GATED = ("promoted",)  # the kinds the value gate applies to
+LOG_DAYS = 14  # the watch log the dashboard shows
 
 
 @dataclass
@@ -144,11 +154,53 @@ def ice_time_signals(ctx, fa_skaters: list) -> list[Signal]:
 
 
 def due(signals: list[Signal], alerted: dict, today: dt.date) -> list[Signal]:
-    """The signals not sent for this player and kind in the last REALERT_DAYS."""
+    """The signals for players not alerted (any kind) in the last REALERT_DAYS."""
+    last = {}
+    for k, d in alerted.items():
+        pid = k.partition(":")[0]
+        last[pid] = max(last.get(pid, d), d)
+
     def fresh(s: Signal) -> bool:
-        last = alerted.get(f"{s.player.id}:{s.kind}")
-        return last is None or (today - dt.date.fromisoformat(last)).days >= REALERT_DAYS
+        d = last.get(str(s.player.id))
+        return d is None or (today - dt.date.fromisoformat(d)).days >= REALERT_DAYS
     return [s for s in signals if fresh(s)]
+
+
+def by_player(signals: list[Signal]) -> list[list[Signal]]:
+    """The signals grouped per player, in first-seen order."""
+    out: dict[int, list[Signal]] = {}
+    for s in signals:
+        out.setdefault(s.player.id, []).append(s)
+    return list(out.values())
+
+
+def worth_sending(sigs: list[Signal], value: tuple | None, valued: bool) -> bool:
+    """A player's alert goes out unless it's only a promotion (GATED) and the
+    plan, which valued it (`valued`), puts his best move under ALERT_SHARE
+    of the add price. value: (best move's value, the add price, in the plan)."""
+    if not valued or any(s.kind not in GATED for s in sigs):
+        return True
+    return value is not None and (value[2] or value[0] >= ALERT_SHARE * value[1])
+
+
+def log_entries(groups: list[list[Signal]], values: dict, sent: bool, today: dt.date) -> list[dict]:
+    """The watch log's rows (state.watch.log, shown on the dashboard)."""
+    out = []
+    for sigs in groups:
+        p = sigs[0].player
+        v = values.get(p.id)
+        out.append({"date": today.isoformat(), "id": p.id, "name": p.name, "team": p.team,
+                    "positions": "/".join(p.positions), "kinds": [s.kind for s in sigs],
+                    "why": " ".join(messages.watch_why(s) for s in sigs), "verdict": messages.watch_value(v),
+                    "value": round(v[0], 4) if v else None, "price": round(v[1], 4) if v else None,
+                    "sent": sent})
+    return out
+
+
+def watch_view(state: dict, today: dt.date) -> list[dict]:
+    """The dashboard's watch list: the last LOG_DAYS of signals, newest first."""
+    log = (state.get("watch") or {}).get("log", [])
+    return [r for r in reversed(log) if (today - dt.date.fromisoformat(r["date"])).days < LOG_DAYS]
 
 
 def watch_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox, build_context,
@@ -171,18 +223,28 @@ def watch_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     new = due(signals, watch["alerted"], today)
     if not new or briefing.quiet(now):
         return new  # in quiet hours they stay due: the first run after sends them
-    new = sorted(new, key=lambda s: s.kind != "goalie")[:MAX_ALERTS]
-    values = {}
-    if current_opponent(state, week):
-        state.setdefault("watch_score", [])
+    values, valued = {}, bool(current_opponent(state, week))
+    if valued:  # all of them, so a promotion can be judged before it's sent
         state["watch_score"] = sorted({s.player.id for s in new})
         run = value_moves or _value_by_plan
         values = _safe(run, state, players, league, now, outbox, build_context, default={}) or {}
         state["watch_score"] = []
-    outbox.send(messages.watch_text(new, values))
-    for s in new:
+    groups = by_player(new)
+    send = [g for g in groups if worth_sending(g, values.get(g[0].player.id), valued)]
+    held = [g for g in groups if g not in send]  # logged, not sent: no re-check, the plan scores him anyway
+    send = sorted(send, key=lambda g: (all(s.kind != "goalie" for s in g),
+                                       -(values.get(g[0].player.id) or (-9,))[0]))[:MAX_ALERTS]
+    if send:
+        outbox.send(messages.watch_text([s for g in send for s in g], values))
+    for s in [s for g in send + held for s in g]:  # the rest over MAX_ALERTS stay due for the next run
         watch["alerted"][f"{s.player.id}:{s.kind}"] = today.isoformat()
-    return new
+    log = watch.setdefault("log", []) + log_entries(send, values, True, today) + log_entries(held, values, False, today)
+    watch["log"] = [r for r in log if (today - dt.date.fromisoformat(r["date"])).days < LOG_DAYS]
+    settings = getattr(outbox, "settings", None)
+    if settings is not None:  # the dashboard's list now, not at the next plan run
+        from bot import weekly
+        _safe(weekly.patch_dashboard, {"watch": watch_view(state, today)}, settings.dry_run)
+    return [s for g in send for s in g]
 
 
 def _value_by_plan(state, players, league, now, outbox, build_context) -> dict:

@@ -36,13 +36,14 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    every move with its status (plan / passes / fails) and why. `explain_week` prints it.
 6. **Views**: `bot/messages.py` (the plan in 4-6 lines; a card per move on its day,
    once; a screenshot gets the score or the change), `site/data.json` + `site/index.html`
-   (the dashboard: the plan, why the win %, player by player, points by stat, and a tap-open
+   (the dashboard: the plan, why the win %, player by player, points by stat, the streaming schedule, and a tap-open
    sheet per player and per move; the Board's `teams`/`players` from `engine/report.py`),
    its `?card` view screenshotted for Telegram (`notify/snapshot.py`).
    When: Monday and Wednesday noon and `/week` = the full plan; a screenshot or
    Taken/Skip tap = a check; once an evening = silent unless the plan changed.
 7. **The breakout watch** (`bot/watch.py`), every run: a free agent whose role just changed (a goalie
-   whose teammates are hurt, a DFO promotion, an ice-time jump) gets one message with the plan's verdict.
+   whose teammates are hurt, a DFO promotion, an ice-time jump) gets one message with the plan's verdict
+   (a promotion alone only at half the add price or more; the rest are listed on the dashboard).
 
 ## Map
 | Path | What lives there |

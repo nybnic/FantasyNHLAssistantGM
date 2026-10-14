@@ -213,3 +213,21 @@ def test_a_teams_breakdown_reconciles_to_its_projection():
     assert [r["id"] for r in view["players"]] == [3, 1, 2, 4] and view["players"][3]["slot"] == "IR+"
     assert sum(view["by_stat"].values()) == pytest.approx(18.0, abs=0.05) and view["rest"] == 18.0
     assert view["by_stat"]["Goalies"] == 7.0 and view["by_stat"]["Blocks"] == pytest.approx(8 * 0.4 / 6.7 + 3 * 1.6 / 4.375, abs=0.01)
+
+
+def test_streaming_view_has_each_nights_games_and_open_slots_and_each_teams_opponents():
+    game = lambda d, home, away: ScheduledGame(1, dt.datetime(d.year, d.month, d.day, 23, tzinfo=dt.timezone.utc),
+                                               home, away)
+    nxt = FRI + dt.timedelta(days=4)
+    mine = _team(0, {THU: 5}, {THU: {1: ("C", 1.0), 2: ("D", 1.0), 3: ("BN", 1.0)}})
+    view = report.streaming_view([(1, "Bahelin Boys", {THU - dt.timedelta(days=1): [game(THU, "WPG", "CHI")],
+                                                       THU: [game(THU, "WPG", "CHI"), game(THU, "DAL", "BOS")],
+                                                       FRI: [game(FRI, "DAL", "WPG")]}, mine),
+                                  (2, "Them", {nxt: [game(nxt, "CHI", "DAL")]}, None)], THU)
+    assert [(d["date"], d["games"]) for d in view["days"]] == [("2026-10-01", 2), ("2026-10-02", 1), ("2026-10-06", 1)]
+    assert view["days"][0]["open"] == {"C": 1, "LW": 2, "RW": 2, "D": 3, "G": 2}  # the bench takes no slot
+    assert view["days"][1]["open"]["D"] == 4  # nobody of mine plays: all open
+    assert view["days"][2]["open"] is None  # no projection of my week
+    teams = {t["team"]: t["cells"] for t in view["teams"]}
+    assert teams["WPG"] == ["CHI", "@DAL", None] and teams["BOS"] == ["@DAL", None, None]
+    assert [w["week"] for w in view["weeks"]] == [1, 2]

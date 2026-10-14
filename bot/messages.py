@@ -193,7 +193,7 @@ def _minutes(seconds: float) -> str:
     return f"{int(seconds // 60)}:{int(seconds % 60):02d}"
 
 
-def _watch_value(value: tuple | None) -> str:
+def watch_value(value: tuple | None) -> str:
     """The plan's verdict on adding him: (best move's value, the add price, in the plan)."""
     if not value:
         return "No move with him passes the plan's checks this week (waivers, or he'd cost points now)."
@@ -204,20 +204,27 @@ def _watch_value(value: tuple | None) -> str:
     return head + (": worth an add, but the plan's moves beat it." if worth >= price else ": not yet worth one.")
 
 
+def watch_why(s) -> str:
+    """Why one watch signal (bot/watch.Signal) was raised."""
+    n = s.numbers
+    if s.kind == "goalie":
+        return (f"{s.reason[0].upper()}{s.reason[1:]}. Expected to start {_pct(n['expected'])} of the games ahead, "
+                f"against {_pct(n['projected'])} projected before the season.")
+    if s.kind == "promoted":
+        return f"DFO {s.reason}" + (f", and it has held for {n['days']} days." if n.get("days") else ".")
+    return (f"Ice time {_minutes(n['recent'])} a game in his last 3, up from {_minutes(n['usual'])}. "
+            "The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.")
+
+
 def watch_text(signals: list, values: dict) -> str:
     """The breakout watch (bot/watch.py): each free agent whose role just
-    changed, why, and what the plan makes of him."""
-    blocks = []
+    changed (all his signals in one block), why, and what the plan makes of him."""
+    by_player: dict = {}
     for s in signals:
-        p, n = s.player, s.numbers
+        by_player.setdefault(s.player.id, []).append(s)
+    blocks = []
+    for sigs in by_player.values():
+        p = sigs[0].player
         head = f"Watch: {p.name} ({p.team} {'/'.join(p.positions)}), a free agent"
-        if s.kind == "goalie":
-            why = (f"{s.reason[0].upper()}{s.reason[1:]}. Expected to start {_pct(n['expected'])} of the games ahead, "
-                   f"against {_pct(n['projected'])} projected before the season.")
-        elif s.kind == "promoted":
-            why = f"DFO {s.reason}" + (f", and it has held for {n['days']} days." if n.get("days") else ".")
-        else:
-            why = (f"Ice time {_minutes(n['recent'])} a game in his last 3, up from {_minutes(n['usual'])}. "
-                   "The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.")
-        blocks.append("\n".join([head, why, _watch_value(values.get(p.id))]))
+        blocks.append("\n".join([head, *(watch_why(s) for s in sigs), watch_value(values.get(p.id))]))
     return "\n\n".join(blocks)

@@ -97,6 +97,15 @@
   .lost { color: var(--orange); font-weight: 600; }
   .open { font-weight: 600; }
   .zero { color: var(--muted); }
+  .tabs.tight button { padding: 4px 7px; }
+  .cell.use { background: var(--blue); color: var(--on-blue); }
+  .cell.full { color: var(--muted); }
+  .cell.plain { border: 1px solid var(--grid); }
+  .cell.sc { width: 32px; font-size: 9px; letter-spacing: -0.2px; }
+  .grid td.sum { font-weight: 600; padding: 2px 4px; }
+  .watch li { padding: 7px 0; border-top: 1px solid var(--grid); list-style: none; }
+  .watch ul { margin: 0; padding: 0; }
+  .watch .who { font-weight: 600; font-size: 14px; }
   /* move table */
   .moves { width: 100%; }
   .moves th { text-align: right; color: var(--text-2); font-weight: 400; padding: 4px 5px; border-bottom: 1px solid var(--grid);
@@ -522,6 +531,119 @@ function grid() {
     if (s.with_plan && gridPlan) legend.append(key("--aqua", "Filled by the plan"), ring("--aqua", "Freed by the plan"));
   }
   card.append(legend);
+  return card;
+}
+
+// ---- streaming: every team's games against your open slots, this week and the next two ----
+let streamPos = recall("streamPos", "all");
+function streamCard() {
+  const s = data.streaming;
+  if (!s || !s.days.length) return null;
+  const pos = s.slots[streamPos] ? streamPos : "all";
+  const card = el("section", { class: "card" });
+  const tabs = tabsEl([["all", "All"]].concat(Object.keys(s.slots).map(p => [p, p])), pos,
+                      v => { streamPos = v; remember("streamPos", v); render(); });
+  tabs.classList.add("tight");
+  card.append(tabs, el("h2", {}, "Streaming schedule"));
+  card.append(el("div", { class: "note" }, pos === "all"
+    ? "Every team's games, this week and the next two. Pick a position to see which fall on nights your lineup has that slot open."
+    : `Filled: a game on a night your lineup has a ${pos} slot open, with the plan's moves made. Count: those games / all games.`
+      + (pos === "G" ? " A goalie's game counts only if he starts." : "")));
+  const usable = (i) => pos !== "all" && s.days[i].open && s.days[i].open[pos] > 0;
+  const weeks = s.weeks.map(w => w.week);
+  const rows = s.teams.map(t => {
+    const per = weeks.map(w => ({ games: 0, use: 0, known: false }));
+    t.cells.forEach((c, i) => {
+      if (!c) return;
+      const k = weeks.indexOf(s.days[i].week);
+      if (k < 0) return;
+      per[k].games++;
+      per[k].known = per[k].known || !!s.days[i].open;
+      if (usable(i)) per[k].use++;
+    });
+    const tot = per.reduce((a, w) => ({ games: a.games + w.games, use: a.use + w.use }), { games: 0, use: 0 });
+    return { ...t, per, tot };
+  });
+  rows.sort((a, b) => (b.tot.use - a.tot.use) || (b.tot.games - a.tot.games) || (b.per[0].use - a.per[0].use)
+                      || a.team.localeCompare(b.team));
+  const table = el("table", { class: "grid" });
+  const thead = el("thead"), wkRow = el("tr"), dayRow = el("tr");
+  wkRow.append(el("th", { class: "name" }, ""), el("th", { colspan: weeks.length, class: "wkh" }, pos === "all" ? "Games" : `${pos} games`));
+  dayRow.append(el("th", { class: "name" }, "Team"));
+  weeks.forEach(w => dayRow.append(el("th", {}, `W${w}`)));
+  let run = [];
+  s.days.forEach(d => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0 }); run.at(-1).n++; });
+  run.forEach(r => {
+    const w = s.weeks.find(x => x.week === r.week) || { week: r.week };
+    wkRow.append(el("th", { colspan: r.n, class: "wkh brk" }, `Week ${w.week}${w.opponent ? ` vs ${w.opponent}` : ""}`));
+  });
+  const brkAt = i => i === 0 || s.days[i].week !== s.days[i - 1].week;
+  s.days.forEach((d, i) => dayRow.append(el("th", { class: (brkAt(i) ? "brk" : "") + (d.date === data.date ? " today" : "") },
+                                             `${d.label} ${d.day}`)));
+  thead.append(wkRow, dayRow);
+  table.append(thead);
+  const tbody = el("tbody");
+  const countRow = (name, vals, cls) => {
+    const tr = el("tr");
+    tr.append(el("td", { class: "name" }, name));
+    weeks.forEach(() => tr.append(el("td")));
+    vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brkAt(i) ? "brk " : "") + (cls ? cls(v) : "") },
+                                         v == null ? "" : cls && !v ? "·" : v)));
+    tbody.append(tr);
+  };
+  countRow("NHL games", s.days.map(d => d.games));
+  if (pos !== "all") countRow(`Open ${pos}`, s.days.map(d => d.open ? d.open[pos] : null), v => v ? "open" : "zero");
+  rows.forEach((r, k) => {
+    const tr = el("tr", { class: k === 0 ? "sep" : "" });
+    tr.append(el("td", { class: "name" }, r.team));
+    r.per.forEach(w => tr.append(el("td", { class: "num sum" + (w.games ? "" : " zero") },
+                                    pos === "all" || !w.known ? String(w.games) : `${w.use}/${w.games}`)));
+    r.cells.forEach((c, i) => {
+      const td = el("td", { class: brkAt(i) ? "brk" : "" });
+      if (c) {
+        const d = s.days[i];
+        const box = el("div", { class: "cell sc " + (pos === "all" ? "plain" : usable(i) ? "use" : "full") }, c);
+        const lines = [`${r.team} ${c.startsWith("@") ? "at " + c.slice(1) : "vs " + c}`, `${d.label} ${d.day} · ${d.games} NHL games`];
+        if (pos !== "all") lines.push(!d.open ? "Your lineup that night isn't projected"
+          : d.open[pos] ? `${d.open[pos]} ${pos} slot${d.open[pos] > 1 ? "s" : ""} open: he'd play` : `Your ${pos} slots are full: he'd sit`);
+        hover(box, lines);
+        td.append(box);
+      }
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+  table.append(tbody);
+  const scroll = el("div", { class: "scroll" });
+  scroll.append(table);
+  card.append(scroll);
+  if (pos !== "all") {
+    const legend = el("div", { class: "legend" });
+    const muted = el("span", {}, "Grey: plays, slot full");
+    legend.append(key("--blue", `${pos} slot open`), muted);
+    card.append(legend);
+  }
+  return card;
+}
+
+// ---- the breakout watch: free agents whose role just changed (bot/watch.py) --------
+function watchCard() {
+  const list = data.watch;
+  if (!list) return null;
+  const card = el("section", { class: "card watch" });
+  card.append(el("h2", {}, "Breakout watch"));
+  card.append(el("div", { class: "note" }, "Free agents whose role changed in the last 14 days. A line promotion alone is sent only when the plan values him at half the add price or more; the rest are listed here."));
+  if (!list.length) { card.append(el("div", { class: "note" }, "Nothing flagged.")); return card; }
+  const ul = el("ul");
+  list.forEach(r => {
+    const li = el("li");
+    const who = el("div", { class: "who" }, `${r.name} `);
+    who.append(el("small", { class: "note" }, `${r.team} ${r.positions} · ${fmtDay(r.date)}`),
+               el("span", { class: "chip" + (r.sent ? " plan" : "") }, r.sent ? "Sent" : "Listed"));
+    li.append(who, el("div", { class: "note" }, r.why), el("div", { class: "note" }, r.verdict));
+    ul.append(li);
+  });
+  card.append(ul);
   return card;
 }
 
@@ -1189,7 +1311,7 @@ function render() {
     app.replaceChildren(...[header, planCard, weeksCard, nightsCard].map(safe));
   } else {
     app.replaceChildren(...[header, planCard, whyCard, playersCard, statsCard, weeksCard, nightsCard,
-                            valueCard, grid, moveTable, budgetCard].map(safe).filter(Boolean));
+                            valueCard, grid, streamCard, watchCard, moveTable, budgetCard].map(safe).filter(Boolean));
     drawSheet();
   }
   document.body.dataset.ready = "1";  // notify/snapshot.py waits for this
