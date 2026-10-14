@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-14T10:01+00:00",
+ "generated": "2026-10-14T10:32+00:00",
  "date": "2026-10-14",
  "week": 3,
  "opponent": "Löllöt Höntsääjät",
@@ -2114,51 +2114,6 @@
    "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
   },
   {
-   "key": "8475726:8485406",
-   "add": {
-    "id": 8475726,
-    "name": "Tyler Toffoli",
-    "team": "SJS",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.87,
-   "next_two_pts": -4.33,
-   "later_pts": 2.83,
-   "win": [
-    0.4283,
-    0.4178
-   ],
-   "now_wins": -0.0105,
-   "ahead_wins": [
-    0.0161,
-    -0.0461
-   ],
-   "ahead_pts": -3.74,
-   "ahead_week_pts": [
-    1.87,
-    -5.61
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.022,
-   "value": -0.0185,
-   "status": "fails",
-   "why": "worth -1.8 win-pts, under the 8.5 an add costs"
-  },
-  {
    "key": "8470613:8485406",
    "add": {
     "id": 8470613,
@@ -2774,6 +2729,51 @@
    "value": -0.0427,
    "status": "fails",
    "why": "dropping Jack McBain costs about 1 pts later, more than this week's -1 win-pts make up for"
+  },
+  {
+   "key": "8480355:8485406",
+   "add": {
+    "id": 8480355,
+    "name": "Mark Kastelic",
+    "team": "BOS",
+    "positions": [
+     "C",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8485406,
+    "name": "Porter Martone"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": -0.21,
+   "next_two_pts": -5.43,
+   "later_pts": -0.21,
+   "win": [
+    0.4283,
+    0.4257
+   ],
+   "now_wins": -0.0026,
+   "ahead_wins": [
+    -0.0035,
+    -0.0366
+   ],
+   "ahead_pts": -4.85,
+   "ahead_week_pts": [
+    -0.41,
+    -4.45
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0017,
+   "value": -0.0444,
+   "status": "fails",
+   "why": "dropping Porter Martone costs about 0 pts later, more than this week's -0 win-pts make up for"
   }
  ],
  "teams": {
@@ -9411,130 +9411,6 @@
    "kept": 1.0,
    "replacement": 5.416
   },
-  "8475726": {
-   "id": 8475726,
-   "name": "Tyler Toffoli",
-   "team": "SJS",
-   "positions": "LW/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 5,
-    "pts": 24.1,
-    "proj": 18.7,
-    "pts_projected": 24.1,
-    "stats": {
-     "Goals": [
-      2.0,
-      1.3
-     ],
-     "Assists": [
-      2.0,
-      1.5
-     ],
-     "PP points": [
-      1.0,
-      0.7
-     ],
-     "SH points": [
-      0.0,
-      0.0
-     ],
-     "GWG": [
-      0.0,
-      0.1
-     ],
-     "Shots": [
-      12.0,
-      10.4
-     ],
-     "Hits": [
-      4.0,
-      3.2
-     ],
-     "Blocks": [
-      1.0,
-      1.6
-     ],
-     "Faceoff wins": [
-      0.0,
-      1.4
-     ],
-     "+/-": [
-      0.0,
-      -0.3
-     ],
-     "PIM": [
-      2.0,
-      1.0
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-10",
-      "opp": "EDM",
-      "pts": 0.1,
-      "proj": 4.0
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "STL",
-      "pts": 9.8,
-      "proj": 3.8
-     },
-     {
-      "date": "2026-10-05",
-      "opp": "DAL",
-      "pts": 2.7,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "LAK",
-      "pts": 11.4,
-      "proj": 3.4
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "FLA",
-      "pts": 0.0,
-      "proj": 3.8
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 1.077,
-    "Assists": 0.839,
-    "PP, SH, GWG": 0.126,
-    "Shots": 1.072,
-    "Hits": 0.414,
-    "Blocks": 0.232,
-    "Faceoffs": 0.022,
-    "+/- and PIM": 0.034
-   },
-   "xfp": 3.816,
-   "stats": {
-    "Goals": 0.269,
-    "Assists": 0.305,
-    "PP points": 0.134,
-    "SH points": 0.001,
-    "GWG": 0.02,
-    "Shots": 2.144,
-    "Hits": 0.69,
-    "Blocks": 0.29,
-    "Faceoff wins": 0.221,
-    "+/-": -0.065,
-    "PIM": 0.22
-   },
-   "toi": 13.05,
-   "pp_toi": 1.81,
-   "gp": 5,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.986,
-   "kept": 1.0,
-   "replacement": 5.416
-  },
   "8470613": {
    "id": 8470613,
    "name": "Brent Burns",
@@ -10266,6 +10142,136 @@
     "opp": "NYR"
    },
    "gp": 2
+  },
+  "8480355": {
+   "id": 8480355,
+   "name": "Mark Kastelic",
+   "team": "BOS",
+   "positions": "C/RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 6,
+    "pts": 34.8,
+    "proj": 26.5,
+    "pts_projected": 34.8,
+    "stats": {
+     "Goals": [
+      1.0,
+      0.8
+     ],
+     "Assists": [
+      3.0,
+      0.9
+     ],
+     "PP points": [
+      0.0,
+      0.0
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.2
+     ],
+     "Shots": [
+      6.0,
+      6.8
+     ],
+     "Hits": [
+      16.0,
+      15.4
+     ],
+     "Blocks": [
+      7.0,
+      4.6
+     ],
+     "Faceoff wins": [
+      12.0,
+      19.8
+     ],
+     "+/-": [
+      2.0,
+      0.1
+     ],
+     "PIM": [
+      7.0,
+      7.5
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-10",
+      "opp": "PHI",
+      "pts": 3.4,
+      "proj": 4.5
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "UTA",
+      "pts": 7.8,
+      "proj": 4.3
+     },
+     {
+      "date": "2026-10-05",
+      "opp": "OTT",
+      "pts": 2.5,
+      "proj": 4.4
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "MIN",
+      "pts": 3.8,
+      "proj": 4.4
+     },
+     {
+      "date": "2026-10-02",
+      "opp": "WPG",
+      "pts": 7.3,
+      "proj": 4.6
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "NYR",
+      "pts": 9.9,
+      "proj": 4.3
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.508,
+    "Assists": 0.456,
+    "PP, SH, GWG": 0.068,
+    "Shots": 0.565,
+    "Hits": 1.563,
+    "Blocks": 0.638,
+    "Faceoffs": 0.31,
+    "+/- and PIM": 0.379
+   },
+   "xfp": 4.488,
+   "stats": {
+    "Goals": 0.127,
+    "Assists": 0.166,
+    "PP points": 0.003,
+    "SH points": 0.007,
+    "GWG": 0.027,
+    "Shots": 1.13,
+    "Hits": 2.606,
+    "Blocks": 0.798,
+    "Faceoff wins": 3.096,
+    "+/-": 0.018,
+    "PIM": 1.234
+   },
+   "toi": 11.53,
+   "pp_toi": 0.06,
+   "gp": 6,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.874,
+   "kept": 1.0,
+   "replacement": 5.416
   }
  },
  "games": {
