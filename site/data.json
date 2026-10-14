@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-14T09:01+00:00",
+ "generated": "2026-10-14T09:31+00:00",
  "date": "2026-10-14",
  "week": 3,
  "opponent": "Löllöt Höntsääjät",
@@ -2334,6 +2334,51 @@
    "why": "dropping Porter Martone costs about 5 pts later, more than this week's -0 win-pts make up for"
   },
   {
+   "key": "8483525:8485406",
+   "add": {
+    "id": 8483525,
+    "name": "Danila Yurov",
+    "team": "MIN",
+    "positions": [
+     "C",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8485406,
+    "name": "Porter Martone"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 2.31,
+   "next_two_pts": -5.64,
+   "later_pts": -1.13,
+   "win": [
+    0.4283,
+    0.4563
+   ],
+   "now_wins": 0.028,
+   "ahead_wins": [
+    0.0097,
+    -0.0499
+   ],
+   "ahead_pts": -4.95,
+   "ahead_week_pts": [
+    1.12,
+    -6.07
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0088,
+   "value": -0.021,
+   "status": "fails",
+   "why": "dropping Porter Martone costs about 1 pts later, more than this week's +3 win-pts make up for"
+  },
+  {
    "key": "8482089:8480855",
    "add": {
     "id": 8482089,
@@ -2729,50 +2774,6 @@
    "value": -0.0345,
    "status": "fails",
    "why": "worth -3.4 win-pts, under the 8.5 an add costs"
-  },
-  {
-   "key": "8475660:8485406",
-   "add": {
-    "id": 8475660,
-    "name": "Cam Talbot",
-    "team": "CBJ",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8485406,
-    "name": "Porter Martone"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.33,
-   "next_two_pts": -5.75,
-   "later_pts": 0.4,
-   "win": [
-    0.4283,
-    0.4247
-   ],
-   "now_wins": -0.0036,
-   "ahead_wins": [
-    0.0162,
-    -0.0565
-   ],
-   "ahead_pts": -5.0,
-   "ahead_week_pts": [
-    1.89,
-    -6.89
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0031,
-   "value": -0.0407,
-   "status": "fails",
-   "why": "worth -4.1 win-pts, under the 8.5 an add costs"
   }
  ],
  "teams": {
@@ -9540,6 +9541,142 @@
    "kept": 1.0,
    "replacement": 4.336
   },
+  "8483525": {
+   "id": 8483525,
+   "name": "Danila Yurov",
+   "team": "MIN",
+   "positions": "C/RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 7,
+    "pts": 32.4,
+    "proj": 23.9,
+    "pts_projected": 32.4,
+    "stats": {
+     "Goals": [
+      2.0,
+      1.1
+     ],
+     "Assists": [
+      1.0,
+      1.5
+     ],
+     "PP points": [
+      2.0,
+      0.5
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      1.0,
+      0.2
+     ],
+     "Shots": [
+      9.0,
+      7.9
+     ],
+     "Hits": [
+      10.0,
+      7.4
+     ],
+     "Blocks": [
+      5.0,
+      3.8
+     ],
+     "Faceoff wins": [
+      32.0,
+      22.8
+     ],
+     "+/-": [
+      -1.0,
+      -0.1
+     ],
+     "PIM": [
+      4.0,
+      2.7
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-13",
+      "opp": "WPG",
+      "pts": 2.0,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-12",
+      "opp": "VGK",
+      "pts": 9.3,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "FLA",
+      "pts": 2.2,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "TBL",
+      "pts": 3.9,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "BUF",
+      "pts": 6.7,
+      "proj": 3.3
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "BOS",
+      "pts": 2.5,
+      "proj": 3.3
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "NSH",
+      "pts": 5.8,
+      "proj": 3.3
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.694,
+    "Assists": 0.56,
+    "PP, SH, GWG": 0.109,
+    "Shots": 0.586,
+    "Hits": 0.637,
+    "Blocks": 0.479,
+    "Faceoffs": 0.367,
+    "+/- and PIM": 0.113
+   },
+   "xfp": 3.545,
+   "stats": {
+    "Goals": 0.174,
+    "Assists": 0.204,
+    "PP points": 0.074,
+    "SH points": 0.002,
+    "GWG": 0.031,
+    "Shots": 1.171,
+    "Hits": 1.061,
+    "Blocks": 0.599,
+    "Faceoff wins": 3.667,
+    "+/-": -0.025,
+    "PIM": 0.418
+   },
+   "toi": 13.03,
+   "pp_toi": 0.81,
+   "gp": 7,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.922,
+   "kept": 1.0,
+   "replacement": 5.505
+  },
   "8482089": {
    "id": 8482089,
    "name": "Jake Neighbours",
@@ -10059,88 +10196,6 @@
    "durability": 1.0,
    "kept": 1.0,
    "replacement": 5.505
-  },
-  "8475660": {
-   "id": 8475660,
-   "name": "Cam Talbot",
-   "team": "CBJ",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 2,
-    "pts": 10.9,
-    "proj": 17.3,
-    "pts_projected": 10.9,
-    "stats": {
-     "Wins": [
-      1.0,
-      0.9
-     ],
-     "Saves": [
-      37.0,
-      48.0
-     ],
-     "Goals against": [
-      8.0,
-      5.6
-     ],
-     "Shutouts": [
-      0.0,
-      0.1
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-13",
-      "opp": "FLA",
-      "pts": 0.9,
-      "proj": 8.6
-     },
-     {
-      "date": "2026-10-09",
-      "opp": "PIT",
-      "pts": 10.0,
-      "proj": 8.7
-     }
-    ],
-    "starts": 2,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.63,
-    "Saves": 7.45,
-    "Goals against": -2.56,
-    "Shutout": 0.3
-   },
-   "stats": {
-    "Wins": 0.41,
-    "Saves": 21.27,
-    "Goals against": 2.56,
-    "Shutouts": 0.06
-   },
-   "xfp": 7.82,
-   "share": 0.511,
-   "starts": [
-    {
-     "date": "2026-10-17",
-     "opp": "NYR",
-     "prob": 0.251,
-     "xfp": 7.82
-    },
-    {
-     "date": "2026-10-18",
-     "opp": "@MIN",
-     "prob": 0.492,
-     "xfp": 8.34
-    }
-   ],
-   "next": {
-    "date": "2026-10-17",
-    "opp": "NYR"
-   },
-   "gp": 2
   }
  },
  "games": {
