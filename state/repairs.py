@@ -214,6 +214,17 @@ def _forsberg_slot_unread(state: dict, players: list[RosterPlayer], league: dict
             p.slot = LINEUP_OCT_13[p.id]
 
 
+def _score_after_last_puck(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-15: matchup screenshots sent 06:52 Helsinki (23:52 New York), every
+    # game of both rosters over (Final or No Game on all 28 rows), were dated
+    # Wednesday after its first puck, so the score was dropped (through None) and
+    # the reply gave box scores through Tuesday: "91-98, win 39%" against Yahoo's
+    # 120.05-103.80. The score covers every day before Thursday 15 Oct.
+    live = state.get("live_score") or {}
+    if live.get("at") == "2026-10-15T03:53:14+00:00" and live.get("through") is None:
+        live["through"] = "2026-10-15"
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -222,4 +233,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-05 stolarz misread", _stolarz_misread),
            ("2026-10-05 week 1 standings", _week_1_standings),
            ("2026-10-12 eriksson ek unread", _eriksson_ek_unread),
-           ("2026-10-13 forsberg slot unread", _forsberg_slot_unread)]
+           ("2026-10-13 forsberg slot unread", _forsberg_slot_unread),
+           ("2026-10-15 score after the last puck", _score_after_last_puck)]

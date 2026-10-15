@@ -167,7 +167,7 @@ def _matchup(img: Image.Image, lines: list) -> dict:
     week or None (scrolled out of view), "totals": the Matchup Totals view
     (each player's numbers are the week's, not a day's),
     "rows": [{"slot", "mine": player or None, "theirs": player or None}]},
-    a player being {"name", "team", "positions", "points", "projected"}.
+    a player being {"name", "team", "positions", "points", "projected", "status"}.
     Mine is the left column: the app puts your team first."""
     w = img.width
     names = [(x, y, h, m) for x, y, h, t in lines if (m := _NAME.match(t)) and (x < 0.15 * w or x > 0.5 * w)]
@@ -189,9 +189,12 @@ def _matchup(img: Image.Image, lines: list) -> dict:
         positions, team = next((pt for pt in below if pt[0]), ([], ""))
         in_column = (lambda x: 0.2 * w < x < 0.45 * w) if side == "left" else (lambda x: 0.5 * w < x < 0.75 * w)
         numbers = [float(t) for x, ly, _, t in lines if in_column(x) and -h < ly - y < 2 * h and _POINTS.match(t)]
+        # The line under positions and team: "No Game", "Final (W) 5-4 vs MTL", a clock or a start time.
+        status = next((t for x, ly, _, t in lines if on_side(x) and 2 * h < ly - y < 3.5 * h
+                       and not _POINTS.match(t)), None)
         return {"name": f"{name.group(1)}. {name.group(2)}", "team": team, "positions": positions,
                 "points": numbers[0] if numbers else None,
-                "projected": numbers[1] if len(numbers) > 1 else None}
+                "projected": numbers[1] if len(numbers) > 1 else None, "status": status}
 
     rows = []
     for y, h in anchors:

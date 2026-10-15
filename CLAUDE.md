@@ -154,6 +154,8 @@ Full rules: `docs/league-rules.md` (kept in sync with `config/league.py` by a te
 - Weeks run Mon-Sun (NHL dates). Week 1 was Sep 29 - Oct 4 2026. Week 19 is
   the double week (Feb 1-14 2027, confirmed in Yahoo). A move's day is an NHL date:
   in Helsinki, during that day, before the evening's games.
+  The plan's date turns to the next one at the day's last puck (`bot.common.nhl_date`),
+  not at Eastern midnight (07:00 Helsinki).
 
 ## Working here (this machine)
 - Windows; the Bash tool is Git Bash. Its heredocs turn `\n` inside Python strings into

@@ -64,6 +64,16 @@ def nhl_today() -> dt.date:
     return dt.datetime.now(NHL_TIME).date()
 
 
+def nhl_date(now: dt.datetime) -> dt.date:
+    """The NHL date a plan is made for: Eastern time's, and the next one once
+    that day's last game has started. Nothing can change that day after its last
+    puck: planning for it then (Helsinki's early morning, before Eastern
+    midnight) counted its played games as still to come (2026-10-15)."""
+    date = now.astimezone(NHL_TIME).date()
+    games = _safe(nhl_client.games_on, date, default=[])
+    return date + dt.timedelta(days=1) if games and now >= games[-1].start else date
+
+
 def remember_mine(state: dict, players: list, date: dt.date) -> None:
     """Note today as the last day each of my players was on my roster
     (bot/ingest.count_new_players: someone mine lately isn't a new add)."""

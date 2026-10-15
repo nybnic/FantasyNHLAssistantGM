@@ -8,6 +8,7 @@ import datetime as dt
 import difflib
 import json
 import logging
+import re
 from pathlib import Path
 
 import requests
@@ -22,7 +23,7 @@ from league import roster as roster_mod
 from notify import telegram
 from state import gm_state
 from bot import common
-from bot.common import NHL_TIME, Outbox, _safe, current_opponent, learn_positions
+from bot.common import NHL_TIME, Outbox, _safe, current_opponent, learn_positions, nhl_date
 from bot.dfo_archive import ARCHIVE_DIR
 
 logger = logging.getLogger(__name__)
@@ -717,14 +718,24 @@ def other_week(state: dict, draft: dict, opponent: str | None, current: int, out
         outbox.send(f"Those screenshots show week {week}, not this week ({current}): rosters and score unchanged.")
 
 
+def day_shown_over(rows: list[dict], players: list) -> bool:
+    """Matchup rows showing my whole side (at most one player short) and every
+    player on both sides done for the day: "Final ..." or "No Game"."""
+    mine = _side(rows, "mine")
+    done = lambda p: re.sub(r"\W", "", (p.get("status") or "").lower()).startswith(("final", "nogame"))
+    return (len(mine) >= max(roster_mod.MIN_PASTED, len(players) - 1)
+            and all(done(p) for p in mine + _side(rows, "theirs")))
+
+
 def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, save: bool = False) -> None:
     """Save what matchup screenshots show: the live score at once, and both
     rosters once my side looks whole (at most one player short) or on /save.
     Then plan the week again on this run."""
     draft = state["matchup_shots"]
     at = dt.datetime.fromisoformat(draft["at"])
-    date = at.astimezone(NHL_TIME).date()
-    week = weeks.week_of(date)
+    day = at.astimezone(NHL_TIME).date()
+    date = nhl_date(at)
+    week = weeks.week_of(day)  # Sunday night's, after the last puck, shows the week just played
     names = {normalize_name(t): t for t in (*SCHEDULE, *league["teams"])}
     named = [names[n] for n in map(normalize_name, draft["labels"]) if n in names and names[n] != MY_TEAM]
     opponent = named[0] if named else current_opponent(state, week) if week else None
@@ -734,11 +745,14 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
         return
     lines = []
     if draft.get("score") and week:
-        games = _safe(nhl_client.games_on, date, default=[])
+        games = _safe(nhl_client.games_on, day, default=[])
+        # Before the day's first puck the score covers exactly the days before it;
+        # after its last, the whole day once every player shown is done.
+        through = (day if not games or at < games[0].start
+                   else date if date > day and day_shown_over(draft["rows"], players) else None)
         state["live_score"] = {
             "week": week, "opponent": opponent, "at": draft["at"],
-            # Before the day's first puck the score covers exactly the days before it.
-            "through": date.isoformat() if not games or at < games[0].start else None,
+            "through": through.isoformat() if through else None,
             "score": list(draft["score"]), "projected": list(draft["projected"] or []),
             "goalies": [_goalie_points(mine), _goalie_points(theirs)],
         }

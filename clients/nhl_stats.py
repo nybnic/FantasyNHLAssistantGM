@@ -24,6 +24,10 @@ ROW_CAP = 10_000
 WINDOW_DAYS = 20
 # A window is re-fetched until this many days after it ends (late stat corrections).
 SETTLE_DAYS = 2
+# How long a fetch of a window still settling is kept: hourly while it holds
+# yesterday (a plan run made after the last puck fetches a night whose games may
+# not all be in yet: bot.common.nhl_date), else 6 hours.
+FRESH_RECENT, FRESH_SETTLING = 1 * HOUR, 6 * HOUR
 
 SKATER_REPORTS = ("skater/summary", "skater/realtime", "skater/faceoffwins", "skater/timeonice")
 
@@ -89,8 +93,9 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
         return rows
 
     settled = end + dt.timedelta(days=SETTLE_DAYS) < today
+    recent = end >= today - dt.timedelta(days=1)
     name = f"nhl_stats/{report.replace('/', '_')}_{season_id}_{start.isoformat()}_{end.isoformat()}"
-    return cached_json(name, None if settled else 6 * HOUR, fetch)
+    return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
 
 
 def skater_birth_dates(season_id: int) -> dict[int, dt.date]:

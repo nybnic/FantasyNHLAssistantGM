@@ -79,9 +79,10 @@ def test_a_matchup_reads_both_sides_the_slot_between_them_and_the_score(monkeypa
     assert shot["score"] == (13.4, 51.5) and shot["projected"] == (159.79, 164.52)
     assert [r["slot"] for r in shot["rows"]] == ["D", "BN"]  # badge colour, then the badge's own text
     first = shot["rows"][0]
-    assert first["mine"] == {"name": "E. LINDELL", "team": "DAL", "positions": ["D"], "points": 0.0, "projected": 6.87}
+    assert first["mine"] == {"name": "E. LINDELL", "team": "DAL", "positions": ["D"], "points": 0.0, "projected": 6.87,
+                             "status": None}
     assert first["theirs"] == {"name": "O. EKMAN-LARSSON", "team": "TOR", "positions": ["D"], "points": 2.9,
-                               "projected": 10.64}
+                               "projected": 10.64, "status": "Final (W)2-1 vs NYI"}
     assert shot["rows"][1]["theirs"]["name"] == "L. THOMPSON"  # "G.WSH" below it isn't a player
 
 

@@ -21,7 +21,7 @@ from league import roster as roster_mod
 from model import context
 from notify import charts, snapshot, telegram
 from bot import board, messages
-from bot.common import NHL_TIME, CHART_DIR, Outbox, _safe, current_opponent, free_agents
+from bot.common import CHART_DIR, Outbox, _safe, current_opponent, free_agents, nhl_date
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +239,7 @@ def snapshot_rosters(state: dict, players: list, league: dict, now: dt.datetime)
     """Keep today's rosters, mine and my opponent's, as they are until the
     day's first puck: points banked later this week are scored with the
     players each team had that day, so a mid-week add or drop doesn't move them."""
-    date = now.astimezone(NHL_TIME).date()
+    date = nhl_date(now)
     week = weeks.week_of(date)
     if week is None or not players:
         return
@@ -309,7 +309,7 @@ def report_step(state: dict, players: list, league: dict, now: dt.datetime, outb
     """Last week's result, from noon on the new week's first day (before its
     plan): only then are all its games in the box scores. `week` reports that
     week now (a dry run's --report), finished or not."""
-    date = now.astimezone(NHL_TIME).date()
+    date = nhl_date(now)
     if week is None:
         this = weeks.week_of(date)
         week = this - 1 if this else (weeks.LAST_WEEK if date > SEASON_END else None)
@@ -578,7 +578,7 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
                 build_context=context.build) -> None:
     """The plan message: from noon local on the week's first day, again from
     noon on its Wednesday, and whenever you send /week."""
-    date = now.astimezone(NHL_TIME).date()
+    date = nhl_date(now)
     week = weeks.week_of(date)
     requested = state["week_requested"]
     if week is None or not roster_mod.active(players):
@@ -609,7 +609,7 @@ def plan_check_step(state: dict, players: list, league: dict, now: dt.datetime, 
     Taken or Skip tap (a reply either way), and once an evening before the
     first puck (a message only if the plan changed: an injury, a confirmed
     goalie, a player taken)."""
-    date = now.astimezone(NHL_TIME).date()
+    date = nhl_date(now)
     week = weeks.week_of(date)
     if week is None or not roster_mod.active(players) or not current_opponent(state, week):
         state["plan_check"] = False
@@ -732,7 +732,7 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     (engine/plan.decide), and say what's needed. `mode`: "full" (the plan
     message), "check" (a screenshot or tap: the score, or the change),
     "quiet" (the evening: only a change)."""
-    date = now.astimezone(NHL_TIME).date()
+    date = nhl_date(now)
     week = weeks.week_of(date)
     opponent = current_opponent(state, week)
     old = state.get("plan") or {}

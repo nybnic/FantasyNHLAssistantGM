@@ -36,7 +36,7 @@ def main_() -> None:
     args = parser.parse_args()
 
     now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
-    date = now.astimezone(common.NHL_TIME).date()
+    date = common.nhl_date(now)
     week = weeks.week_of(date)
     if week is None:
         raise SystemExit(f"{date} is outside the fantasy season")

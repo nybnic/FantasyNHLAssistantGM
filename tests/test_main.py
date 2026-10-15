@@ -319,21 +319,21 @@ def _matchup_shot(rows, score=(13.4, 51.5)):
             "rows": rows}
 
 
-def _row(i, mine=True, points=1.0):
+def _row(i, mine=True, points=1.0, status=None):
     def player(name, team):
-        return {"name": name, "team": team, "positions": ["C"], "points": points, "projected": 9.0}
+        return {"name": name, "team": team, "positions": ["C"], "points": points, "projected": 9.0, "status": status}
     return {"slot": SLOTS[i],
             "mine": player(f"P. {SHOT_NAMES[i].upper()}", "BOS") if mine else None,
             "theirs": player(f"R. {OPP_NAMES[i].upper()}", "TOR")}
 
 
-def _matchup(monkeypatch, tmp_path, shots, players=None):
-    updates = [_photo(name, 20 + i, WEEK1 + i) for i, name in enumerate(shots)]
+def _matchup(monkeypatch, tmp_path, shots, players=None, sent_at=WEEK1, games_on=lambda d: []):
+    updates = [_photo(name, 20 + i, sent_at + i) for i, name in enumerate(shots)]
     settings, state, _, sent, _ = _setup(monkeypatch, tmp_path, updates)
     monkeypatch.setattr(parse, "registry", lambda: SHOT_REGISTRY + OPP_REGISTRY)
     monkeypatch.setattr(telegram, "download_file", lambda token, file_id: file_id.encode())
     monkeypatch.setattr(screenshot, "read", lambda image, now=None: shots[image.decode()])
-    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    monkeypatch.setattr(nhl_client, "games_on", games_on)
     players = players if players is not None else [RosterPlayer(200 + i, f"Paul {n}", "BOS", ["C"], "BN")
                                                    for i, n in enumerate(SHOT_NAMES)]
     league = {"teams": {"Bahelin Boys": {"updated": "2026-09-29", "players": [
@@ -355,6 +355,48 @@ def test_matchup_screenshots_update_both_rosters_and_the_live_score(monkeypatch,
     assert state["plan_check"] and state["matchup_shots"] is None
     assert sent[0].startswith("Week 1 vs Bahelin Boys: 13.40 - 51.50 (Yahoo projects 160 - 165)")
     assert "new: Rick Lo; gone: Old Guy" in sent[0]
+
+
+def _evening(date: dt.date, *hours: int) -> list:
+    """Games on `date` starting at these New York hours."""
+    return [nhl_client.ScheduledGame(i, dt.datetime.combine(date, dt.time(h), common.NHL_TIME).astimezone(dt.timezone.utc),
+                                     "BOS", "TOR") for i, h in enumerate(hours)]
+
+
+def test_the_nhl_date_turns_once_the_days_last_game_has_started(monkeypatch):
+    wed = dt.date(2026, 10, 14)
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: _evening(d, 19, 22) if d == wed else [])
+    at = lambda h, m=0: dt.datetime.combine(wed, dt.time(h, m), common.NHL_TIME)  # New York time
+    assert common.nhl_date(at(18)) == wed  # before the first puck
+    assert common.nhl_date(at(21)) == wed  # a game still to start: a move can still play tonight
+    assert common.nhl_date(at(23, 52)) == dt.date(2026, 10, 15)  # 06:52 in Helsinki: Wednesday is done
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    assert common.nhl_date(at(23, 52)) == wed  # no games: the calendar's date
+
+
+def test_a_matchup_screenshot_after_the_last_puck_is_the_whole_days_score(monkeypatch, tmp_path):
+    # 2026-10-15: sent 06:52 in Helsinki, 23:52 in New York, every game over:
+    # the score was dropped and the plan counted the day's games as to come.
+    thu = dt.date(2026, 10, 1)
+
+    def shots(status, last="No Game"):
+        return {"top": _matchup_shot([_row(i, status=status) for i in range(7)]),
+                "bottom": _matchup_shot([_row(i, points=0.0, status=status) for i in range(6, 11)]
+                                        + [_row(11, points=0.0, status=last)])}
+
+    def through(status, hour, minute=0, day=thu, last="No Game"):
+        sent = int(dt.datetime.combine(day, dt.time(hour, minute), common.NHL_TIME).timestamp())
+        state, _, _, _ = _matchup(monkeypatch, tmp_path, shots(status, last), sent_at=sent,
+                                  games_on=lambda d: _evening(d, 19, 22))
+        return state["live_score"]["week"], state["live_score"]["through"], state["live_score"]["score"]
+
+    assert through("Final (W) 5-4 vs MTL", 23, 52) == (1, "2026-10-02", [13.4, 51.5])
+    assert through("No Game", 23, 52, last="3rd 12:04 2-1 vs NYI")[1] is None  # a game still going
+    assert through(None, 23, 52)[1] is None  # games unread: box scores, as before
+    assert through("Final (W) 5-4 vs MTL", 21, 30)[1] is None  # a game still to start
+    assert through("7:00 PM vs MTL", 18)[1] == "2026-10-01"  # before the first puck, as before
+    # Sunday night is still the week just played (Yahoo shows it), through Monday.
+    assert through("No Game", 23, 30, day=dt.date(2026, 10, 4))[:2] == (1, "2026-10-05")
 
 
 def test_matchup_screenshots_keep_yahoos_first_forecast_and_archive_every_players(monkeypatch, tmp_path):
