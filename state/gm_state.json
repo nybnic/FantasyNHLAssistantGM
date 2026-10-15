@@ -836,30 +836,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-15T03:53+00:00",
-    "moves": [
-      {
-        "add": {
-          "id": 8476455,
-          "name": "Gabriel Landeskog",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "team": "COL"
-        },
-        "drop": {
-          "id": 8485406,
-          "name": "Porter Martone"
-        },
-        "key": "8476455:8485406",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.1062,
-        "when": "2026-10-16",
-        "why": "now"
-      }
-    ],
+    "at": "2026-10-15T04:22+00:00",
+    "moves": [],
     "week": 3
   },
   "plan_check": false,
@@ -874,7 +852,8 @@
     "2026-10-05 stolarz misread",
     "2026-10-05 week 1 standings",
     "2026-10-12 eriksson ek unread",
-    "2026-10-13 forsberg slot unread"
+    "2026-10-13 forsberg slot unread",
+    "2026-10-15 score after the last puck"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -1006,7 +985,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784670,
+  "telegram_offset": 929784672,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1934,6 +1913,16 @@
         ],
         "since": {
           "f1": null
+        }
+      },
+      "8478010": {
+        "groups": [
+          "f1",
+          "pp1"
+        ],
+        "since": {
+          "f1": null,
+          "pp1": null
         }
       },
       "8478013": {
