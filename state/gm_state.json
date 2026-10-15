@@ -623,6 +623,24 @@
       "message_id": 325,
       "type": "add"
     },
+    "add-2026-10-15-0659-8476932": {
+      "add": {
+        "id": 8476932,
+        "name": "Anthony Stolarz",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "TOR"
+      },
+      "add_slot": null,
+      "date": "2026-10-15",
+      "drop": 8481596,
+      "drop_name": "Shane Pinto",
+      "ir": {},
+      "message_id": 456,
+      "type": "add"
+    },
     "lineup-2026-10-01-1630": {
       "assignment": {
         "8474564": "RW",
@@ -836,8 +854,29 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-15T05:53+00:00",
-    "moves": [],
+    "at": "2026-10-15T06:59+00:00",
+    "moves": [
+      {
+        "add": {
+          "id": 8476932,
+          "name": "Anthony Stolarz",
+          "positions": [
+            "G"
+          ],
+          "team": "TOR"
+        },
+        "drop": {
+          "id": 8481596,
+          "name": "Shane Pinto"
+        },
+        "key": "8476932:8481596",
+        "message_id": 456,
+        "rec_id": "add-2026-10-15-0659-8476932",
+        "value": 0.4712,
+        "when": "2026-10-15",
+        "why": "spare"
+      }
+    ],
     "week": 3
   },
   "plan_check": false,
@@ -985,7 +1024,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784675,
+  "telegram_offset": 929784676,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -4104,7 +4143,7 @@
       "sent": "2026-10-05T05:13+00:00"
     },
     "3": {
-      "midweek": "2026-10-14T18:31+00:00",
+      "midweek": "2026-10-15T06:59+00:00",
       "sent": "2026-10-12T07:21+00:00"
     }
   },
