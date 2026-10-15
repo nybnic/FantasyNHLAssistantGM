@@ -895,7 +895,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-15T18:27+00:00",
+    "at": "2026-10-15T19:31+00:00",
     "moves": [
       {
         "add": {
@@ -1085,6 +1085,7 @@
       "8476463:promoted": "2026-10-14",
       "8476539:promoted": "2026-10-14",
       "8476882:promoted": "2026-10-15",
+      "8476979:promoted": "2026-10-15",
       "8477426:promoted": "2026-10-15",
       "8477484:goalie": "2026-10-13",
       "8477501:promoted": "2026-10-14",
@@ -1095,6 +1096,7 @@
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
       "8479385:promoted": "2026-10-15",
+      "8479675:promoted": "2026-10-15",
       "8479980:promoted": "2026-10-14",
       "8479983:promoted": "2026-10-15",
       "8480193:no1": "2026-10-13",
@@ -1105,6 +1107,7 @@
       "8481721:promoted": "2026-10-14",
       "8482110:promoted": "2026-10-14",
       "8482118:promoted": "2026-10-13",
+      "8482124:promoted": "2026-10-15",
       "8482142:ice time": "2026-10-14",
       "8482159:promoted": "2026-10-14",
       "8482482:promoted": "2026-10-14",
@@ -1131,11 +1134,11 @@
       },
       "8470621": {
         "groups": [
-          "f2",
-          "pp2"
+          "f4",
+          "pp1"
         ],
         "since": {
-          "f2": "2026-10-14"
+          "pp1": "2026-10-15"
         }
       },
       "8471214": {
@@ -1218,13 +1221,11 @@
       },
       "8474563": {
         "groups": [
-          "d1",
+          "d2",
           "pk1",
           "pp2"
         ],
-        "since": {
-          "d1": "2026-10-14"
-        }
+        "since": {}
       },
       "8474567": {
         "groups": [
@@ -1275,11 +1276,10 @@
       },
       "8475208": {
         "groups": [
-          "d1"
+          "d3",
+          "pk2"
         ],
-        "since": {
-          "d1": "2026-10-14"
-        }
+        "since": {}
       },
       "8475231": {
         "groups": [
@@ -1475,7 +1475,7 @@
       },
       "8476441": {
         "groups": [
-          "d4",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -1627,13 +1627,6 @@
         ],
         "since": {}
       },
-      "8476879": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8476882": {
         "groups": [
           "f2",
@@ -1716,10 +1709,12 @@
       },
       "8476979": {
         "groups": [
-          "d2",
+          "d1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-15"
+        }
       },
       "8476981": {
         "groups": [
@@ -2390,11 +2385,13 @@
       },
       "8479675": {
         "groups": [
-          "f3",
+          "f2",
           "pk2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-15"
+        }
       },
       "8479705": {
         "groups": [
@@ -3138,11 +3135,11 @@
       },
       "8482124": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": null,
+          "f2": "2026-10-15",
           "pp1": null
         }
       },
@@ -3684,6 +3681,12 @@
         "groups": [
           "f4",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8483756": {
+        "groups": [
+          "f3"
         ],
         "since": {}
       },
@@ -4286,6 +4289,51 @@
         "value": -0.0234,
         "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-15",
+        "id": 8482124,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Quinton Byfield",
+        "positions": "C",
+        "price": 0.0854,
+        "sent": false,
+        "team": "LAK",
+        "value": -0.0619,
+        "verdict": "-6 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-15",
+        "id": 8479675,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Trevor Moore",
+        "positions": "LW/RW",
+        "price": 0.0854,
+        "sent": false,
+        "team": "LAK",
+        "value": -0.0323,
+        "verdict": "-3 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-15",
+        "id": 8476979,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Erik Gustafsson",
+        "positions": "D",
+        "price": 0.0854,
+        "sent": false,
+        "team": "LAK",
+        "value": -0.03,
+        "verdict": "-3 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
