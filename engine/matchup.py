@@ -113,6 +113,13 @@ REPLACEMENT_SAMPLE = 3  # free agents averaged for a position's replacement leve
 # Per group, because per-player value ranks D low (fewer points a game), so a
 # plain bottom 4 was mostly D and never tried a weak forward (Schenn, 2026-10-01).
 DROPS_PER_GROUP = 2
+# Plus my most-benched skater: a good player behind better ones at his
+# position (Pinto, the third C-only center, Nico 2026-10-15) costs little to
+# lose, but his long-run value kept him out of the 2 cheapest forwards, so
+# swapping him for a D or a wing was never tried. Tried when at least this
+# share of his long-run points sit on the bench (judgment call; it only
+# widens the search, every move still meets the add price).
+BENCHED_SHARE = 0.25
 # Two goalies or three is judged by value (Nico, 2026-10-02): the projection
 # prices each week's goalie minimum and a goalie lost for the week
 # (availability.GOALIE_KEEP), so a third goalie is kept, dropped or added like
@@ -652,11 +659,19 @@ def cut_costs(roster: list[RosterPlayer], opponent: TeamWeek, ctx, schedule: dic
     return costs
 
 
+def bench_shares(week: TeamWeek) -> dict[int, float]:
+    """Player id -> the share of his projected points that sit on my bench."""
+    return {pid: bench / (pts + bench) for pid, (pts, _, bench) in week.by_player.items() if pts + bench > 0}
+
+
 def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, LineInfo]],
-                    costs: dict[int, float] | None = None) -> list[RosterPlayer]:
+                    costs: dict[int, float] | None = None,
+                    benched: dict[int, float] | None = None) -> list[RosterPlayer]:
     """The players worth trying as a drop: the DROPS_PER_GROUP cheapest to lose
     per group (`costs`, cut_costs: the schedule and my best lineup in; else
-    the lowest long-run value a game), cheapest first."""
+    the lowest long-run value a game), cheapest first; then my most-benched
+    skater if not among them (`benched`, bench_shares of the long run: at
+    least BENCHED_SHARE)."""
     def rank(p: RosterPlayer) -> float:
         return costs.get(p.id, math.inf) if costs is not None else season_value(p, ctx, lines)
 
@@ -664,7 +679,12 @@ def drop_candidates(mine: list[RosterPlayer], ctx, lines: dict[str, dict[str, Li
     picked = []
     for group in ("F", "D", "G"):
         picked += [p for p in ranked if _group(p) == group][:DROPS_PER_GROUP]
-    return sorted(picked, key=rank)
+    picked = sorted(picked, key=rank)
+    rest = [p for p in mine if not p.is_goalie and p not in picked
+            and (benched or {}).get(p.id, 0.0) >= BENCHED_SHARE]
+    if rest:
+        picked.append(max(rest, key=lambda p: benched[p.id]))
+    return picked
 
 
 def season_value(p: RosterPlayer, ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
@@ -809,7 +829,7 @@ def candidate_moves(
                       hold_days, later_weight, ahead)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
-    drops += drop_candidates(mine, ctx, lines, costs)
+    drops += drop_candidates(mine, ctx, lines, costs, bench_shares(current_future) if current_future else None)
     moves, gains = [], {}
     for add in candidates:
         plays_from = (available_from or {}).get(add.id)
@@ -972,7 +992,7 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
     before = win_prob(current, opponent)
     soon = sorted(future)[:7 * STREAM_WEEKS]
     without = {}
-    for d in drop_candidates(mine, ctx, lines, costs):
+    for d in drop_candidates(mine, ctx, lines, costs, bench_shares(current_future) if current_future else None):
         rest = [p for p in roster if p.id != d.id]
         without[d.id] = (d, project("me", rest, ctx, schedule, lines, starters, so_far=so_far),
                          project("me", rest, ctx, future, lines, starters, True))

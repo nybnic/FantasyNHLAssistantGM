@@ -262,6 +262,45 @@ def test_drops_are_tried_per_group_so_a_weak_forward_is_considered():
     assert [p.id for p in matchup.drop_candidates(mine, ctx, {})] == [2, 3, 1, 6]
 
 
+def test_my_most_benched_skater_is_tried_as_a_drop_too():
+    ctx = FakeContext()
+    ctx.xfp = {1: 2.0, 2: 1.0, 3: 5.0, 4: 6.0}
+    mine = [RosterPlayer(i, f"P{i}", "BOS", ["C"], "C") for i in (1, 2, 3, 4)]
+    # The cheapest two forwards, then the one with most of his points on the bench.
+    benched = {1: 0.0, 2: 0.1, 3: 0.6, 4: 0.3}
+    assert [p.id for p in matchup.drop_candidates(mine, ctx, {}, benched=benched)] == [2, 1, 3]
+    # Under BENCHED_SHARE, or already tried: nothing more.
+    assert [p.id for p in matchup.drop_candidates(mine, ctx, {}, benched={3: 0.2})] == [2, 1]
+    assert [p.id for p in matchup.drop_candidates(mine, ctx, {}, benched={1: 0.9})] == [2, 1]
+
+
+def test_a_third_center_behind_two_better_ones_can_be_swapped_for_a_d(monkeypatch):
+    # Three C-only centers: the third starts only on the nights the first is
+    # idle (Pinto behind Celebrini and Scheifele, 2026-10-15). The weak wing,
+    # playing every fourth night, is cheaper to lose, so only the bench share
+    # puts the third center among the drops tried, for a D in an open D slot.
+    monkeypatch.setattr(matchup, "DROPS_PER_GROUP", 1)
+    ctx = FakeContext()
+    ctx.xfp = {1: 8.0, 2: 6.0, 3: 5.5, 4: 3.0, 9: 4.0}
+    roster = [RosterPlayer(1, "First", "SJS", ["C"], "C"), RosterPlayer(2, "Second", "WPG", ["C"], "C"),
+              RosterPlayer(3, "Third", "OTT", ["C"], "BN"), RosterPlayer(4, "Wing", "PHI", ["LW"], "LW")]
+    days = [WED + dt.timedelta(days=i) for i in range(42)]
+    future = {d: [_game(d, "WPG", "OTT")] + ([_game(d, "SJS", "BUF")] if i % 2 else [])
+              + ([_game(d, "PHI", "NYR")] if i % 4 == 0 else []) for i, d in enumerate(days)}
+    share = matchup.bench_shares(matchup.project("me", roster, ctx, future, {}, {}, True))
+    assert share[3] == pytest.approx(0.5) and share[1] == share[4] == 0.0
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    fa = [RosterPlayer(9, "D", "OTT", ["D"])]
+    moves = matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20,
+                                    later_weight=0.01)
+    assert {m.drop.id for m in moves if m.drop} == {4, 3}
+    assert next(m for m in moves if m.drop and m.drop.id == 3).next_weeks > 0  # the D plays every night
+    monkeypatch.setattr(matchup, "BENCHED_SHARE", 1.01)  # as before: the cheapest forward only
+    moves = matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20,
+                                    later_weight=0.01)
+    assert {m.drop.id for m in moves if m.drop} == {4}
+
+
 def test_streaming_spots_are_the_skaters_closest_to_waiver_level_at_their_position():
     ctx = FakeContext()
     ctx.xfp = {1: 5.0, 2: 2.0, 3: 2.6, 9: 4.6, 11: 1.9}  # 9: best free C, 11: best free D
