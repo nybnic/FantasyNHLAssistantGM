@@ -836,7 +836,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-15T04:22+00:00",
+    "at": "2026-10-15T05:53+00:00",
     "moves": [],
     "week": 3
   },
@@ -985,7 +985,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784672,
+  "telegram_offset": 929784673,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1010,6 +1010,7 @@
       "8477989:promoted": "2026-10-14",
       "8478542:promoted": "2026-10-14",
       "8479351:promoted": "2026-10-14",
+      "8479385:promoted": "2026-10-15",
       "8479980:promoted": "2026-10-14",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-13",
@@ -3788,6 +3789,15 @@
         ],
         "since": {}
       },
+      "8484387": {
+        "groups": [
+          "f3",
+          "pp1"
+        ],
+        "since": {
+          "pp1": null
+        }
+      },
       "8484388": {
         "groups": [
           "f4"
@@ -4062,7 +4072,24 @@
         ],
         "since": {}
       }
-    }
+    },
+    "log": [
+      {
+        "date": "2026-10-15",
+        "id": 8479385,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jordan Kyrou",
+        "positions": "RW",
+        "price": null,
+        "sent": false,
+        "team": "WSH",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line, and it has held for 1 days."
+      }
+    ]
   },
   "watch_score": [],
   "web_matchups": [],
