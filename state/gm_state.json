@@ -910,7 +910,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-16T15:01+00:00",
+    "at": "2026-10-16T17:47+00:00",
     "moves": [
       {
         "add": {
@@ -928,7 +928,7 @@
         "key": "8479361:8481596",
         "message_id": 474,
         "rec_id": "add-2026-10-16-1001-8479361",
-        "value": 0.4504,
+        "value": 0.4502,
         "when": "2026-10-16",
         "why": "spare"
       }
@@ -1104,6 +1104,7 @@
       "8475208:promoted": "2026-10-14",
       "8475660:no1": "2026-10-13",
       "8475726:promoted": "2026-10-14",
+      "8475768:promoted": "2026-10-16",
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
       "8476463:promoted": "2026-10-14",
@@ -1140,6 +1141,7 @@
       "8482124:promoted": "2026-10-15",
       "8482142:ice time": "2026-10-14",
       "8482159:promoted": "2026-10-14",
+      "8482176:promoted": "2026-10-16",
       "8482482:promoted": "2026-10-14",
       "8482713:promoted": "2026-10-14",
       "8482803:promoted": "2026-10-14",
@@ -1404,9 +1406,11 @@
         "groups": [
           "f3",
           "pk2",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-16"
+        }
       },
       "8475790": {
         "groups": [
@@ -3189,10 +3193,12 @@
       },
       "8482176": {
         "groups": [
-          "d3",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-16"
+        }
       },
       "8482177": {
         "groups": [
@@ -3375,11 +3381,9 @@
       },
       "8482807": {
         "groups": [
-          "d1"
+          "d3"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8482858": {
         "groups": [
@@ -4506,6 +4510,36 @@
         "value": 0.0354,
         "verdict": "+4 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8482176,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Wyatt Kaiser",
+        "positions": "D",
+        "price": 0.0847,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.0289,
+        "verdict": "-3 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8475768,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jaden Schwartz",
+        "positions": "C/LW",
+        "price": 0.0847,
+        "sent": false,
+        "team": "COL",
+        "value": 0.0296,
+        "verdict": "+3 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
