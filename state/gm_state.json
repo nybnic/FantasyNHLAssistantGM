@@ -872,7 +872,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-16T04:17+00:00",
+    "at": "2026-10-16T07:09+00:00",
     "moves": [
       {
         "add": {
@@ -890,7 +890,7 @@
         "key": "8476932:8481596",
         "message_id": 456,
         "rec_id": "add-2026-10-15-0659-8476932",
-        "value": 0.4811,
+        "value": 0.437,
         "when": "2026-10-16",
         "why": "spare"
       },
@@ -910,9 +910,9 @@
         "key": "8482087:8476457",
         "message_id": 465,
         "rec_id": "add-2026-10-16-0417-8482087",
-        "value": 0.093,
-        "when": "2026-10-16",
-        "why": "spare"
+        "value": 0.0935,
+        "when": "2026-10-23",
+        "why": "monday"
       }
     ],
     "week": 3
@@ -934,9 +934,17 @@
   ],
   "scoreboard_shots": [],
   "screenshots": {
-    "at": "2026-10-13T16:41:12+00:00",
+    "at": "2026-10-16T07:09:08+00:00",
     "named": false,
     "rows": [
+      {
+        "name": "S. PINTO",
+        "positions": [
+          "C"
+        ],
+        "slot": "C",
+        "team": "OTT"
+      },
       {
         "name": "M. CELEBRINI",
         "positions": [
@@ -946,27 +954,13 @@
         "team": "SJ"
       },
       {
-        "name": "C. SJ",
-        "positions": [],
-        "slot": "C",
-        "team": ""
-      },
-      {
-        "name": "M. SCHEIFELE",
+        "name": "J. MCBAIN",
         "positions": [
-          "C"
-        ],
-        "slot": "C",
-        "team": "WPG"
-      },
-      {
-        "name": "A. TUCH",
-        "positions": [
-          "LW",
-          "RW"
+          "C",
+          "LW"
         ],
         "slot": "LW",
-        "team": "WSH"
+        "team": "UTA"
       },
       {
         "name": "F. FORSBERG",
@@ -977,14 +971,6 @@
         "team": "NSH"
       },
       {
-        "name": "P. MARTONE",
-        "positions": [
-          "RW"
-        ],
-        "slot": "RW",
-        "team": "PHI"
-      },
-      {
         "name": "S. STAMKOS",
         "positions": [
           "C",
@@ -992,6 +978,29 @@
         ],
         "slot": "RW",
         "team": "NSH"
+      },
+      {
+        "name": "G. LANDESKOG",
+        "positions": [
+          "LW",
+          "RW"
+        ],
+        "slot": "RW",
+        "team": "COL"
+      },
+      {
+        "name": "M. SAMUELSSON",
+        "positions": [
+          "D"
+        ],
+        "slot": "D",
+        "team": "BUF"
+      },
+      {
+        "name": "N. DOBSON",
+        "positions": [],
+        "slot": "D",
+        "team": ""
       },
       {
         "name": "M. SAMUELSSON",
@@ -1026,21 +1035,21 @@
         "team": "WPG"
       },
       {
-        "name": "J. MCBAIN",
+        "name": "A. TUCH",
         "positions": [
-          "C",
-          "LW"
+          "LW",
+          "RW"
         ],
         "slot": "BN",
-        "team": "UTA"
+        "team": "WSH"
       },
       {
-        "name": "S. PINTO",
+        "name": "M. SCHEIFELE",
         "positions": [
           "C"
         ],
         "slot": "BN",
-        "team": "OTT"
+        "team": "WPG"
       },
       {
         "name": "S. KNIGHT",
@@ -1062,7 +1071,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784679,
+  "telegram_offset": 929784681,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1084,6 +1093,7 @@
       "8476882:promoted": "2026-10-15",
       "8476979:promoted": "2026-10-15",
       "8477426:promoted": "2026-10-15",
+      "8477451:promoted": "2026-10-16",
       "8477484:goalie": "2026-10-13",
       "8477501:promoted": "2026-10-14",
       "8477505:promoted": "2026-10-14",
@@ -1098,8 +1108,11 @@
       "8479983:promoted": "2026-10-15",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-13",
+      "8480842:promoted": "2026-10-16",
       "8481024:promoted": "2026-10-13",
       "8481035:no1": "2026-10-13",
+      "8481553:promoted": "2026-10-16",
+      "8481593:promoted": "2026-10-16",
       "8481711:promoted": "2026-10-15",
       "8481721:promoted": "2026-10-14",
       "8482110:promoted": "2026-10-14",
@@ -1481,15 +1494,6 @@
         "groups": [
           "f2",
           "pk1",
-          "pp2"
-        ],
-        "since": {
-          "f2": null
-        }
-      },
-      "8476455": {
-        "groups": [
-          "f2",
           "pp2"
         ],
         "since": {
@@ -2499,6 +2503,7 @@
       "8480064": {
         "groups": [
           "f3",
+          "ir",
           "pk2",
           "pp2"
         ],
@@ -4105,6 +4110,13 @@
         ],
         "since": {}
       },
+      "8485406": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8485414": {
         "groups": [
           "f3",
@@ -4345,6 +4357,66 @@
         "value": -0.03,
         "verdict": "-3 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8477451,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ryan Hartman",
+        "positions": "C/RW",
+        "price": 0.0848,
+        "sent": true,
+        "team": "MIN",
+        "value": 0.0429,
+        "verdict": "+4 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8480842,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Filip Hallander",
+        "positions": "C",
+        "price": 0.0848,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.0919,
+        "verdict": "-9 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8481553,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Bobby Brink",
+        "positions": "RW",
+        "price": 0.0848,
+        "sent": false,
+        "team": "MIN",
+        "value": -0.0151,
+        "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8481593,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jayden Struble",
+        "positions": "D",
+        "price": 0.0848,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.0242,
+        "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 1 days."
       }
     ]
   },
