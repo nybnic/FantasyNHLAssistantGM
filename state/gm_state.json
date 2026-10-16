@@ -659,6 +659,24 @@
       "message_id": 465,
       "type": "add"
     },
+    "add-2026-10-16-1001-8479361": {
+      "add": {
+        "id": 8479361,
+        "name": "Joseph Woll",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PHI"
+      },
+      "add_slot": null,
+      "date": "2026-10-16",
+      "drop": 8481596,
+      "drop_name": "Shane Pinto",
+      "ir": {},
+      "message_id": 474,
+      "type": "add"
+    },
     "lineup-2026-10-04-1601": {
       "assignment": {
         "8474564": "RW",
@@ -872,47 +890,27 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-16T07:38+00:00",
+    "at": "2026-10-16T10:01+00:00",
     "moves": [
       {
         "add": {
-          "id": 8476932,
-          "name": "Anthony Stolarz",
+          "id": 8479361,
+          "name": "Joseph Woll",
           "positions": [
             "G"
           ],
-          "team": "TOR"
+          "team": "PHI"
         },
         "drop": {
           "id": 8481596,
           "name": "Shane Pinto"
         },
-        "key": "8476932:8481596",
-        "message_id": 456,
-        "rec_id": "add-2026-10-15-0659-8476932",
-        "value": 0.437,
+        "key": "8479361:8481596",
+        "message_id": 474,
+        "rec_id": "add-2026-10-16-1001-8479361",
+        "value": 0.4517,
         "when": "2026-10-16",
         "why": "spare"
-      },
-      {
-        "add": {
-          "id": 8482087,
-          "name": "Kaiden Guhle",
-          "positions": [
-            "D"
-          ],
-          "team": "MTL"
-        },
-        "drop": {
-          "id": 8476457,
-          "name": "Adam Larsson"
-        },
-        "key": "8482087:8476457",
-        "message_id": 465,
-        "rec_id": "add-2026-10-16-0417-8482087",
-        "value": 0.0935,
-        "when": "2026-10-23",
-        "why": "monday"
       }
     ],
     "week": 3
@@ -1127,6 +1125,8 @@
       "8483499:promoted": "2026-10-15",
       "8483525:promoted": "2026-10-14",
       "8483676:promoted": "2026-10-14",
+      "8483678:ice time": "2026-10-16",
+      "8483890:ice time": "2026-10-16",
       "8484142:promoted": "2026-10-13",
       "8484210:ice time": "2026-10-14",
       "8484759:promoted": "2026-10-14",
@@ -4417,6 +4417,36 @@
         "value": -0.0242,
         "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair, and it has held for 1 days."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8483678,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Elias Pettersson",
+        "positions": "D",
+        "price": 0.085,
+        "sent": true,
+        "team": "VAN",
+        "value": 0.0192,
+        "verdict": "+2 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "Ice time 20:14 a game in his last 3, up from 16:46. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-16",
+        "id": 8483890,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Braeden Bowman",
+        "positions": "LW/RW",
+        "price": 0.085,
+        "sent": true,
+        "team": "VGK",
+        "value": -0.0589,
+        "verdict": "-6 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "Ice time 15:38 a game in his last 3, up from 12:31. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
