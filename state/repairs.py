@@ -225,6 +225,17 @@ def _score_after_last_puck(state: dict, players: list[RosterPlayer], league: dic
         live["through"] = "2026-10-15"
 
 
+def _no_game_unread(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-17: matchup screenshots sent 06:47 Helsinki, every row Final or No
+    # Game, but three "No Game"s went unread (clients/screenshot.py measured them
+    # from the other side's taller name box), so the score was dropped (through
+    # None) and the reply gave box scores missing Friday: "192-170, win 87%"
+    # against Yahoo's 203.15-196.85. The score covers every day before Saturday 17 Oct.
+    live = state.get("live_score") or {}
+    if live.get("at") == "2026-10-17T03:47:39+00:00" and live.get("through") is None:
+        live["through"] = "2026-10-17"
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -234,4 +245,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-05 week 1 standings", _week_1_standings),
            ("2026-10-12 eriksson ek unread", _eriksson_ek_unread),
            ("2026-10-13 forsberg slot unread", _forsberg_slot_unread),
-           ("2026-10-15 score after the last puck", _score_after_last_puck)]
+           ("2026-10-15 score after the last puck", _score_after_last_puck),
+           ("2026-10-17 no game unread", _no_game_unread)]

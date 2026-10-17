@@ -86,6 +86,28 @@ def test_a_matchup_reads_both_sides_the_slot_between_them_and_the_score(monkeypa
     assert shot["rows"][1]["theirs"]["name"] == "L. THOMPSON"  # "G.WSH" below it isn't a player
 
 
+def test_each_players_status_is_measured_from_his_own_name_line(monkeypatch):
+    # 2026-10-17, OCR lines as read (590 px wide): the opponent's name boxes are
+    # 2 px taller, and from them "No Game" sat exactly 2 heights below, so three
+    # went unread and the night's score looked unfinished (the plan used box scores).
+    lines = [(486, 681, 24, "T.ZEGRAS"), (209, 682, 24, "8.65"), (340, 682, 24, "9.80"), (23, 683, 22, "J.MCBAIN"),
+             (283, 706, 20, "LW"), (23, 708, 19, "C,LW.UTA"), (341, 708, 23, "12.59"), (445, 708, 19, "C,LW,RWPHI"),
+             (204, 709, 22, "12.86"), (22, 729, 22, "No Game"), (487, 730, 19, "No Game"),
+             (457, 873, 24, "W.NYLANDER"), (208, 874, 24, "6.90"), (340, 874, 24, "7.25"), (22, 875, 22, "S.STAMKOS"),
+             (281, 897, 22, "RW"), (23, 901, 18, "C,RW·NSH"), (468, 901, 19, "C,RW·TOR"), (205, 902, 20, "19.63"),
+             (341, 902, 20, "17.88"), (22, 921, 21, "No Game"), (487, 921, 21, "No Game"),
+             (23, 971, 19, "G.LANDESKOG"), (490, 970, 22, "M.BOLDY"), (23, 996, 18, "LW,RW.COL"),
+             (456, 995, 19, "LW,RWMIN"), (23, 1018, 20, "Final (W)5-2vsPIT"), (487, 1018, 19, "No Game")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_badge_colour", lambda badge: "TEAL")
+    buf = io.BytesIO()
+    Image.new("RGB", (590, 1280)).save(buf, "PNG")
+    shot = screenshot.read(buf.getvalue())
+    assert [(r["mine"]["status"], r["theirs"]["status"]) for r in shot["rows"]] == [
+        ("No Game", "No Game"), ("No Game", "No Game"), ("Final (W)5-2vsPIT", "No Game")]
+    assert (shot["rows"][0]["mine"]["positions"], shot["rows"][0]["theirs"]["team"]) == (["C", "LW"], "PHI")
+
+
 def test_a_team_page_is_not_a_matchup(monkeypatch):
     lines = [(358, 587, 40, "M. SCHEIFELE"), (360, 636, 40, "C\ufffdWPG")]
     monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)

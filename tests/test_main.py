@@ -998,6 +998,19 @@ def test_the_2026_10_13_repair_restores_the_lineup_the_screenshots_cleared(tmp_p
     assert {p.id: p.slot for p in players} == repairs.LINEUP_OCT_13
 
 
+def test_the_2026_10_17_repair_dates_the_score_only_if_still_undated(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-17 no game unread"]
+    state["live_score"] = {"at": "2026-10-17T03:47:39+00:00", "through": None, "score": [203.15, 196.85]}
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["live_score"]["through"] == "2026-10-17"
+    state["repairs_done"].pop()
+    state["live_score"] = {"at": "2026-10-17T09:00:00+00:00", "through": None, "score": [210.0, 200.0]}  # a newer one
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["live_score"]["through"] is None
+
+
 def test_the_2026_10_05_repair_takes_stolarz_off_and_puts_misread_moves_back(tmp_path):
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")

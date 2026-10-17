@@ -182,16 +182,20 @@ def _matchup(img: Image.Image, lines: list) -> dict:
 
     def player(y: float, h: float, side: str) -> dict | None:
         on_side = (lambda x: x < 0.15 * w) if side == "left" else (lambda x: x > 0.5 * w)
-        name = next((m for x, ny, _, m in names if on_side(x) and abs(ny - y) < h), None)
-        if not name:
+        own = next(((ny, nh, m) for x, ny, nh, m in names if on_side(x) and abs(ny - y) < h), None)
+        if not own:
             return None
+        ny, nh, name = own
         below = [_pos_team(t) for x, ly, _, t in lines if on_side(x) and 0.5 * h < ly - y < 2 * h]
         positions, team = next((pt for pt in below if pt[0]), ([], ""))
         in_column = (lambda x: 0.2 * w < x < 0.45 * w) if side == "left" else (lambda x: 0.5 * w < x < 0.75 * w)
         numbers = [float(t) for x, ly, _, t in lines if in_column(x) and -h < ly - y < 2 * h and _POINTS.match(t)]
         # The line under positions and team: "No Game", "Final (W) 5-4 vs MTL", a clock or a start time.
-        status = next((t for x, ly, _, t in lines if on_side(x) and 2 * h < ly - y < 3.5 * h
-                       and not _POINTS.match(t)), None)
+        # Measured from this player's own name line: positions sit 1.1-1.5 of its heights below
+        # it, the status 2.0-2.7. From the row's (the other side's, 2 px taller) it was a hair
+        # past 2 and three "No Game"s went unread, so the night's score looked unfinished (2026-10-17).
+        status = next((t for x, ly, _, t in lines if on_side(x) and 1.75 * nh < ly - ny < 3.5 * nh
+                       and not _POINTS.match(t) and not _pos_team(t)[0]), None)
         return {"name": f"{name.group(1)}. {name.group(2)}", "team": team, "positions": positions,
                 "points": numbers[0] if numbers else None,
                 "projected": numbers[1] if len(numbers) > 1 else None, "status": status}
