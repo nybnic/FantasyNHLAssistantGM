@@ -23,6 +23,7 @@ on:
           - goalie-absence
           - injury-sources
           - goalie-shares
+          - third-goalie
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
@@ -120,6 +121,12 @@ jobs:
             n="${n#"${n%%[![:space:]]*}"}"; n="${n%"${n##*[![:space:]]}"}"
             [ -n "$n" ] && adds+=(--ir "$n")
           done
+          goalies=()
+          IFS=',' read -ra names <<< "$PLAYERS"
+          for n in "${names[@]}"; do
+            n="${n#"${n%%[![:space:]]*}"}"; n="${n%"${n##*[![:space:]]}"}"
+            [ -n "$n" ] && goalies+=(--goalie "$n")
+          done
           variants=()
           IFS=',' read -ra names <<< "$VARIANTS"
           for n in "${names[@]}"; do
@@ -138,5 +145,6 @@ jobs:
             goalie-absence) python -m scripts.fit_goalie_absence ;;
             injury-sources) python -m scripts.injury_sources ;;
             goalie-shares) python -m scripts.goalie_shares ;;
+            third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
             replay) time python -m scripts.replay --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} ${variants[@]:+--variants "${variants[@]}"} ;;
           esac
