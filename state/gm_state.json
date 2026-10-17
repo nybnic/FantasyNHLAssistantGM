@@ -931,7 +931,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-17T16:01+00:00",
+    "at": "2026-10-17T17:01+00:00",
     "moves": [
       {
         "add": {
@@ -1156,6 +1156,7 @@
       "8481035:no1": "2026-10-13",
       "8481553:promoted": "2026-10-16",
       "8481593:promoted": "2026-10-16",
+      "8481601:promoted": "2026-10-17",
       "8481711:promoted": "2026-10-15",
       "8481721:promoted": "2026-10-14",
       "8482110:promoted": "2026-10-14",
@@ -1297,11 +1298,10 @@
       },
       "8475151": {
         "groups": [
-          "f1",
+          "f4",
           "pp1"
         ],
         "since": {
-          "f1": null,
           "pp1": null
         }
       },
@@ -1483,7 +1483,7 @@
       },
       "8476292": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -1768,7 +1768,7 @@
       },
       "8477402": {
         "groups": [
-          "ir"
+          "f4"
         ],
         "since": {}
       },
@@ -1918,7 +1918,7 @@
       },
       "8477527": {
         "groups": [
-          "f4"
+          "ir"
         ],
         "since": {}
       },
@@ -2418,12 +2418,6 @@
         "since": {}
       },
       "8479772": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
-      "8479941": {
         "groups": [
           "f4"
         ],
@@ -2943,11 +2937,13 @@
       },
       "8481601": {
         "groups": [
-          "f4",
+          "f1",
           "pk2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-17"
+        }
       },
       "8481606": {
         "groups": [
@@ -3089,6 +3085,12 @@
         "groups": [
           "d2",
           "pk1"
+        ],
+        "since": {}
+      },
+      "8482088": {
+        "groups": [
+          "ir"
         ],
         "since": {}
       },
@@ -3261,7 +3263,7 @@
       },
       "8482476": {
         "groups": [
-          "f4",
+          "f3",
           "pk1"
         ],
         "since": {}
@@ -3503,7 +3505,7 @@
       },
       "8483468": {
         "groups": [
-          "ir"
+          "f4"
         ],
         "since": {}
       },
@@ -3649,12 +3651,6 @@
         "since": {}
       },
       "8483570": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
-      "8483573": {
         "groups": [
           "f4"
         ],
@@ -4615,6 +4611,21 @@
         "value": -0.0158,
         "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8481601,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Simon Holmstrom",
+        "positions": "LW/RW",
+        "price": 0.0848,
+        "sent": false,
+        "team": "NYI",
+        "value": -0.0843,
+        "verdict": "-8 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
