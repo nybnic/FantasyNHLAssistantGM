@@ -662,6 +662,24 @@ def test_the_long_run_takes_the_six_week_rate_for_the_weeks_after_the_ones_playe
     assert matchup.horizon(gain, future, [], 20, 0.009, held)[2] == pytest.approx(20.0)
 
 
+def test_the_playoff_weeks_count_as_scheduled_not_at_the_average():
+    # 2026-10-17 (Nico): the playoff schedule counts. Six weeks from Oct 19 plus
+    # weeks 24-26 (Mar 15 - Apr 4 2027): a regular week's gain at its average,
+    # each playoff day at its own gain, no extra weight.
+    from league import weeks
+    regular = {dt.date(2026, 10, 19) + dt.timedelta(days=i): [] for i in range(42)}
+    playoff = {d: [] for w in (24, 25, 26) for d in weeks.days(w)}
+    future = {**regular, **playoff}
+    gain = {d: 1.0 for d in regular} | {d: (3.0 if weeks.week_of(d) == 25 else 0.0) for d in playoff}
+    long_term = matchup.horizon(gain, future, [], weeks_after=23, later_weight=0.009)[2]
+    assert long_term == pytest.approx(matchup.LONG_RUN_DISCOUNT * (7.0 * 20 + 21.0))
+    # Without the playoff days (as before): every week at the average.
+    assert matchup.horizon(gain, regular, [], 23, 0.009)[2] == pytest.approx(matchup.LONG_RUN_DISCOUNT * 7.0 * 23)
+    # A playoff week among the weeks ahead counts there, not again.
+    ahead = [matchup.WeekAhead(25, frozenset(weeks.days(25)), None, 45.0)]
+    assert matchup.horizon(gain, future, ahead, 23, 0.009)[2] == pytest.approx(matchup.LONG_RUN_DISCOUNT * 7.0 * 20)
+
+
 def test_the_weeks_ahead_take_the_margin_at_its_realized_size():
     w = matchup.week_ahead(3, {dt.date(2026, 10, 12): []}, _tw(0, 200.0, 900.0), _tw(0, 220.0, 1100.0), "L")
     assert w.margin == pytest.approx(-20 * matchup.MARGIN_REALIZES_AHEAD[1]) and w.sd == pytest.approx(math.sqrt(2000))

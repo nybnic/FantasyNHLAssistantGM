@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 from clients import dfo_lines, goalie_client, nhl_client
-from config.league import (MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
+from config.league import (PLAYOFF_WEEKS, MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SEASON_END)
 from engine import addprice, briefing, ir, matchup, report, scorecard, season
 from engine import plan as plan_mod
@@ -84,6 +84,8 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     days = weeks.days(week)
     schedule = {d: nhl_client.games_on(d) for d in days}
     future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 7 * matchup.LONG_RUN_WEEKS + 1)]
+    # The fantasy playoffs' days too: a move's later points count them as scheduled (matchup.horizon).
+    future_days += [d for w in PLAYOFF_WEEKS if w > week for d in weeks.days(w) if d not in future_days]
     future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     starters = _safe(goalie_client.get_starters, date, default={})

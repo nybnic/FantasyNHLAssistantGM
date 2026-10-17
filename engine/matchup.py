@@ -950,19 +950,27 @@ def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], we
             ) -> tuple[tuple[float, ...], tuple[float, ...], float]:
     """A move's gain by day after this week, valued: (P(win) change in each week
     ahead, the points counted in each, long-run points after them). The long
-    run: the gain per week over all of `future` (LONG_RUN_WEEKS: fewer weeks
-    let one team's schedule swing it, 2026-10-01; the weeks ahead are in the
-    average but not counted again), times the weeks left after the ones
-    ahead, discounted (LONG_RUN_DISCOUNT). `held`: a streaming spot's days
+    run: the gain per week over `future`'s regular-season days (LONG_RUN_WEEKS:
+    fewer weeks let one team's schedule swing it, 2026-10-01; the weeks ahead
+    are in the average but not counted again), times the regular-season weeks
+    left after the ones ahead, plus the gain on the playoff weeks' own days
+    when `future` holds them, all discounted (LONG_RUN_DISCOUNT). `held`: a streaming spot's days
     (hold_weeks): only those count, ahead or later, and no season; with `keep`
     (keep_share) between 0 and 1, that and the season blended."""
     ahead_wins, ahead_pts = ahead_value(gain, ahead, later_weight)
-    per_week = sum(gain.get(d, 0.0) for d in future) / (len(future) / 7) if future else 0.0
-    season = LONG_RUN_DISCOUNT * per_week * max(weeks_after - len(ahead), 0)
+    near = set().union(*(w.days for w in ahead)) if ahead else set()
+    # The fantasy playoffs' days in `future` count as scheduled (Nico, 2026-10-17:
+    # a player whose team is idle in week 25 is worth less to the title), at the
+    # same weight as any later week; the regular-season weeks left, at the average.
+    playoff = {d for d in future if weeks.week_of(d) in PLAYOFF_WEEKS and d not in near}
+    regular = [d for d in future if weeks.week_of(d) not in PLAYOFF_WEEKS] or list(future)
+    per_week = sum(gain.get(d, 0.0) for d in regular) / (len(regular) / 7) if regular else 0.0
+    playoff_weeks = len({weeks.week_of(d) for d in playoff})
+    season = LONG_RUN_DISCOUNT * (per_week * max(weeks_after - len(ahead) - playoff_weeks, 0)
+                                  + sum(gain.get(d, 0.0) for d in playoff))
     if held is None or keep >= 1.0:
         return ahead_wins, ahead_pts, season
     held_wins, held_pts = ahead_value(gain, ahead, later_weight, held)
-    near = set().union(*(w.days for w in ahead)) if ahead else set()
     while_held = sum(gain.get(d, 0.0) for d in future if d in held and d not in near)
     if keep <= 0.0:
         return held_wins, held_pts, while_held
