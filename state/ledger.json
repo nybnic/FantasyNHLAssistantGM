@@ -4265,85 +4265,12 @@
     "2026-10-17": {
       "me": [
         {
-          "id": 8480807,
-          "name": "Mattias Samuelsson",
-          "positions": [
-            "D"
-          ],
-          "slot": null,
-          "team": "BUF"
-        },
-        {
-          "id": 8476457,
-          "name": "Adam Larsson",
-          "positions": [
-            "D"
-          ],
-          "slot": null,
-          "team": "SEA"
-        },
-        {
-          "id": 8480865,
-          "name": "Noah Dobson",
-          "positions": [
-            "D"
-          ],
-          "slot": null,
-          "team": "MTL"
-        },
-        {
-          "id": 8480145,
-          "name": "Neal Pionk",
-          "positions": [
-            "D"
-          ],
-          "slot": null,
-          "team": "WPG"
-        },
-        {
-          "id": 8481519,
-          "name": "Spencer Knight",
-          "positions": [
-            "G"
-          ],
-          "slot": null,
-          "team": "CHI"
-        },
-        {
-          "id": 8478872,
-          "name": "Karel Vejmelka",
-          "positions": [
-            "G"
-          ],
-          "slot": null,
-          "team": "UTA"
-        },
-        {
-          "id": 8477949,
-          "name": "Alex Tuch",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "slot": null,
-          "team": "WSH"
-        },
-        {
-          "id": 8476460,
-          "name": "Mark Scheifele",
-          "positions": [
-            "C"
-          ],
-          "slot": null,
-          "team": "WPG"
-        },
-        {
           "id": 8481596,
           "name": "Shane Pinto",
           "positions": [
             "C"
           ],
-          "slot": null,
+          "slot": "C",
           "team": "OTT"
         },
         {
@@ -4352,7 +4279,7 @@
           "positions": [
             "C"
           ],
-          "slot": null,
+          "slot": "C",
           "team": "SJS"
         },
         {
@@ -4362,7 +4289,7 @@
             "C",
             "LW"
           ],
-          "slot": null,
+          "slot": "LW",
           "team": "UTA"
         },
         {
@@ -4371,7 +4298,7 @@
           "positions": [
             "LW"
           ],
-          "slot": null,
+          "slot": "LW",
           "team": "NSH"
         },
         {
@@ -4381,7 +4308,7 @@
             "C",
             "RW"
           ],
-          "slot": null,
+          "slot": "RW",
           "team": "NSH"
         },
         {
@@ -4391,12 +4318,143 @@
             "LW",
             "RW"
           ],
-          "slot": null,
+          "slot": "RW",
           "team": "COL"
+        },
+        {
+          "id": 8480807,
+          "name": "Mattias Samuelsson",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "BUF"
+        },
+        {
+          "id": 8476457,
+          "name": "Adam Larsson",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "SEA"
+        },
+        {
+          "id": 8480865,
+          "name": "Noah Dobson",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "MTL"
+        },
+        {
+          "id": 8480145,
+          "name": "Neal Pionk",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "WPG"
+        },
+        {
+          "id": 8481519,
+          "name": "Spencer Knight",
+          "positions": [
+            "G"
+          ],
+          "slot": "G",
+          "team": "CHI"
+        },
+        {
+          "id": 8478872,
+          "name": "Karel Vejmelka",
+          "positions": [
+            "G"
+          ],
+          "slot": "G",
+          "team": "UTA"
+        },
+        {
+          "id": 8477949,
+          "name": "Alex Tuch",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "slot": "BN",
+          "team": "WSH"
+        },
+        {
+          "id": 8476460,
+          "name": "Mark Scheifele",
+          "positions": [
+            "C"
+          ],
+          "slot": "BN",
+          "team": "WPG"
         }
       ],
       "them": {
         "players": [
+          {
+            "id": 8478493,
+            "name": "Joel Eriksson Ek",
+            "positions": [
+              "C"
+            ],
+            "slot": null,
+            "team": "MIN"
+          },
+          {
+            "id": 8478010,
+            "name": "Brayden Point",
+            "positions": [
+              "C"
+            ],
+            "slot": null,
+            "team": "TBL"
+          },
+          {
+            "id": 8481533,
+            "name": "Trevor Zegras",
+            "positions": [
+              "C",
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "PHI"
+          },
+          {
+            "id": 8478975,
+            "name": "Mason Marchment",
+            "positions": [
+              "LW"
+            ],
+            "slot": null,
+            "team": "SJS"
+          },
+          {
+            "id": 8477939,
+            "name": "William Nylander",
+            "positions": [
+              "C",
+              "RW"
+            ],
+            "slot": null,
+            "team": "TOR"
+          },
+          {
+            "id": 8481557,
+            "name": "Matt Boldy",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "MIN"
+          },
           {
             "id": 8480069,
             "name": "Cale Makar",
@@ -4469,64 +4527,6 @@
             ],
             "slot": null,
             "team": "CAR"
-          },
-          {
-            "id": 8478493,
-            "name": "Joel Eriksson Ek",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "MIN"
-          },
-          {
-            "id": 8478010,
-            "name": "Brayden Point",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "TBL"
-          },
-          {
-            "id": 8481533,
-            "name": "Trevor Zegras",
-            "positions": [
-              "C",
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "PHI"
-          },
-          {
-            "id": 8478975,
-            "name": "Mason Marchment",
-            "positions": [
-              "LW"
-            ],
-            "slot": null,
-            "team": "SJS"
-          },
-          {
-            "id": 8477939,
-            "name": "William Nylander",
-            "positions": [
-              "C",
-              "RW"
-            ],
-            "slot": null,
-            "team": "TOR"
-          },
-          {
-            "id": 8481557,
-            "name": "Matt Boldy",
-            "positions": [
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "MIN"
           }
         ],
         "team": "L\u00f6ll\u00f6t H\u00f6nts\u00e4\u00e4j\u00e4t"
@@ -5137,7 +5137,7 @@
     }
   },
   "live_score": {
-    "at": "2026-10-17T04:16:47+00:00",
+    "at": "2026-10-17T04:19:28+00:00",
     "goalies": [
       42.65,
       43.25
