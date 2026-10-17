@@ -287,7 +287,178 @@
   "health_alerts": {},
   "ir_noted": [],
   "last_error": null,
-  "matchup_shots": null,
+  "matchup_shots": {
+    "at": "2026-10-17T04:05:02+00:00",
+    "first_at": "2026-10-17T04:05:02+00:00",
+    "labels": [
+      "52",
+      "Players",
+      "League",
+      "LOLLOT HONTSAAJAT",
+      "196.85",
+      "NTSAA",
+      "261.16",
+      "31/44",
+      "StartLiveActi"
+    ],
+    "projected": [
+      267.78,
+      261.16
+    ],
+    "rows": [
+      {
+        "mine": {
+          "name": "S. PINTO",
+          "points": 0.0,
+          "positions": [
+            "C"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "OTT"
+        },
+        "slot": "C",
+        "theirs": {
+          "name": "J. ERIKSSONEK",
+          "points": 0.0,
+          "positions": [
+            "C"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "MIN"
+        }
+      },
+      {
+        "mine": {
+          "name": "M. CELEBRINI",
+          "points": 0.0,
+          "positions": [
+            "C"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "SJ"
+        },
+        "slot": "C",
+        "theirs": {
+          "name": "B. POINT",
+          "points": 0.0,
+          "positions": [
+            "C"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "TB"
+        }
+      },
+      {
+        "mine": {
+          "name": "J. MCBAIN",
+          "points": 0.0,
+          "positions": [
+            "C",
+            "LW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "UTA"
+        },
+        "slot": "LW",
+        "theirs": {
+          "name": "T. ZEGRAS",
+          "points": 0.0,
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "PHI"
+        }
+      },
+      {
+        "mine": {
+          "name": "F. FORSBERG",
+          "points": 0.0,
+          "positions": [
+            "LW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "NSH"
+        },
+        "slot": "LW",
+        "theirs": {
+          "name": "M. MARCHMENT",
+          "points": 0.0,
+          "positions": [
+            "LW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "SJ"
+        }
+      },
+      {
+        "mine": {
+          "name": "S. STAMKOS",
+          "points": 0.0,
+          "positions": [
+            "C",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "NSH"
+        },
+        "slot": "RW",
+        "theirs": {
+          "name": "W. NYLANDER",
+          "points": 0.0,
+          "positions": [
+            "C",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "TOR"
+        }
+      },
+      {
+        "mine": {
+          "name": "G. LANDESKOG",
+          "points": 8.2,
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "projected": 4.44,
+          "status": "Final(W)5-2vsPIT",
+          "team": "COL"
+        },
+        "slot": "RW",
+        "theirs": {
+          "name": "M. BOLDY",
+          "points": 0.0,
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "MIN"
+        }
+      }
+    ],
+    "score": [
+      203.15,
+      196.85
+    ],
+    "totals": false,
+    "week": 3
+  },
   "news_checked": "2026-10-13",
   "pending": {
     "add-2026-10-05-0241-0": {
@@ -928,7 +1099,8 @@
     "2026-10-05 week 1 standings",
     "2026-10-12 eriksson ek unread",
     "2026-10-13 forsberg slot unread",
-    "2026-10-15 score after the last puck"
+    "2026-10-15 score after the last puck",
+    "2026-10-17 no game unread"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -1069,7 +1241,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784686,
+  "telegram_offset": 929784688,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
