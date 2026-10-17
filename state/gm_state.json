@@ -931,7 +931,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-17T17:01+00:00",
+    "at": "2026-10-17T18:31+00:00",
     "moves": [
       {
         "add": {
@@ -949,7 +949,7 @@
         "key": "8479361:8481596",
         "message_id": 474,
         "rec_id": "add-2026-10-16-1001-8479361",
-        "value": 0.3796,
+        "value": 0.3834,
         "when": "2026-10-17",
         "why": "spare"
       }
@@ -1140,6 +1140,7 @@
       "8477505:promoted": "2026-10-14",
       "8477989:promoted": "2026-10-14",
       "8478010:promoted": "2026-10-15",
+      "8478366:promoted": "2026-10-17",
       "8478542:promoted": "2026-10-14",
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
@@ -1154,6 +1155,7 @@
       "8480842:promoted": "2026-10-16",
       "8481024:promoted": "2026-10-13",
       "8481035:no1": "2026-10-13",
+      "8481068:promoted": "2026-10-17",
       "8481553:promoted": "2026-10-16",
       "8481593:promoted": "2026-10-16",
       "8481601:promoted": "2026-10-17",
@@ -1166,6 +1168,7 @@
       "8482159:promoted": "2026-10-14",
       "8482176:promoted": "2026-10-16",
       "8482482:promoted": "2026-10-14",
+      "8482679:promoted": "2026-10-17",
       "8482713:promoted": "2026-10-14",
       "8482803:promoted": "2026-10-14",
       "8483460:promoted": "2026-10-16",
@@ -2028,7 +2031,7 @@
       "8478013": {
         "groups": [
           "d3",
-          "ir"
+          "pp2"
         ],
         "since": {}
       },
@@ -2084,11 +2087,13 @@
       },
       "8478366": {
         "groups": [
-          "f3",
+          "f2",
           "pk2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-17"
+        }
       },
       "8478396": {
         "groups": [
@@ -2120,7 +2125,7 @@
       },
       "8478421": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -2154,12 +2159,6 @@
         "since": {
           "pp1": null
         }
-      },
-      "8478454": {
-        "groups": [
-          "d4"
-        ],
-        "since": {}
       },
       "8478462": {
         "groups": [
@@ -2264,8 +2263,7 @@
       "8478854": {
         "groups": [
           "d2",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -2813,12 +2811,12 @@
       },
       "8481068": {
         "groups": [
-          "f1",
+          "f2",
           "pk2",
           "pp2"
         ],
         "since": {
-          "f1": null
+          "f2": "2026-10-17"
         }
       },
       "8481122": {
@@ -2836,6 +2834,7 @@
       },
       "8481186": {
         "groups": [
+          "f4",
           "ir"
         ],
         "since": {}
@@ -2881,12 +2880,9 @@
       },
       "8481538": {
         "groups": [
-          "f3",
-          "pp1"
+          "f4"
         ],
-        "since": {
-          "pp1": null
-        }
+        "since": {}
       },
       "8481546": {
         "groups": [
@@ -2914,7 +2910,7 @@
       },
       "8481563": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -3035,14 +3031,6 @@
           "f4"
         ],
         "since": {}
-      },
-      "8481754": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": null
-        }
       },
       "8481789": {
         "groups": [
@@ -3201,7 +3189,7 @@
       },
       "8482165": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -3339,11 +3327,11 @@
       },
       "8482679": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": null,
+          "f1": "2026-10-17",
           "pp1": null
         }
       },
@@ -3353,6 +3341,14 @@
           "pk2"
         ],
         "since": {}
+      },
+      "8482703": {
+        "groups": [
+          "f2"
+        ],
+        "since": {
+          "f2": null
+        }
       },
       "8482713": {
         "groups": [
@@ -3542,7 +3538,7 @@
       },
       "8483482": {
         "groups": [
-          "d2",
+          "d3",
           "pp2"
         ],
         "since": {}
@@ -4634,6 +4630,51 @@
         "value": -0.0843,
         "verdict": "-8 win-pts against the 8.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8482679,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Matt Coronato",
+        "positions": "RW",
+        "price": 0.0858,
+        "sent": true,
+        "team": "CGY",
+        "value": 0.1344,
+        "verdict": "+13 win-pts against the 8.6 an add costs: worth an add, but the plan's moves beat it.",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8481068,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Yegor Sharangovich",
+        "positions": "C/LW/RW",
+        "price": 0.0858,
+        "sent": true,
+        "team": "CGY",
+        "value": 0.0518,
+        "verdict": "+5 win-pts against the 8.6 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8478366,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Frank Vatrano",
+        "positions": "LW/RW",
+        "price": 0.0858,
+        "sent": false,
+        "team": "ANA",
+        "value": 0.0236,
+        "verdict": "+2 win-pts against the 8.6 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
