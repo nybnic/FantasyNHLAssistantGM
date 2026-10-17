@@ -281,6 +281,26 @@
       },
       "sent": true,
       "updates": 0
+    },
+    "2026-10-17": {
+      "recommended": {
+        "8474564": "RW",
+        "8476455": "BN",
+        "8476457": "D",
+        "8476460": "C",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "LW",
+        "8480865": "D",
+        "8481519": "G",
+        "8481596": "BN",
+        "8484801": "C"
+      },
+      "sent": true,
+      "updates": 0
     }
   },
   "dfo_archived": "2026-10-16",
@@ -288,7 +308,7 @@
   "ir_noted": [],
   "last_error": null,
   "matchup_shots": null,
-  "news_checked": "2026-10-13",
+  "news_checked": "2026-10-17",
   "pending": {
     "add-2026-10-05-0241-0": {
       "add": {
@@ -886,11 +906,32 @@
       "date": "2026-10-15",
       "message_id": 457,
       "type": "lineup"
+    },
+    "lineup-2026-10-17-1601": {
+      "assignment": {
+        "8474564": "RW",
+        "8476455": "BN",
+        "8476457": "D",
+        "8476460": "C",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "LW",
+        "8480865": "D",
+        "8481519": "G",
+        "8481596": "BN",
+        "8484801": "C"
+      },
+      "date": "2026-10-17",
+      "message_id": 496,
+      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-17T09:01+00:00",
+    "at": "2026-10-17T16:01+00:00",
     "moves": [
       {
         "add": {
@@ -908,7 +949,7 @@
         "key": "8479361:8481596",
         "message_id": 474,
         "rec_id": "add-2026-10-16-1001-8479361",
-        "value": 0.3778,
+        "value": 0.3796,
         "when": "2026-10-17",
         "why": "spare"
       }
@@ -1135,7 +1176,9 @@
       "8483890:ice time": "2026-10-16",
       "8484142:promoted": "2026-10-13",
       "8484152:promoted": "2026-10-17",
+      "8484158:promoted": "2026-10-17",
       "8484210:ice time": "2026-10-14",
+      "8484387:promoted": "2026-10-17",
       "8484759:promoted": "2026-10-14",
       "8484803:ice time": "2026-10-14",
       "8484829:promoted": "2026-10-14",
@@ -2293,6 +2336,12 @@
           "f1": "2026-10-14"
         }
       },
+      "8479390": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8479398": {
         "groups": [
           "d2",
@@ -2499,12 +2548,6 @@
         ],
         "since": {}
       },
-      "8480075": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8480078": {
         "groups": [
           "f3",
@@ -2674,6 +2717,13 @@
           "d1": null
         }
       },
+      "8480870": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8480878": {
         "groups": [
           "d2"
@@ -2803,8 +2853,7 @@
       },
       "8481523": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -2902,7 +2951,7 @@
       },
       "8481606": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -3347,6 +3396,13 @@
         ],
         "since": {}
       },
+      "8482775": {
+        "groups": [
+          "f4",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8482803": {
         "groups": [
           "d1",
@@ -3402,12 +3458,6 @@
         "since": {
           "d1": null
         }
-      },
-      "8483424": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
       },
       "8483425": {
         "groups": [
@@ -3764,18 +3814,18 @@
       },
       "8484158": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-17"
+        }
       },
       "8484160": {
         "groups": [
-          "f1"
+          "f3"
         ],
-        "since": {
-          "f1": null
-        }
+        "since": {}
       },
       "8484164": {
         "groups": [
@@ -3864,6 +3914,12 @@
         ],
         "since": {}
       },
+      "8484321": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8484386": {
         "groups": [
           "d3"
@@ -3873,9 +3929,11 @@
       "8484387": {
         "groups": [
           "f3",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-17"
+        }
       },
       "8484388": {
         "groups": [
@@ -3918,7 +3976,7 @@
       },
       "8484759": {
         "groups": [
-          "d2",
+          "d3",
           "pp1"
         ],
         "since": {
@@ -4088,11 +4146,9 @@
       "8485406": {
         "groups": [
           "f3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-10-16"
-        }
+        "since": {}
       },
       "8485414": {
         "groups": [
@@ -4529,6 +4585,36 @@
         "value": 0.0274,
         "verdict": "+3 win-pts against the 8.4 an add costs: not yet worth one.",
         "why": "DFO moved up to the first power play, and it has held for 1 days."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8484387,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Matvei Michkov",
+        "positions": "LW/RW",
+        "price": 0.0848,
+        "sent": false,
+        "team": "PHI",
+        "value": 0.004,
+        "verdict": "+0 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-17",
+        "id": 8484158,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Easton Cowan",
+        "positions": "LW",
+        "price": 0.0848,
+        "sent": false,
+        "team": "TOR",
+        "value": -0.0158,
+        "verdict": "-2 win-pts against the 8.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
