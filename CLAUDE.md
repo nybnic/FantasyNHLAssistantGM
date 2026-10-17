@@ -82,6 +82,7 @@ python -m scripts.replay                          # 2025-26 replayed under rule 
 python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
 python -m scripts.fit_absence                     # how fast absent players return (availability curves)
 python -m scripts.sim_goalies                     # two goalies or three: 2025-26 replayed under each policy
+python -m scripts.third_goalie                    # a third goalie for a skater, every week left on the real schedule (--goalie NAME --drop NAME)
 python -m scripts.fit_goalie_starts               # who starts next: last result, back-to-backs
 python -m scripts.render_slides --png data/charts/slides   # docs/model-overview.pdf from its HTML
 ```
