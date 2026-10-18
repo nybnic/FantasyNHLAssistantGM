@@ -188,6 +188,29 @@ def _week_1_standings(state: dict, players: list[RosterPlayer], league: dict) ->
     state.setdefault("results", {}).setdefault("1", {"opponent": "Bahelin Boys"}).setdefault(
         "yahoo_final", {"score": [163.85, 189.40], "at": "2026-10-05T12:00+00:00"})
 
+# Nico's League > Standings screenshot of 2026-10-18 17:25 Helsinki, sent in a
+# Claude session (not to the bot): two weeks played. The simulation had run
+# from week 1's, so his week-2 loss was missing from the playoff odds (89%).
+WEEK_2_STANDINGS = [
+    ("Lazy Lew", 2, 0, 0, 488.20), ("Retrot Chicken Wings", 2, 0, 0, 444.10), ("Bahelin Boys", 2, 0, 0, 439.95),
+    ("HC Bulju", 2, 0, 0, 436.35), ("Pastasauce", 1, 1, 0, 430.70), ("Bottom three", 1, 1, 0, 425.60),
+    ("HAN-NES", 1, 1, 0, 405.50), ("Vantaa", 1, 1, 0, 392.75), ("Jättiläisentie Giants", 1, 1, 0, 390.55),
+    ("Bellova", 1, 1, 0, 357.20), ("Vanilla Thunder", 1, 1, 0, 341.55), ("Gwp", 1, 1, 0, 310.15),
+    ("Randy", 0, 2, 0, 438.35), ("Löllöt Höntsääjät", 0, 2, 0, 373.35), ("Nico's Groovy Team", 0, 2, 0, 369.35),
+    ("Viktorios", 0, 2, 0, 364.35),
+]
+
+
+def _week_2_standings(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # Left alone if a newer screenshot has reached the bot since.
+    if (state.get("standings") or {}).get("week", 0) < 2:
+        state["standings"] = {"week": 2, "at": "2026-10-18",
+                              "teams": {t: {"w": w, "l": l, "t": tie, "pf": pf} for t, w, l, tie, pf in WEEK_2_STANDINGS}}
+    # Week 2's final, Yahoo's: points for minus week 1's (163.85, 192.00).
+    state.setdefault("results", {}).setdefault("2", {"opponent": "Retrot Chicken Wings"}).setdefault(
+        "yahoo_final", {"score": [205.50, 252.10], "at": "2026-10-18T14:25+00:00"})
+
+
 def _eriksson_ek_unread(state: dict, players: list[RosterPlayer], league: dict) -> None:
     # 2026-10-12: Löllöt Höntsääjät's team screenshots read "J. ERIKSSONEK" (Joel
     # Eriksson Ek, their C), which matched no one; the roster was saved without
@@ -246,4 +269,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-12 eriksson ek unread", _eriksson_ek_unread),
            ("2026-10-13 forsberg slot unread", _forsberg_slot_unread),
            ("2026-10-15 score after the last puck", _score_after_last_puck),
-           ("2026-10-17 no game unread", _no_game_unread)]
+           ("2026-10-17 no game unread", _no_game_unread),
+           ("2026-10-18 week 2 standings", _week_2_standings)]

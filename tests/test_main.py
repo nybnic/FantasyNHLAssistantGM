@@ -1011,6 +1011,20 @@ def test_the_2026_10_17_repair_dates_the_score_only_if_still_undated(tmp_path):
     assert state["live_score"]["through"] is None
 
 
+def test_the_2026_10_18_repair_saves_week_2_standings_unless_newer_ones_came(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-18 week 2 standings"]
+    state["standings"] = {"week": 1, "at": "2026-10-05", "teams": {"Nico's Groovy Team": {"w": 0, "l": 1, "t": 0, "pf": 163.85}}}
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["standings"]["week"] == 2 and len(state["standings"]["teams"]) == 16
+    assert state["standings"]["teams"]["Nico's Groovy Team"] == {"w": 0, "l": 2, "t": 0, "pf": 369.35}
+    assert state["results"]["2"]["yahoo_final"]["score"] == [205.50, 252.10]
+    state["repairs_done"].pop()
+    state["standings"] = {"week": 3, "at": "2026-10-19", "teams": {}}  # a newer screenshot: kept
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert state["standings"]["week"] == 3
+
 def test_the_2026_10_05_repair_takes_stolarz_off_and_puts_misread_moves_back(tmp_path):
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")
