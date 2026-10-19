@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-19T05:24+00:00",
+ "generated": "2026-10-19T05:26+00:00",
  "date": "2026-10-19",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -94,22 +94,22 @@
  },
  "plan": [
   {
-   "day": "Sun 25 Oct",
-   "today": false,
-   "swap": "Porter Martone for Adam Larsson",
-   "detail": "+9 win-pts, for the weeks ahead; after Adam Larsson's games on Tue 20, Thu 22, Sat 24",
-   "key": "8485406:8476457"
-  },
-  {
    "day": "Tue 20 Oct (tomorrow)",
    "today": false,
    "swap": "Darcy Kuemper for Shane Pinto",
    "detail": "win 63% -> 71%, +40 win-pts in all; a claim, plays from Tue 20 Oct",
    "key": "8475311:8481596"
+  },
+  {
+   "day": "Sun 25 Oct",
+   "today": false,
+   "swap": "Porter Martone for Adam Larsson",
+   "detail": "+9 win-pts, for the weeks ahead; after Adam Larsson's games on Tue 20, Thu 22, Sat 24",
+   "key": "8485406:8476457"
   }
  ],
  "plan_empty": "No add is worth one of yours now.",
- "changed": "Martin Pospisil for Adam Larsson no longer comes up as a move",
+ "changed": "",
  "this_week_line": "For this week alone, the best is Darcy Kuemper for Mattias Samuelsson: win 63% -> 72%. Not worth an add: -15 win-pts in all, as dropping Mattias Samuelsson costs 25 later, against the 8 an add costs.",
  "weeks": [
   {
@@ -482,7 +482,7 @@
    "later_wins": 0.0351,
    "value": 0.1015,
    "status": "passes",
-   "why": "worth an add, but the plan's Porter Martone uses the same player"
+   "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
   },
   {
    "key": "8479361:8476457",
@@ -12111,37 +12111,6 @@
   ],
   "plan": [
    {
-    "key": "8485406:8476457",
-    "name": "P. Martone",
-    "positions": "RW",
-    "team": "PHI",
-    "drop": "A. Larsson",
-    "cells": [
-     null,
-     null,
-     null,
-     null,
-     null,
-     null,
-     null,
-     null,
-     "start",
-     "start",
-     null,
-     null,
-     null,
-     "start"
-    ],
-    "slot_games": 3,
-    "slot_starts": null,
-    "gain": [
-     1.2171517178632882,
-     0.0
-    ],
-    "plan": true,
-    "when": "2026-10-25"
-   },
-   {
     "key": "8475311:8481596",
     "name": "D. Kuemper",
     "positions": "G",
@@ -12171,6 +12140,37 @@
     ],
     "plan": true,
     "when": "2026-10-20"
+   },
+   {
+    "key": "8485406:8476457",
+    "name": "P. Martone",
+    "positions": "RW",
+    "team": "PHI",
+    "drop": "A. Larsson",
+    "cells": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     "start",
+     "start",
+     null,
+     null,
+     null,
+     "start"
+    ],
+    "slot_games": 3,
+    "slot_starts": null,
+    "gain": [
+     1.2171517178632882,
+     0.0
+    ],
+    "plan": true,
+    "when": "2026-10-25"
    }
   ],
   "streamers": [
@@ -13768,62 +13768,62 @@
   {
    "date": "2026-10-19",
    "id": 8478438,
-   "name": "Tommy Novak",
-   "team": "PIT",
-   "positions": "C",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the first power play.",
-   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-   "value": null,
+   "name": "Tommy Novak",
+   "positions": "C",
    "price": null,
-   "sent": false
+   "sent": false,
+   "team": "PIT",
+   "value": null,
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "why": "DFO moved up to the first power play."
   },
   {
    "date": "2026-10-19",
    "id": 8475151,
-   "name": "Kyle Palmieri",
-   "team": "NYI",
-   "positions": "RW",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the first line.",
-   "verdict": "-1 win-pts against the 8.4 an add costs: not yet worth one.",
-   "value": -0.0088,
+   "name": "Kyle Palmieri",
+   "positions": "RW",
    "price": 0.0843,
-   "sent": false
+   "sent": false,
+   "team": "NYI",
+   "value": -0.0088,
+   "verdict": "-1 win-pts against the 8.4 an add costs: not yet worth one.",
+   "why": "DFO moved up to the first line."
   },
   {
    "date": "2026-10-19",
    "id": 8479525,
-   "name": "Ross Colton",
-   "team": "NSH",
-   "positions": "C/LW",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the second line.",
-   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-   "value": null,
+   "name": "Ross Colton",
+   "positions": "C/LW",
    "price": null,
-   "sent": false
+   "sent": false,
+   "team": "NSH",
+   "value": null,
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "why": "DFO moved up to the second line."
   },
   {
    "date": "2026-10-19",
    "id": 8482094,
-   "name": "Daemon Hunt",
-   "team": "MIN",
-   "positions": "D",
    "kinds": [
     "ice time"
    ],
-   "why": "Ice time 16:13 a game in his last 3, up from 12:07. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.",
-   "verdict": "-11 win-pts against the 8.4 an add costs: not yet worth one.",
-   "value": -0.1096,
+   "name": "Daemon Hunt",
+   "positions": "D",
    "price": 0.0843,
-   "sent": true
+   "sent": true,
+   "team": "MIN",
+   "value": -0.1096,
+   "verdict": "-11 win-pts against the 8.4 an add costs: not yet worth one.",
+   "why": "Ice time 16:13 a game in his last 3, up from 12:07. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
   },
   {
    "date": "2026-10-18",
