@@ -930,51 +930,50 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-18T16:31+00:00",
+    "at": "2026-10-19T05:24+00:00",
     "moves": [
       {
         "add": {
-          "id": 8481028,
-          "name": "Martin Pospisil",
+          "id": 8485406,
+          "name": "Porter Martone",
           "positions": [
-            "C",
             "RW"
           ],
-          "team": "CGY"
+          "team": "PHI"
         },
         "drop": {
           "id": 8476457,
           "name": "Adam Larsson"
         },
-        "key": "8481028:8476457",
-        "message_id": 504,
-        "rec_id": "add-2026-10-18-0509-8481028",
-        "value": 0.1275,
-        "when": "2026-10-18",
+        "key": "8485406:8476457",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.0939,
+        "when": "2026-10-25",
         "why": "now"
       },
       {
         "add": {
-          "id": 8479361,
-          "name": "Joseph Woll",
+          "id": 8475311,
+          "name": "Darcy Kuemper",
           "positions": [
             "G"
           ],
-          "team": "PHI"
+          "team": "LAK"
         },
         "drop": {
           "id": 8481596,
           "name": "Shane Pinto"
         },
-        "key": "8479361:8481596",
-        "message_id": 474,
-        "rec_id": "add-2026-10-16-1001-8479361",
-        "value": 0.2927,
-        "when": "2026-10-19",
-        "why": "monday"
+        "key": "8475311:8481596",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.3984,
+        "when": "2026-10-20",
+        "why": "now"
       }
     ],
-    "week": 3
+    "week": 4
   },
   "plan_check": false,
   "relay_alert": "2026-09-29",
@@ -1132,7 +1131,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784698,
+  "telegram_offset": 929784700,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1144,6 +1143,7 @@
       "8473994:promoted": "2026-10-14",
       "8474189:promoted": "2026-10-14",
       "8474563:promoted": "2026-10-14",
+      "8475151:promoted": "2026-10-19",
       "8475208:promoted": "2026-10-14",
       "8475343:ice time": "2026-10-18",
       "8475660:no1": "2026-10-13",
@@ -1169,12 +1169,14 @@
       "8478010:promoted": "2026-10-15",
       "8478047:promoted": "2026-10-18",
       "8478366:promoted": "2026-10-17",
+      "8478438:promoted": "2026-10-19",
       "8478444:promoted": "2026-10-18",
       "8478542:promoted": "2026-10-14",
       "8478851:ice time": "2026-10-18",
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
       "8479385:promoted": "2026-10-15",
+      "8479525:promoted": "2026-10-19",
       "8479675:promoted": "2026-10-15",
       "8479980:promoted": "2026-10-14",
       "8479983:promoted": "2026-10-15",
@@ -1195,6 +1197,7 @@
       "8481601:promoted": "2026-10-17",
       "8481711:promoted": "2026-10-15",
       "8481721:promoted": "2026-10-14",
+      "8482094:ice time": "2026-10-19",
       "8482110:promoted": "2026-10-14",
       "8482118:promoted": "2026-10-13",
       "8482124:promoted": "2026-10-15",
@@ -4974,6 +4977,66 @@
         "value": -0.0827,
         "verdict": "-8 win-pts against the 8.3 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8482094,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Daemon Hunt",
+        "positions": "D",
+        "price": 0.0843,
+        "sent": true,
+        "team": "MIN",
+        "value": -0.1096,
+        "verdict": "-11 win-pts against the 8.4 an add costs: not yet worth one.",
+        "why": "Ice time 16:13 a game in his last 3, up from 12:07. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8479525,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ross Colton",
+        "positions": "C/LW",
+        "price": null,
+        "sent": false,
+        "team": "NSH",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8475151,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Kyle Palmieri",
+        "positions": "RW",
+        "price": 0.0843,
+        "sent": false,
+        "team": "NYI",
+        "value": -0.0088,
+        "verdict": "-1 win-pts against the 8.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8478438,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Tommy Novak",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "PIT",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
