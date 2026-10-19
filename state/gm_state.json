@@ -930,7 +930,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-19T15:01+00:00",
+    "at": "2026-10-19T16:01+00:00",
     "moves": [
       {
         "add": {
@@ -948,7 +948,7 @@
         "key": "8475311:8481596",
         "message_id": null,
         "rec_id": null,
-        "value": 0.3969,
+        "value": 0.397,
         "when": "2026-10-20",
         "why": "now"
       },
@@ -1174,6 +1174,7 @@
       "8478444:promoted": "2026-10-18",
       "8478542:promoted": "2026-10-14",
       "8478851:ice time": "2026-10-18",
+      "8478911:promoted": "2026-10-19",
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
       "8479385:promoted": "2026-10-15",
@@ -1186,6 +1187,7 @@
       "8480078:promoted": "2026-10-18",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-13",
+      "8480426:promoted": "2026-10-19",
       "8480802:promoted": "2026-10-16",
       "8480842:promoted": "2026-10-16",
       "8481024:promoted": "2026-10-13",
@@ -1232,6 +1234,7 @@
       "8484829:promoted": "2026-10-14",
       "8484999:promoted": "2026-10-13",
       "8485395:promoted": "2026-10-18",
+      "8485402:promoted": "2026-10-19",
       "8485406:promoted": "2026-10-16"
     },
     "groups": {
@@ -1440,12 +1443,10 @@
       },
       "8475726": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-14"
-        }
+        "since": {}
       },
       "8475745": {
         "groups": [
@@ -1841,7 +1842,8 @@
       "8477426": {
         "groups": [
           "f2",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {
           "f2": "2026-10-15"
@@ -1934,12 +1936,11 @@
       },
       "8477505": {
         "groups": [
-          "f2",
+          "f3",
           "pk2",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-14",
           "pp1": null
         }
       },
@@ -2070,12 +2071,6 @@
         "since": {
           "f1": null
         }
-      },
-      "8478043": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
       },
       "8478046": {
         "groups": [
@@ -2295,9 +2290,13 @@
       },
       "8478911": {
         "groups": [
-          "ir"
+          "d1",
+          "ir",
+          "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-19"
+        }
       },
       "8478970": {
         "groups": [
@@ -2390,8 +2389,8 @@
       },
       "8479576": {
         "groups": [
-          "d2",
-          "pk1"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -2438,8 +2437,7 @@
       },
       "8479968": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -2537,12 +2535,9 @@
       },
       "8480043": {
         "groups": [
-          "d1",
-          "pk2"
+          "d2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8480049": {
         "groups": [
@@ -2638,9 +2633,12 @@
       },
       "8480426": {
         "groups": [
-          "d4"
+          "d4",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-19"
+        }
       },
       "8480434": {
         "groups": [
@@ -2769,7 +2767,8 @@
       },
       "8480995": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3318,8 +3317,7 @@
       "8482655": {
         "groups": [
           "d1",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {
           "d1": null
@@ -3363,13 +3361,6 @@
           "f1": "2026-10-17",
           "pp1": null
         }
-      },
-      "8482700": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
       },
       "8482703": {
         "groups": [
@@ -3766,8 +3757,7 @@
       },
       "8483752": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -3844,6 +3834,13 @@
       "8484149": {
         "groups": [
           "f4"
+        ],
+        "since": {}
+      },
+      "8484152": {
+        "groups": [
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
@@ -4156,10 +4153,12 @@
       },
       "8485402": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-19"
+        }
       },
       "8485406": {
         "groups": [
@@ -5067,6 +5066,51 @@
         "value": -0.003,
         "verdict": "-0 win-pts against the 8.4 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8485402,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Michael Misa",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "SJS",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8480426,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Charle-Edouard D'Astous",
+        "positions": "D",
+        "price": 0.0839,
+        "sent": false,
+        "team": "TBL",
+        "value": 0.0118,
+        "verdict": "+1 win-pts against the 8.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-19",
+        "id": 8478911,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Matt Roy",
+        "positions": "D",
+        "price": null,
+        "sent": false,
+        "team": "WSH",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },

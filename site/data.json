@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-19T15:01+00:00",
+ "generated": "2026-10-19T16:01+00:00",
  "date": "2026-10-19",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -61,7 +61,7 @@
    "pace": 1.3
   },
   "later_weight": 0.00763,
-  "tau": 24.29,
+  "tau": 24.27,
   "ahead": [
    {
     "week": 5,
@@ -84,11 +84,11 @@
    "hold_days": 15
   },
   "season": {
-   "playoffs": 0.9492,
-   "title": 0.1611,
-   "leverage": 0.0492,
-   "typical": 0.0532,
-   "seed": 3.6105,
+   "playoffs": 0.9526,
+   "title": 0.1641,
+   "leverage": 0.0474,
+   "typical": 0.0507,
+   "seed": 3.5711,
    "note": ""
   }
  },
@@ -171,8 +171,8 @@
    ],
    "held": false,
    "keep": 1.0,
-   "later_wins": 0.3109,
-   "value": 0.3969,
+   "later_wins": 0.311,
+   "value": 0.397,
    "status": "plan",
    "why": "now"
   },
@@ -240,14 +240,14 @@
    "plays_from": null,
    "when": null,
    "games": 4,
-   "week_pts": 7.04,
+   "week_pts": 6.21,
    "next_two_pts": -1.74,
    "later_pts": 26.74,
    "win": [
     0.6309,
-    0.6854
+    0.6792
    ],
-   "now_wins": 0.0545,
+   "now_wins": 0.0483,
    "ahead_wins": [
     -0.054,
     0.035
@@ -260,7 +260,7 @@
    "held": false,
    "keep": 1.0,
    "later_wins": 0.2041,
-   "value": 0.2396,
+   "value": 0.2335,
    "status": "passes",
    "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
   },
@@ -304,51 +304,7 @@
    "held": false,
    "keep": 1.0,
    "later_wins": 0.1868,
-   "value": 0.197,
-   "status": "passes",
-   "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
-  },
-  {
-   "key": "8476932:8481596",
-   "add": {
-    "id": 8476932,
-    "name": "Anthony Stolarz",
-    "team": "TOR",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8481596,
-    "name": "Shane Pinto"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 6.8,
-   "next_two_pts": 3.66,
-   "later_pts": 12.24,
-   "win": [
-    0.6309,
-    0.6831
-   ],
-   "now_wins": 0.0523,
-   "ahead_wins": [
-    -0.0018,
-    0.0273
-   ],
-   "ahead_pts": 3.24,
-   "ahead_week_pts": [
-    -0.21,
-    3.45
-   ],
-   "held": false,
-   "keep": 1.0,
-   "later_wins": 0.0934,
-   "value": 0.1712,
+   "value": 0.1971,
    "status": "passes",
    "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
   },
@@ -391,8 +347,52 @@
    ],
    "held": false,
    "keep": 0.257,
-   "later_wins": 0.1066,
+   "later_wins": 0.1067,
    "value": 0.1704,
+   "status": "passes",
+   "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
+  },
+  {
+   "key": "8476932:8481596",
+   "add": {
+    "id": 8476932,
+    "name": "Anthony Stolarz",
+    "team": "TOR",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8481596,
+    "name": "Shane Pinto"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": 4.95,
+   "next_two_pts": 3.66,
+   "later_pts": 12.24,
+   "win": [
+    0.6309,
+    0.6694
+   ],
+   "now_wins": 0.0386,
+   "ahead_wins": [
+    -0.0018,
+    0.0273
+   ],
+   "ahead_pts": 3.24,
+   "ahead_week_pts": [
+    -0.21,
+    3.45
+   ],
+   "held": false,
+   "keep": 1.0,
+   "later_wins": 0.0934,
+   "value": 0.1575,
    "status": "passes",
    "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
   },
@@ -435,7 +435,7 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.029,
+   "later_wins": 0.0291,
    "value": 0.1371,
    "status": "passes",
    "why": "worth an add, but the plan's Porter Martone uses the same drop"
@@ -479,7 +479,7 @@
    ],
    "held": false,
    "keep": 0.134,
-   "later_wins": 0.0339,
+   "later_wins": 0.034,
    "value": 0.111,
    "status": "passes",
    "why": "worth an add, but the plan's Darcy Kuemper uses the same drop"
@@ -615,50 +615,6 @@
    "value": 0.0802,
    "status": "fails",
    "why": "worth 8.0 win-pts, under the 8.4 an add costs"
-  },
-  {
-   "key": "8476932:8476457",
-   "add": {
-    "id": 8476932,
-    "name": "Anthony Stolarz",
-    "team": "TOR",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 5.14,
-   "next_two_pts": 4.26,
-   "later_pts": 0.0,
-   "win": [
-    0.6309,
-    0.6707
-   ],
-   "now_wins": 0.0398,
-   "ahead_wins": [
-    0.0179,
-    0.0142
-   ],
-   "ahead_pts": 3.92,
-   "ahead_week_pts": [
-    2.13,
-    1.79
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0,
-   "value": 0.0719,
-   "status": "fails",
-   "why": "worth 7.2 win-pts, under the 8.4 an add costs"
   },
   {
    "key": "8475831:8481596",
@@ -919,7 +875,7 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.029,
+   "later_wins": 0.0291,
    "value": 0.0668,
    "status": "fails",
    "why": "worth 6.7 win-pts, under the 8.4 an add costs"
@@ -1007,8 +963,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.029,
-   "value": 0.0657,
+   "later_wins": 0.0291,
+   "value": 0.0658,
    "status": "fails",
    "why": "worth 6.6 win-pts, under the 8.4 an add costs"
   },
@@ -1279,6 +1235,50 @@
    "why": "worth 5.9 win-pts, under the 8.4 an add costs"
   },
   {
+   "key": "8476932:8476457",
+   "add": {
+    "id": 8476932,
+    "name": "Anthony Stolarz",
+    "team": "TOR",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": 3.29,
+   "next_two_pts": 4.26,
+   "later_pts": 0.0,
+   "win": [
+    0.6309,
+    0.6567
+   ],
+   "now_wins": 0.0259,
+   "ahead_wins": [
+    0.0179,
+    0.0142
+   ],
+   "ahead_pts": 3.92,
+   "ahead_week_pts": [
+    2.13,
+    1.79
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0,
+   "value": 0.0579,
+   "status": "fails",
+   "why": "worth 5.8 win-pts, under the 8.4 an add costs"
+  },
+  {
    "key": "8484806:8481596",
    "add": {
     "id": 8484806,
@@ -1411,50 +1411,6 @@
    "why": "worth 5.1 win-pts, under the 8.4 an add costs"
   },
   {
-   "key": "8477968:8476457",
-   "add": {
-    "id": 8477968,
-    "name": "Alex Nedeljkovic",
-    "team": "SJS",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 4,
-   "week_pts": 5.38,
-   "next_two_pts": -1.14,
-   "later_pts": 2.8,
-   "win": [
-    0.6309,
-    0.6729
-   ],
-   "now_wins": 0.0421,
-   "ahead_wins": [
-    -0.0343,
-    0.0221
-   ],
-   "ahead_pts": -1.27,
-   "ahead_week_pts": [
-    -4.07,
-    2.79
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0214,
-   "value": 0.0513,
-   "status": "fails",
-   "why": "worth 5.1 win-pts, under the 8.4 an add costs"
-  },
-  {
    "key": "8484994:8481596",
    "add": {
     "id": 8484994,
@@ -1497,7 +1453,7 @@
    "later_wins": 0.0268,
    "value": 0.0505,
    "status": "fails",
-   "why": "worth 5.0 win-pts, under the 8.4 an add costs"
+   "why": "worth 5.1 win-pts, under the 8.4 an add costs"
   },
   {
    "key": "8481033:8481596",
@@ -1538,7 +1494,7 @@
    ],
    "held": false,
    "keep": 1.0,
-   "later_wins": 0.0372,
+   "later_wins": 0.0373,
    "value": 0.0494,
    "status": "fails",
    "why": "worth 4.9 win-pts, under the 8.4 an add costs"
@@ -1672,6 +1628,50 @@
    "keep": 0.0,
    "later_wins": 0.0,
    "value": 0.0451,
+   "status": "fails",
+   "why": "worth 4.5 win-pts, under the 8.4 an add costs"
+  },
+  {
+   "key": "8477968:8476457",
+   "add": {
+    "id": 8477968,
+    "name": "Alex Nedeljkovic",
+    "team": "SJS",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 4,
+   "week_pts": 4.55,
+   "next_two_pts": -1.14,
+   "later_pts": 2.8,
+   "win": [
+    0.6309,
+    0.6666
+   ],
+   "now_wins": 0.0358,
+   "ahead_wins": [
+    -0.0343,
+    0.0221
+   ],
+   "ahead_pts": -1.27,
+   "ahead_week_pts": [
+    -4.07,
+    2.79
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0214,
+   "value": 0.045,
    "status": "fails",
    "why": "worth 4.5 win-pts, under the 8.4 an add costs"
   },
@@ -2196,7 +2196,7 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.026,
+   "later_wins": 0.0261,
    "value": 0.0302,
    "status": "fails",
    "why": "worth 3.0 win-pts, under the 8.4 an add costs"
@@ -2686,6 +2686,50 @@
    "why": "worth 1.2 win-pts, under the 8.4 an add costs"
   },
   {
+   "key": "8480426:8481596",
+   "add": {
+    "id": 8480426,
+    "name": "Charle-Edouard D'Astous",
+    "team": "TBL",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8481596,
+    "name": "Shane Pinto"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": -0.67,
+   "next_two_pts": 3.07,
+   "later_pts": 0.0,
+   "win": [
+    0.6309,
+    0.6255
+   ],
+   "now_wins": -0.0053,
+   "ahead_wins": [
+    -0.0322,
+    0.0493
+   ],
+   "ahead_pts": 2.5,
+   "ahead_week_pts": [
+    -3.82,
+    6.31
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0,
+   "value": 0.0118,
+   "status": "fails",
+   "why": "worth 1.2 win-pts, under the 8.4 an add costs"
+  },
+  {
    "key": "8482113:8481596",
    "add": {
     "id": 8482113,
@@ -2728,51 +2772,6 @@
    "value": 0.0104,
    "status": "fails",
    "why": "dropping Shane Pinto costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8478444:8481596",
-   "add": {
-    "id": 8478444,
-    "name": "Brock Boeser",
-    "team": "VAN",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8481596,
-    "name": "Shane Pinto"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 1.73,
-   "next_two_pts": -4.7,
-   "later_pts": 4.19,
-   "win": [
-    0.6309,
-    0.6446
-   ],
-   "now_wins": 0.0137,
-   "ahead_wins": [
-    -0.0193,
-    -0.0163
-   ],
-   "ahead_pts": -4.33,
-   "ahead_week_pts": [
-    -2.3,
-    -2.03
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.032,
-   "value": 0.01,
-   "status": "fails",
-   "why": "worth 1.0 win-pts, under the 8.4 an add costs"
   }
  ],
  "teams": {
@@ -7277,7 +7276,7 @@
     {
      "date": "2026-10-19",
      "opp": "@TOR",
-     "prob": 0.282,
+     "prob": 0.2,
      "xfp": 8.81
     },
     {
@@ -7416,106 +7415,6 @@
     "opp": "CAR"
    },
    "gp": 6
-  },
-  "8476932": {
-   "id": 8476932,
-   "name": "Anthony Stolarz",
-   "team": "TOR",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 3,
-    "pts": 25.5,
-    "proj": 28.4,
-    "pts_projected": 25.5,
-    "stats": {
-     "Wins": [
-      2.0,
-      1.4
-     ],
-     "Saves": [
-      70.0,
-      77.0
-     ],
-     "Goals against": [
-      10.0,
-      8.0
-     ],
-     "Shutouts": [
-      0.0,
-      0.2
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-13",
-      "opp": "@UTA",
-      "pts": 4.0,
-      "proj": 9.6
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "NSH",
-      "pts": 8.3,
-      "proj": 9.6
-     },
-     {
-      "date": "2026-09-30",
-      "opp": "NYI",
-      "pts": 13.1,
-      "proj": 9.2
-     }
-    ],
-    "starts": 3,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 2.25,
-    "Saves": 8.8,
-    "Goals against": -2.67,
-    "Shutout": 0.26
-   },
-   "stats": {
-    "Wins": 0.56,
-    "Saves": 25.15,
-    "Goals against": 2.67,
-    "Shutouts": 0.05
-   },
-   "xfp": 9.65,
-   "share": 0.343,
-   "starts": [
-    {
-     "date": "2026-10-19",
-     "opp": "SJS",
-     "prob": 0.2,
-     "xfp": 9.65
-    },
-    {
-     "date": "2026-10-20",
-     "opp": "@CBJ",
-     "prob": 0.61,
-     "xfp": 9.5
-    },
-    {
-     "date": "2026-10-22",
-     "opp": "NYR",
-     "prob": 0.343,
-     "xfp": 8.89
-    },
-    {
-     "date": "2026-10-24",
-     "opp": "@EDM",
-     "prob": 0.343,
-     "xfp": 9.45
-    }
-   ],
-   "next": {
-    "date": "2026-10-19",
-    "opp": "SJS"
-   },
-   "gp": 3
   },
   "8484390": {
    "id": 8484390,
@@ -7664,6 +7563,106 @@
    "durability": 0.893,
    "kept": 0.998,
    "replacement": 5.235
+  },
+  "8476932": {
+   "id": 8476932,
+   "name": "Anthony Stolarz",
+   "team": "TOR",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 3,
+    "pts": 25.5,
+    "proj": 28.4,
+    "pts_projected": 25.5,
+    "stats": {
+     "Wins": [
+      2.0,
+      1.4
+     ],
+     "Saves": [
+      70.0,
+      77.0
+     ],
+     "Goals against": [
+      10.0,
+      8.0
+     ],
+     "Shutouts": [
+      0.0,
+      0.2
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-13",
+      "opp": "@UTA",
+      "pts": 4.0,
+      "proj": 9.6
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "NSH",
+      "pts": 8.3,
+      "proj": 9.6
+     },
+     {
+      "date": "2026-09-30",
+      "opp": "NYI",
+      "pts": 13.1,
+      "proj": 9.2
+     }
+    ],
+    "starts": 3,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 2.25,
+    "Saves": 8.8,
+    "Goals against": -2.67,
+    "Shutout": 0.26
+   },
+   "stats": {
+    "Wins": 0.56,
+    "Saves": 25.15,
+    "Goals against": 2.67,
+    "Shutouts": 0.05
+   },
+   "xfp": 9.65,
+   "share": 0.343,
+   "starts": [
+    {
+     "date": "2026-10-19",
+     "opp": "SJS",
+     "prob": 0.03,
+     "xfp": 9.65
+    },
+    {
+     "date": "2026-10-20",
+     "opp": "@CBJ",
+     "prob": 0.61,
+     "xfp": 9.5
+    },
+    {
+     "date": "2026-10-22",
+     "opp": "NYR",
+     "prob": 0.343,
+     "xfp": 8.89
+    },
+    {
+     "date": "2026-10-24",
+     "opp": "@EDM",
+     "prob": 0.343,
+     "xfp": 9.45
+    }
+   ],
+   "next": {
+    "date": "2026-10-19",
+    "opp": "SJS"
+   },
+   "gp": 3
   },
   "8482087": {
    "id": 8482087,
@@ -10523,6 +10522,142 @@
    "durability": 0.754,
    "kept": 1.0,
    "replacement": 5.235
+  },
+  "8480426": {
+   "id": 8480426,
+   "name": "Charle-Edouard D'Astous",
+   "team": "TBL",
+   "positions": "D",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 7,
+    "pts": 25.9,
+    "proj": 24.7,
+    "pts_projected": 25.9,
+    "stats": {
+     "Goals": [
+      1.0,
+      0.5
+     ],
+     "Assists": [
+      1.0,
+      2.0
+     ],
+     "PP points": [
+      0.0,
+      0.3
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.2
+     ],
+     "Shots": [
+      11.0,
+      7.5
+     ],
+     "Hits": [
+      7.0,
+      8.1
+     ],
+     "Blocks": [
+      11.0,
+      7.4
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.0
+     ],
+     "+/-": [
+      -1.0,
+      0.1
+     ],
+     "PIM": [
+      4.0,
+      7.0
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-17",
+      "opp": "VAN",
+      "pts": 7.8,
+      "proj": 3.3
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "NYR",
+      "pts": 3.1,
+      "proj": 3.3
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "NYI",
+      "pts": 1.6,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "MIN",
+      "pts": 3.0,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-05",
+      "opp": "PHI",
+      "pts": 1.4,
+      "proj": 3.7
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "WSH",
+      "pts": 6.3,
+      "proj": 3.8
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "NYR",
+      "pts": 2.8,
+      "proj": 3.8
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.29,
+    "Assists": 0.727,
+    "PP, SH, GWG": 0.06,
+    "Shots": 0.56,
+    "Hits": 0.654,
+    "Blocks": 0.921,
+    "Faceoffs": 0.0,
+    "+/- and PIM": 0.284
+   },
+   "xfp": 3.496,
+   "stats": {
+    "Goals": 0.072,
+    "Assists": 0.265,
+    "PP points": 0.034,
+    "SH points": 0.001,
+    "GWG": 0.02,
+    "Shots": 1.12,
+    "Hits": 1.089,
+    "Blocks": 1.151,
+    "Faceoff wins": 0.0,
+    "+/-": 0.01,
+    "PIM": 0.93
+   },
+   "toi": 14.9,
+   "pp_toi": 1.57,
+   "gp": 7,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.93,
+   "kept": 1.0,
+   "replacement": 4.365
   },
   "8482113": {
    "id": 8482113,
@@ -13904,29 +14039,44 @@
  "watch": [
   {
    "date": "2026-10-19",
-   "id": 8482476,
-   "name": "Emil Heineman",
-   "team": "NYI",
-   "positions": "LW/RW",
+   "id": 8478911,
+   "name": "Matt Roy",
+   "team": "WSH",
+   "positions": "D",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the second line.",
-   "verdict": "-0 win-pts against the 8.4 an add costs: not yet worth one.",
-   "value": -0.003,
+   "why": "DFO moved up to the top D pair.",
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "value": null,
+   "price": null,
+   "sent": false
+  },
+  {
+   "date": "2026-10-19",
+   "id": 8480426,
+   "name": "Charle-Edouard D'Astous",
+   "team": "TBL",
+   "positions": "D",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first power play.",
+   "verdict": "+1 win-pts against the 8.4 an add costs: not yet worth one.",
+   "value": 0.0118,
    "price": 0.0839,
    "sent": false
   },
   {
    "date": "2026-10-19",
-   "id": 8484471,
-   "name": "Emmitt Finnie",
-   "team": "DET",
-   "positions": "C/LW",
+   "id": 8485402,
+   "name": "Michael Misa",
+   "team": "SJS",
+   "positions": "C",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the first power play.",
+   "why": "DFO moved up to the second line.",
    "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
    "value": null,
    "price": null,
@@ -13934,18 +14084,48 @@
   },
   {
    "date": "2026-10-19",
-   "id": 8477429,
-   "name": "Andrew Copp",
-   "team": "DET",
-   "positions": "C/LW",
+   "id": 8482476,
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the first power play.",
-   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-   "value": null,
+   "name": "Emil Heineman",
+   "positions": "LW/RW",
+   "price": 0.0839,
+   "sent": false,
+   "team": "NYI",
+   "value": -0.003,
+   "verdict": "-0 win-pts against the 8.4 an add costs: not yet worth one.",
+   "why": "DFO moved up to the second line."
+  },
+  {
+   "date": "2026-10-19",
+   "id": 8484471,
+   "kinds": [
+    "promoted"
+   ],
+   "name": "Emmitt Finnie",
+   "positions": "C/LW",
    "price": null,
-   "sent": false
+   "sent": false,
+   "team": "DET",
+   "value": null,
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "why": "DFO moved up to the first power play."
+  },
+  {
+   "date": "2026-10-19",
+   "id": 8477429,
+   "kinds": [
+    "promoted"
+   ],
+   "name": "Andrew Copp",
+   "positions": "C/LW",
+   "price": null,
+   "sent": false,
+   "team": "DET",
+   "value": null,
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "why": "DFO moved up to the first power play."
   },
   {
    "date": "2026-10-19",
