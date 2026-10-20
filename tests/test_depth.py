@@ -111,11 +111,22 @@ def test_goalie_points_count_only_with_three_starts_likely():
     assert nights.week([half])["G"] == 12.0 * 0.125  # P(3 of 3) = 1/8
 
 
-def test_empty_counts_slot_games_nobody_fills():
+def test_usage_counts_slot_games_nobody_fills():
     mon = dt.date(2026, 11, 2)
     sched = {mon + dt.timedelta(days=i): ([_game("AAA", "BBB")] if i == 0 else []) for i in range(7)}
     nights = depth.Nights.from_schedule(sched)
     four_d = [Player(i, f"D{i}", "AAA" if i < 2 else "CCC", ("D",), 4.0) for i in range(4)]
-    empty = nights.empty(four_d)
+    empty, games = nights.usage(four_d)
     assert empty["D"] == 4 * 7 - 2  # 28 D slot-games, two filled on Monday
     assert empty["C"] == 14
+    assert games[0] == (1.0, 0.0)
+
+
+def test_benched_counts_games_a_player_sits_for_want_of_a_slot():
+    mon = dt.date(2026, 11, 2)
+    sched = {mon + dt.timedelta(days=i): ([_game("AAA", "BBB")] if i == 0 else []) for i in range(7)}
+    nights = depth.Nights.from_schedule(sched)
+    cs = [Player(i, f"C{i}", "AAA", ("C",), 6.0 - i) for i in range(3)]  # three C-only on one night: one sits
+    flex = Player(9, "Flex", "BBB", ("C", "RW"), 1.0)  # takes RW, so he plays
+    _, games = nights.usage(cs + [flex])
+    assert games[2] == (1.0, 1.0) and games[0] == (1.0, 0.0) and games[9] == (1.0, 0.0)

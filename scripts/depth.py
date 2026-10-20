@@ -20,7 +20,9 @@ Per team and slot, in points a week:
   eligible only there, on an average NHL team's schedule) would add in place
   of the team's least useful player (two goalies kept). High = shallow there;
   near zero or below = deep;
-- empty: slot-games a week nobody on the roster can fill;
+- empty: slot-games a week nobody on the roster can fill, and benched: games
+  a week a player has but sits, for want of a slot (Nico: as few benched
+  players with a game as possible), with the points they'd have scored;
 - spare: the player the team loses least by trading, against what he'd give a
   team that starts him every game (his edge over waiver level): "chip" vs "keep".
 Then for my team, the 1-for-1 swaps where both sides gain, by team.
@@ -261,17 +263,22 @@ class Nights:
         runs = [self.week(players + [Player(-1, "stand-in", t, positions, v, share)]) for t in self.typical]
         return {s: statistics.mean(r[s] for r in runs) for s in SLOTS}
 
-    def empty(self, players: list[Player]) -> dict[str, float]:
-        """Slot-games a week nobody on the roster fills."""
+    def usage(self, players: list[Player]) -> tuple[dict[str, float], dict[int, tuple[float, float]]]:
+        """(slot -> slot-games a week nobody on the roster fills, player id ->
+        (his games a week, the ones he sits on the bench))."""
         filled = dict.fromkeys(SLOTS, 0.0)
-        cols = [self._col(p) for p in players]
-        patterns, counts = np.unique(self.plays[:, cols], axis=0, return_counts=True)
+        games = {p.id: [0.0, 0.0] for p in players}
+        patterns, counts = np.unique(self.plays[:, [self._col(p) for p in players]], axis=0, return_counts=True)
         for pattern, count in zip(patterns, counts):
-            playing = tuple(sorted((p.value, p.positions) for p, on in zip(players, pattern) if on))
-            for slot in assign(playing):
+            on = sorted(((p.value, p.positions, i) for i, (p, plays) in enumerate(zip(players, pattern)) if plays))
+            for (_, _, i), slot in zip(on, assign(tuple((v, pos) for v, pos, _ in on))):
+                games[players[i].id][0] += count
                 if slot:
                     filled[slot] += count
-        return {s: (STARTERS[s] * len(self.plays) - filled[s]) / self.weeks for s in SLOTS}
+                else:
+                    games[players[i].id][1] += count
+        empty = {s: (STARTERS[s] * len(self.plays) - filled[s]) / self.weeks for s in SLOTS}
+        return empty, {pid: (g / self.weeks, b / self.weeks) for pid, (g, b) in games.items()}
 
 
 def total(by_slot: dict[str, float]) -> float:
@@ -306,6 +313,7 @@ class Depth:
     spares: list[Spare]  # every player, the cheapest to trade first
     cut: Player | None = None  # who a new starter would replace: the least useful (goalies kept at 2)
     empty: dict[str, float] | None = None  # slot-games a week left empty
+    games: dict[int, tuple[float, float]] | None = None  # player id -> (games, benched games) a week
 
 
 def _goalies(players: list[Player]) -> int:
@@ -343,7 +351,7 @@ def analyse(team: str, players: list[Player], nights: Nights, waiver: dict[str, 
               key=lambda s: s.keep).player
     rest = _without(active, cut)
     need = {s: total(nights.week_with(rest, (s,), starter[s])) - total(base) for s in SLOTS}
-    return Depth(team, active, extra, base, need, spares, cut, nights.empty(active))
+    return Depth(team, active, extra, base, need, spares, cut, *nights.usage(active))
 
 
 def slot_of(p: Player) -> str:
@@ -421,10 +429,24 @@ def report(depths: dict[str, Depth], me: str, best_swaps: dict[str, list[Swap]],
         out.append(f"| {name(t)} | " + " | ".join(cells) + f" | {d.cut.name if d.cut else '-'} | "
                    + "; ".join(f"{s.player.name} {slot_of(s.player)} ({s.keep:.1f} / {s.chip:.1f})" for s in spare)
                    + " | " + (", ".join(p.name for p in d.extra) or "-") + " |")
-    out += ["", "## Empty slots (slot-games a week nobody on the roster can fill)", "",
-            "| Team | C | LW | RW | D | G |", "|---|---|---|---|---|---|"]
+    out += ["", "## Slots left empty, games left on the bench (a week)",
+            "Empty: slot-games nobody on the roster can fill. Benched: games a player has but sits for want "
+            "of a slot (F, D, G), and the points they'd have scored.", "",
+            "| Team | Empty C | LW | RW | D | G | Benched F | D | G | Pts benched |",
+            "|---|---|---|---|---|---|---|---|---|---|"]
     for t in teams:
-        out.append(f"| {name(t)} | " + " | ".join(f"{depths[t].empty[s]:.1f}" for s in SLOTS) + " |")
+        d = depths[t]
+        benched = {g: sum(d.games[p.id][1] for p in d.active if p.group == g) for g in ("F", "D", "G")}
+        lost = sum(d.games[p.id][1] * p.value for p in d.active)
+        out.append(f"| {name(t)} | " + " | ".join(f"{d.empty[s]:.1f}" for s in SLOTS) + " | "
+                   + " | ".join(f"{benched[g]:.1f}" for g in ("F", "D", "G")) + f" | {lost:.1f} |")
+    mine = depths[me]
+    out += ["", f"## {me}, player by player (a week)", "",
+            "| Player | Pos | Pts a game | Games | Benched | Pts benched |", "|---|---|---|---|---|---|"]
+    for p in sorted(mine.active, key=lambda p: (["F", "D", "G"].index(p.group), -p.value)):
+        g, b = mine.games[p.id]
+        out.append(f"| {p.name} | {slot_of(p)} | {p.value:.2f} | {g:.2f} | {b:.2f} | {b * p.value:.1f} |")
+
     out += ["", f"## Swaps for {me} where both sides gain (points a week, you / them)", ""]
     for t, found in sorted(best_swaps.items(), key=lambda kv: -min(kv[1][0].mine, kv[1][0].theirs) if kv[1] else 0):
         if found:
