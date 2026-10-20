@@ -85,6 +85,7 @@ python -m scripts.fit_absence                     # how fast absent players retu
 python -m scripts.sim_goalies                     # two goalies or three: 2025-26 replayed under each policy
 python -m scripts.third_goalie                    # a third goalie for a skater, every week left on the real schedule (--goalie NAME --drop NAME)
 python -m scripts.fit_goalie_starts               # who starts next: last result, back-to-backs
+python -m scripts.depth                           # every team's depth by slot, needs, spares, 1-for-1s both sides gain (offline)
 python -m scripts.render_slides --png data/charts/slides   # docs/model-overview.pdf from its HTML
 ```
 A dry run writes `data/charts/` (the charts, `board.json`, `data.json` and a copy of the
