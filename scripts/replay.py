@@ -64,8 +64,11 @@ LOST_ROLE = 0.15  # a goalie under this share of his team's last 10 starts has l
 REFERENCE = "ramp 1.0"
 # name -> (keep rule, streaming spots, long-run discount, price). keep: a ramp
 # width in points a game, "switch" (the rule before 2026-10-11: a streaming
-# spot's drop holds, any other the season), 0.0 (every swap only while held)
-# or "season" (every swap the season).
+# spot's drop holds, any other the season), 0.0 (every swap only while held),
+# "season" (every swap the season) or "add" (the ramp on the add's gap alone, a
+# streaming spot's drop included: a keeper added there stays, so the swap counts
+# the season; Nico, 2026-10-20, after Merilainen for Larsson, keeping Pinto, got
+# only the hold's 4 later points to Merilainen for Pinto's 43).
 VARIANTS = {
     "ramp 1.0": (1.0, 3, 0.5, PRICE),
     "ramp 0.5": (0.5, 3, 0.5, PRICE),
@@ -80,6 +83,7 @@ VARIANTS = {
     "no swaps": (1.0, 3, 0.5, math.inf),
     "exit": (1.0, 3, 0.5, PRICE),
     "exit charged": (1.0, 3, 0.5, PRICE),
+    "keeper add": ("add", 3, 0.5, PRICE),
 }
 # Planned exits (Nico, 2026-10-13: add Landeskog for week 4's games, stream him
 # out before his weak week 5). A streaming swap's counted hold may end after
@@ -408,6 +412,23 @@ def best_exit(gain: dict, future: list[dt.date], ahead: list, weeks_after: int, 
     return best
 
 
+def keep_of(keep_rule, add, drop, spot_ids: set[int], line: float, levels: dict, ctx) -> float:
+    """The season's share of a swap's later gain under `keep_rule` (VARIANTS)."""
+    if keep_rule == "switch":
+        return 0.0 if drop.id in spot_ids else 1.0
+    if keep_rule == "season":
+        return 1.0
+    if keep_rule == 0.0:
+        return 0.0
+    if keep_rule == "add":
+        return min(max(matchup.waiver_gap(add, levels, ctx, {}) - line, 0.0) / matchup.KEEP_RAMP, 1.0)
+    saved, matchup.KEEP_RAMP = matchup.KEEP_RAMP, keep_rule
+    try:
+        return matchup.keep_share(add, drop, spot_ids, line, levels, ctx, {})
+    finally:
+        matchup.KEEP_RAMP = saved
+
+
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
               exit_rule=None, price=PRICE, leaving=()):
     """(value, add, drop, exit Monday or None) of the best skater swap this Monday, valued as
@@ -467,15 +488,7 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 week_gain = sum(mine.gain(a.id, d.id, this).values())
                 if week_gain < -matchup.MAX_WEEK_COST:
                     continue
-                if keep_rule == "switch":
-                    keep = 0.0 if d.id in spot_ids else 1.0
-                elif keep_rule == "season":
-                    keep = 1.0
-                elif keep_rule == 0.0:
-                    keep = 0.0
-                else:
-                    matchup.KEEP_RAMP = keep_rule
-                    keep = matchup.keep_share(a, d, spot_ids, line, levels, ctx, {})
+                keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
                 gain = mine.gain(a.id, d.id, future)
                 saved_discount = matchup.LONG_RUN_DISCOUNT
                 matchup.LONG_RUN_DISCOUNT = discount

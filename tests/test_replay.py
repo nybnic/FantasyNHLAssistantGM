@@ -65,3 +65,17 @@ def test_a_planned_exit_drops_a_bad_week_ahead_only_when_it_pays():
     assert exit_("charged") == (pytest.approx(full), None)
     assert exit_("charged", price=0.01)[1] == 1
     assert exit_("free", keep=1.0)[1] is None  # a keeper is never planned out
+
+
+def test_a_keeper_added_onto_a_streaming_spot_counts_the_season_only_under_keeper_add():
+    from league.roster import RosterPlayer
+    ctx = replay.Ctx({1: 5.0, 2: 3.1, 3: 3.4, 9: 3.0})  # 1 a keeper free agent, 2 my streaming spot, 3 a fringe keeper
+    keeper, spot, fringe = (RosterPlayer(pid, str(pid), "A", ["C"]) for pid in (1, 2, 3))
+    levels, line = {"C": 3.0}, 0.1  # waiver level; the streaming spots' best gap
+    assert replay.keep_of(1.0, keeper, spot, {2}, line, levels, ctx) == 0.0  # the live rule: a spot's drop holds
+    assert replay.keep_of("add", keeper, spot, {2}, line, levels, ctx) == 1.0  # he stays: the season
+    # A streamer added for a fringe keeper: the add's own gap, so still near the hold either way.
+    streamer = RosterPlayer(9, "9", "A", ["C"])
+    assert replay.keep_of("add", streamer, fringe, set(), line, levels, ctx) == 0.0
+    assert replay.keep_of(1.0, streamer, fringe, set(), line, levels, ctx) == 0.0
+    assert replay.keep_of("add", fringe, spot, {2}, line, levels, ctx) == pytest.approx(0.3)
