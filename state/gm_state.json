@@ -860,7 +860,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-20T16:31+00:00",
+    "at": "2026-10-20T17:31+00:00",
     "moves": [
       {
         "add": {
@@ -883,7 +883,7 @@
         "key": "8482447:8481596",
         "message_id": 555,
         "rec_id": "add-2026-10-20-1505-8482447",
-        "value": 0.447,
+        "value": 0.4495,
         "when": "2026-10-20",
         "why": "now"
       },
@@ -903,7 +903,7 @@
         "key": "8482087:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1292,
+        "value": 0.1293,
         "when": "2026-10-21",
         "why": "held"
       }
@@ -1107,6 +1107,7 @@
       "8478010:promoted": "2026-10-15",
       "8478047:promoted": "2026-10-18",
       "8478366:promoted": "2026-10-17",
+      "8478401:promoted": "2026-10-20",
       "8478438:promoted": "2026-10-19",
       "8478444:promoted": "2026-10-18",
       "8478542:promoted": "2026-10-14",
@@ -1510,13 +1511,6 @@
         ],
         "since": {}
       },
-      "8476374": {
-        "groups": [
-          "f4",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8476392": {
         "groups": [
           "f3",
@@ -1621,7 +1615,7 @@
       "8476854": {
         "groups": [
           "d1",
-          "pk2"
+          "pk1"
         ],
         "since": {
           "d1": null
@@ -2083,9 +2077,13 @@
       },
       "8478401": {
         "groups": [
-          "ir"
+          "f1",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-20",
+          "pp1": "2026-10-20"
+        }
       },
       "8478413": {
         "groups": [
@@ -2216,7 +2214,7 @@
       "8478840": {
         "groups": [
           "d2",
-          "pk1"
+          "pk2"
         ],
         "since": {}
       },
@@ -2361,7 +2359,8 @@
       },
       "8479661": {
         "groups": [
-          "f4"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -2579,8 +2578,7 @@
       },
       "8480355": {
         "groups": [
-          "f4",
-          "pk2"
+          "f4"
         ],
         "since": {}
       },
@@ -2794,13 +2792,6 @@
         "groups": [
           "d2",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8481219": {
-        "groups": [
-          "d2",
-          "pk1"
         ],
         "since": {}
       },
@@ -3180,7 +3171,7 @@
       "8482177": {
         "groups": [
           "f2",
-          "pk2"
+          "pk1"
         ],
         "since": {
           "f2": "2026-10-19"
@@ -3554,12 +3545,12 @@
       },
       "8483489": {
         "groups": [
-          "f1",
-          "pp1"
+          "f2",
+          "pk2",
+          "pp2"
         ],
         "since": {
-          "f1": null,
-          "pp1": null
+          "f2": "2026-10-20"
         }
       },
       "8483490": {
@@ -3618,17 +3609,13 @@
       },
       "8483505": {
         "groups": [
-          "f2",
-          "pp2"
+          "f4"
         ],
-        "since": {
-          "f2": "2026-10-19"
-        }
+        "since": {}
       },
       "8483506": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -3961,7 +3948,8 @@
       "8484783": {
         "groups": [
           "d2",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -5239,6 +5227,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-20",
+        "id": 8478401,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Pavel Zacha",
+        "positions": "C/LW",
+        "price": 0.1241,
+        "sent": true,
+        "team": "BOS",
+        "value": 0.0711,
+        "verdict": "+7 win-pts against the 12.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line and the first power play."
       }
     ]
   },
