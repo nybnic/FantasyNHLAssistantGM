@@ -188,7 +188,8 @@ def main() -> None:
         n = counts(train)
         print(f"  {'feature':16s} {'fit':>6s}   " + "  ".join(f"{f'{s // 10000 % 100}-{s % 100:02d}':>6s}" for s in alone) + "   (odds x; form: per goal)")
         for j, name in enumerate(FEATURES):
-            print(f"  {name:16s} {math.exp(beta[j]):6.2f}   " + "  ".join(f"{math.exp(alone[s][j]):6.2f}" for s in alone)
+            d = 3 if name.startswith("form") else 2  # a goal's effect is small: 3 decimals
+            print(f"  {name:16s} {math.exp(beta[j]):6.{d}f}   " + "  ".join(f"{math.exp(alone[s][j]):6.{d}f}" for s in alone)
                   + (f"   n={n[name]}" if name in n else ""))
         line = f"  log loss on {TEST}: shares {loss(test, shares):.4f}"
         if h == (1, 1):
