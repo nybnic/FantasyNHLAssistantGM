@@ -105,6 +105,12 @@
   .grid td.sum { font-weight: 600; padding: 2px 4px; }
   .watch li { padding: 7px 0; border-top: 1px solid var(--grid); list-style: none; }
   .watch ul { margin: 0; padding: 0; }
+  .watch summary { display: flex; align-items: baseline; gap: 8px; cursor: pointer; list-style: none; }
+  .watch summary::-webkit-details-marker { display: none; }
+  .watch summary h2 { margin: 0; }
+  .watch summary::after { content: "\25B8"; margin-left: auto; color: var(--muted); }
+  .watch[open] summary::after { content: "\25BE"; }
+  .watch[open] summary { margin-bottom: 6px; }
   .watch .who { font-weight: 600; font-size: 14px; }
   /* move table */
   .moves { width: 100%; }
@@ -637,13 +643,22 @@ function streamCard() {
 }
 
 // ---- the breakout watch: free agents whose role just changed (bot/watch.py) --------
+let watchOpen = recall("watchOpen", "0") === "1";
 function watchCard() {
   const list = data.watch;
   if (!list) return null;
-  const card = el("section", { class: "card watch" });
-  card.append(el("h2", {}, "Breakout watch"));
+  // Folded by default, so a long list doesn't push the rest down; the choice is remembered.
+  const card = el("details", { class: "card watch" });
+  card.open = watchOpen;
+  card.ontoggle = () => { watchOpen = card.open; remember("watchOpen", watchOpen ? "1" : "0"); };
+  const sent = list.filter(r => r.sent).length;
+  const summary = el("summary");
+  summary.append(el("h2", {}, "Breakout watch"),
+                 el("span", { class: "note" }, !list.length ? "nothing flagged"
+                   : `${list.length} flagged` + (sent ? `, ${sent} sent` : "")));
+  card.append(summary);
   card.append(el("div", { class: "note" }, "Free agents whose role changed in the last 14 days. A line promotion alone is sent only when the plan values him at half the add price or more; the rest are listed here."));
-  if (!list.length) { card.append(el("div", { class: "note" }, "Nothing flagged.")); return card; }
+  if (!list.length) return card;
   const ul = el("ul");
   list.forEach(r => {
     const li = el("li");
