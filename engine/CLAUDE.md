@@ -185,6 +185,11 @@ positions, Monday decisions, goalies not streamed, no free-agent competition, no
   spending 21.4 and 19.5 adds vs 18.8. At equal adds (price 0, all ~30 spent) free exits -0.05 (0.09),
   with 9.8 planned and 6.2 made a season. So the gain was the extra adds, not the exit: the full hold
   stays. Untested: mid-week exits (the replay decides on Mondays only).
+- Keeper add (Nico, 2026-10-20: Meriläinen for Larsson, keeping Pinto, got the hold's 4 later points to
+  Meriläinen for Pinto's 43): the keep share on the add's gap alone, so a keeper added onto a streaming
+  spot counts the season. 16 leagues: at the 0.09 price +0.23 (0.09) wins a season, +1.4 pts a week, with
+  fewer adds (17.8 vs 18.8), so not the extra adds; at equal adds (price 0, 29.9 each) +0.07 (0.08), +0.9
+  pts a week. Skater swaps only (the replay streams no goalies). Live rule unchanged: Nico to decide.
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
