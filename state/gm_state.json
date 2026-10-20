@@ -567,6 +567,24 @@
       "message_id": 543,
       "type": "add"
     },
+    "add-2026-10-20-1505-8482447": {
+      "add": {
+        "id": 8482447,
+        "name": "Leevi Meril\u00e4inen",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "VAN"
+      },
+      "add_slot": null,
+      "date": "2026-10-20",
+      "drop": 8481596,
+      "drop_name": "Shane Pinto",
+      "ir": {},
+      "message_id": 555,
+      "type": "add"
+    },
     "lineup-2026-10-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -801,46 +819,30 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-20T06:43+00:00",
+    "at": "2026-10-20T15:05+00:00",
     "moves": [
       {
         "add": {
-          "id": 8475311,
-          "name": "Darcy Kuemper",
+          "id": 8482447,
+          "name": "Leevi Meril\u00e4inen",
           "positions": [
             "G"
           ],
-          "team": "LAK"
+          "team": "VAN"
         },
         "drop": {
           "id": 8481596,
           "name": "Shane Pinto"
         },
-        "key": "8475311:8481596",
-        "message_id": 542,
-        "rec_id": "add-2026-10-20-0535-8475311",
-        "value": 0.4439,
-        "when": "2026-10-20",
-        "why": "now"
-      },
-      {
-        "add": {
-          "id": 8478042,
-          "name": "Viktor Arvidsson",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "team": "DET"
+        "if_starts": {
+          "goalie": "Leevi Meril\u00e4inen",
+          "other": "Kevin Lankinen",
+          "team": "VAN"
         },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8478042:8480855",
-        "message_id": 543,
-        "rec_id": "add-2026-10-20-0535-8478042",
-        "value": 0.1211,
+        "key": "8482447:8481596",
+        "message_id": 555,
+        "rec_id": "add-2026-10-20-1505-8482447",
+        "value": 0.4474,
         "when": "2026-10-20",
         "why": "now"
       },
@@ -860,9 +862,9 @@
         "key": "8482087:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1042,
-        "when": "2026-10-26",
-        "why": "monday"
+        "value": 0.1292,
+        "when": "2026-10-21",
+        "why": "held"
       }
     ],
     "week": 4
@@ -1023,7 +1025,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784712,
+  "telegram_offset": 929784713,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1613,12 +1615,6 @@
         ],
         "since": {}
       },
-      "8476879": {
-        "groups": [
-          "d4"
-        ],
-        "since": {}
-      },
       "8476882": {
         "groups": [
           "f2",
@@ -1717,16 +1713,16 @@
           "f2": null
         }
       },
+      "8477015": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8477220": {
         "groups": [
           "d2",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8477369": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -1760,8 +1756,7 @@
       "8477426": {
         "groups": [
           "f2",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {
           "f2": "2026-10-15"
@@ -1993,12 +1988,6 @@
           "f1": null
         }
       },
-      "8478046": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8478047": {
         "groups": [
           "f3",
@@ -2192,12 +2181,10 @@
       },
       "8478856": {
         "groups": [
-          "f2",
+          "f4",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8478859": {
         "groups": [
@@ -2333,8 +2320,7 @@
       "8479675": {
         "groups": [
           "f2",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {
           "f2": "2026-10-15"
@@ -2348,7 +2334,8 @@
       },
       "8479968": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -2560,7 +2547,7 @@
       },
       "8480448": {
         "groups": [
-          "f4",
+          "f3",
           "pk1"
         ],
         "since": {}
@@ -2916,6 +2903,14 @@
         ],
         "since": {}
       },
+      "8481716": {
+        "groups": [
+          "f2"
+        ],
+        "since": {
+          "f2": null
+        }
+      },
       "8481721": {
         "groups": [
           "f1",
@@ -3069,13 +3064,21 @@
           "pp1": null
         }
       },
+      "8482126": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8482142": {
         "groups": [
           "d2",
           "pk2",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-20"
+        }
       },
       "8482145": {
         "groups": [
@@ -3440,11 +3443,9 @@
       "8483460": {
         "groups": [
           "d3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-10-16"
-        }
+        "since": {}
       },
       "8483463": {
         "groups": [
@@ -3654,20 +3655,12 @@
         ],
         "since": {}
       },
-      "8483695": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8483731": {
         "groups": [
           "f4",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": null
-        }
+        "since": {}
       },
       "8483752": {
         "groups": [
@@ -3746,7 +3739,7 @@
       },
       "8484149": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -4104,7 +4097,7 @@
       },
       "8486171": {
         "groups": [
-          "f3",
+          "f4",
           "pp1"
         ],
         "since": {
