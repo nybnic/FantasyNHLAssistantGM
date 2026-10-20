@@ -242,6 +242,11 @@ def decide(old: list[dict] | None, new: list[Planned], current: dict[str, matchu
         return Verdict(False, "")
     if {p.key for p in new} == {o["key"] for o in old}:
         return Verdict(True, "")
+    # A move the new plan has too is worth what the plan says: judged with its
+    # earlier moves made, as `current` (today's roster) doesn't (2026-10-20: the
+    # plan had Arvidsson at +12 after the goalie add while this said 9.1, "no
+    # longer worth an add", in the same message).
+    current = {**current, **{p.key: p.move for p in new}}
     for o in old:
         label = _label(o)
         if o["key"] in problems:

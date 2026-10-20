@@ -241,3 +241,13 @@ def test_a_confirmation_his_way_says_go_once(monkeypatch, tmp_path):
         weekly.run_plan(state, players, {}, morning + dt.timedelta(hours=hours), outbox, None, "quiet")
     assert sent[2:] == ["Darcy Kuemper is confirmed in LAK's net tonight: make Darcy Kuemper for Mattias Samuelsson now."]
     assert "if_starts" not in state["plan"]["moves"][0]
+
+
+def test_a_move_the_new_plan_keeps_is_judged_at_the_plans_value():
+    # Arvidsson is worth 9.1 on today's roster but 12 once the plan's goalie add is made.
+    goalie, other_goalie = _goalie_move(30, "Darcy Kuemper", "LAK", 0.44), _goalie_move(31, "Leevi Merilainen", "VAN", 0.47)
+    arvidsson_today, arvidsson_after = _move(5, "Viktor Arvidsson", 0.091, drop=LINDELL), _move(5, "Viktor Arvidsson", 0.12, drop=LINDELL)
+    new = [plan.Planned(other_goalie, FRIDAY, "now"), plan.Planned(arvidsson_after, FRIDAY, "now")]
+    current = {plan.key(goalie): goalie, plan.key(other_goalie): other_goalie, plan.key(arvidsson_today): arvidsson_today}
+    verdict = plan.decide([_stored(goalie), _stored(arvidsson_today)], new, current, {}, PRICE)
+    assert verdict == plan.Verdict(False, "the new plan is better by 3 win-pts")  # not "no longer worth an add"

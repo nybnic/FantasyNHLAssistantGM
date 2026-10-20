@@ -13,6 +13,10 @@ care:
    prior (DFO's projected season starts, else DFO depth chart g1/g2), and
    adjusted for back-to-backs: a goalie who started last night rarely
    starts again.
+3. Each goalie's own record moves those shares among his team's goalies:
+   how his last start went and how many team games ago, and his recent
+   goals saved above average (OWN_START_ODDS, FORM_ODDS), most for the next
+   game, a little up to 30 team games on.
 """
 from __future__ import annotations
 

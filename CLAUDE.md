@@ -30,7 +30,8 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 4. **The plan** (`engine/plan.py`): `compose` (best first, no shared add or drop; a
    keeper that does nothing this week waits for Monday only if another move can use
    this week's slot), `time_moves` (the exact day: the drop's games first, the add in
-   before his; else the earliest, as waiting risks a claim), `decide` (the plan Nico
+   before his; else the earliest, as waiting risks a claim), `starter_conditions` (a goalie add
+   worth it only if he starts tonight waits for his team's confirmation), `decide` (the plan Nico
    has seen stays unless a move can't be made or a new one is 0.02 wins better).
 5. **The Board** (`bot/board.py`, `state/board.json`): everything one plan run computed,
    every move with its status (plan / passes / fails) and why. `explain_week` prints it.
