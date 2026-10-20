@@ -1,4 +1,8 @@
+import datetime as dt
+
 import numpy as np
+
+from clients.nhl_client import ScheduledGame
 
 from scripts import depth
 from scripts.depth import Player
@@ -17,11 +21,11 @@ def _team(prefix: int, forwards: list[tuple[str, ...]], d: int = 4, g: int = 2, 
 
 
 def _random_nights() -> depth.Nights:
-    return depth.Nights(set(NHL), n=2000)
+    return depth.Nights.random(set(NHL), n=2000)
 
 
 def _every_night(n: int = 4) -> depth.Nights:
-    nights = depth.Nights({"AAA"}, n=n)
+    nights = depth.Nights.random({"AAA"}, n=n)
     nights.plays = np.ones_like(nights.plays)  # the stand-ins too
     return nights
 
@@ -78,3 +82,40 @@ def test_no_swap_leaves_a_team_under_two_goalies():
     me = depth.analyse("A", _team(0, [("C",)] * 8, g=2), nights, WAIVER, STARTER)
     them = depth.analyse("B", _team(100, [("RW",)] * 8, g=2), nights, WAIVER, STARTER)
     assert all(s.give.group != "G" and s.get.group != "G" for s in depth.swaps(me, them, nights))
+
+
+def _game(home: str, away: str) -> ScheduledGame:
+    return ScheduledGame(1, dt.datetime(2026, 11, 2, 23, tzinfo=dt.timezone.utc), home=home, away=away)
+
+
+def test_the_real_schedule_sets_who_plays_and_the_weeks():
+    mon = dt.date(2026, 11, 2)  # week 6
+    sched = {mon + dt.timedelta(days=i): [] for i in range(14)}
+    sched[mon] = [_game("AAA", "BBB")]
+    sched[mon + dt.timedelta(days=7)] = [_game("CCC", "AAA")]
+    nights = depth.Nights.from_schedule(sched)
+    assert nights.weeks == 2 and set(nights.week_ids) == {6, 7}
+    assert nights.games_a_week("AAA") == 1.0 and nights.games_a_week("BBB") == 0.5
+    skater = Player(1, "A", "AAA", ("C",), 6.0)
+    assert depth.total(nights.week([skater])) == 6.0  # 12 points over two weeks
+    assert "weeks 6-7" in nights.label
+
+
+def test_goalie_points_count_only_with_three_starts_likely():
+    mon = dt.date(2026, 11, 2)
+    sched = {mon + dt.timedelta(days=i): ([_game("AAA", "BBB")] if i < 3 else []) for i in range(7)}
+    nights = depth.Nights.from_schedule(sched)
+    sure = Player(1, "G1", "AAA", ("G",), 8.0, share=1.0)
+    assert nights.week([sure])["G"] == 24.0  # three starts: the minimum is met
+    half = Player(2, "G2", "AAA", ("G",), 4.0, share=0.5)
+    assert nights.week([half])["G"] == 12.0 * 0.125  # P(3 of 3) = 1/8
+
+
+def test_empty_counts_slot_games_nobody_fills():
+    mon = dt.date(2026, 11, 2)
+    sched = {mon + dt.timedelta(days=i): ([_game("AAA", "BBB")] if i == 0 else []) for i in range(7)}
+    nights = depth.Nights.from_schedule(sched)
+    four_d = [Player(i, f"D{i}", "AAA" if i < 2 else "CCC", ("D",), 4.0) for i in range(4)]
+    empty = nights.empty(four_d)
+    assert empty["D"] == 4 * 7 - 2  # 28 D slot-games, two filled on Monday
+    assert empty["C"] == 14

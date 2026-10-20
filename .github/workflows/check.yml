@@ -25,6 +25,7 @@ on:
           - goalie-shares
           - goalie-form
           - third-goalie
+          - depth
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
@@ -38,7 +39,7 @@ on:
         type: string
         required: false
       weeks:
-        description: Optional fantasy weeks for schedule, space-separated, e.g. 24 25 26 (default this week and next)
+        description: Optional fantasy weeks for schedule, space-separated, e.g. 24 25 26 (default this week and next); for depth the first and last (default now to week 26)
         type: string
         required: false
       variants:
@@ -148,5 +149,6 @@ jobs:
             goalie-shares) python -m scripts.goalie_shares ;;
             goalie-form) time python -m scripts.fit_goalie_form ;;
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
+            depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ;;
             replay) time python -m scripts.replay --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} ${variants[@]:+--variants "${variants[@]}"} ;;
           esac
