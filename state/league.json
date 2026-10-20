@@ -1906,12 +1906,21 @@
       ]
     },
     "Jättiläisentie Giants": {
-      "updated": "2026-09-29",
+      "updated": "2026-10-20",
       "players": [
         {
           "id": 8479318,
           "name": "Auston Matthews",
           "team": "TOR",
+          "positions": [
+            "C"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8484166,
+          "name": "Adam Fantilli",
+          "team": "CBJ",
           "positions": [
             "C"
           ],
@@ -1924,6 +1933,61 @@
           "positions": [
             "LW",
             "RW"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8474586,
+          "name": "Jordan Eberle",
+          "team": "SEA",
+          "positions": [
+            "RW"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8475786,
+          "name": "Zach Hyman",
+          "team": "EDM",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8474590,
+          "name": "John Carlson",
+          "team": "TBL",
+          "positions": [
+            "D"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8480336,
+          "name": "Sean Walker",
+          "team": "CAR",
+          "positions": [
+            "D"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8477948,
+          "name": "Travis Sanheim",
+          "team": "PHI",
+          "positions": [
+            "D"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8481524,
+          "name": "Bowen Byram",
+          "team": "CHI",
+          "positions": [
+            "D"
           ],
           "slot": null
         },
@@ -1946,99 +2010,6 @@
           "slot": null
         },
         {
-          "id": 8481524,
-          "name": "Bowen Byram",
-          "team": "CHI",
-          "positions": [
-            "D"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8474590,
-          "name": "John Carlson",
-          "team": "TBL",
-          "positions": [
-            "D"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8475786,
-          "name": "Zach Hyman",
-          "team": "EDM",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8484166,
-          "name": "Adam Fantilli",
-          "team": "CBJ",
-          "positions": [
-            "C"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8480336,
-          "name": "Sean Walker",
-          "team": "CAR",
-          "positions": [
-            "D"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8480015,
-          "name": "Owen Tippett",
-          "team": "PHI",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8477948,
-          "name": "Travis Sanheim",
-          "team": "PHI",
-          "positions": [
-            "D"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8478401,
-          "name": "Pavel Zacha",
-          "team": "BOS",
-          "positions": [
-            "C",
-            "LW"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8479973,
-          "name": "Stuart Skinner",
-          "team": "WPG",
-          "positions": [
-            "G"
-          ],
-          "slot": null
-        },
-        {
-          "id": 8474586,
-          "name": "Jordan Eberle",
-          "team": "SEA",
-          "positions": [
-            "RW"
-          ],
-          "slot": null
-        },
-        {
           "id": 8484387,
           "name": "Matvei Michkov",
           "team": "PHI",
@@ -2054,6 +2025,15 @@
           "team": "BUF",
           "positions": [
             "RW"
+          ],
+          "slot": null
+        },
+        {
+          "id": 8479973,
+          "name": "Stuart Skinner",
+          "team": "WPG",
+          "positions": [
+            "G"
           ],
           "slot": null
         }
@@ -2197,9 +2177,6 @@
   },
   "taken": [],
   "waivers": {
-    "8482095": "2026-10-20",
-    "8475311": "2026-10-20",
-    "8476483": "2026-10-20",
     "8482511": "2026-10-21",
     "8481656": "2026-10-21",
     "8476873": "2026-10-21",
