@@ -546,13 +546,17 @@ function streamCard() {
   tabs.classList.add("tight");
   card.append(tabs, el("h2", {}, "Streaming schedule"));
   card.append(el("div", { class: "note" }, pos === "all"
-    ? "Every team's games, this week and the next two. Pick a position to see which fall on nights your lineup has that slot open."
+    ? "Every team's games, this week and the next two, best schedule first: the most games on off-nights"
+      + " (half the league or less playing), then the most games. Pick a position to see which fall on nights your lineup has that slot open."
     : `Filled: a game on a night your lineup has a ${pos} slot open, with the plan's moves made. Count: those games / all games.`
+      + " Best schedule first: the most of those games, then the most games."
       + (pos === "G" ? " A goalie's game counts only if he starts." : "")));
   const usable = (i) => pos !== "all" && s.days[i].open && s.days[i].open[pos] > 0;
+  // An off-night: half the league or less plays, when lineups have slots open.
+  const offNight = (i) => s.days[i].games * 2 <= s.teams.length / 2;
   const weeks = s.weeks.map(w => w.week);
   const rows = s.teams.map(t => {
-    const per = weeks.map(w => ({ games: 0, use: 0, known: false }));
+    const per = weeks.map(w => ({ games: 0, use: 0, off: 0, known: false }));
     t.cells.forEach((c, i) => {
       if (!c) return;
       const k = weeks.indexOf(s.days[i].week);
@@ -560,11 +564,17 @@ function streamCard() {
       per[k].games++;
       per[k].known = per[k].known || !!s.days[i].open;
       if (usable(i)) per[k].use++;
+      if (offNight(i)) per[k].off++;
     });
-    const tot = per.reduce((a, w) => ({ games: a.games + w.games, use: a.use + w.use }), { games: 0, use: 0 });
+    const tot = per.reduce((a, w) => ({ games: a.games + w.games, use: a.use + w.use, off: a.off + w.off }),
+                           { games: 0, use: 0, off: 0 });
     return { ...t, per, tot };
   });
-  rows.sort((a, b) => (b.tot.use - a.tot.use) || (b.tot.games - a.tot.games) || (b.per[0].use - a.per[0].use)
+  // Best schedule first: games I could play (by position; on All, games on off-nights),
+  // then all games, the sooner the better.
+  const best = w => pos === "all" ? w.off : w.use;
+  rows.sort((a, b) => (best(b.tot) - best(a.tot)) || (b.tot.games - a.tot.games)
+                      || (best(b.per[0]) - best(a.per[0])) || (b.per[0].games - a.per[0].games)
                       || a.team.localeCompare(b.team));
   const table = el("table", { class: "grid" });
   const thead = el("thead"), wkRow = el("tr"), dayRow = el("tr");
