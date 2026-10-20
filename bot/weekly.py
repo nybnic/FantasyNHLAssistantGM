@@ -8,13 +8,15 @@ import json
 import math
 import logging
 from dataclasses import asdict, dataclass, field
+from functools import partial
 from pathlib import Path
 
 
 from clients import dfo_lines, goalie_client, nhl_client
+from clients.names import normalize_name
 from config.league import (PLAYOFF_WEEKS, MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, POST_DRAFT_WAIVERS_CLEAR,
                            SEASON_END)
-from engine import addprice, briefing, ir, matchup, report, scorecard, season
+from engine import addprice, availability, briefing, ir, matchup, report, scorecard, season
 from engine import plan as plan_mod
 from league import teams, weeks
 from league import roster as roster_mod
@@ -683,8 +685,27 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
                                monday_slots, exclude, ranked)
     composed = plan_mod.time_moves(composed, planned, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
                                    wk.so_far, wk.days[-1] + dt.timedelta(days=1))
+
+    def revalue(move, starter: str) -> float | None:
+        """The move's value with `starter` confirmed in his team's net tonight."""
+        confirmed = {**wk.starters, move.add.team: {"goalie_name": starter, "confirmed": True}}
+        again = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, confirmed,
+                                        wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                        wk.later_weight, wk.ahead, only={move.add.id})
+        return next((m.value for m in again if plan_mod.key(m) == plan_mod.key(move)), None)
+
+    composed = plan_mod.starter_conditions(composed, ranked, revalue, partial(goalie_partner, wk.ctx), wk.starters,
+                                           date, wk.schedule, wk.price)
     return PlanMoves(wk, nxt, ranked, composed, ir_moves, planned,
                      max(0, matchup.ACTIVE_SPOTS - len(roster_mod.active(players))), held, activations)
+
+
+def goalie_partner(ctx, team: str, goalie_id: int) -> str:
+    """The goalie who'd start for `team` if `goalie_id` doesn't: the most
+    starts of the last 10 among the others."""
+    recent = [pid for _, pid in ctx.team_starts.get(team, [])[-availability.RECENT_STARTS:] if pid != goalie_id]
+    best = max(set(recent), key=recent.count, default=None)
+    return dict(ctx.team_goalies(team)).get(best, "his partner")
 
 
 def activate_returns(roster: list, back: list, costs) -> tuple[list, list]:
@@ -725,7 +746,9 @@ def _stored(p: plan_mod.Planned, old: dict | None) -> dict:
                                   "positions": m.add.positions},
             "drop": {"id": m.drop.id, "name": m.drop.name} if m.drop else None,
             "when": p.when.isoformat(), "why": p.why, "value": round(m.value, 4),
-            "rec_id": (old or {}).get("rec_id"), "message_id": (old or {}).get("message_id")}
+            "rec_id": (old or {}).get("rec_id"), "message_id": (old or {}).get("message_id"),
+            **({"if_starts": {"team": p.condition.team, "goalie": p.condition.goalie, "other": p.condition.other}}
+               if p.condition else {})}
 
 
 def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox, build_context,
@@ -759,6 +782,11 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         elif o.get("drop") and (made_room := next((b for b, d in p.activations if d and d.id == o["drop"]["id"]),
                                                   None)):
             problems[o["key"]] = f"{o['drop']['name']} makes room for {made_room.name}, back from IR"
+        elif (c := o.get("if_starts")) and o["when"] == date.isoformat() and (
+                s := wk.starters.get(c["team"]) or {}).get("confirmed") and \
+                normalize_name(s["goalie_name"]) != normalize_name(c["goalie"]):
+            # Made only if he started tonight (plan.starter_conditions): he doesn't.
+            problems[o["key"]] = f"{s['goalie_name']} starts for {c['team']} tonight"
     verdict = plan_mod.decide(old_open, p.plan, current, problems, wk.price)
     if verdict.keep and old_open:
         dated = {q.key: q for q in p.plan}
@@ -798,6 +826,12 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         outbox.send(messages.new_plan_text(p.plan, date, wk.max_moves, *((wk.me, wk.them) if mode == "check" else ())))
     elif mode == "check":
         outbox.send(messages.score_text(wk.me, wk.them, p.plan, date))
+    if not changed:  # a move made only if its goalie started tonight: he does, so go (once: then it's plain)
+        for o in old_open:
+            c = o.get("if_starts")
+            s = (wk.starters.get(c["team"]) or {}) if c and o["when"] == date.isoformat() else {}
+            if s.get("confirmed") and normalize_name(s["goalie_name"]) == normalize_name(c["goalie"]):
+                outbox.send(messages.confirmed_text(o))
     if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
         entry = state["results"].setdefault(str(week), {"opponent": opponent})
         entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]

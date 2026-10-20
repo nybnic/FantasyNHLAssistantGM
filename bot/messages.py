@@ -40,7 +40,17 @@ def _detail(p: Planned) -> str:
             "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
     claim += f"; holds the spot until {m.until_back} is back" if m.until_back else ""
-    return head + (f"; {when}" if when else "") + (f"; {p.note}" if p.note else "") + claim
+    cond = f"; {condition_text(p.condition)}" if p.condition else ""
+    return head + (f"; {when}" if when else "") + (f"; {p.note}" if p.note else "") + claim + cond
+
+
+def instead_text(c) -> str:
+    return f"{swap(c.alt)} instead" if c.alt else "no add"
+
+
+def condition_text(c) -> str:
+    """A goalie add worth it only if he starts tonight (plan.starter_conditions)."""
+    return f"only once {c.team} confirms {c.goalie} starts tonight; if {c.other} starts, {instead_text(c)}"
 
 
 def empty_text(adds_left_week: int) -> str:
@@ -60,8 +70,18 @@ def day_label(when: dt.date, today: dt.date) -> str:
     return date_text(when) + (" (today)" if when == today else " (tomorrow)" if (when - today).days == 1 else "")
 
 
+def confirmed_text(stored: dict) -> str:
+    """A move made only if its goalie starts tonight: he does (bot/weekly.run_plan)."""
+    c = stored["if_starts"]
+    move = stored["add"]["name"] + (f" for {stored['drop']['name']}" if stored.get("drop") else "")
+    return f"{c['goalie']} is confirmed in {c['team']}'s net tonight: make {move} now."
+
+
 def make_it(p: Planned, today: dt.date) -> str:
     """A card's first line: the day, and why not sooner."""
+    if c := p.condition:
+        return (f"Make it {day_label(p.when, today)}, once {c.team} confirms {c.goalie} in net tonight "
+                f"(DailyFaceoff, usually after the morning skate). If {c.other} starts: {instead_text(c)}.")
     return (f"Make it {day_label(p.when, today)}, before that evening's games"
             + (f": {p.note}" if p.note else "") + ".")
 

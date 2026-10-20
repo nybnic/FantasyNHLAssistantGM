@@ -85,11 +85,76 @@ BACK_TO_BACK_REPEAT = 0.15
 LAST_RESULT_ODDS = {"W": 1.0, "L": 0.62, "L bad": 0.32}
 BAD_START_GA = 5
 
+# Superseded 2026-10-20 by each goalie's own record (Nico: Kuemper, pulled in
+# his own last start, at 70% because his partner had lost since): LAST_RESULT_ODDS
+# saw only the team's last start, for its next game. Now every goalie with a
+# start in the team's last 10 has his own last start's result, by how many
+# team games ago it was (1 = he started the last one), and his form (goals
+# saved above average over his last FORM_STARTS starts) moving his odds, and
+# his team's shares are re-normalized among them (with_form): a conditional
+# logit, scripts/fit_goalie_form.py, fit 2023-25, checked on 2025-26 (each
+# season alone within ~0.1 of these). By team games ahead (FORM_HORIZONS); W
+# 1 game ago is 1. Log loss on 2025-26: next game 0.690 (the old rule) ->
+# 0.658; games 2-3 0.701 (shares) -> 0.687; 4-7, 8-15, 16-30 ~0.002-0.003
+# better (form most of it); past 30 games nothing (not fit). Not on back-to-backs.
+FORM_STARTS = 5
+FORM_HORIZONS = (1, 3, 7, 15, 30)  # the last team game ahead each row of OWN_START_ODDS covers
+OWN_START_ODDS = (  # {(his last result, team games ago, 3 = 3+): odds x}, per FORM_HORIZONS
+    {("W", 2): 1.74, ("W", 3): 1.17, ("L", 1): 0.59, ("L", 2): 1.13, ("L", 3): 0.89,
+     ("L bad", 1): 0.31, ("L bad", 2): 0.63, ("L bad", 3): 0.39},
+    {("W", 2): 1.07, ("W", 3): 0.68, ("L", 1): 0.91, ("L", 2): 0.94, ("L", 3): 0.69,
+     ("L bad", 1): 0.58, ("L bad", 2): 0.63, ("L bad", 3): 0.43},
+    {("W", 2): 1.01, ("W", 3): 0.84, ("L", 1): 0.86, ("L", 2): 0.86, ("L", 3): 0.84,
+     ("L bad", 1): 0.65, ("L bad", 2): 0.74, ("L bad", 3): 0.64},
+    {("W", 2): 1.03, ("W", 3): 0.83, ("L", 1): 0.88, ("L", 2): 0.94, ("L", 3): 0.97,
+     ("L bad", 1): 0.77, ("L bad", 2): 0.84, ("L bad", 3): 0.89},
+    {("W", 2): 1.07, ("W", 3): 0.90, ("L", 1): 0.95, ("L", 2): 0.98, ("L", 3): 1.10,
+     ("L bad", 1): 0.85, ("L bad", 2): 0.92, ("L bad", 3): 1.06},
+)
+FORM_ODDS = (1.042, 1.020, 1.019, 1.020, 1.021)  # odds x per goal saved above average, per FORM_HORIZONS
+GAMES_PER_DAY = 82 / 186  # a team's games a day over the regular season: days ahead -> team games ahead
+
 
 @dataclass
 class Availability:
     prob: float
     note: str = ""
+
+
+@dataclass(frozen=True)
+class StartForm:
+    """A goalie's own record as of today (OWN_START_ODDS, FORM_ODDS)."""
+    result: str  # his last start: "W", "L" or "L bad" (start_result)
+    ago: int  # team games since it (1 = he started his team's last game)
+    gsaa: float  # goals saved above average over his last FORM_STARTS starts
+
+
+def games_ahead(days_ahead: int, next_game: bool) -> int:
+    """Team games ahead: 1 for his team's next game, else from the days."""
+    return 1 if next_game else max(2, round(days_ahead * GAMES_PER_DAY) + 1)
+
+
+def form_odds(form: StartForm | None, games: int) -> float:
+    """His odds multiplier `games` team games ahead (1 = the next): his own
+    last result by how long ago, and his form. 1 past the fit's 30 games, or
+    without a start in his team's last 10."""
+    if form is None or games > FORM_HORIZONS[-1]:
+        return 1.0
+    k = next(i for i, last in enumerate(FORM_HORIZONS) if games <= last)
+    return OWN_START_ODDS[k].get((form.result, min(form.ago, 3)), 1.0) * FORM_ODDS[k] ** form.gsaa
+
+
+def with_form(share: float, odds: float, rivals: list[tuple[float, float]]) -> float:
+    """His share with each goalie's odds (his, and `rivals`: his healthy
+    teammates' (share, odds)), the team's total share kept: the fit's
+    conditional logit. Odds of 1 all round leave his share as it was."""
+    weighted = share * odds + sum(s * o for s, o in rivals)
+    return share * odds / weighted * (share + sum(s for s, _ in rivals)) if weighted > 0 else share
+
+
+def form_note(form: StartForm) -> str:
+    how = {"W": "won", "L": "lost", "L bad": "pulled or 5+ goals against in"}[form.result]
+    return f"{how} his last start" + (f", {form.ago} games ago" if form.ago > 1 else "")
 
 
 def _injured(info: LineInfo | None) -> str | None:
@@ -175,16 +240,20 @@ def goalie(
     absent: float = 0.0,
     rivals: float = 0.0,
     missed: int = 0,
+    form: tuple[StartForm | None, float, list[tuple[float, float]]] | None = None,
 ) -> Availability:
     """`dfo_starter` is DailyFaceoff's pick for his team tonight
     ({"goalie_name", "confirmed"}) or None; `team_starts` is his team's
     (date, starter id) history this season, oldest first. An injured goalie
     `days_ahead` from tonight starts at his usual share once back (the skater
-    return curves; goalies' weren't fit separately). `last_result` is how the
-    team's last start went (`start_result`), given only for the team's next game.
-    `absent`, `rivals`: his injured teammates' starts that day and his healthy
-    teammates' shares (`absences`); `missed`: team games in a row he has missed,
-    when he's injured (his return curve)."""
+    return curves; goalies' weren't fit separately). `absent`, `rivals`: his
+    injured teammates' starts that day and his healthy teammates' shares
+    (`absences`); `missed`: team games in a row he has missed, when he's
+    injured (his return curve). `form`: (his own record, his odds that day,
+    his healthy teammates' (share, odds)), each goalie's own record moving
+    who starts (OWN_START_ODDS). Without it, the old rule: `last_result`, how
+    the team's last start went, for its next game (LAST_RESULT_ODDS, kept as
+    the baseline scripts/fit_goalie_form.py measures against)."""
     injured = _injured(info)
     if injured or _sidelined_dtd(info):
         news = news_back(info, date - dt.timedelta(days=days_ahead), days_ahead) if injured else None
@@ -208,6 +277,10 @@ def goalie(
             return Availability(share * BACK_TO_BACK_REPEAT, f"~{share * BACK_TO_BACK_REPEAT:.0%} to start (started last night)")
         p = 1 - (1 - share) * BACK_TO_BACK_REPEAT
         return Availability(p, f"~{p:.0%} to start (back-to-back, other goalie started last night)")
+    if form is not None:
+        own, odds, mates = form
+        p = min(with_form(share, odds, mates), CONFIRMED_START)
+        return Availability(p, f"~{p:.0%} to start" + (f" ({form_note(own)})" if own else " (not confirmed yet)"))
     if past and last_result in LAST_RESULT_ODDS and LAST_RESULT_ODDS[last_result] != 1.0:
         last_id, odds = past[-1][1], LAST_RESULT_ODDS[last_result]
         how = "a blowout loss" if last_result == "L bad" else "a loss"

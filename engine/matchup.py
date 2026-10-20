@@ -274,22 +274,53 @@ def goalie_absences(p, ctx, team_lines: dict, date: dt.date) -> tuple[float, flo
     return cache[key]
 
 
+def goalie_form(p, ctx, team_lines: dict, date: dt.date, games: int) -> tuple | None:
+    """availability.goalie's `form`: (his own record, his odds `games` team
+    games ahead, his healthy teammates' (share, odds)); each counts with a
+    start in his team's last 10 (scripts/fit_goalie_form.py). None without
+    records (a context without them). Cached on the context."""
+    forms = getattr(ctx, "start_forms", None)
+    if not forms:
+        return None
+    cache = ctx.__dict__.setdefault("_forms", {})
+    key = (p.id, p.team, date, games)
+    if key not in cache:
+        team_starts = ctx.team_starts.get(p.team, [])
+        recent = {pid for _, pid in team_starts[-availability.RECENT_STARTS:]}
+
+        def own(pid):
+            team, form = forms.get(pid, (None, None))
+            return form if team == p.team and pid in recent else None
+
+        mine, mates = own(p.id), []
+        if mine:
+            for pid, name in ctx.team_goalies(p.team):
+                info = team_lines.get(normalize_name(name))
+                if pid == p.id or own(pid) is None or availability._injured(info) or availability._sidelined_dtd(info):
+                    continue
+                mates.append((availability.start_share(pid, date, info, team_starts, ctx.prior_start_share(pid)),
+                              availability.form_odds(own(pid), games)))
+        cache[key] = (mine, availability.form_odds(mine, games), mates)
+    return cache[key]
+
+
 def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
                 long_run: bool = False, next_game: bool = False) -> tuple[float, float, float]:
     """(expected points, variance, start probability) for one game. Start
     probability is 1 for skaters; goalies' counts toward the minimum.
     `long_run` also discounts skaters by their projected games played, which
     today's injury report can't show for games weeks away. `next_game`: his
-    team's first game from today (its last start's result moves who starts it)."""
+    team's first game from today (each goalie's own last start moves it most)."""
     team_lines = lines.get(p.team, {})
     info = team_lines.get(normalize_name(p.name))
     days_ahead = (date - ctx.today).days
     if p.is_goalie:
         team_starts, prior = ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id)
         absent, rivals = goalie_absences(p, ctx, team_lines, date)
+        form = goalie_form(p, ctx, team_lines, date, availability.games_ahead(days_ahead, next_game))
         avail = availability.goalie(p.id, p.name, date, info, starters.get(p.team) if date == ctx.today else None,
                                     team_starts, prior, days_ahead,
-                                    ctx.last_results.get(p.team) if next_game else None, absent, rivals)
+                                    ctx.last_results.get(p.team) if next_game else None, absent, rivals, form=form)
         prob = avail.prob
         if date > ctx.today and played_yesterday and prob and avail.note not in ("IR", "out"):
             # Who starts the night before isn't known yet.
@@ -804,9 +835,12 @@ def candidate_moves(
     hold_days: int = 7 * STREAM_WEEKS,
     later_weight: float = 0.0,
     ahead: list[WeekAhead] | None = None,
+    only: set[int] | None = None,
 ) -> list[Move]:
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
+    `only`: score just these adds (the rest of `candidates` still set the
+    waiver levels and streaming spots, so their values match a full run's).
     `future` is the schedule of the days after this week used to judge the
     long run (LONG_RUN_WEEKS); `weeks_after` is how many weeks are left.
     `available_from`: player id -> the first day he can play for me (waivers).
@@ -832,6 +866,8 @@ def candidate_moves(
     drops += drop_candidates(mine, ctx, lines, costs, bench_shares(current_future) if current_future else None)
     moves, gains = [], {}
     for add in candidates:
+        if only is not None and add.id not in only:
+            continue
         plays_from = (available_from or {}).get(add.id)
         tried = []
         for drop in drops:
@@ -866,7 +902,7 @@ def candidate_moves(
             ))
             gains[id(moves[-1])] = (gain, held)
     moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, weeks_after, later_weight)
-    stashes = [p for p in candidates if _ir_status(p, lines)]
+    stashes = [p for p in candidates if _ir_status(p, lines) and (only is None or p.id in only)]
     if stashes and current_future and ir.free_slots(roster):
         keeps = {p.id: (held, keep_share(p, None, spots, line, levels, ctx, lines)) for p in stashes}
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,

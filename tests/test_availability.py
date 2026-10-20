@@ -173,3 +173,23 @@ def test_a_teammate_known_out_frees_more_of_his_starts():
     by_news, _ = availability.absences(2, TONIGHT, 7, [(1, season, 2)], [], share_of)
     assert by_news == pytest.approx(availability.ABSENT_TO_TEAMMATES_KNOWN * 0.7)
     assert by_curve < by_news
+
+
+def test_each_goalies_own_record_moves_who_starts_and_keeps_the_teams_total():
+    pulled = availability.StartForm("L bad", 2, -5.0)  # Kuemper, 2026-10-20: pulled, then his partner started
+    lost = availability.StartForm("L", 1, 0.0)
+    assert availability.form_odds(None, 1) == 1.0
+    assert availability.form_odds(pulled, 1) == pytest.approx(0.63 * 1.042 ** -5)
+    assert availability.form_odds(pulled, 31) == 1.0  # past what was fit
+    assert availability.form_odds(availability.StartForm("W", 1, 0.0), 1) == 1.0  # the reference
+    assert availability.form_odds(availability.StartForm("L", 9, 0.0), 1) == availability.OWN_START_ODDS[0][("L", 3)]
+    # Odds of 1 all round leave the share as it was; else the team's total holds.
+    assert availability.with_form(0.6, 1.0, [(0.4, 1.0)]) == pytest.approx(0.6)
+    k = availability.with_form(0.6, availability.form_odds(pulled, 1), [(0.4, availability.form_odds(lost, 1))])
+    f = availability.with_form(0.4, availability.form_odds(lost, 1), [(0.6, availability.form_odds(pulled, 1))])
+    assert k + f == pytest.approx(1.0) and k < 0.6
+    # Days ahead to team games ahead: 1 only for the next game.
+    assert availability.games_ahead(0, True) == 1 and availability.games_ahead(2, False) == 2
+    assert availability.games_ahead(30, False) == 14
+    out = availability.goalie(1, "K", TONIGHT, None, None, [], 0.6, form=(pulled, 0.5, [(0.4, 1.0)]))
+    assert out.prob == pytest.approx(0.3 / 0.7) and "pulled or 5+ goals against in his last start, 2 games ago" in out.note

@@ -34,12 +34,24 @@ CHANGE_MARGIN = 0.02
 
 
 @dataclass
+class StarterCondition:
+    """A goalie add worth it only if he starts tonight, his team's starter not
+    yet confirmed: what to do once it is."""
+    team: str
+    goalie: str  # the add
+    other: str  # his partner, who'd start instead
+    alt: matchup.Move | None  # what to do instead if the partner starts (None: no add)
+    if_not: float  # the add's value if the partner starts
+
+
+@dataclass
 class Planned:
     move: matchup.Move
     when: dt.date
     why: str  # "now": pays this week; "spare": a keeper on this week's free slot (next week's two stay free);
     #           "monday": a keeper that waits for next week's adds; "held": kept for Wednesday's plan
     note: str = ""  # why it's made on that day and not sooner (time_moves)
+    condition: StarterCondition | None = None  # made only if he starts tonight (starter_conditions)
 
     @property
     def key(self) -> str:
@@ -172,6 +184,42 @@ def time_moves(plan: list[Planned], roster, ctx, schedule: dict, next_schedule: 
                 note = f"after {m.drop.name}'s game{'s' if len(games) > 1 else ''} on " + ", ".join(
                     f"{d:%a} {d.day}" for d in games)
         out.append(Planned(m, when, p.why, note))
+    return out
+
+
+def starter_conditions(plan: list[Planned], ranked: list[matchup.Move], revalue: Callable, partner: Callable,
+                       starters: dict, today: dt.date, schedule: dict, price: AddPrice | None) -> list[Planned]:
+    """A goalie add made today whose team plays tonight with its starter not
+    yet confirmed (DailyFaceoff): is it the move whether he starts or not? It
+    is when, with his partner confirmed instead (`revalue(move, name)`: its
+    value with that goalie confirmed tonight; `partner(team, add id)`: the
+    name), it still beats what else would use its drop (`ranked`: the best
+    move sharing the drop, or an open spot, that clashes with no other planned
+    move, its add not his teammate; else the add price). If not, it's made
+    once the starter is known: his start, this move; his partner's, the other
+    (Nico, 2026-10-20: Kuemper for Pinto at 70% to start, the morning after a
+    first-period pull, against Woll for Pinto). Adds are instant, so waiting
+    only risks a claim."""
+    out = []
+    for p in plan:
+        m = p.move
+        team = m.add.team
+        tonight = any(team in (g.home, g.away) for g in schedule.get(today, []))
+        if (not m.add.is_goalie or p.when != today or not tonight or (m.plays_from or today) > today
+                or (starters.get(team) or {}).get("confirmed") or price is None):
+            out.append(p)
+            continue
+        other = partner(team, m.add.id)
+        if_not = revalue(m, other)
+        others = [q.move for q in plan if q is not p]
+        alt = next((a for a in ranked if key(a) != p.key and not matchup.rejection(a, price)
+                    and (a.drop.id if a.drop else None) == (m.drop.id if m.drop else None)
+                    and not (a.add.is_goalie and a.add.team == team) and not _clash(a, others)), None)
+        bar = alt.value if alt else price.lam
+        if if_not is None or if_not >= bar:
+            out.append(p)
+        else:
+            out.append(Planned(m, p.when, p.why, p.note, StarterCondition(team, m.add.name, other, alt, if_not)))
     return out
 
 

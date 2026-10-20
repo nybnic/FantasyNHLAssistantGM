@@ -115,6 +115,7 @@ def plan(
                 ctx.team_starts.get(p.team, []), ctx.prior_start_share(p.id),
                 last_result=ctx.last_results.get(p.team) if game else None,
                 **dict(zip(("absent", "rivals"), matchup.goalie_absences(p, ctx, lines, date))),
+                form=matchup.goalie_form(p, ctx, lines, date, 1) if game else None,
             )
             per_start = ctx.goalie_start(p.id, p.team, game.away if game.home == p.team else game.home,
                                          game.home == p.team)["xfp"] if game else 0.0

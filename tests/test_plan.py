@@ -145,3 +145,99 @@ def test_the_first_plan_relabels_the_earlier_systems_cards_this_week(monkeypatch
     weekly.run_plan(state, players, {}, dt.datetime(2026, 10, 9, 17, tzinfo=dt.timezone.utc),
                     common.Outbox(load_settings()), None, "quiet")
     assert marked == [(292, "Replaced: Parker Kelly for Mattias Samuelsson")]
+
+
+def _goalie_move(add_id, name, team, value, drop=SAMUELSSON):
+    m = _move(add_id, name, value, drop=drop)
+    return matchup.Move(RosterPlayer(add_id, name, team, ["G"]), drop, m.week_gain, m.long_term, 0.0, 2,
+                        m.win_before, m.win_after, later_weight=m.later_weight)
+
+
+def test_a_goalie_add_worth_it_only_if_he_starts_tonight_waits_for_the_confirmation():
+    # 2026-10-20: Kuemper for Pinto in the plan at 70% to start tonight; Woll for Pinto next best.
+    kuemper, woll = _goalie_move(30, "Darcy Kuemper", "LAK", 0.44), _goalie_move(40, "Joseph Woll", "PHI", 0.37)
+    teammate = _goalie_move(31, "Anton Forsberg", "LAK", 0.40)  # his partner is no alternative
+    skater = _move(5, "Viktor Arvidsson", 0.11, drop=LINDELL)
+    tonight = {FRIDAY: [SimpleNamespace(home="WSH", away="LAK")]}
+    plan_ = [plan.Planned(kuemper, FRIDAY, "now"), plan.Planned(skater, FRIDAY, "now")]
+    ranked = [kuemper, teammate, woll, skater]
+    partner = lambda team, gid: "Anton Forsberg"
+
+    def run(if_not, starters=None, when=FRIDAY, ranked=ranked):
+        return plan.starter_conditions([plan.Planned(p.move, when, p.why) for p in plan_], ranked,
+                                       lambda m, name: if_not, partner, starters or {}, FRIDAY, tonight, PRICE)
+    out = run(0.30)  # if Forsberg starts, Kuemper's 0.30 is under Woll's 0.37
+    c = out[0].condition
+    assert (c.team, c.goalie, c.other, c.alt, c.if_not) == ("LAK", "Darcy Kuemper", "Anton Forsberg", woll, 0.30)
+    assert out[1].condition is None  # a skater: nothing to wait for
+    assert run(0.38)[0].condition is None  # the move either way
+    assert run(0.30, {"LAK": {"goalie_name": "Darcy Kuemper", "confirmed": True}})[0].condition is None  # known
+    assert run(0.30, when=FRIDAY + dt.timedelta(days=1))[0].condition is None  # not tonight's question
+    # No alternative for the drop: only if he starts, else no add (under the price).
+    alone = run(0.05, ranked=[kuemper])[0].condition
+    assert alone.alt is None and alone.if_not == 0.05
+    assert run(0.12, ranked=[kuemper])[0].condition is None  # still worth an add if he sits
+
+
+def test_a_conditional_card_says_when_and_a_confirmation_the_other_way_changes_the_plan(monkeypatch, tmp_path):
+    from bot import messages
+    state, players, sent, marked, searches = _flow(monkeypatch, tmp_path)
+    players.append(RosterPlayer(9, "Shane Pinto", "OTT", ["C"], "BN"))
+    pinto = players[-1]
+    kuemper, woll = _goalie_move(30, "Darcy Kuemper", "LAK", 0.44, pinto), _goalie_move(40, "Joseph Woll", "PHI", 0.37, pinto)
+    cond = plan.StarterCondition("LAK", "Darcy Kuemper", "Anton Forsberg", woll, 0.30)
+    conditional = plan.Planned(kuemper, FRIDAY, "now", "", cond)
+    assert messages.make_it(conditional, FRIDAY) == (
+        "Make it Fri 9 Oct (today), once LAK confirms Darcy Kuemper in net tonight (DailyFaceoff, usually after "
+        "the morning skate). If Anton Forsberg starts: Joseph Woll for Shane Pinto instead.")
+    assert messages.plan_lines([conditional], FRIDAY, 2)[0].endswith(
+        "; only once LAK confirms Darcy Kuemper starts tonight; if Anton Forsberg starts, Joseph Woll for Shane Pinto instead).")
+    starters = {}
+    real = weekly.plan_moves
+
+    def plan_moves(*a, **k):
+        p = real(*a, **k)
+        p.wk.starters = dict(starters)
+        return p
+    monkeypatch.setattr(weekly, "plan_moves", plan_moves)
+    outbox = common.Outbox(load_settings())
+    morning = dt.datetime(2026, 10, 9, 6, tzinfo=dt.timezone.utc)
+    pool = [kuemper.add, woll.add]
+    searches.append(([kuemper, woll], [conditional], pool))
+    weekly.run_plan(state, players, {}, morning, outbox, None, "quiet")
+    assert sent[1].startswith("Make it Fri 9 Oct (today), once LAK confirms Darcy Kuemper in net tonight")
+    assert state["plan"]["moves"][0]["if_starts"] == {"team": "LAK", "goalie": "Darcy Kuemper",
+                                                      "other": "Anton Forsberg"}
+    # The afternoon: Forsberg confirmed. Woll is worth less than Kuemper was, but Kuemper was only if he started.
+    starters["LAK"] = {"goalie_name": "Anton Forsberg", "confirmed": True}
+    kuemper_now = _goalie_move(30, "Darcy Kuemper", "LAK", 0.36, pinto)
+    searches.append(([woll, kuemper_now], [plan.Planned(woll, FRIDAY, "now")], pool))
+    weekly.run_plan(state, players, {}, morning + dt.timedelta(hours=9), outbox, None, "quiet")
+    assert sent[2].startswith("Plan changed (Darcy Kuemper for Shane Pinto: Anton Forsberg starts for LAK tonight). "
+                              "Was: Darcy Kuemper for Shane Pinto. Now:\nFri 9 Oct (today): Joseph Woll for Shane Pinto")
+    assert [m["add"]["name"] for m in state["plan"]["moves"]] == ["Joseph Woll"]
+
+
+def test_a_confirmation_his_way_says_go_once(monkeypatch, tmp_path):
+    state, players, sent, marked, searches = _flow(monkeypatch, tmp_path)
+    kuemper, woll = _goalie_move(30, "Darcy Kuemper", "LAK", 0.44), _goalie_move(40, "Joseph Woll", "PHI", 0.37)
+    cond = plan.StarterCondition("LAK", "Darcy Kuemper", "Anton Forsberg", woll, 0.30)
+    starters = {}
+    real = weekly.plan_moves
+
+    def plan_moves(*a, **k):
+        p = real(*a, **k)
+        p.wk.starters = dict(starters)
+        return p
+    monkeypatch.setattr(weekly, "plan_moves", plan_moves)
+    outbox = common.Outbox(load_settings())
+    morning = dt.datetime(2026, 10, 9, 6, tzinfo=dt.timezone.utc)
+    pool = [kuemper.add, woll.add]
+    searches.append(([kuemper, woll], [plan.Planned(kuemper, FRIDAY, "now", "", cond)], pool))
+    weekly.run_plan(state, players, {}, morning, outbox, None, "quiet")
+    starters["LAK"] = {"goalie_name": "Darcy Kuemper", "confirmed": True}
+    for hours in (8, 9):  # confirmed: the plan holds, now unconditional; said once
+        searches.append(([kuemper, woll], [plan.Planned(kuemper, FRIDAY, "now")], pool))
+        weekly.run_plan(state, players, {}, morning + dt.timedelta(hours=hours), outbox, None, "quiet")
+    assert sent[2:] == ["Darcy Kuemper is confirmed in LAK's net tonight: make Darcy Kuemper for Mattias Samuelsson now."]
+    assert "if_starts" not in state["plan"]["moves"][0]

@@ -38,6 +38,8 @@ class ModelContext:
     projected_starts: dict[int, float] = field(default_factory=dict)  # DFO season GS
     projected_gp: dict[int, float] = field(default_factory=dict)  # DFO season GP, skaters
     last_results: dict[str, str] = field(default_factory=dict)  # team -> its last start's availability.start_result
+    # goalie -> (the team of his last start, his own record then: availability.StartForm)
+    start_forms: dict[int, tuple[str, availability.StartForm]] = field(default_factory=dict)
 
     def skater(self, player_id: int, position: str, before: dt.date | None = None) -> SkaterProjection:
         """His projection from the games before `before` (default today): an
@@ -147,6 +149,19 @@ def build(today: dt.date) -> ModelContext:
 
     last = past_goalies[0]
     league_sv = sum(g.stats["sv"] for g in last) / sum(g.shots_against for g in last)
+    start_forms = {}
+    for pid, games in goalie_games.items():
+        starts = [g for g in games if g.started and g.date < today]
+        if not starts:
+            continue
+        g = starts[-1]
+        dates = [d for d, _ in team_starts.get(g.team, [])]
+        if g.date not in dates:
+            continue
+        start_forms[pid] = (g.team, availability.StartForm(
+            availability.start_result(g, appearances[(g.team, g.game_id)] > 1),
+            len(dates) - dates.index(g.date),
+            sum(x.stats["sv"] - league_sv * x.shots_against for x in starts[-availability.FORM_STARTS:])))
     played = [g for g in this_goalies if g.date < today]
     team_ratings, league = games_model.ratings(games_model.team_games(last), games_model.team_games(played), league_sv)
 
@@ -169,4 +184,5 @@ def build(today: dt.date) -> ModelContext:
         projected_starts={pid: row["gs"] for pid, row in goalie_rows.items()},
         projected_gp={pid: row["gp"] for pid, row in skater_rows.items()},
         last_results=last_results,
+        start_forms=start_forms,
     )

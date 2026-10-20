@@ -23,6 +23,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from config.league import MAX_ADDS_PER_SEASON
+from bot import messages
 from engine import matchup, report
 
 BOARD_FILE = Path("state/board.json")
@@ -135,7 +136,9 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
                        if odds else None),
         },
         "plan": {
-            "moves": [{"key": q.key, "when": q.when.isoformat(), "why": q.why} for q in p.plan],
+            "moves": [{"key": q.key, "when": q.when.isoformat(), "why": q.why,
+                       **({"if_starts": messages.condition_text(q.condition)} if q.condition else {})}
+                      for q in p.plan],
             "changed": changed,
             "ir": [{"id": m.player.id, "name": m.player.name, "slot": m.slot} for m in p.ir_moves],
             "held": p.held,

@@ -536,6 +536,37 @@ def test_a_lost_last_start_moves_the_teams_next_game_only():
     assert start_prob(WED, False) == pytest.approx(share)
 
 
+
+def test_each_goalies_own_last_start_moves_his_odds_not_just_the_teams_last():
+    # LAK, 2026-10-20: Kuemper (60% of the starts) pulled on Oct 13, Forsberg lost on Oct 17.
+    ctx = FakeContext()
+    ctx.prior_start_share = lambda pid: {30: 0.6, 31: 0.4}[pid]
+    days = [MON - dt.timedelta(days=d) for d in (16, 14, 12, 10, 8, 6, 3)]
+    ctx.team_starts = {"LAK": list(zip(days, [30, 30, 31, 30, 30, 30, 31]))}
+    ctx.last_results = {"LAK": "L"}
+    ctx.team_goalies = lambda team: [(30, "Kuemper"), (31, "Forsberg")]
+    ctx.goalie_missed = lambda pid, team: 0
+    kuemper = _goalie(30, "LAK")
+    schedule = {d: [_game(d, "LAK", "WSH")] for d in (MON, WED)}
+
+    def start_prob(date, next_game):
+        ctx.__dict__.pop("_forms", None)
+        return matchup._player_day(kuemper, ctx, date, schedule[date][0], False, {}, {}, next_game=next_game)[2]
+    old = start_prob(MON, True)  # no records: the old rule, his partner's loss lifts him
+    share = lambda pid, n: (4 * ctx.prior_start_share(pid) + n) / (4 + 7)
+    assert old > share(30, 5)
+    ctx.start_forms = {30: ("LAK", availability.StartForm("L bad", 2, -5.0)),
+                       31: ("LAK", availability.StartForm("L", 1, 0.0))}
+    now = start_prob(MON, True)
+    k, f = availability.form_odds(ctx.start_forms[30][1], 1), availability.form_odds(ctx.start_forms[31][1], 1)
+    assert now == pytest.approx(availability.with_form(share(30, 5), k, [(share(31, 2), f)]))
+    assert now < old
+    # Two days on it's games 2-3's odds; a goalie traded away (his last start for another team) counts as none.
+    assert start_prob(WED, False) != pytest.approx(share(30, 5))
+    ctx.start_forms[31] = ("NYR", ctx.start_forms[31][1])
+    assert start_prob(MON, True) == pytest.approx(availability.with_form(share(30, 5), k, []))
+
+
 def _full_roster(ir_taken: tuple[str, ...] = ()) -> list[RosterPlayer]:
     """14 active (no open spot): 10 skaters who fill every skater slot on BOS
     nights, 2 goalies, and 2 who play the other nights, 113 my weakest; plus
