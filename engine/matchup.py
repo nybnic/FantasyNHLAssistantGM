@@ -636,14 +636,24 @@ def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], c
 def keep_share(add: RosterPlayer | None, drop: RosterPlayer | None, spots: set[int], line: float,
                levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
     """How much of the season a swap's later gain is credited (KEEP_RAMP): 0 =
-    only while a streamer is held, 1 = the discounted long run. A drop in a
-    streaming spot is 0; goalie swaps stay on/off. `line`: the waiver gap of
-    my streaming spots' best skater. No add: a player cut (cut_costs)."""
-    if drop and drop.id in spots:
-        return 0.0
-    if (add and add.is_goalie) or (drop and drop.is_goalie):
+    only while a streamer is held, 1 = the discounted long run. Judged on the
+    add (Nico, 2026-10-20): a keeper added onto a streaming spot stays, so his
+    swap counts the season; a goalie add is a keeper. `line`: the waiver gap of
+    my streaming spots' best skater. No add: a player cut (cut_costs), judged
+    on himself: a streaming spot 0, a goalie 1, else his own gap.
+    scripts/replay.py, 16 leagues, against the rule before (a streaming spot's
+    drop 0, else the lower of the two gaps): +0.23 (0.09) wins a season at the
+    0.09 price with fewer adds, +0.07 (0.08) at equal adds; skater swaps only."""
+    if add is None:
+        if drop.id in spots:
+            return 0.0
+        if drop.is_goalie:
+            return 1.0
+        gap = waiver_gap(drop, levels, ctx, lines)
+    elif add.is_goalie:
         return 1.0
-    gap = min(waiver_gap(p, levels, ctx, lines) for p in (add, drop) if p)
+    else:
+        gap = waiver_gap(add, levels, ctx, lines)
     return min(max((gap - line) / KEEP_RAMP, 0.0), 1.0)
 
 

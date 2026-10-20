@@ -62,17 +62,15 @@
   durability), per week, times the regular-season weeks left after the ones
   ahead, plus the fantasy playoffs (weeks 24-26) as scheduled: the move's gain
   on those exact days (`bot/weekly.week_inputs` adds them to `future`), all x
-  `LONG_RUN_DISCOUNT` 0.5. Same weight as any later week (Nico, 2026-10-17). Dropping one of my streaming spots (the 3 skaters
-  closest to waiver level at their position, plus my weakest goalie) is
-  credited only its scheduled gain while the streamer would be held: spots /
-  the affordable adds a week (`hold_weeks`, ~3 weeks at 1.3 adds a week),
-  counting the rest of this week; the weeks ahead count only those days too.
-  Other skater swaps blend the two (`keep_share`): the season's share is 0 at
-  the streaming line (the best of those 3 skaters' gap over waiver level) and
-  grows to 1 at `KEEP_RAMP` (1.0) points a game above it, on the lower of the
-  add's gap and the drop's (the swap lasts until either would be streamed).
-  An add who'd be a streaming spot himself, or an IR stash near waiver level,
-  is counted the same way. Goalie swaps stay on/off.
+  `LONG_RUN_DISCOUNT` 0.5. Same weight as any later week (Nico, 2026-10-17). How much
+  of that season counts is judged on the add (`keep_share`, Nico 2026-10-20):
+  0 at the streaming line (the best gap over waiver level of my 3 streaming
+  spots, the skaters closest to waiver level at their position, plus my
+  weakest goalie beyond two), 1 at `KEEP_RAMP` (1.0) points a game above it. A
+  keeper added onto a streaming spot stays, so his swap counts the season; a
+  streamer counts only his scheduled gain while held (spots / the affordable
+  adds a week, `hold_weeks`, ~3 weeks, the weeks ahead only those days too); a
+  goalie add is a keeper. A player cut (`cut_costs`) is judged on himself.
 - **Value** (in win-pts, percentage points of a weekly win) = this week's change
   in P(win) + each week ahead's + later points x `later_weight` (what a point
   does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), sigma = a typical full
@@ -124,7 +122,7 @@
 | Date | Decision | Why |
 |---|---|---|
 | 2026-10-10 | **DFO's injury status decides, not its injured section** (Nico) | DFO lists every injured player in its injured section ("ir" group) whatever his status; the bot read all of them as NHL IR (the slow, 3+ game return curve, and IR-slot eligible). Celebrini sat there "dtd" after 2 missed games: read as IR, 29% to play 3-6 days on and 59% at six weeks. On Oct 10, 53 of 86 players in that section were "out" (27) or "dtd" (26). Now: "ir", or the section with no status, is IR; "out" follows the curve for his games missed (Yahoo tag O: IR+ only); "dtd" there is out tonight (off the chart), then `DTD_RETURN`. Effect that day: Spurgeon for Lindell +10.9 -> +9.5, for Samuelsson +10.7 -> +10.8 (the plan kept, under the change margin); the Marchand stash went (out, so IR+ only, which Celebrini holds). `DTD_RETURN` stays a judgment call: the DFO archive (`bot/dfo_archive.py`, daily since Oct 6) is what can fit it |
-| 2026-10-11 | **Later points ramp from the streaming hold to the season** (Nico: option 2 of three), on the lower of the add's and the drop's gap over waiver level (`keep_share`, `KEEP_RAMP` 1.0 points a game) | The on/off switch credited the 4th skater from waiver level the season and the 3rd only the ~3-week hold. Samuelsson and McBain were 0.003 a game apart (-0.36 each): Spurgeon for Samuelsson +19 win-pts (12 later), the same D upgrade for Lindell +10 (1.5 later). An add who'd be a streaming spot himself got the season too (Dach, Landeskog). After: Spurgeon for Samuelsson keeps 1% of the season, +7.7, under the 9.0 price; the plan became Spurgeon for Lindell (+10). Ramp width untested: for the replay harness |
+| 2026-10-11 | ~~**Later points ramp from the streaming hold to the season** (Nico: option 2 of three), on the lower of the add's and the drop's gap over waiver level~~ The ramp stays; judged on the add since 2026-10-20 (`keep_share`, `KEEP_RAMP` 1.0 points a game) | The on/off switch credited the 4th skater from waiver level the season and the 3rd only the ~3-week hold. Samuelsson and McBain were 0.003 a game apart (-0.36 each): Spurgeon for Samuelsson +19 win-pts (12 later), the same D upgrade for Lindell +10 (1.5 later). An add who'd be a streaming spot himself got the season too (Dach, Landeskog). After: Spurgeon for Samuelsson keeps 1% of the season, +7.7, under the 9.0 price; the plan became Spurgeon for Lindell (+10). Ramp width untested: for the replay harness |
 | 2026-10-11 | **Every drop is judged with the schedule and my best lineup** (Nico), the IR-return cut included: the cheapest to lose (`matchup.cut_costs`), not the lowest points a game | The cut for Celebrini was Lindell by points a game alone; Nico: he plays on a light night. A game on a night the slot is full is worth nothing, one on an open night in full. Lindell stays the likely cut (week 3: 3.5 pts lost, only his Wednesday game makes the lineup; the next cheapest 4.6), but a week like week 4 would favor another (Samuelsson 7.7 vs Lindell 10.4) |
 | 2026-10-11 | **Keep the settings after the first replay** (Nico): `KEEP_RAMP` 1.0, 3 streaming spots, `LONG_RUN_DISCOUNT` 0.5; no more weight on later points for now | `scripts/replay.py`, 2025-26 (see "Replayed"): none of the alternatives differed by more than its error (ramp width +/- 0.07, spots +/- 0.13, discount +/- 0.04 wins a season). Every swap credited the season +0.24 (+/- 0.13) is a hint, not evidence: a 16-league run would settle it |
 | 2026-10-13 | **Role changes are read as they happen** (Nico: "the bot doesn't recognise fast enough real changes in responsibilities", Garand behind an injured Shesterkin): an injured goalie's starts go to his healthy teammates by share (0.30 by the return curve, 0.45 with a news timeline, `model/CLAUDE.md`); an injury's news timeline ("rest of the season", "four more weeks") beats the return curve while it lasts | Before, the backup's share rose only as he started: ~20% now, ~55% after five straight starts, ~80% after ten, 2-3 weeks late. Factors fit 2023-25, better on 2025-26. The news timeline's after-part is a judgment call (archived from 2026-10-13 to fit) |
@@ -132,6 +130,7 @@
 | 2026-10-14 | **A line promotion alone is sent only when the plan values him at half the add price or more** (Nico: "50% enough"; ice-time jumps stay as they are, every 30 min stays); one alert per player | The watch's second day sent 26 alerts (~9 messages): 23 DFO promotions (7 to the second line alone, 5 to PP1, 5 to the top D pair), in a week of line shuffles. Promotions under the bar are listed on the dashboard, not re-checked (the plan's own runs score free agents anyway). The 50% is a judgment call: check it with the DFO promotion test (mid-November) and `state.watch.log`'s values |
 | 2026-10-15 | **My most-benched skater is tried as a drop too** (Nico: "Conduct the change"), when 25%+ of his long-run points sit on the bench (`BENCHED_SHARE`, a judgment call) | Pinto, the third C-only center (5.7 a game, above a waiver C), starts 4 of his 9 games Oct 15 - Nov 1 behind Celebrini and Scheifele, while 4 D leave D slots open on their idle nights. His long-run value kept him out of the 2 cheapest forwards, so Pinto for a D was never weighed. A simple count (xfp x the nightly lineup, Oct 15 - Nov 1): Pinto for Samberg +12.8 pts vs Samberg for Samuelsson +5.1. It only widens the search: every move still meets the add price |
 | 2026-10-17 | **The fantasy playoffs count as scheduled** (Nico: "the playoff schedule / lineup is considered also in the decisions"): a move's later points take its projected gain on the days of weeks 24-26 (my best lineup each night, the goalie minimum each week), not three average weeks; same weight as any later week | The 6-week average stood in for the playoffs, so a goalie whose team is idle on my open nights then counted as if it weren't. Woll for Pinto on the real schedule (`scripts/third_goalie.py`): +3.7 pts a week in weeks 4-23, -0.5 in the playoffs (in week 26 his team plays on 3 nights both of mine do); Stolarz +1.6 and +1.8. After: Woll +44.8 -> +37.8 win-pts (later points 52.6 -> 43.5), Stolarz +36.5 -> +33.6, Grubauer and Schmid fall under the price; skaters barely move. Not weighted up: playoff points x2 lowered title odds (2026-10-03, `sim_leverage`). Costs ~50% more long-run projection per move |
+| 2026-10-20 | **A swap's season credit is judged on the add** (Nico: "keeper-add yes", after asking why Pinto is always the drop: a goalie add for a streaming-spot skater got only the hold, Meriläinen for Larsson 4 later points to 43 for Pinto); a goalie add is a keeper | Replayed, 16 leagues: skater swaps only, +0.23 (0.09) wins a season at the bot's price with fewer adds, +0.07 (0.08) at equal adds; with goalie moves (the replay makes them since), +0.18 (0.12) at the bot's price. A streamer added onto a spot below waiver level gets some season too (the line is my spots' best gap): as replayed. Today's plan: Meriläinen for Pinto stays (+44); the add price rose 9.9 -> 12.3 (more moves carry season value), so Arvidsson for McBain (8.3, a streaming swap) fell out |
 | 2026-10-20 | **Goalie starts read each goalie's own record; a goalie add worth it only if he starts waits for the confirmation** (Nico: "Conduct 1, 2, 3", after Kuemper for Pinto was planned at 70% to start the morning after his first-period pull) | The old rule moved only the team's next game, by the team's last start: Forsberg's loss lifted Kuemper. Fit (`model/CLAUDE.md`): next-game log loss 0.690 -> 0.658, games 2-3 0.701 -> 0.687, later a little (form). Kuemper ~60%, and with Forsberg confirmed his week falls from +12 to ~+2 points, under Woll for Pinto: the card now says to wait for LAK's starter, Woll if Forsberg starts. Waiting risks a claim (adds are instant); how often that happens is untested |
 | 2026-09-29 | Optimize P(win this week), not season points | H2H: only beating this week's opponent counts |
 | 2026-09-29 | ~~**Always keep 3 goalies** (policy A, Nico)~~ Superseded 2026-10-02: goalie count by value | Season sim: 2G + a skater = +35 pts, but 2.5 vs 1.1 weeks with goalie points zeroed, plus goalie streams cost adds |
@@ -171,7 +170,8 @@
 ## Replayed (`scripts/replay.py`, 2025-26, 2026-10-11)
 8 leagues x 16 teams, every team in turn managed by this valuation (the others lazily), each using its
 30 regular-season adds; wins a season vs the live settings (+/- SE, paired). Simplified: single NHL
-positions, Monday decisions, goalies not streamed, no free-agent competition, no IR slots.
+positions, Monday decisions, no free-agent competition, no IR slots; goalies not streamed until 2026-10-20
+(since: goalie moves too, each week's goalie points x P(3+ starts), starts at the last-10 share).
 - `KEEP_RAMP` 1.0: 0.5 -0.07 (0.07), 2.0 +0.03 (0.06), the old switch +0.00 (0.12). The width doesn't matter.
 - `STREAMING_SPOTS` 3: 2 -0.07, 4 +0.08, 5 -0.05 (0.12-0.13). The count doesn't matter.
 - `LONG_RUN_DISCOUNT` 0.5: 0.35 +0.05 (0.04). No difference.
@@ -189,7 +189,12 @@ positions, Monday decisions, goalies not streamed, no free-agent competition, no
   Meriläinen for Pinto's 43): the keep share on the add's gap alone, so a keeper added onto a streaming
   spot counts the season. 16 leagues: at the 0.09 price +0.23 (0.09) wins a season, +1.4 pts a week, with
   fewer adds (17.8 vs 18.8), so not the extra adds; at equal adds (price 0, 29.9 each) +0.07 (0.08), +0.9
-  pts a week. Skater swaps only (the replay streams no goalies). Live rule unchanged: Nico to decide.
+  pts a week. Skater swaps only (the replay streams no goalies). Live since 2026-10-20 (Nico).
+- With goalie moves (2026-10-20; the reference is now the live rule, keeper add), 16 leagues: at the 0.09 price
+  the old rule -0.18 (0.12), skaters only -0.61 (0.14) wins a season (-3.0 pts a week, 17.4 adds vs 24.9);
+  at equal adds (price 0, ~30 each) the old rule -0.04 (0.13), skaters only -0.52 (0.13) (-2.7 pts a week).
+  So goalie moves are worth ~0.5 wins a season beyond the adds they use; keeper add helps at the bot's
+  price and costs nothing at equal adds.
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),

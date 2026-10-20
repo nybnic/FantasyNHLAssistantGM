@@ -330,7 +330,9 @@ def test_dropping_a_streaming_spot_costs_only_the_next_two_weeks(monkeypatch):
     future = {d: [_game(d, "NYR" if i < 14 else "BOS", "SEA")] for i, d in enumerate(days)}
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
     fa = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
-    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 1)
+    # Both mine are streaming spots, so the streamer is no better than the best of
+    # them: judged on the add (keep_share), he'd be streamed again.
+    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 2)
     ctx = FakeContext()
     ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
     move = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
@@ -430,7 +432,7 @@ def test_a_streaming_spot_swap_is_credited_only_while_he_would_be_held(monkeypat
     days = [WED + dt.timedelta(days=i) for i in range(42)]
     future = {d: [_game(d, "NYR", "SEA")] for d in days}  # the streamer plays every day
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
-    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 1)
+    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 2)  # the streamer no better than my best streaming spot
     ctx = FakeContext()
     ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
 
@@ -795,14 +797,18 @@ def test_a_swaps_later_points_ramp_from_the_hold_to_the_season_above_the_streami
     spots, line = {1}, matchup.waiver_gap(me[0], levels, ctx, {})  # P1 streams: line -0.6
     keeper = RosterPlayer(8, "Keeper", "NYR", ["C"])
     ctx.xfp[8] = 5.0
-    assert matchup.keep_share(keeper, me[0], spots, line, levels, ctx, {}) == 0.0  # a streaming spot's drop
-    # P2 is 0.5 a game above the line: half the season; the lower of the two counts.
-    assert matchup.keep_share(keeper, me[1], spots, line, levels, ctx, {}) == pytest.approx(0.5)
+    # Judged on the add (2026-10-20): a keeper stays, whoever he replaces, a streaming spot included.
+    assert matchup.keep_share(keeper, me[0], spots, line, levels, ctx, {}) == 1.0
+    assert matchup.keep_share(keeper, me[1], spots, line, levels, ctx, {}) == 1.0
     weak = RosterPlayer(7, "Weak", "NYR", ["C"])
-    ctx.xfp[7] = 3.2  # he'd be streamed himself
+    ctx.xfp[7] = 3.2  # 0.2 a game above the line: he'd be streamed himself, mostly
     assert matchup.keep_share(weak, me[2], spots, line, levels, ctx, {}) == pytest.approx(0.2)
-    assert matchup.keep_share(keeper, me[2], spots, line, levels, ctx, {}) == 1.0  # P3 is 1.0 above: a keeper
+    assert matchup.keep_share(weak, me[0], spots, line, levels, ctx, {}) == pytest.approx(0.2)
     assert matchup.keep_share(keeper, None, spots, line, levels, ctx, {}) == 1.0  # an open spot: the add's own
+    # A goalie add is a keeper; a player cut is judged on himself (a streaming spot: only his hold).
+    assert matchup.keep_share(RosterPlayer(20, "G", "NYR", ["G"]), me[0], spots, line, levels, ctx, {}) == 1.0
+    assert matchup.keep_share(None, me[0], spots, line, levels, ctx, {}) == 0.0
+    assert matchup.keep_share(None, me[1], spots, line, levels, ctx, {}) == pytest.approx(0.5)
 
 
 def test_the_cheapest_to_lose_counts_the_nights_he_would_be_in_my_lineup():

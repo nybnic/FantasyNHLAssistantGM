@@ -79,3 +79,27 @@ def test_a_keeper_added_onto_a_streaming_spot_counts_the_season_only_under_keepe
     assert replay.keep_of("add", streamer, fringe, set(), line, levels, ctx) == 0.0
     assert replay.keep_of(1.0, streamer, fringe, set(), line, levels, ctx) == 0.0
     assert replay.keep_of("add", fringe, spot, {2}, line, levels, ctx) == pytest.approx(0.3)
+
+
+def test_goalies_count_by_the_week_with_the_minimum_and_a_goalie_add_gains_it():
+    assert replay.at_least([0.5] * 4, 3) == pytest.approx(5 / 16)
+    assert replay.at_least([1.0, 1.0, 1.0], 3) == pytest.approx(1.0) and replay.at_least([0.9, 0.9], 3) == 0.0
+    days = [MON + dt.timedelta(days=i) for i in range(7)]
+    # My two goalies (10, 11) share team C, which plays twice: 4 starts at 0.5, only 2 can happen.
+    # Free agent 12's team (D) plays three other nights. Skater 1 (team A) plays Monday.
+    s = _season({1: 4.0}, {1: "C"}, {"A": {days[0]}, "C": {days[0], days[2]}, "D": {days[1], days[3], days[5]}},
+                goalies=(10, 11, 12))
+    s.team = lambda pid, m: {1: "A", 10: "C", 11: "C", 12: "D"}[pid]
+    week = replay.Week(s, [1, 10, 11], MON, days)
+    plain = 4 * 0.5 * 9.0  # each goalie's start x share x points a start
+    assert week.total(days)[0] == pytest.approx(4.0 * replay.availability.HEALTHY_PLAY
+                                                + plain * replay.at_least([0.5] * 4, 3))
+    # 12 for the skater: three more starts at 0.5, and the minimum is likelier.
+    gain = week.gain(12, 1, days)
+    after = (plain + 3 * 0.5 * 9.0) * replay.at_least([0.5] * 7, 3)
+    assert sum(gain.values()) == pytest.approx(after - plain * replay.at_least([0.5] * 4, 3)
+                                               - 4.0 * replay.availability.HEALTHY_PLAY)
+    # 12 for goalie 11: team C's nights keep one goalie (2 starts), and 12 adds his 3.
+    swap = week.gain(12, 11, days)
+    assert sum(swap.values()) == pytest.approx((2 * 0.5 * 9.0 + 3 * 0.5 * 9.0) * replay.at_least([0.5] * 5, 3)
+                                               - plain * replay.at_least([0.5] * 4, 3))
