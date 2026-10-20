@@ -605,6 +605,25 @@
       "message_id": 555,
       "type": "add"
     },
+    "add-2026-10-20-1811-8478042": {
+      "add": {
+        "id": 8478042,
+        "name": "Viktor Arvidsson",
+        "positions": [
+          "LW",
+          "RW"
+        ],
+        "slot": null,
+        "team": "DET"
+      },
+      "add_slot": null,
+      "date": "2026-10-20",
+      "drop": 8480855,
+      "drop_name": "Jack McBain",
+      "ir": {},
+      "message_id": 566,
+      "type": "add"
+    },
     "lineup-2026-10-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -856,55 +875,30 @@
       "date": "2026-10-20",
       "message_id": 556,
       "type": "lineup"
-    },
-    "lineup-2026-10-20-1808": {
-      "assignment": {
-        "8474564": "RW",
-        "8476455": "RW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "LW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "BN",
-        "8482447": "G",
-        "8484801": "C"
-      },
-      "date": "2026-10-20",
-      "message_id": 562,
-      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-20T17:31+00:00",
+    "at": "2026-10-20T18:11+00:00",
     "moves": [
       {
         "add": {
-          "id": 8482447,
-          "name": "Leevi Meril\u00e4inen",
+          "id": 8478042,
+          "name": "Viktor Arvidsson",
           "positions": [
-            "G"
+            "LW",
+            "RW"
           ],
-          "team": "VAN"
+          "team": "DET"
         },
         "drop": {
-          "id": 8481596,
-          "name": "Shane Pinto"
+          "id": 8480855,
+          "name": "Jack McBain"
         },
-        "if_starts": {
-          "goalie": "Leevi Meril\u00e4inen",
-          "other": "Kevin Lankinen",
-          "team": "VAN"
-        },
-        "key": "8482447:8481596",
-        "message_id": 555,
-        "rec_id": "add-2026-10-20-1505-8482447",
-        "value": 0.4495,
+        "key": "8478042:8480855",
+        "message_id": 566,
+        "rec_id": "add-2026-10-20-1811-8478042",
+        "value": 0.124,
         "when": "2026-10-20",
         "why": "now"
       },
@@ -924,9 +918,9 @@
         "key": "8482087:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1293,
-        "when": "2026-10-21",
-        "why": "held"
+        "value": 0.1311,
+        "when": "2026-10-26",
+        "why": "monday"
       }
     ],
     "week": 4
@@ -1087,7 +1081,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784715,
+  "telegram_offset": 929784717,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
