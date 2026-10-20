@@ -6,7 +6,11 @@ the bot's add rule while the other 15 are managed lazily (a goalie who lost
 his role, or a skater out 10+ team games, is replaced by the best free agent
 at his position). Each Monday the managed team weighs every skater swap
 (free agents shortlisted per position by this week and by season value,
-times its 2 weakest forwards and D) the way engine/matchup.py does:
+times its 2 weakest forwards and D) and every goalie move (a free agent goalie
+for one of those skaters or for my weakest goalie, a skater for my weakest
+goalie when I have more than two; goalies valued per week with the goalie
+minimum, expected points x P(3+ starts), as the bot does) the way
+engine/matchup.py does:
 - this week: the change in P(win) against that week's real opponent
   (margin at MARGIN_REALIZES, the gain in full);
 - the next 2 weeks against their opponents (matchup.ahead_value: margins at
@@ -29,9 +33,9 @@ a streamer's hold may end at a week boundary, so a bad week after it doesn't
 count against him, and that Monday he is offered as a drop). One variant is the
 reference; the others are reported as wins a season vs it (+/- SE, paired).
 
-Simplifications, labeled: single NHL positions (Yahoo gives many two); goalies
-aren't streamed (a third goalie kept, replaced only when he loses his role);
-decisions on Mondays only; each team manages alone (the free-agent pool
+Simplifications, labeled: single NHL positions (Yahoo gives many two); goalie
+starts at each goalie's share of his team's last 10 (no form, no confirmed
+starters); decisions on Mondays only; each team manages alone (the free-agent pool
 ignores the other teams' pickups); no IR slots; lineups set knowing who plays.
 
     python -m scripts.replay                       # 4 leagues, all variants
@@ -61,14 +65,16 @@ REGULAR_ADDS = 30  # 36 less the 6 kept for the playoffs
 PRICE = 0.09  # win-pts an add must buy: about the bot's (8.9-9.1, Oct 10-11)
 LAZY_OUT_GAMES = 10  # a lazy manager replaces a skater out this many team games
 LOST_ROLE = 0.15  # a goalie under this share of his team's last 10 starts has lost his role
-REFERENCE = "ramp 1.0"
-# name -> (keep rule, streaming spots, long-run discount, price). keep: a ramp
-# width in points a game, "switch" (the rule before 2026-10-11: a streaming
-# spot's drop holds, any other the season), 0.0 (every swap only while held),
-# "season" (every swap the season) or "add" (the ramp on the add's gap alone, a
-# streaming spot's drop included: a keeper added there stays, so the swap counts
-# the season; Nico, 2026-10-20, after Merilainen for Larsson, keeping Pinto, got
-# only the hold's 4 later points to Merilainen for Pinto's 43).
+REFERENCE = "keeper add"  # the live rule since 2026-10-20 (before: "ramp 1.0")
+# name -> (keep rule, streaming spots, long-run discount, price). keep: "add"
+# (the live matchup.keep_share since 2026-10-20: judged on the add, so a keeper
+# added onto a streaming spot counts the season; Nico, after Merilainen for
+# Larsson, keeping Pinto, got only the hold's 4 later points to Merilainen for
+# Pinto's 43), a ramp width in points a game (the rule to 2026-10-20: a
+# streaming spot's drop holds, goalie swaps the season, else the ramp on the
+# lower of the two gaps), "switch" (the rule before 2026-10-11: a streaming
+# spot's drop holds, any other the season), 0.0 (every swap only while held)
+# or "season" (every swap the season).
 VARIANTS = {
     "ramp 1.0": (1.0, 3, 0.5, PRICE),
     "ramp 0.5": (0.5, 3, 0.5, PRICE),
@@ -84,7 +90,11 @@ VARIANTS = {
     "exit": (1.0, 3, 0.5, PRICE),
     "exit charged": (1.0, 3, 0.5, PRICE),
     "keeper add": ("add", 3, 0.5, PRICE),
+    "skaters only": ("add", 3, 0.5, PRICE),
 }
+# Variants that make no goalie moves (the harness before 2026-10-20): goalies
+# change only when one loses his role.
+SKATERS_ONLY = {"skaters only"}
 # Planned exits (Nico, 2026-10-13: add Landeskog for week 4's games, stream him
 # out before his weak week 5). A streaming swap's counted hold may end after
 # this week or a week ahead instead of running the full hold; the variant takes
@@ -223,14 +233,25 @@ def _top(values: list[float], k: int) -> float:
     return sum(sorted(values, reverse=True)[:k])
 
 
+def at_least(probs: list[float], k: int) -> float:
+    """P(at least k of these independent starts happen)."""
+    dist = [1.0] + [0.0] * k  # dist[j]: P(j starts so far), the last bucket k or more
+    for p in probs:
+        for j in range(k, -1, -1):
+            dist[j] = dist[j] * (1 - p) + (dist[j - 1] * p if j else 0.0) + (dist[j] * p if j == k else 0.0)
+    return dist[k]
+
+
 class Week:
-    """One roster's projected days, by position, from a Monday: what a swap gains each day."""
+    """One roster's projected days, by position, from a Monday: what a swap gains each day.
+    Goalies count by the week: the two best expected starts each day, all of the
+    week's goalie points times P(reaching the goalie minimum), as matchup does."""
 
     def __init__(self, s: Season, roster: list[int], m: dt.date, days: list[dt.date]):
         self.s, self.m = s, m
-        xfp, gx = s.proj(m)
+        xfp, self.gx = s.proj(m)
         self.vals: dict[dt.date, dict[str, list[float]]] = {}
-        self.goalie_pts: dict[dt.date, float] = {}
+        self.goalies = [pid for pid in roster if pid in s.goalie_ids]
         for d in days:
             by_pos = {pos: [] for pos in SLOTS}
             for pid in roster:
@@ -238,36 +259,71 @@ class Week:
                     continue
                 by_pos[s.position[pid]].append(xfp.get(pid, 0.0) * s.play(pid, m, d))
             self.vals[d] = by_pos
-            self.goalie_pts[d] = _top([s.share(pid, m) * gx.get(pid, 0.0) for pid in roster
-                                       if pid in s.goalie_ids and d in s.team_days[s.team(pid, m)]], 2)
+        self._g = {}
+
+    def goalie_weeks(self, goalies: list[int], days) -> dict[int, tuple[list[dt.date], float, float]]:
+        """By week from the Monday: (its days among `days`, expected goalie points
+        with the minimum, without it)."""
+        key = (tuple(sorted(goalies)), tuple(days))
+        if key not in self._g:
+            s, m = self.s, self.m
+            weeks: dict[int, list[dt.date]] = defaultdict(list)
+            for d in days:
+                weeks[(d - m).days // 7].append(d)
+            out = {}
+            for k, ds in weeks.items():
+                starts = []
+                for d in ds:
+                    playing = sorted(((s.share(g, m) * self.gx.get(g, 0.0), s.share(g, m)) for g in goalies
+                                      if d in s.team_days[s.team(g, m)]), reverse=True)[:2]
+                    starts += [(prob, pts) for pts, prob in playing]
+                plain = sum(pts for _, pts in starts)
+                out[k] = (ds, plain * at_least([p for p, _ in starts], MIN_GOALIE_GAMES_PER_WEEK), plain)
+            self._g[key] = out
+        return self._g[key]
 
     def total(self, days) -> tuple[float, float]:
         """(expected points, variance) over `days`."""
         sk = sum(_top(self.vals[d][pos], k) for d in days for pos, k in SLOTS.items())
-        g = sum(self.goalie_pts[d] for d in days)
-        return sk + g, matchup.SKATER_VARIANCE_PER_XFP * sk + matchup.GOALIE_START_VARIANCE * g / matchup.TYPICAL_START_XFP
+        weeks = self.goalie_weeks(self.goalies, days).values()
+        g, plain = sum(w[1] for w in weeks), sum(w[2] for w in weeks)
+        return (sk + g, matchup.SKATER_VARIANCE_PER_XFP * sk
+                + matchup.GOALIE_START_VARIANCE * plain / matchup.TYPICAL_START_XFP)
 
     def gain(self, add: int, drop: int, days) -> dict[dt.date, float]:
+        """Points gained each day by the swap; a goalie's change by the week,
+        spread over its days."""
         s, m = self.s, self.m
         xfp = s.proj(m)[0]
-        pa, pd = s.position[add], s.position[drop]
-        ta, td = s.team_days[s.team(add, m)], s.team_days[s.team(drop, m)]
-        out = {}
-        for d in days:
-            a_plays, d_plays = d in ta, d in td
-            if not a_plays and not d_plays:
-                continue
-            g = 0.0
-            for pos in {pa, pd}:
-                vals = list(self.vals[d][pos])
-                before = _top(vals, SLOTS[pos])
-                if d_plays and pos == pd:
-                    vals.remove(xfp.get(drop, 0.0) * s.play(drop, m, d))
-                if a_plays and pos == pa:
-                    vals.append(xfp.get(add, 0.0) * s.play(add, m, d))
-                g += _top(vals, SLOTS[pos]) - before
-            if g:
-                out[d] = g
+        add_g, drop_g = add in s.goalie_ids, drop in s.goalie_ids
+        out: dict[dt.date, float] = {}
+        if not (add_g and drop_g):  # a skater comes or goes
+            pos_add = None if add_g else s.position[add]
+            pos_drop = None if drop_g else s.position[drop]
+            ta = set() if add_g else s.team_days[s.team(add, m)]
+            td = set() if drop_g else s.team_days[s.team(drop, m)]
+            for d in days:
+                a_plays, d_plays = d in ta, d in td
+                if not a_plays and not d_plays:
+                    continue
+                g = 0.0
+                for pos in {pos_add, pos_drop} - {None}:
+                    vals = list(self.vals[d][pos])
+                    before = _top(vals, SLOTS[pos])
+                    if d_plays and pos == pos_drop:
+                        vals.remove(xfp.get(drop, 0.0) * s.play(drop, m, d))
+                    if a_plays and pos == pos_add:
+                        vals.append(xfp.get(add, 0.0) * s.play(add, m, d))
+                    g += _top(vals, SLOTS[pos]) - before
+                if g:
+                    out[d] = g
+        if add_g or drop_g:  # the goalies change
+            after = [g for g in self.goalies if g != drop] + ([add] if add_g else [])
+            now, then = self.goalie_weeks(self.goalies, days), self.goalie_weeks(after, days)
+            for k, (ds, value, _) in now.items():
+                change = then[k][1] - value
+                for d in ds:
+                    out[d] = out.get(d, 0.0) + change / len(ds)
         return out
 
 
@@ -362,7 +418,8 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                         break
                     leaving = {pid for pid, due in exits.items() if due <= m}
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
-                                     discount, n_weeks, used, EXITS.get(name), price, leaving)
+                                     discount, n_weeks, used, EXITS.get(name), price, leaving,
+                                     name not in SKATERS_ONLY)
                     if move is None or move[0] < price:
                         break
                     _, add, drop, due = move
@@ -421,19 +478,24 @@ def keep_of(keep_rule, add, drop, spot_ids: set[int], line: float, levels: dict,
     if keep_rule == 0.0:
         return 0.0
     if keep_rule == "add":
-        return min(max(matchup.waiver_gap(add, levels, ctx, {}) - line, 0.0) / matchup.KEEP_RAMP, 1.0)
-    saved, matchup.KEEP_RAMP = matchup.KEEP_RAMP, keep_rule
-    try:
         return matchup.keep_share(add, drop, spot_ids, line, levels, ctx, {})
-    finally:
-        matchup.KEEP_RAMP = saved
+    # A ramp width: the rule to 2026-10-20.
+    if drop.id in spot_ids:
+        return 0.0
+    if add.is_goalie or drop.is_goalie:
+        return 1.0
+    gap = min(matchup.waiver_gap(p, levels, ctx, {}) for p in (add, drop))
+    return min(max((gap - line) / keep_rule, 0.0), 1.0)
+
+
+GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's points, by points a start x share
 
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
-              exit_rule=None, price=PRICE, leaving=()):
-    """(value, add, drop, exit Monday or None) of the best skater swap this Monday, valued as
+              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True):
+    """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
-    offered as drops too."""
+    offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
     future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
@@ -482,25 +544,41 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
         line = max((matchup.waiver_gap(p, levels, ctx, {}) for p in mine_rp if p.id in spot_ids), default=-math.inf)
         drops = [p for p in matchup.drop_candidates(mine_rp, ctx, {})]
         drops += [p for p in mine_rp if p.id in leaving and p not in drops]
+        pairs_tried = [(a, d) for a in fa_rp for d in drops]
+        goalies = [pid for pid in roster if pid in s.goalie_ids]
+        if goalie_moves and goalies:
+            gx = s.proj(m)[1]
+            weakest = min(goalies, key=lambda g: s.share(g, m) * gx.get(g, 0.0))
+            g_rp = RosterPlayer(weakest, str(weakest), s.team(weakest, m), ["G"])
+            if len(goalies) > matchup.MIN_GOALIES:
+                spot_ids = spot_ids | {weakest}  # the spare goalie streams (GOALIE_STREAMING_SPOTS)
+                pairs_tried += [(a, g_rp) for a in fa_rp]
+            free = [q for q in s.goalie_ids if q not in taken and q not in roster and s.share(q, m) > 0]
+            week = {q: s.share(q, m) * gx.get(q, 0.0) * len([d for d in this if d in s.team_days[s.team(q, m)]])
+                    for q in free}
+            picked = set(sorted(free, key=lambda q: week[q], reverse=True)[:GOALIE_SHORTLIST[0]])
+            picked |= set(sorted(free, key=lambda q: s.share(q, m) * gx.get(q, 0.0), reverse=True)[:GOALIE_SHORTLIST[1]])
+            for q in picked:
+                a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
+                pairs_tried += [(a, d) for d in drops + [g_rp]]
         best = None
-        for a in fa_rp:
-            for d in drops:
-                week_gain = sum(mine.gain(a.id, d.id, this).values())
-                if week_gain < -matchup.MAX_WEEK_COST:
-                    continue
-                keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
-                gain = mine.gain(a.id, d.id, future)
-                saved_discount = matchup.LONG_RUN_DISCOUNT
-                matchup.LONG_RUN_DISCOUNT = discount
-                try:
-                    after, exit_k = best_exit(gain, future, ahead, weeks_after, later_weight, hold_days, keep,
-                                              exit_rule, price)
-                finally:
-                    matchup.LONG_RUN_DISCOUNT = saved_discount
-                now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
-                value = now + after
-                if best is None or value > best[0]:
-                    best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
+        for a, d in pairs_tried:
+            week_gain = sum(mine.gain(a.id, d.id, this).values())
+            if week_gain < -matchup.MAX_WEEK_COST:
+                continue
+            keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
+            gain = mine.gain(a.id, d.id, future)
+            saved_discount = matchup.LONG_RUN_DISCOUNT
+            matchup.LONG_RUN_DISCOUNT = discount
+            try:
+                after, exit_k = best_exit(gain, future, ahead, weeks_after, later_weight, hold_days, keep,
+                                          exit_rule, price)
+            finally:
+                matchup.LONG_RUN_DISCOUNT = saved_discount
+            now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
+            value = now + after
+            if best is None or value > best[0]:
+                best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
     finally:
         matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
     return best
