@@ -1,6 +1,8 @@
+import dataclasses
 import datetime as dt
 
 import numpy as np
+import pytest
 
 from clients.nhl_client import ScheduledGame
 
@@ -130,3 +132,27 @@ def test_benched_counts_games_a_player_sits_for_want_of_a_slot():
     flex = Player(9, "Flex", "BBB", ("C", "RW"), 1.0)  # takes RW, so he plays
     _, games = nights.usage(cs + [flex])
     assert games[2] == (1.0, 1.0) and games[0] == (1.0, 0.0) and games[9] == (1.0, 0.0)
+
+
+def test_try_moves_trades_with_the_team_that_has_him_or_adds_a_free_agent():
+    nights = _random_nights()
+    mine = _team(0, [("C",)] * 6 + [("LW",)] * 2, g=2)
+    mine[0] = dataclasses.replace(mine[0], name="Sixth Center")  # normalize_name drops digits
+    theirs = _team(100, [("RW",)] * 8, g=2)
+    theirs[0] = dataclasses.replace(theirs[0], name="Their Winger")
+    depths = {"Me": depth.analyse("Me", mine, nights, WAIVER, STARTER),
+              "Them": depth.analyse("Them", theirs, nights, WAIVER, STARTER)}
+    fa = Player(500, "Free Agent", "AAA", ("RW",), 5.0)
+    traded = depth.try_moves("Sixth Center > Their Winger", "Me", depths, [fa], nights)
+    assert set(traded.sides) == {"Me", "Them"}
+    assert any(p.name == "Sixth Center" for p in traded.sides["Them"][1])
+    added = depth.try_moves("Center > Free Agent", "Me", depths, [fa], nights)
+    assert set(added.sides) == {"Me"} and any(p.id == 500 for p in added.sides["Me"][1])
+    assert "Me: +" in depth.tried_report([added], "Me", nights)  # an RW for a sixth C gains
+
+
+def test_parse_try_wants_out_and_in():
+    assert depth.parse_try("Shane Pinto > Lucas Raymond, McBain > Merilainen") == [
+        ("Shane Pinto", "Lucas Raymond"), ("McBain", "Merilainen")]
+    with pytest.raises(ValueError):
+        depth.parse_try("Pinto for Raymond")

@@ -34,6 +34,7 @@ last known. Judge a real offer with /trade (the full engine). Read-only.
     python -m scripts.depth --weeks 24-26       # the fantasy playoffs only
     python -m scripts.depth --team "HC Bulju"   # their swaps instead of mine
     python -m scripts.depth --offline           # random nights
+    python -m scripts.depth --try "Pinto > Lucas Raymond" --try "Pinto > Leevi Merilainen"   # weigh moves
 """
 from __future__ import annotations
 
@@ -49,6 +50,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clients.names import normalize_name
 from config.league import BENCH_SLOTS, MIN_GOALIE_GAMES_PER_WEEK, MY_TEAM, STARTERS
 from engine.matchup import TYPICAL_START_XFP
 from league import weeks as fantasy_weeks
@@ -120,6 +122,19 @@ def value(row: dict, waiver: dict[str, float]) -> float:
         return x
     dur, repl = float(row["durability"]), waiver[_group_of(row["pos"])]
     return x if x <= repl else x - (1 - dur) * (x - repl)
+
+
+POSITIONS_FILE = Path("state/positions.json")
+NHL_POSITIONS = {"C": ("C",), "L": ("LW",), "R": ("RW",), "D": ("D",), "G": ("G",)}
+
+
+def free_agents(rows: dict[int, dict], rostered: set[int], waiver: dict[str, float],
+                positions: Path = POSITIONS_FILE) -> list[Player]:
+    """Everyone in the snapshot on no fantasy roster, with Yahoo eligibility where known."""
+    yahoo = json.loads(positions.read_text(encoding="utf-8")) if positions.exists() else {}
+    return [Player(pid, r["name"], r["team"], tuple(yahoo.get(str(pid)) or NHL_POSITIONS.get(r["pos"], ("C",))),
+                   value(r, waiver), float(r["start_share"] or 0) if r["pos"] == "G" else 1.0)
+            for pid, r in rows.items() if pid not in rostered]
 
 
 def load(log: Path = LOG_FILE, league: Path = LEAGUE_FILE, mine: Path = ROSTER_FILE
@@ -462,6 +477,67 @@ def report(depths: dict[str, Depth], me: str, best_swaps: dict[str, list[Swap]],
     return "\n".join(out)
 
 
+def parse_try(text: str) -> list[tuple[str, str]]:
+    """"Shane Pinto > Lucas Raymond, Jack McBain > Leevi Merilainen" -> [(out, in), ...]."""
+    pairs = []
+    for part in text.split(","):
+        out, sep, incoming = part.partition(">")
+        if not sep or not out.strip() or not incoming.strip():
+            raise ValueError(f"{part.strip()!r}: write OUT > IN")
+        pairs.append((out.strip(), incoming.strip()))
+    return pairs
+
+
+def _find(name: str, players: list[Player]) -> Player:
+    want = normalize_name(name)
+    hits = [p for p in players if normalize_name(p.name) == want] or \
+           [p for p in players if normalize_name(p.name).endswith(" " + want)]
+    if len(hits) != 1:
+        raise ValueError(f"{name!r}: " + ("no such player" if not hits else
+                                          "could be " + " or ".join(p.name for p in hits)))
+    return hits[0]
+
+
+@dataclass
+class Tried:
+    text: str
+    sides: dict[str, tuple[Depth, list[Player]]]  # team -> (before, its best 14 after)
+
+
+def try_moves(text: str, me: str, depths: dict[str, Depth], pool: list[Player], nights: Nights) -> Tried:
+    """My roster with each OUT > IN made. An IN from another team is a trade
+    with it (his OUTs go there); an IN from free agents is an add (OUT to waivers)."""
+    owner = {p.id: t for t, d in depths.items() for p in d.active + d.extra}
+    rosters = {t: d.active + d.extra for t, d in depths.items()}
+    everyone = [p for ps in rosters.values() for p in ps] + pool
+    for out_name, in_name in parse_try(text):
+        out, incoming = _find(out_name, rosters[me]), _find(in_name, everyone)
+        rosters[me] = _without(rosters[me], out) + [incoming]
+        if (partner := owner.get(incoming.id)) and partner != me:
+            rosters[partner] = _without(rosters[partner], incoming) + [out]
+    changed = [t for t in rosters if [p.id for p in rosters[t]] != [p.id for p in depths[t].active + depths[t].extra]]
+    return Tried(text, {t: (depths[t], cap(rosters[t], nights)[0]) for t in changed})
+
+
+def tried_report(found: list[Tried], me: str, nights: Nights) -> str:
+    out = ["", "## Moves tried (points a week)", ""]
+    for tried in found:
+        out.append(f"**{tried.text}**")
+        for team, (before, after) in tried.sides.items():
+            week = nights.week(after)
+            _, games = nights.usage(after)
+            benched = sum(games[p.id][1] * p.value for p in after)
+            was = sum(before.games[p.id][1] * p.value for p in before.active)
+            empty, _ = nights.usage(after)
+            out.append(f"- {team}: {total(week) - total(before.week):+.1f} ("
+                       + ", ".join(f"{s} {week[s] - before.week[s]:+.1f}" for s in SLOTS)
+                       + f"); benched points {was:.1f} -> {benched:.1f}, empty RW {before.empty['RW']:.1f} -> "
+                       f"{empty['RW']:.1f}, D {before.empty['D']:.1f} -> {empty['D']:.1f}, "
+                       f"G {before.empty['G']:.1f} -> {empty['G']:.1f}")
+        out.append("")
+    return "\n".join(out)
+
+
 def schedule(weeks: tuple[int, int] | None, today: dt.date) -> dict:
     """NHL date -> games, from a trade's clearing (or the first week asked) to the last week's end."""
     from clients import nhl_client
@@ -477,6 +553,9 @@ def main() -> None:
     parser.add_argument("--team", default=MY_TEAM, help="whose swaps to list (default: mine)")
     parser.add_argument("--weeks", help="fantasy weeks, e.g. 24-26 or \"24 26\" (default: from today to the end of the playoffs)")
     parser.add_argument("--offline", action="store_true", help="random nights instead of the NHL schedule")
+    parser.add_argument("--try", dest="tries", action="append", default=[],
+                        help='moves to weigh, e.g. "Shane Pinto > Lucas Raymond, Jack McBain > Leevi Merilainen"; '
+                             "several scenarios: repeat it, or separate them with |")
     args = parser.parse_args()
     teams, waiver, missing = load()
     if args.offline:
@@ -490,6 +569,11 @@ def main() -> None:
     depths = {t: analyse(t, ps, nights, waiver, starter) for t, ps in teams.items()}
     found = {t: swaps(depths[args.team], depths[t], nights) for t in teams if t != args.team}
     print(report(depths, args.team, found, waiver, missing, nights.label))
+    tries = [t.strip() for text in args.tries for t in text.split("|") if t.strip()]
+    if tries:
+        rows = latest_rows()
+        pool = free_agents(rows, {p.id for ps in teams.values() for p in ps}, waiver)
+        print(tried_report([try_moves(t, args.team, depths, pool, nights) for t in tries], args.team, nights))
     print("Median starter a team game: " + ", ".join(f"{s} {v:.2f}" for s, v in starter.items()) + ".")
 
 

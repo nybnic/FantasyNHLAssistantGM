@@ -26,12 +26,13 @@ on:
           - goalie-form
           - third-goalie
           - depth
+          - trade
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
         required: false
       players:
-        description: Optional free agents for explain-week to score too (then every move is listed), comma-separated, e.g. Jack Quinn, Quinton Byfield
+        description: Optional free agents for explain-week to score too (then every move is listed), comma-separated, e.g. Jack Quinn, Quinton Byfield; for trade the trade, e.g. Shane Pinto for Lucas Raymond
         type: string
         required: false
       ir:
@@ -40,6 +41,10 @@ on:
         required: false
       weeks:
         description: Optional fantasy weeks for schedule, space-separated, e.g. 24 25 26 (default this week and next); for depth the first and last (default now to week 26)
+        type: string
+        required: false
+      moves:
+        description: Optional moves for depth to weigh, OUT > IN, comma-separated, scenarios separated by |, e.g. Shane Pinto > Lucas Raymond | Shane Pinto > Leevi Merilainen
         type: string
         required: false
       variants:
@@ -94,6 +99,7 @@ jobs:
           PLAYERS: ${{ inputs.players }}
           IR: ${{ inputs.ir }}
           WEEKS: ${{ inputs.weeks }}
+          MOVES: ${{ inputs.moves }}
           VARIANTS: ${{ inputs.variants }}
           LEAGUES: ${{ inputs.leagues }}
           PRICE: ${{ inputs.price }}
@@ -103,6 +109,9 @@ jobs:
           fi
           if ! [[ "$PLAYERS$IR" =~ ^[[:alpha:][:space:].,\'-]*$ ]]; then
             echo "players and ir must be names separated by commas"; exit 1
+          fi
+          if ! [[ "$MOVES" =~ ^[[:alpha:][:space:].,\'\>\|-]*$ ]]; then
+            echo "moves must be OUT > IN pairs separated by commas, scenarios by |"; exit 1
           fi
           if ! [[ "$WEEKS" =~ ^[0-9[:space:]]*$ ]]; then
             echo "weeks must be week numbers separated by spaces"; exit 1
@@ -149,6 +158,7 @@ jobs:
             goalie-shares) python -m scripts.goalie_shares ;;
             goalie-form) time python -m scripts.fit_goalie_form ;;
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
-            depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ;;
+            depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ${MOVES:+--try "$MOVES"} ;;
+            trade) time python main.py --dry-run --trade "$PLAYERS" ;;
             replay) time python -m scripts.replay --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} ${variants[@]:+--variants "${variants[@]}"} ;;
           esac
