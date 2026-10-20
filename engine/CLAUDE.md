@@ -189,7 +189,12 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   Meriläinen for Pinto's 43): the keep share on the add's gap alone, so a keeper added onto a streaming
   spot counts the season. 16 leagues: at the 0.09 price +0.23 (0.09) wins a season, +1.4 pts a week, with
   fewer adds (17.8 vs 18.8), so not the extra adds; at equal adds (price 0, 29.9 each) +0.07 (0.08), +0.9
-  pts a week. Skater swaps only (the replay streams no goalies). Live rule unchanged: Nico to decide.
+  pts a week. Skater swaps only (the replay streams no goalies). Live since 2026-10-20 (Nico).
+- With goalie moves (2026-10-20; the reference is now the live rule, keeper add), 16 leagues: at the 0.09 price
+  the old rule -0.18 (0.12), skaters only -0.61 (0.14) wins a season (-3.0 pts a week, 17.4 adds vs 24.9);
+  at equal adds (price 0, ~30 each) the old rule -0.04 (0.13), skaters only -0.52 (0.13) (-2.7 pts a week).
+  So goalie moves are worth ~0.5 wins a season beyond the adds they use; keeper add helps at the bot's
+  price and costs nothing at equal adds.
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
