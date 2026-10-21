@@ -27,7 +27,7 @@ from config.league import MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, PLAYOFF_WEEKS,
 PLAYOFF_RESERVE = 6  # adds kept for playoff weeks (decision log)
 DEFAULT_TAU = 20.0  # spread of matchup margins until league rosters give one (a judgment call)
 SIMS_PER_POOL = 3000
-POOL_SIZE = 25  # candidate adds kept per week for the simulation
+POOL_SIZE = 25  # candidate moves (add and drop) kept per week for the simulation
 _erf = np.frompyfunc(math.erf, 1, 1)
 
 
@@ -114,10 +114,15 @@ def pool_entry(moves: list, remaining_days: int, sigma_now: float, tau: float) -
     def later(m) -> float:
         return m.long_term + getattr(m, "ahead_pts", 0.0)
 
-    best: dict[int, object] = {}
+    # The best move per add AND drop, not per add: an add's best drop is mostly the
+    # same player (22 of week 4's 25 dropped Larsson), and a second add can't share
+    # it, so the simulation saw almost no second adds and set the price too low
+    # (week 4: 1.0 adds a week at 8.7 win-pts; per pair 2.0, the price 14.8).
+    best: dict[tuple, object] = {}
     for m in moves:
-        if m.add.id not in best or m.week_gain + later(m) > best[m.add.id].week_gain + later(best[m.add.id]):
-            best[m.add.id] = m
+        k = (m.add.id, m.drop.id if m.drop else None)
+        if k not in best or m.week_gain + later(m) > best[k].week_gain + later(best[k]):
+            best[k] = m
     top = sorted(best.values(), key=lambda m: m.week_gain * scale + later(m), reverse=True)[:POOL_SIZE]
     return {"moves": [[round(m.week_gain * scale, 2), round(later(m), 2), m.add.id, m.drop.id if m.drop else None]
                       for m in top],
