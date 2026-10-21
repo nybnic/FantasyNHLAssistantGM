@@ -641,6 +641,25 @@
       "message_id": 588,
       "type": "add"
     },
+    "add-2026-10-21-1601-8481028": {
+      "add": {
+        "id": 8481028,
+        "name": "Martin Pospisil",
+        "positions": [
+          "C",
+          "RW"
+        ],
+        "slot": null,
+        "team": "CGY"
+      },
+      "add_slot": null,
+      "date": "2026-10-21",
+      "drop": 8476457,
+      "drop_name": "Adam Larsson",
+      "ir": {},
+      "message_id": 592,
+      "type": "add"
+    },
     "lineup-2026-10-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -896,27 +915,68 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-21T14:31+00:00",
+    "at": "2026-10-21T16:01+00:00",
     "moves": [
       {
         "add": {
-          "id": 8479361,
-          "name": "Joseph Woll",
+          "id": 8481028,
+          "name": "Martin Pospisil",
           "positions": [
-            "G"
+            "C",
+            "RW"
           ],
-          "team": "PHI"
+          "team": "CGY"
+        },
+        "drop": {
+          "id": 8476457,
+          "name": "Adam Larsson"
+        },
+        "key": "8481028:8476457",
+        "message_id": 592,
+        "rec_id": "add-2026-10-21-1601-8481028",
+        "value": 0.2062,
+        "when": "2026-10-21",
+        "why": "now"
+      },
+      {
+        "add": {
+          "id": 8482087,
+          "name": "Kaiden Guhle",
+          "positions": [
+            "D"
+          ],
+          "team": "MTL"
         },
         "drop": {
           "id": 8482447,
           "name": "Leevi Meril\u00e4inen"
         },
-        "key": "8479361:8482447",
-        "message_id": 588,
-        "rec_id": "add-2026-10-21-1431-8479361",
-        "value": 0.2148,
-        "when": "2026-10-21",
-        "why": "now"
+        "key": "8482087:8482447",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.2801,
+        "when": "2026-10-26",
+        "why": "monday"
+      },
+      {
+        "add": {
+          "id": 8484390,
+          "name": "Roman Kantserov",
+          "positions": [
+            "RW"
+          ],
+          "team": "CHI"
+        },
+        "drop": {
+          "id": 8480855,
+          "name": "Jack McBain"
+        },
+        "key": "8484390:8480855",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.1965,
+        "when": "2026-10-26",
+        "why": "monday"
       }
     ],
     "week": 4
@@ -938,7 +998,8 @@
     "2026-10-17 no game unread",
     "2026-10-18 week 2 standings",
     "2026-10-21 scoreboard since the draft",
-    "2026-10-21 points for by week"
+    "2026-10-21 points for by week",
+    "2026-10-21 move forecasts"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -1143,6 +1204,7 @@
       "8480049:promoted": "2026-10-16",
       "8480078:promoted": "2026-10-18",
       "8480113:promoted": "2026-10-19",
+      "8480188:promoted": "2026-10-21",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-13",
       "8480426:promoted": "2026-10-19",
@@ -1154,6 +1216,7 @@
       "8481056:promoted": "2026-10-20",
       "8481068:promoted": "2026-10-17",
       "8481527:ice time": "2026-10-18",
+      "8481535:promoted": "2026-10-21",
       "8481538:ice time": "2026-10-20",
       "8481553:promoted": "2026-10-16",
       "8481568:promoted": "2026-10-19",
@@ -1196,6 +1259,7 @@
       "8484152:promoted": "2026-10-17",
       "8484158:promoted": "2026-10-17",
       "8484210:ice time": "2026-10-14",
+      "8484241:promoted": "2026-10-21",
       "8484387:promoted": "2026-10-17",
       "8484471:promoted": "2026-10-19",
       "8484759:promoted": "2026-10-14",
@@ -1534,7 +1598,7 @@
       },
       "8476393": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -1614,11 +1678,10 @@
       },
       "8476539": {
         "groups": [
-          "f2",
+          "f3",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-19",
           "pp1": "2026-10-14"
         }
       },
@@ -1821,15 +1884,6 @@
         ],
         "since": {}
       },
-      "8477444": {
-        "groups": [
-          "f2",
-          "pp2"
-        ],
-        "since": {
-          "f2": null
-        }
-      },
       "8477446": {
         "groups": [
           "f4",
@@ -2009,10 +2063,10 @@
       },
       "8477998": {
         "groups": [
-          "f1"
+          "f2"
         ],
         "since": {
-          "f1": "2026-10-19"
+          "f2": "2026-10-21"
         }
       },
       "8478013": {
@@ -2054,6 +2108,12 @@
         "since": {}
       },
       "8478147": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
+      "8478173": {
         "groups": [
           "f4"
         ],
@@ -2520,12 +2580,6 @@
         ],
         "since": {}
       },
-      "8480075": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8480078": {
         "groups": [
           "f2",
@@ -2553,10 +2607,12 @@
       },
       "8480188": {
         "groups": [
-          "f4",
+          "f1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-21"
+        }
       },
       "8480192": {
         "groups": [
@@ -2573,13 +2629,6 @@
         "since": {
           "f2": "2026-10-17"
         }
-      },
-      "8480246": {
-        "groups": [
-          "d2",
-          "pk1"
-        ],
-        "since": {}
       },
       "8480289": {
         "groups": [
@@ -2724,6 +2773,13 @@
           "d1": null
         }
       },
+      "8480950": {
+        "groups": [
+          "d2",
+          "pk1"
+        ],
+        "since": {}
+      },
       "8480980": {
         "groups": [
           "f4",
@@ -2864,9 +2920,11 @@
       },
       "8481535": {
         "groups": [
-          "f3"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-21"
+        }
       },
       "8481538": {
         "groups": [
@@ -3112,8 +3170,9 @@
       },
       "8482092": {
         "groups": [
-          "f4",
-          "pk1"
+          "f3",
+          "pk1",
+          "pp2"
         ],
         "since": {}
       },
@@ -3126,7 +3185,7 @@
       },
       "8482095": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -3190,7 +3249,9 @@
       },
       "8482145": {
         "groups": [
-          "ir"
+          "f3",
+          "ir",
+          "pp2"
         ],
         "since": {}
       },
@@ -3916,15 +3977,23 @@
       },
       "8484241": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-21"
+        }
       },
       "8484305": {
         "groups": [
           "d3",
           "pk2"
+        ],
+        "since": {}
+      },
+      "8484321": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -3969,7 +4038,7 @@
       },
       "8484759": {
         "groups": [
-          "d2",
+          "d3",
           "pp2"
         ],
         "since": {}
@@ -4167,13 +4236,6 @@
         "since": {
           "pp1": null
         }
-      },
-      "8486189": {
-        "groups": [
-          "f3",
-          "pp2"
-        ],
-        "since": {}
       }
     },
     "log": [
@@ -5376,6 +5438,51 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8481535,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Nils Hoglander",
+        "positions": "LW",
+        "price": null,
+        "sent": false,
+        "team": "NSH",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8484241,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Matthew Wood",
+        "positions": "C/RW",
+        "price": 0.18,
+        "sent": false,
+        "team": "NSH",
+        "value": 0.0344,
+        "verdict": "+3 win-pts against the 18.0 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8480188,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Fabian Zetterlund",
+        "positions": "LW/RW",
+        "price": 0.18,
+        "sent": false,
+        "team": "OTT",
+        "value": 0.0496,
+        "verdict": "+5 win-pts against the 18.0 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
