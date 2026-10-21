@@ -1,6 +1,7 @@
 """The replay harness's own arithmetic (scripts/replay.py): a swap's gain by
 day against a full lineup, and the week's real score with the goalie minimum."""
 import datetime as dt
+import math
 from collections import defaultdict
 
 import pytest
@@ -103,3 +104,27 @@ def test_goalies_count_by_the_week_with_the_minimum_and_a_goalie_add_gains_it():
     swap = week.gain(12, 11, days)
     assert sum(swap.values()) == pytest.approx((2 * 0.5 * 9.0 + 3 * 0.5 * 9.0) * replay.at_least([0.5] * 5, 3)
                                                - plain * replay.at_least([0.5] * 4, 3))
+
+
+def test_the_pacing_price_is_the_bar_at_an_even_pace_lower_when_adds_were_saved():
+    n = 25
+    even = replay.REGULAR_ADDS / n
+    assert replay.monday_price(("pace", 0.08, 1.0), 0, 0, n, [], None) == pytest.approx(0.08)  # on pace
+    # Week 11 with 6 used: 24 left for 15 weeks (1.6 a week, more than even): a lower bar.
+    assert replay.monday_price(("pace", 0.08, 1.0), 6, 10, n, [], None) == pytest.approx(0.08 * even / 1.6)
+    assert replay.monday_price(("pace", 0.08, 2.0), 6, 10, n, [], None) == pytest.approx(0.08 * (even / 1.6) ** 2)
+    # 20 used by week 11: 10 for 15 weeks, a higher bar; none left: no adds.
+    assert replay.monday_price(("pace", 0.08, 1.0), 20, 10, n, [], None) > 0.08
+    assert replay.monday_price(("pace", 0.08, 1.0), 30, 10, n, [], None) == math.inf
+
+
+def test_the_live_price_logs_each_mondays_pool_once_and_solves_over_them():
+    pool = {"moves": [[8.0, 20.0, 1, 7], [6.0, 10.0, 2, 8], [1.0, 2.0, 3, 9]], "sigma": 40.0, "tau": 18.5}
+    picks = []
+    first = replay.monday_price(("live",), 0, 0, 25, picks, {"pool": pool, "weight": 0.008})
+    assert len(picks) == 1 and first > 0
+    # The same price as addprice.solve on that pool at that pace (its own random draws aside).
+    assert first == pytest.approx(replay.addprice.solve([pool], 30 / 25, 0.008), rel=0.15)
+    for _ in range(replay.POOL_WEEKS + 3):
+        replay.monday_price(("live",), 0, 0, 25, picks, {"pool": pool, "weight": 0.008})
+    assert len(picks) == replay.POOL_WEEKS  # the newest weeks only

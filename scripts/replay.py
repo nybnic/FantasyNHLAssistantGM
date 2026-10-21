@@ -28,7 +28,10 @@ pairings, the same for every variant), paired by team.
 
 Variants (--variants, default all): the keep share (`KEEP_RAMP`, the on/off
 switch it replaced, all hold, all season), the streaming spots
-(`STREAMING_SPOTS`), `LONG_RUN_DISCOUNT`, the price, and planned exits (EXITS:
+(`STREAMING_SPOTS`), `LONG_RUN_DISCOUNT`, the price, the price rule (PRICE_RULES:
+the live bot's price solved each Monday over the weeks' logged candidates, or a
+fixed bar times a pacing factor; these pace by the price alone, while the
+fixed-price variants also stop at an even pace), and planned exits (EXITS:
 a streamer's hold may end at a week boundary, so a bad week after it doesn't
 count against him, and that Monday he is offered as a drop). One variant is the
 reference; the others are reported as wins a season vs it (+/- SE, paired).
@@ -41,6 +44,7 @@ ignores the other teams' pickups); no IR slots; lineups set knowing who plays.
     python -m scripts.replay                       # 4 leagues, all variants
     python -m scripts.replay --leagues 8 --workers 4
     python -m scripts.replay --variants "ramp 1.0" "switch" "spots 2"
+    python -m scripts.replay --variants "live price" "pace 0.08" --reference "live price"
 """
 from __future__ import annotations
 
@@ -51,6 +55,8 @@ import random
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from statistics import mean
+
+import numpy as np
 
 from clients import nhl_stats
 from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
@@ -91,7 +97,19 @@ VARIANTS = {
     "exit charged": (1.0, 3, 0.5, PRICE),
     "keeper add": ("add", 3, 0.5, PRICE),
     "skaters only": ("add", 3, 0.5, PRICE),
+    # The price rule (Nico, 2026-10-21: "pacing to leave 6 for the playoffs; the
+    # better the move the better to spend an add"; the candidate pool shouldn't
+    # move the price). Moves valued as "keeper add"; no even-pace cap.
+    "live price": ("add", 3, 0.5, ("live",)),
+    **{f"pace {b:.2f}": ("add", 3, 0.5, ("pace", b, 1.0)) for b in (0.04, 0.06, 0.08, 0.10, 0.12)},
+    **{f"pace {b:.2f} k2": ("add", 3, 0.5, ("pace", b, 2.0)) for b in (0.06, 0.08, 0.10)},
 }
+# The price rules, by the variants' price: a number is a fixed price (with the
+# even-pace cap, as the harness always had); ("live",) is addprice.solve over the
+# Monday pools logged so far (the newest POOL_WEEKS), at the pace the budget
+# left needs; ("pace", bar, k) is bar x (the even pace / the pace the budget
+# left needs) ** k: lower when adds were saved, higher when spent ahead of pace.
+POOL_WEEKS = 12  # as gm_state.KEEP_POOL_WEEKS
 # Variants that make no goalie moves (the harness before 2026-10-20): goalies
 # change only when one loses his role.
 SKATERS_ONLY = {"skaters only"}
@@ -397,11 +415,13 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
     out = {}
     for t in range(managed):
         for name in names:
-            keep_rule, spots, discount, price = VARIANTS[name]
-            if price_all is not None and price != math.inf:
-                price = price_all
+            keep_rule, spots, discount, rule = VARIANTS[name]
+            fixed = not isinstance(rule, tuple)
+            if fixed and price_all is not None and rule != math.inf:
+                rule = price_all
             roster = list(lazy_by_week[0][t])
             used, wins, pts, planned, done = 0, 0, 0.0, 0, 0
+            picks, prices = [], []  # the live price's simulated Monday pools; each Monday's price
             exits = {}  # add -> the Monday his planned exit is due
             mine_taken = set(drafted)
             for w, m in enumerate(mondays):
@@ -412,14 +432,19 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                             if new:
                                 roster[i] = new
                                 used += 1
-                cap = math.ceil(REGULAR_ADDS * (w + 1) / n_weeks)
+                cap = math.ceil(REGULAR_ADDS * (w + 1) / n_weeks) if fixed else REGULAR_ADDS
+                price = rule if fixed else None
                 for _ in range(2):
                     if used >= cap or price == math.inf:
                         break
                     leaving = {pid for pid, due in exits.items() if due <= m}
+                    collect = {} if price is None and rule[0] == "live" else None
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
-                                     discount, n_weeks, used, EXITS.get(name), price, leaving,
-                                     name not in SKATERS_ONLY)
+                                     discount, n_weeks, used, EXITS.get(name), price if price is not None else PRICE,
+                                     leaving, name not in SKATERS_ONLY, collect)
+                    if price is None:  # the Monday's price, before its first move
+                        price = monday_price(rule, used, w, n_weeks, picks, collect)
+                        prices.append(price)
                     if move is None or move[0] < price:
                         break
                     _, add, drop, due = move
@@ -434,12 +459,30 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                 score = actual(s, roster, m)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
-            out[(t, name)] = (wins, pts / n_weeks, used, planned, done)
+            out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices)
         print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
     return out
 
 
 OPP_WEEKS: dict = {}  # (week index, team) -> its lazy roster's Week, this league's
+
+
+def monday_price(rule: tuple, used: int, w: int, n_weeks: int, picks: list, collect: dict | None) -> float:
+    """A price rule's price this Monday (PRICE_RULES), with `used` of the
+    REGULAR_ADDS spent before week index `w`. "live" logs this Monday's pool
+    (`collect`, from best_move) into `picks` first, simulated once."""
+    spare, left = REGULAR_ADDS - used, n_weeks - w
+    if spare <= 0:
+        return math.inf
+    need = spare / left  # the pace the budget left allows
+    if rule[0] == "pace":
+        _, bar, k = rule
+        return bar * ((REGULAR_ADDS / n_weeks) / need) ** k
+    if collect and collect["pool"]["moves"]:
+        rng = np.random.default_rng(len(picks) + 1)
+        picks.append(addprice._picks(collect["pool"], collect["weight"], addprice.SIMS_PER_POOL, rng))
+        del picks[:-POOL_WEEKS]
+    return addprice.price_from_picks(picks, need)
 
 
 def best_exit(gain: dict, future: list[dt.date], ahead: list, weeks_after: int, later_weight: float,
@@ -492,10 +535,12 @@ GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's p
 
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
-              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True):
+              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
-    offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES."""
+    offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
+    `collect`: a dict given the week's candidates as the bot logs them (addprice.pool_entry:
+    "pool") and the week's later_weight ("weight"), for the live price."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
     future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
@@ -561,7 +606,7 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
             for q in picked:
                 a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
                 pairs_tried += [(a, d) for d in drops + [g_rp]]
-        best = None
+        best, pool = None, []
         for a, d in pairs_tried:
             week_gain = sum(mine.gain(a.id, d.id, this).values())
             if week_gain < -matchup.MAX_WEEK_COST:
@@ -577,10 +622,14 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 matchup.LONG_RUN_DISCOUNT = saved_discount
             now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
             value = now + after
+            pool.append([round(week_gain, 2), round(after / later_weight, 2), a.id, d.id])
             if best is None or value > best[0]:
                 best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
     finally:
         matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
+    if collect is not None:
+        pool.sort(key=lambda x: x[0] + x[1], reverse=True)
+        collect.update(pool={"moves": pool[:addprice.POOL_SIZE], "sigma": sd_now, "tau": tau}, weight=later_weight)
     return best
 
 
@@ -591,9 +640,11 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--variants", nargs="*", default=list(VARIANTS))
     parser.add_argument("--teams", type=int, default=16, help="teams managed per league (all 16 by default)")
-    parser.add_argument("--price", type=float, help="every variant's add price (0: the budget's pace decides)")
+    parser.add_argument("--price", type=float, help="every fixed-price variant's add price (0: the budget's pace decides)")
+    parser.add_argument("--reference", default=REFERENCE, help="the variant the others are compared with")
     args = parser.parse_args()
-    names = [REFERENCE] + [v for v in args.variants if v != REFERENCE]
+    reference = args.reference
+    names = [reference] + [v for v in args.variants if v != reference]
     jobs = [(k, args.seed, names, args.teams, args.price) for k in range(args.leagues)]
     results = {}
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
@@ -603,9 +654,9 @@ def main() -> None:
     n = len(teams)
     print(f"\n{args.leagues} leagues x 16 teams, 2025-26 replayed; each team managed alone, the others lazily; "
           f"price {PRICE if args.price is None else args.price}")
-    print(f"{'variant':16}{'wins':>7}{'vs ' + REFERENCE:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}"
+    print(f"{'variant':16}{'wins':>7}{'vs ' + reference:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}"
           f"{'exits planned':>15}{'made':>6}")
-    ref = [results[(k, t, REFERENCE)] for k, t in teams]
+    ref = [results[(k, t, reference)] for k, t in teams]
     for name in names:
         rows = [results[(k, t, name)] for k, t in teams]
         diff = [a[0] - b[0] for a, b in zip(rows, ref)]
@@ -614,6 +665,17 @@ def main() -> None:
         print(f"{name:16}{mean(r[0] for r in rows):7.2f}{mean(diff):+16.2f}{se:9.2f}"
               f"{mean(r[1] for r in rows):9.1f}{mean(r[2] for r in rows):7.1f}"
               f"{mean(r[3] for r in rows):15.1f}{mean(r[4] for r in rows):6.1f}   pts/wk vs ref {pdiff:+.2f}")
+    # The price rules' prices: how much each moves, Monday to Monday, and by the season's stage.
+    for name in names:
+        series = [r[5] for r in (results[(k, t, name)] for k, t in teams) if r[5]]
+        if not series:
+            continue
+        finite = [[p for p in s if p != math.inf] for s in series]
+        jumps = [abs(b - a) for s in finite for a, b in zip(s, s[1:])]
+        thirds = [mean(p for s in finite for p in s[len(s) * i // 3:len(s) * (i + 1) // 3] or [0]) for i in range(3)]
+        print(f"  {name}: price {mean(p for s in finite for p in s):.3f} on average (by thirds of the season "
+              + " / ".join(f"{x:.3f}" for x in thirds) + f"), Monday to Monday it moves {mean(jumps or [0]):.3f}"
+              f" on average, {max(jumps or [0]):.3f} at most")
 
 
 if __name__ == "__main__":

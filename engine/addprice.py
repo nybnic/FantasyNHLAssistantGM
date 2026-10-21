@@ -88,7 +88,14 @@ def solve(pools: list[dict], target_pace: float, weight: float, seed: int = 1) -
     if not pools or target_pace >= MAX_ADDS_PER_WEEK:
         return 0.0
     rng = np.random.default_rng(seed)
-    picks = [_picks(p, weight, SIMS_PER_POOL, rng) for p in pools]
+    return price_from_picks([_picks(p, weight, SIMS_PER_POOL, rng) for p in pools], target_pace)
+
+
+def price_from_picks(picks: list[tuple[np.ndarray, np.ndarray]], target_pace: float) -> float:
+    """`solve` on pools already simulated (`_picks`): the price whose expected
+    adds a week match `target_pace` (scripts/replay.py keeps each week's picks)."""
+    if not picks or target_pace >= MAX_ADDS_PER_WEEK:
+        return 0.0
     v1 = np.concatenate([p[0] for p in picks])
     v2 = np.minimum(np.concatenate([p[1] for p in picks]), v1)  # a second add only after the first
 
