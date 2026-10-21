@@ -60,9 +60,10 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   verdict. In the chat, `/why Name` (or `/why Pospisil for Larsson`) answers
   from the latest plan: his best move's value this week, the next two weeks
   and later, in expected wins, against what an add needs.
-- Monday's result says what your moves since the draft added: your points
-  against the drafted roster's, played through the same week, and what that
-  was worth in wins (`python -m scripts.scorecard` lists every week).
+- Monday's result checks each move once its first three weeks are over: the
+  week played again with that one swap undone, in points and wins, against
+  what the plan forecast for it. One more line compares the season with
+  keeping the drafted roster (`python -m scripts.scorecard` lists it all).
 - `/opp`, then paste your opponent's Yahoo team page (any copy works), to
   refresh their roster. Other teams start from the draft results.
   `/taken Name` tells the bot that a suggested free agent has been taken.

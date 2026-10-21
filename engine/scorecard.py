@@ -7,19 +7,25 @@ picks, not of their exact worth in Yahoo. A suggestion is scored once
 WINDOW_DAYS have passed. The same add and drop suggested again counts once,
 with the last decision on it.
 
-`week_value`/`value_line`: the scoreboard (Nico, 2026-10-21). What every move
-since the draft added, against keeping the drafted roster: both rosters'
-best lineup each day from box scores (the same lineup rule as the week's
-result), the goalie minimum applied, and what those points were worth in that
-week's win odds as the week's first plan saw them. No pairing of adds with
-drops is needed, so moves learned any way (taps, screenshots) all count.
+`made_moves`/`move_check`: the scoreboard's main check (Nico, 2026-10-21): each
+move I made against the team just before it. The swap undone (the dropped
+player kept, every other move as made), both rosters played through each week
+the added player was held, from box scores with the best lineup each day and
+the goalie minimum, and the difference read as wins at the odds the week's
+first plan saw. Over a move's first three weeks (its week and the two ahead,
+the plan's own horizon) it is set against what the plan forecast for it.
+
+`week_value`/`value_line`: the season against doing nothing: my rosters vs the
+drafted one, the same way. It flatters the moves as the season goes on (the
+drafted roster never fills a hole), so it is one line of context.
+
+Each week's points are scored the same way throughout (`lineup_points`).
 """
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
-
 import math
+from dataclasses import dataclass
 
 from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
 from engine import matchup
@@ -68,18 +74,13 @@ def score(decisions: list[dict], ctx, today: dt.date) -> list[Scored]:
 
 
 def line(scored: list[Scored]) -> str | None:
-    """One line for the weekly result: made adds' gain, and what skipped ones
-    would have gained. None until a suggestion's window has closed."""
-    if not scored:
-        return None
-    made = [s for s in scored if s.decision == "done"]
+    """One line for the weekly result: what the suggestions not made would have
+    gained (made ones are checked by `move_check`). None until one's window has closed."""
     passed = [s for s in scored if s.decision != "done"]
-    parts = []
-    if made:
-        parts.append(f"{len(made)} made, {sum(s.gain for s in made):+.0f} pts vs their drops")
-    if passed:
-        parts.append(f"{len(passed)} not made, would have been {sum(s.gain for s in passed):+.0f}")
-    return f"Suggestions so far ({WINDOW_DAYS} days after each, raw points): " + "; ".join(parts) + "."
+    if not passed:
+        return None
+    return (f"Suggestions not made ({WINDOW_DAYS} days after each, raw points): {len(passed)}, "
+            f"would have been {sum(s.gain for s in passed):+.0f} vs their drops.")
 
 
 def lineup_points(history: dict[dt.date, list], ctx, days: list[dt.date], finished: bool = True) -> float:
@@ -88,6 +89,15 @@ def lineup_points(history: dict[dt.date, list], ctx, days: list[dt.date], finish
     skater, goalie, games = matchup._so_far([], ctx, days, history)
     made = games >= MIN_GOALIE_GAMES_PER_WEEK or not finished
     return skater + (goalie if made else 0.0)
+
+
+def wins_worth(first: dict, gain: float) -> float:
+    """What `gain` points were worth in a week's P(win), at the odds its first
+    plan saw (its margin as P(win) reads it, matchup.margin)."""
+    banked = first["so_far"][0] - first["so_far"][1]
+    mu = banked + matchup.MARGIN_REALIZES * (first["expected"][0] - first["expected"][1] - banked)
+    sd = math.hypot(*first["sd"]) or 1.0
+    return matchup._phi(mu / sd) - matchup._phi((mu - gain) / sd)
 
 
 def week_value(mine: dict[dt.date, list], drafted: list, theirs: float, ctx, days: list[dt.date],
@@ -102,10 +112,7 @@ def week_value(mine: dict[dt.date, list], drafted: list, theirs: float, ctx, day
     out = {"actual": round(actual, 2), "drafted": round(kept, 2), "added": round(added, 2),
            "margin": round(actual - theirs, 2)}
     if first:
-        banked = first["so_far"][0] - first["so_far"][1]
-        mu = banked + matchup.MARGIN_REALIZES * (first["expected"][0] - first["expected"][1] - banked)
-        sd = math.hypot(*first["sd"]) or 1.0
-        out["wins"] = round(matchup._phi(mu / sd) - matchup._phi((mu - added) / sd), 4)
+        out["wins"] = round(wins_worth(first, added), 4)
         if first.get("drafted") is not None:
             out["forecast"] = round(first["expected"][0] - first["drafted"], 2)
     return out
@@ -120,20 +127,169 @@ def outcome(v: dict) -> str:
 
 
 def value_line(v: dict | None, season: list[dict]) -> str | None:
-    """The scoreboard's lines in the week's result: this week, then the season
-    so far (`season`: every week's value, this one included)."""
+    """The season against doing nothing, one line (`season`: every week's
+    value, this one included)."""
     if not v:
         return None
-    head = (f"Your moves since the draft: {v['added']:+.0f} pts this week ({v['actual']:.0f} vs the drafted "
-            f"roster's {v['drafted']:.0f})")
-    if v.get("wins") is not None:
-        head += f", {v['wins']:+.2f} wins at this week's odds"
-    head += f"; {outcome(v)}."
-    if v.get("forecast") is not None:
-        head += f" Forecast at the week's first plan: {v['forecast']:+.0f}."
-    flipped = sum(1 for w in season if (w["margin"] > 0) != (w["margin"] - w["added"] > 0))
     wins = [w["wins"] for w in season if w.get("wins") is not None]
-    tail = (f"Season, {len(season)} week{'s' if len(season) != 1 else ''}: {sum(w['added'] for w in season):+.0f} pts"
-            + (f", {sum(wins):+.2f} wins" if wins else "")
-            + f", {flipped} result{'s' if flipped != 1 else ''} decided by them.")
-    return head + "\n" + tail
+    return (f"Against keeping the drafted roster (doing nothing): {v['added']:+.0f} pts this week; season "
+            f"{sum(w['added'] for w in season):+.0f} pts" + (f", {sum(wins):+.2f} wins" if wins else "") + ".")
+
+
+# Each move against the team just before it.
+CHECK_WEEKS = 1 + matchup.AHEAD_WEEKS  # the plan's horizon: the move's week and the two ahead
+
+
+@dataclass
+class MadeMove:
+    add: int
+    drop: int | None  # None: into an open spot
+    day: dt.date  # his first day on my active roster
+    until: dt.date | None  # his last, if he has gone
+    # Into an open spot, while he held it: a player back from IR needed a spot and
+    # this one was cut that day; without the add he'd have stayed.
+    cut: int | None = None
+    cut_from: dt.date | None = None
+
+    @property
+    def key(self) -> str:
+        """As the Board keys moves (engine/report.move_key)."""
+        return f"{self.add}:{self.drop or 0}"
+
+
+def _goalie(pid: int, players: dict) -> bool:
+    return "G" in players.get(str(pid), {}).get("positions", [])
+
+
+def made_moves(adds: list[dict], my_days: dict[str, list[int]], players: dict, on_ir: set[int],
+               known: dict[int, int]) -> list[MadeMove]:
+    """Every add I made, paired with the player he replaced, from my active
+    roster day by day (`my_days`). A player who leaves and comes back without
+    being re-added, or is in an IR slot now, was on IR, not dropped; one who
+    arrives without an add is back from IR. An add's drop: the one named
+    (`known`: a Done tap's, the plan's), else the day's only drop when nobody
+    came back from IR that day, else the day's drop in his group (goalie or
+    skater), else none (an open spot). A drop that day left over was the cut for
+    a player back from IR: it goes to the latest open-spot add still held, who
+    took the spot that player would otherwise have kept."""
+    days = sorted(my_days)
+    roster = [set(my_days[d]) for d in days]
+    add_days = {}
+    for a in adds:
+        if a["id"] is not None:
+            add_days.setdefault(a["id"], []).append(dt.date.fromisoformat(a["date"]))
+
+    def re_added(pid: int, after: str) -> bool:
+        return any(d.isoformat() >= after for d in add_days.get(pid, []))
+
+    def dropped(pid: int, i: int) -> bool:
+        """He left on day i for good (else IR)."""
+        later = next((j for j in range(i + 1, len(days)) if pid in roster[j]), None)
+        if later is None:
+            return pid not in on_ir
+        return re_added(pid, days[i])
+
+    out, cuts = [], []
+    for i in range(1, len(days)):
+        arrived, left = roster[i] - roster[i - 1], roster[i - 1] - roster[i]
+        drops = [p for p in sorted(left) if dropped(p, i)]
+        day = dt.date.fromisoformat(days[i])
+        new = [p for p in sorted(arrived) if any(abs((d - day).days) <= 2 for d in add_days.get(p, []))]
+        back = arrived - set(new)
+        paired = {}
+        for p in new:
+            if known.get(p) in drops:
+                paired[p] = known[p]
+        free = [d for d in drops if d not in paired.values()]
+        rest = [p for p in new if p not in paired]
+        if len(rest) == 1 and len(free) == 1 and not back:
+            paired[rest[0]] = free[0]
+        else:
+            for p in rest:
+                same = next((d for d in free if d not in paired.values() and _goalie(d, players) == _goalie(p, players)),
+                            None)
+                if same is not None:
+                    paired[p] = same
+        for p in new:
+            gone = next((j for j in range(i + 1, len(days)) if p not in roster[j] and dropped(p, j)), None)
+            out.append(MadeMove(p, paired.get(p), day, dt.date.fromisoformat(days[gone - 1]) if gone else None))
+        if back:
+            cuts += [(day, d) for d in drops if d not in paired.values()]
+    for day, pid in cuts:
+        holding = [m for m in out if m.drop is None and m.cut is None and m.day <= day
+                   and (m.until is None or day <= m.until)]
+        if holding:
+            m = max(holding, key=lambda m: m.day)
+            m.cut, m.cut_from = pid, day
+    return out
+
+
+def move_weeks(m: MadeMove, history: dict[dt.date, list], people: dict, ctx, firsts: dict[int, dict],
+               weeks_: list[tuple[int, list[dt.date]]]) -> list[dict]:
+    """The move week by week ({week, pts, wins}), for each of `weeks_` (finished
+    weeks with every day's roster in `history`): my real rosters against the same
+    days with this one swap undone while he was held (his drop, and his cut from
+    its day, back: `people` has them by id)."""
+    out = []
+    for week, days in weeks_:
+        held = [d for d in days if d >= m.day and (m.until is None or d <= m.until)]
+        if not held:
+            out.append({"week": week, "pts": 0.0, "wins": 0.0})
+            continue
+        undone = dict(history)
+        for d in held:
+            roster = [p for p in history[d] if p.id != m.add]
+            back = [m.drop] + ([m.cut] if m.cut and d >= m.cut_from else [])
+            roster += [people[i] for i in back if i in people and all(p.id != i for p in roster)]
+            undone[d] = roster
+        gain = lineup_points(history, ctx, days) - lineup_points(undone, ctx, days)
+        first = firsts.get(week)
+        out.append({"week": week, "pts": round(gain, 2), "wins": round(wins_worth(first, gain), 4) if first else None})
+    return out
+
+
+def move_check(m: MadeMove, by_week: list[dict], forecast: dict | None, names: dict) -> dict:
+    """A move's first CHECK_WEEKS weeks against the plan's forecast for them
+    (its week's and the two ahead: `now_wins` + `ahead_wins`, points `week_pts` +
+    `ahead_week_pts`); later points aren't checked here (a keeper's run the season)."""
+    first = by_week[:CHECK_WEEKS]
+    out = {"key": m.key, "day": m.day.isoformat(), "add": names.get(str(m.add), {}).get("name", str(m.add)),
+           "drop": names.get(str(m.drop), {}).get("name") if m.drop else None,
+           "cut": names.get(str(m.cut), {}).get("name") if m.cut else None,
+           "pts": round(sum(w["pts"] for w in first), 2),
+           "wins": round(sum(w["wins"] or 0.0 for w in first), 4)}
+    if forecast:
+        out["forecast"] = {"pts": round(forecast["week_pts"] + sum(forecast.get("ahead_week_pts") or []), 2),
+                           "wins": round(forecast["now_wins"] + sum(forecast.get("ahead_wins") or []), 4),
+                           "value": forecast["value"], "price": forecast.get("price"), "date": forecast["date"]}
+    return out
+
+
+def _day(d: str) -> str:
+    x = dt.date.fromisoformat(d)
+    return f"{x:%a} {x.day} {x:%b}"
+
+
+def check_line(c: dict) -> str:
+    """One checked move: what it did in its first weeks, against the forecast."""
+    swap = c["add"] + (f" for {c['drop']}" if c["drop"] else " into an open spot"
+                       + (f" (kept {c['cut']} from being cut)" if c.get("cut") else ""))
+    head = f"{swap} ({_day(c['day'])}), its first {CHECK_WEEKS} weeks: {c['pts']:+.0f} pts, {c['wins']:+.2f} wins"
+    f = c.get("forecast")
+    if not f:
+        return head + " (no forecast saved: from before the Board, or not the plan's move)."
+    price = f" (all in {f['value']:+.2f} with later points; an add cost {f['price']:.2f})" if f.get("price") else ""
+    return head + f"; the plan forecast {f['pts']:+.0f} pts, {f['wins']:+.2f}{price}."
+
+
+def checks_line(checks: list[dict]) -> str | None:
+    """Every move checked so far, in one line."""
+    if not checks:
+        return None
+    fc = [c for c in checks if c.get("forecast")]
+    head = (f"Moves checked so far: {len(checks)}, {sum(c['pts'] for c in checks):+.0f} pts, "
+            f"{sum(c['wins'] for c in checks):+.2f} wins in their first {CHECK_WEEKS} weeks")
+    if fc:
+        head += (f"; the {len(fc)} with a forecast {sum(c['wins'] for c in fc):+.2f} wins against "
+                 f"{sum(c['forecast']['wins'] for c in fc):+.2f} forecast")
+    return head + "."

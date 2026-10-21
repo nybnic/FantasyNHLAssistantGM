@@ -326,6 +326,26 @@ def _points_for_by_week(state: dict, players: list[RosterPlayer], league: dict) 
             "points_for", pf)
 
 
+# The plan's last forecast of each move I made since the Board kept them (Oct 9),
+# from state/board.json in git history: the latest Board on or before the move's
+# day that had it in the plan. Pinto (Oct 7) and McBain (Oct 1) predate it.
+MOVE_FORECASTS = {
+    f"{LANDESKOG}:{MARTONE}": {"date": "2026-10-14", "at": "2026-10-15T03:53+00:00", "value": 0.1062,
+                               "now_wins": 0.0476, "ahead_wins": [0.065, -0.0375], "week_pts": 4.01,
+                               "ahead_week_pts": [7.61, -4.57], "later_wins": 0.0312, "price": 0.0851},
+    f"{MERILAINEN}:{PINTO}": {"date": "2026-10-20", "at": "2026-10-20T17:31+00:00", "value": 0.4495,
+                              "now_wins": 0.1321, "ahead_wins": [-0.035, 0.0179], "week_pts": 14.05,
+                              "ahead_week_pts": [-4.16, 2.21], "later_wins": 0.3346, "price": 0.1241},
+}
+
+
+def _move_forecasts(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-21: each move is now checked against the plan's forecast of it;
+    # the forecasts are logged from now on, these two from git history.
+    for key, f in MOVE_FORECASTS.items():
+        state.setdefault("move_forecasts", {}).setdefault(key, f)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -339,4 +359,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-17 no game unread", _no_game_unread),
            ("2026-10-18 week 2 standings", _week_2_standings),
            ("2026-10-21 scoreboard since the draft", _scoreboard_since_draft),
-           ("2026-10-21 points for by week", _points_for_by_week)]
+           ("2026-10-21 points for by week", _points_for_by_week),
+           ("2026-10-21 move forecasts", _move_forecasts)]
