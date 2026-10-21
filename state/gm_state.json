@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-06": {
-      "recommended": {
-        "8474564": "RW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8476902": "BN",
-        "8477949": "BN",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8484801": "C",
-        "8485406": "RW"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-07": {
       "recommended": {
         "8474564": "RW",
@@ -624,6 +604,25 @@
       "message_id": 566,
       "type": "add"
     },
+    "add-2026-10-21-0526-8481028": {
+      "add": {
+        "id": 8481028,
+        "name": "Martin Pospisil",
+        "positions": [
+          "C",
+          "RW"
+        ],
+        "slot": null,
+        "team": "CGY"
+      },
+      "add_slot": null,
+      "date": "2026-10-21",
+      "drop": 8476457,
+      "drop_name": "Adam Larsson",
+      "ir": {},
+      "message_id": 571,
+      "type": "add"
+    },
     "lineup-2026-10-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -879,46 +878,46 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-20T18:11+00:00",
+    "at": "2026-10-21T05:26+00:00",
     "moves": [
       {
         "add": {
-          "id": 8478042,
-          "name": "Viktor Arvidsson",
+          "id": 8481028,
+          "name": "Martin Pospisil",
           "positions": [
-            "LW",
+            "C",
             "RW"
           ],
-          "team": "DET"
-        },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8478042:8480855",
-        "message_id": 566,
-        "rec_id": "add-2026-10-20-1811-8478042",
-        "value": 0.124,
-        "when": "2026-10-20",
-        "why": "now"
-      },
-      {
-        "add": {
-          "id": 8482087,
-          "name": "Kaiden Guhle",
-          "positions": [
-            "D"
-          ],
-          "team": "MTL"
+          "team": "CGY"
         },
         "drop": {
           "id": 8476457,
           "name": "Adam Larsson"
         },
-        "key": "8482087:8476457",
+        "key": "8481028:8476457",
+        "message_id": 571,
+        "rec_id": "add-2026-10-21-0526-8481028",
+        "value": 0.2058,
+        "when": "2026-10-21",
+        "why": "now"
+      },
+      {
+        "add": {
+          "id": 8484390,
+          "name": "Roman Kantserov",
+          "positions": [
+            "RW"
+          ],
+          "team": "CHI"
+        },
+        "drop": {
+          "id": 8480855,
+          "name": "Jack McBain"
+        },
+        "key": "8484390:8480855",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1311,
+        "value": 0.1961,
         "when": "2026-10-26",
         "why": "monday"
       }
@@ -1081,7 +1080,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784717,
+  "telegram_offset": 929784719,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1099,6 +1098,7 @@
       "8475343:ice time": "2026-10-18",
       "8475660:no1": "2026-10-13",
       "8475726:promoted": "2026-10-14",
+      "8475745:ice time": "2026-10-21",
       "8475768:promoted": "2026-10-16",
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
@@ -1120,6 +1120,7 @@
       "8477989:promoted": "2026-10-14",
       "8477998:promoted": "2026-10-19",
       "8478010:promoted": "2026-10-15",
+      "8478042:promoted": "2026-10-21",
       "8478047:promoted": "2026-10-18",
       "8478366:promoted": "2026-10-17",
       "8478401:promoted": "2026-10-20",
@@ -1133,6 +1134,7 @@
       "8479365:promoted": "2026-10-15",
       "8479385:promoted": "2026-10-15",
       "8479525:promoted": "2026-10-19",
+      "8479671:ice time": "2026-10-21",
       "8479675:promoted": "2026-10-15",
       "8479980:promoted": "2026-10-14",
       "8479983:promoted": "2026-10-15",
@@ -1168,12 +1170,14 @@
       "8482175:promoted": "2026-10-19",
       "8482176:promoted": "2026-10-16",
       "8482177:promoted": "2026-10-19",
+      "8482408:promoted": "2026-10-21",
       "8482475:promoted": "2026-10-19",
       "8482476:promoted": "2026-10-19",
       "8482482:promoted": "2026-10-14",
       "8482655:ice time": "2026-10-18",
       "8482679:promoted": "2026-10-17",
       "8482713:promoted": "2026-10-14",
+      "8482731:ice time": "2026-10-21",
       "8482758:promoted": "2026-10-20",
       "8482803:promoted": "2026-10-14",
       "8483460:promoted": "2026-10-16",
@@ -1235,13 +1239,11 @@
       },
       "8473986": {
         "groups": [
-          "f1",
+          "f3",
           "pk1",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-10-13"
-        }
+        "since": {}
       },
       "8473994": {
         "groups": [
@@ -1398,12 +1400,6 @@
         ],
         "since": {}
       },
-      "8475324": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8475343": {
         "groups": [
           "f4"
@@ -1452,7 +1448,8 @@
       "8475753": {
         "groups": [
           "d2",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -1978,6 +1975,13 @@
         ],
         "since": {}
       },
+      "8477971": {
+        "groups": [
+          "d3",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8477987": {
         "groups": [
           "f3",
@@ -2019,11 +2023,11 @@
       },
       "8478042": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": null
+          "f2": "2026-10-21"
         }
       },
       "8478047": {
@@ -2048,13 +2052,11 @@
       },
       "8478366": {
         "groups": [
-          "f2",
+          "f4",
           "pk2",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-17"
-        }
+        "since": {}
       },
       "8478396": {
         "groups": [
@@ -2096,7 +2098,7 @@
       },
       "8478421": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -2375,6 +2377,12 @@
           "f2": "2026-10-15"
         }
       },
+      "8479705": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8479772": {
         "groups": [
           "f4"
@@ -2577,6 +2585,12 @@
         ],
         "since": {}
       },
+      "8480326": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8480355": {
         "groups": [
           "f4"
@@ -2673,7 +2687,7 @@
       },
       "8480848": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -2855,7 +2869,7 @@
       },
       "8481538": {
         "groups": [
-          "f4"
+          "ir"
         ],
         "since": {}
       },
@@ -2874,6 +2888,14 @@
           "pp2"
         ],
         "since": {}
+      },
+      "8481563": {
+        "groups": [
+          "d1"
+        ],
+        "since": {
+          "d1": null
+        }
       },
       "8481568": {
         "groups": [
@@ -2928,7 +2950,7 @@
       },
       "8481607": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -3000,6 +3022,14 @@
           "f4"
         ],
         "since": {}
+      },
+      "8481754": {
+        "groups": [
+          "f1"
+        ],
+        "since": {
+          "f1": null
+        }
       },
       "8481789": {
         "groups": [
@@ -3122,9 +3152,17 @@
         ],
         "since": {}
       },
+      "8482118": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8482124": {
         "groups": [
           "f2",
+          "ir",
           "pp1"
         ],
         "since": {
@@ -3163,13 +3201,6 @@
       "8482165": {
         "groups": [
           "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
-      "8482171": {
-        "groups": [
-          "d2",
           "pk2"
         ],
         "since": {}
@@ -3219,9 +3250,11 @@
       },
       "8482408": {
         "groups": [
-          "f4"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-21"
+        }
       },
       "8482459": {
         "groups": [
@@ -3331,6 +3364,12 @@
           "pp1": null
         }
       },
+      "8482700": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8482703": {
         "groups": [
           "f2"
@@ -3397,7 +3436,7 @@
       },
       "8482768": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3429,8 +3468,7 @@
       "8482858": {
         "groups": [
           "d2",
-          "pk1",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -3442,6 +3480,12 @@
         "since": {}
       },
       "8482866": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
+      "8482929": {
         "groups": [
           "d3"
         ],
@@ -3547,7 +3591,7 @@
       },
       "8483482": {
         "groups": [
-          "d2",
+          "d3",
           "pp2"
         ],
         "since": {}
@@ -3588,12 +3632,6 @@
           "f3",
           "pk1",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8483494": {
-        "groups": [
-          "d2"
         ],
         "since": {}
       },
@@ -3643,12 +3681,10 @@
       },
       "8483521": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8483524": {
         "groups": [
@@ -3724,12 +3760,6 @@
         ],
         "since": {}
       },
-      "8483752": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8483766": {
         "groups": [
           "d3",
@@ -3801,13 +3831,7 @@
       },
       "8484149": {
         "groups": [
-          "f3"
-        ],
-        "since": {}
-      },
-      "8484152": {
-        "groups": [
-          "d3"
+          "f4"
         ],
         "since": {}
       },
@@ -3826,13 +3850,6 @@
         "since": {
           "f1": "2026-10-19"
         }
-      },
-      "8484160": {
-        "groups": [
-          "f4",
-          "pp2"
-        ],
-        "since": {}
       },
       "8484164": {
         "groups": [
@@ -3933,12 +3950,12 @@
       },
       "8484471": {
         "groups": [
-          "f2",
+          "f1",
           "pk1",
           "pp1"
         ],
         "since": {
-          "f2": null,
+          "f1": "2026-10-21",
           "pp1": "2026-10-19"
         }
       },
@@ -4027,7 +4044,7 @@
       },
       "8484911": {
         "groups": [
-          "f4",
+          "f3",
           "pk2"
         ],
         "since": {}
@@ -4129,15 +4146,6 @@
           "f2": null
         }
       },
-      "8486052": {
-        "groups": [
-          "f1",
-          "pp2"
-        ],
-        "since": {
-          "f1": null
-        }
-      },
       "8486161": {
         "groups": [
           "f3",
@@ -4147,7 +4155,7 @@
       },
       "8486171": {
         "groups": [
-          "f4",
+          "f3",
           "pp1"
         ],
         "since": {
@@ -5257,6 +5265,81 @@
         "value": 0.0711,
         "verdict": "+7 win-pts against the 12.4 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line and the first power play."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8482731,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Tyson Hinds",
+        "positions": "D",
+        "price": null,
+        "sent": true,
+        "team": "ANA",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 19:09 a game in his last 3, up from 13:47. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8475745,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Charlie Coyle",
+        "positions": "C",
+        "price": null,
+        "sent": true,
+        "team": "CBJ",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 21:22 a game in his last 3, up from 18:13. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8479671,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Mathieu Olivier",
+        "positions": "RW",
+        "price": null,
+        "sent": true,
+        "team": "CBJ",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 16:59 a game in his last 3, up from 13:31. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8482408,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jeff Malott",
+        "positions": "LW",
+        "price": null,
+        "sent": false,
+        "team": "ANA",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8478042,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Viktor Arvidsson",
+        "positions": "LW/RW",
+        "price": 0.1384,
+        "sent": false,
+        "team": "DET",
+        "value": 0.0568,
+        "verdict": "+6 win-pts against the 13.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
