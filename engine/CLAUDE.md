@@ -201,6 +201,16 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   So goalie moves are worth ~0.5 wins a season beyond the adds they use; keeper add helps at the bot's
   price and costs nothing at equal adds.
 
+- The price rule (Nico, 2026-10-21: "pacing to leave 6 for the playoffs; the better the move the better to
+  spend; why should the candidate pool move the price?"). The live price (`addprice.solve` each Monday over the
+  pools logged so far) against a fixed bar x (even pace / the pace the budget left needs)^k, both pacing 30
+  adds by the price alone. 16 leagues, vs the live price: bar 0.08 +0.12 (0.11) wins a season, 0.10 +0.15
+  (0.11), 0.12 +0.19 (0.11, 26.8 adds), 0.08 with k 2 +0.22 (0.11, 29.2 adds); every pacing variant ahead, the
+  last at 2 SE. The live price averaged 0.27 but by thirds of the season 0.61 / 0.16 / 0.02 (a few early pools
+  price high, then it dumps the rest late) and moved 0.054 Monday to Monday (1.62 at most); the pacing bars
+  stay ~0.09-0.12 all season and move 0.009-0.019. The old fixed 0.09 with an even-pace cap (8 leagues): +0.02
+  (0.16), 25.3 adds. Not yet live: Nico decides.
+
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
 `PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
