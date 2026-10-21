@@ -878,7 +878,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-21T05:26+00:00",
+    "at": "2026-10-21T05:30+00:00",
     "moves": [
       {
         "add": {
@@ -1133,6 +1133,7 @@
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
       "8479385:promoted": "2026-10-15",
+      "8479442:ice time": "2026-10-21",
       "8479525:promoted": "2026-10-19",
       "8479671:ice time": "2026-10-21",
       "8479675:promoted": "2026-10-15",
@@ -5340,6 +5341,21 @@
         "value": 0.0568,
         "verdict": "+6 win-pts against the 13.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8479442,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Troy Stecher",
+        "positions": "D",
+        "price": null,
+        "sent": true,
+        "team": "TOR",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 22:19 a game in his last 3, up from 17:28. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
