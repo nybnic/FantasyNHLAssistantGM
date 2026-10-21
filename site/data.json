@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-21T13:56+00:00",
+ "generated": "2026-10-21T14:31+00:00",
  "date": "2026-10-21",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -11,18 +11,18 @@
   "me": {
    "name": "Nico's Groovy Team",
    "so_far": 55.0,
-   "expected": 209.38,
-   "sd": 26.69,
+   "expected": 207.76,
+   "sd": 26.68,
    "player_games": 29,
-   "goalie_games": 4.6,
-   "goalie_min": 0.967,
-   "goalie_lost": 1.35,
+   "goalie_games": 4.5,
+   "goalie_min": 0.958,
+   "goalie_lost": 1.63,
    "by_day": {
     "2026-10-21": 4.41,
-    "2026-10-22": 48.37,
-    "2026-10-23": 14.85,
-    "2026-10-24": 44.3,
-    "2026-10-25": 42.74
+    "2026-10-22": 47.71,
+    "2026-10-23": 14.8,
+    "2026-10-24": 44.26,
+    "2026-10-25": 41.95
    }
   },
   "them": {
@@ -42,9 +42,9 @@
     "2026-10-25": 17.88
    }
   },
-  "win": 0.5368,
-  "margin": 3.28,
-  "sd": 35.5,
+  "win": 0.5222,
+  "margin": 1.98,
+  "sd": 35.48,
   "live": true,
   "yahoo_projected": [
    224.04,
@@ -55,26 +55,26 @@
    "week": 1
   },
   "price": {
-   "lam": 0.1434,
+   "lam": 0.1942,
    "later_weight": 0.00784,
    "pace": 1.25
   },
   "later_weight": 0.00784,
-  "tau": 22.55,
+  "tau": 22.49,
   "ahead": [
    {
     "week": 5,
     "opponent": "Viktorios",
-    "margin": -2.22,
-    "sd": 46.66,
-    "win": 0.481
+    "margin": -2.99,
+    "sd": 46.69,
+    "win": 0.4745
    },
    {
     "week": 6,
     "opponent": "HC Bulju",
-    "margin": 4.02,
-    "sd": 48.11,
-    "win": 0.5333
+    "margin": 2.74,
+    "sd": 48.13,
+    "win": 0.5227
    }
   ],
   "long_run": {
@@ -83,11 +83,11 @@
    "hold_days": 17
   },
   "season": {
-   "playoffs": 0.84,
-   "title": 0.1076,
-   "leverage": 0.1015,
-   "typical": 0.1176,
-   "seed": 4.6348,
+   "playoffs": 0.8181,
+   "title": 0.1003,
+   "leverage": 0.1116,
+   "typical": 0.1259,
+   "seed": 4.7489,
    "note": ""
   }
  },
@@ -95,42 +95,79 @@
   {
    "day": "Wed 21 Oct (today)",
    "today": true,
-   "swap": "Martin Pospisil for Adam Larsson",
-   "detail": "win 54% -> 55%, +21 win-pts in all",
-   "key": "8481028:8476457"
-  },
-  {
-   "day": "Mon 26 Oct",
-   "today": false,
-   "swap": "Roman Kantserov for Jack McBain",
-   "detail": "win 55% -> 56%, +19 win-pts in all; it does nothing this week, so it takes next week's add",
-   "key": "8484390:8480855"
+   "swap": "Joseph Woll for Leevi Meriläinen",
+   "detail": "win 52% -> 56%, +21 win-pts in all",
+   "key": "8479361:8482447"
   }
  ],
  "plan_empty": "No add is worth one of yours now.",
- "changed": "",
- "this_week_line": "For this week alone, the best is Adin Hill for Leevi Meriläinen: win 54% -> 59%. Not worth an add: -1 win-pts in all, as dropping Leevi Meriläinen costs 6 later, against the 14 an add costs.",
+ "changed": "Roman Kantserov for Jack McBain is no longer worth an add (worth 11.8 win-pts, under the 19.4 an add costs)",
+ "this_week_line": "For this week alone, the best is Adin Hill for Leevi Meriläinen: win 52% -> 59%. Not worth an add: 16 win-pts in all, against the 19 an add costs.",
  "weeks": [
   {
    "week": 4,
    "opponent": "Jättiläisentie Giants",
-   "win": 0.5368,
-   "margin": 3.3
+   "win": 0.5222,
+   "margin": 2.0
   },
   {
    "week": 5,
    "opponent": "Viktorios",
-   "win": 0.481,
-   "margin": -2.22
+   "win": 0.4745,
+   "margin": -2.99
   },
   {
    "week": 6,
    "opponent": "HC Bulju",
-   "win": 0.5333,
-   "margin": 4.02
+   "win": 0.5227,
+   "margin": 2.74
   }
  ],
  "moves": [
+  {
+   "key": "8479361:8482447",
+   "add": {
+    "id": 8479361,
+    "name": "Joseph Woll",
+    "team": "PHI",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": "2026-10-21",
+   "games": 2,
+   "week_pts": 3.15,
+   "next_two_pts": 12.03,
+   "later_pts": 11.12,
+   "win": [
+    0.5222,
+    0.5574
+   ],
+   "now_wins": 0.0352,
+   "ahead_wins": [
+    0.044,
+    0.0483
+   ],
+   "ahead_pts": 11.03,
+   "ahead_week_pts": [
+    5.15,
+    5.88
+   ],
+   "held": false,
+   "keep": 1.0,
+   "later_wins": 0.0872,
+   "value": 0.2148,
+   "status": "plan",
+   "why": "now"
+  },
   {
    "key": "8481028:8476457",
    "add": {
@@ -150,19 +187,19 @@
    "later_drop": null,
    "until_back": null,
    "plays_from": null,
-   "when": "2026-10-21",
+   "when": null,
    "games": 2,
    "week_pts": 1.08,
    "next_two_pts": 20.53,
    "later_pts": 4.59,
    "win": [
-    0.5368,
-    0.5487
+    0.5222,
+    0.5343
    ],
    "now_wins": 0.012,
    "ahead_wins": [
     0.0831,
-    0.0744
+    0.0747
    ],
    "ahead_pts": 18.88,
    "ahead_week_pts": [
@@ -172,12 +209,57 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.036,
-   "value": 0.2055,
-   "status": "plan",
-   "why": "now"
+   "value": 0.2059,
+   "status": "passes",
+   "why": "worth an add, but this week's go to Joseph Woll"
   },
   {
-   "key": "8484390:8480855",
+   "key": "8481028:8482447",
+   "add": {
+    "id": 8481028,
+    "name": "Martin Pospisil",
+    "team": "CGY",
+    "positions": [
+     "C",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 1.19,
+   "next_two_pts": 24.24,
+   "later_pts": 0.03,
+   "win": [
+    0.5222,
+    0.5356
+   ],
+   "now_wins": 0.0133,
+   "ahead_wins": [
+    0.1054,
+    0.0813
+   ],
+   "ahead_pts": 22.36,
+   "ahead_week_pts": [
+    12.4,
+    9.96
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0003,
+   "value": 0.2003,
+   "status": "passes",
+   "why": "worth an add, but the plan's Joseph Woll uses the same drop"
+  },
+  {
+   "key": "8484390:8482447",
    "add": {
     "id": 8484390,
     "name": "Roman Kantserov",
@@ -187,38 +269,38 @@
     ]
    },
    "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
    },
    "ir_slot": null,
    "later_drop": null,
    "until_back": null,
    "plays_from": null,
-   "when": "2026-10-26",
+   "when": null,
    "games": 2,
-   "week_pts": 0.91,
-   "next_two_pts": 7.9,
-   "later_pts": 16.1,
+   "week_pts": 2.37,
+   "next_two_pts": 14.75,
+   "later_pts": 6.05,
    "win": [
-    0.5463,
-    0.5563
+    0.5222,
+    0.5486
    ],
-   "now_wins": 0.01,
+   "now_wins": 0.0264,
    "ahead_wins": [
-    0.0111,
-    0.0478
+    0.0446,
+    0.0674
    ],
-   "ahead_pts": 7.12,
+   "ahead_pts": 13.45,
    "ahead_week_pts": [
-    1.29,
-    5.82
+    5.22,
+    8.23
    ],
    "held": false,
-   "keep": 0.68,
-   "later_wins": 0.1262,
-   "value": 0.195,
-   "status": "plan",
-   "why": "monday"
+   "keep": 0.361,
+   "later_wins": 0.0474,
+   "value": 0.1858,
+   "status": "fails",
+   "why": "worth 18.6 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8483609:8476457",
@@ -244,13 +326,13 @@
    "next_two_pts": 17.93,
    "later_pts": 4.27,
    "win": [
-    0.5368,
-    0.5415
+    0.5222,
+    0.527
    ],
    "now_wins": 0.0048,
    "ahead_wins": [
     0.0726,
-    0.0652
+    0.0654
    ],
    "ahead_pts": 16.49,
    "ahead_week_pts": [
@@ -260,9 +342,53 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0334,
-   "value": 0.176,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.1763,
+   "status": "fails",
+   "why": "worth 17.6 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8483609:8482447",
+   "add": {
+    "id": 8483609,
+    "name": "Adam Klapka",
+    "team": "CGY",
+    "positions": [
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 0.54,
+   "next_two_pts": 21.64,
+   "later_pts": -0.29,
+   "win": [
+    0.5222,
+    0.5283
+   ],
+   "now_wins": 0.0061,
+   "ahead_wins": [
+    0.095,
+    0.072
+   ],
+   "ahead_pts": 19.97,
+   "ahead_week_pts": [
+    11.17,
+    8.8
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0023,
+   "value": 0.1709,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 0 pts later, more than this week's +1 win-pts make up for"
   },
   {
    "key": "8482095:8476457",
@@ -288,10 +414,10 @@
    "next_two_pts": 8.62,
    "later_pts": 5.9,
    "win": [
-    0.5368,
-    0.584
+    0.5222,
+    0.5698
    ],
-   "now_wins": 0.0472,
+   "now_wins": 0.0476,
    "ahead_wins": [
     0.0685,
     0.0013
@@ -304,9 +430,9 @@
    "held": false,
    "keep": 0.09,
    "later_wins": 0.0462,
-   "value": 0.1632,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.1636,
+   "status": "fails",
+   "why": "worth 16.4 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8482087:8476457",
@@ -332,13 +458,13 @@
    "next_two_pts": 9.47,
    "later_pts": 10.78,
    "win": [
-    0.5368,
-    0.5421
+    0.5222,
+    0.5276
    ],
-   "now_wins": 0.0053,
+   "now_wins": 0.0054,
    "ahead_wins": [
     0.0384,
-    0.0346
+    0.0347
    ],
    "ahead_pts": 8.71,
    "ahead_week_pts": [
@@ -348,9 +474,9 @@
    "held": false,
    "keep": 0.248,
    "later_wins": 0.0845,
-   "value": 0.1629,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.163,
+   "status": "fails",
+   "why": "worth 16.3 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8484390:8476457",
@@ -376,13 +502,13 @@
    "next_two_pts": 11.03,
    "later_pts": 6.17,
    "win": [
-    0.5368,
-    0.5616
+    0.5222,
+    0.5473
    ],
-   "now_wins": 0.0249,
+   "now_wins": 0.0251,
    "ahead_wins": [
     0.022,
-    0.0606
+    0.0608
    ],
    "ahead_pts": 9.98,
    "ahead_week_pts": [
@@ -392,19 +518,18 @@
    "held": false,
    "keep": 0.361,
    "later_wins": 0.0484,
-   "value": 0.1558,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.1562,
+   "status": "fails",
+   "why": "worth 15.6 win-pts, under the 19.4 an add costs"
   },
   {
-   "key": "8481028:8482447",
+   "key": "8478499:8482447",
    "add": {
-    "id": 8481028,
-    "name": "Martin Pospisil",
-    "team": "CGY",
+    "id": 8478499,
+    "name": "Adin Hill",
+    "team": "VGK",
     "positions": [
-     "C",
-     "RW"
+     "G"
     ]
    },
    "drop": {
@@ -417,29 +542,29 @@
    "plays_from": null,
    "when": null,
    "games": 2,
-   "week_pts": -0.43,
-   "next_two_pts": 21.4,
-   "later_pts": -0.82,
+   "week_pts": 6.03,
+   "next_two_pts": 9.05,
+   "later_pts": 2.8,
    "win": [
-    0.5368,
-    0.5319
+    0.5222,
+    0.5898
    ],
-   "now_wins": -0.0048,
+   "now_wins": 0.0676,
    "ahead_wins": [
-    0.0972,
-    0.068
+    0.0023,
+    0.064
    ],
-   "ahead_pts": 19.77,
+   "ahead_pts": 8.08,
    "ahead_week_pts": [
-    11.43,
-    8.33
+    0.27,
+    7.8
    ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0065,
-   "value": 0.154,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same player"
+   "held": false,
+   "keep": 1.0,
+   "later_wins": 0.022,
+   "value": 0.1558,
+   "status": "fails",
+   "why": "worth 15.6 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8476473:8476457",
@@ -465,13 +590,13 @@
    "next_two_pts": 11.5,
    "later_pts": 7.92,
    "win": [
-    0.5368,
-    0.5347
+    0.5222,
+    0.5201
    ],
    "now_wins": -0.0021,
    "ahead_wins": [
     0.0627,
-    0.0276
+    0.0277
    ],
    "ahead_pts": 10.7,
    "ahead_week_pts": [
@@ -482,8 +607,8 @@
    "keep": 0.0,
    "later_wins": 0.062,
    "value": 0.1503,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "status": "fails",
+   "why": "worth 15.0 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8482679:8476457",
@@ -509,13 +634,13 @@
    "next_two_pts": 15.43,
    "later_pts": 3.95,
    "win": [
-    0.5368,
-    0.5346
+    0.5222,
+    0.5201
    ],
-   "now_wins": -0.0021,
+   "now_wins": -0.0022,
    "ahead_wins": [
     0.0626,
-    0.0562
+    0.0564
    ],
    "ahead_pts": 14.2,
    "ahead_week_pts": [
@@ -525,9 +650,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.031,
-   "value": 0.1477,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.1478,
+   "status": "fails",
+   "why": "worth 14.8 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8480797:8476457",
@@ -554,13 +679,13 @@
    "next_two_pts": 15.37,
    "later_pts": 3.95,
    "win": [
-    0.5368,
-    0.5344
+    0.5222,
+    0.5199
    ],
    "now_wins": -0.0023,
    "ahead_wins": [
     0.0623,
-    0.056
+    0.0562
    ],
    "ahead_pts": 14.14,
    "ahead_week_pts": [
@@ -570,9 +695,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0309,
-   "value": 0.1469,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+   "value": 0.1471,
+   "status": "fails",
+   "why": "worth 14.7 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8484390:8476455",
@@ -598,13 +723,13 @@
    "next_two_pts": 5.79,
    "later_pts": 10.59,
    "win": [
-    0.5368,
-    0.5564
+    0.5222,
+    0.542
    ],
-   "now_wins": 0.0196,
+   "now_wins": 0.0198,
    "ahead_wins": [
     0.0181,
-    0.026
+    0.0261
    ],
    "ahead_pts": 5.28,
    "ahead_week_pts": [
@@ -614,9 +739,186 @@
    "held": false,
    "keep": 0.361,
    "later_wins": 0.083,
-   "value": 0.1468,
-   "status": "passes",
-   "why": "worth an add, but the plan's Roman Kantserov uses the same player"
+   "value": 0.147,
+   "status": "fails",
+   "why": "worth 14.7 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8476473:8482447",
+   "add": {
+    "id": 8476473,
+    "name": "Connor Murphy",
+    "team": "EDM",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": "2026-10-22",
+   "when": null,
+   "games": 2,
+   "week_pts": -0.07,
+   "next_two_pts": 15.21,
+   "later_pts": 3.36,
+   "win": [
+    0.5222,
+    0.5214
+   ],
+   "now_wins": -0.0008,
+   "ahead_wins": [
+    0.0851,
+    0.0344
+   ],
+   "ahead_pts": 14.17,
+   "ahead_week_pts": [
+    9.99,
+    4.18
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0263,
+   "value": 0.1451,
+   "status": "fails",
+   "why": "worth 14.5 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8482095:8482447",
+   "add": {
+    "id": 8482095,
+    "name": "Tyler Kleven",
+    "team": "OTT",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 4.43,
+   "next_two_pts": 12.34,
+   "later_pts": -0.64,
+   "win": [
+    0.5222,
+    0.5711
+   ],
+   "now_wins": 0.0489,
+   "ahead_wins": [
+    0.0909,
+    0.0081
+   ],
+   "ahead_pts": 11.66,
+   "ahead_week_pts": [
+    10.68,
+    0.98
+   ],
+   "held": false,
+   "keep": 0.09,
+   "later_wins": -0.0051,
+   "value": 0.1429,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +5 win-pts make up for"
+  },
+  {
+   "key": "8482679:8482447",
+   "add": {
+    "id": 8482679,
+    "name": "Matt Coronato",
+    "team": "CGY",
+    "positions": [
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": -0.08,
+   "next_two_pts": 19.15,
+   "later_pts": -0.6,
+   "win": [
+    0.5222,
+    0.5214
+   ],
+   "now_wins": -0.0009,
+   "ahead_wins": [
+    0.0851,
+    0.0631
+   ],
+   "ahead_pts": 17.67,
+   "ahead_week_pts": [
+    9.98,
+    7.69
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0047,
+   "value": 0.1425,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's -0 win-pts make up for"
+  },
+  {
+   "key": "8480797:8482447",
+   "add": {
+    "id": 8480797,
+    "name": "Joel Farabee",
+    "team": "CGY",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": -0.1,
+   "next_two_pts": 19.08,
+   "later_pts": -0.61,
+   "win": [
+    0.5222,
+    0.5212
+   ],
+   "now_wins": -0.001,
+   "ahead_wins": [
+    0.0848,
+    0.0628
+   ],
+   "ahead_pts": 17.61,
+   "ahead_week_pts": [
+    9.95,
+    7.66
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0048,
+   "value": 0.1418,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's -0 win-pts make up for"
   },
   {
    "key": "8482245:8476457",
@@ -642,10 +944,10 @@
    "next_two_pts": 6.68,
    "later_pts": 3.81,
    "win": [
-    0.5368,
-    0.5735
+    0.5222,
+    0.5592
    ],
-   "now_wins": 0.0367,
+   "now_wins": 0.037,
    "ahead_wins": [
     0.058,
     -0.0035
@@ -658,18 +960,106 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0299,
-   "value": 0.1212,
+   "value": 0.1214,
    "status": "fails",
-   "why": "worth 12.1 win-pts, under the 14.3 an add costs"
+   "why": "worth 12.1 win-pts, under the 19.4 an add costs"
   },
   {
-   "key": "8484390:8482447",
+   "key": "8484390:8480855",
    "add": {
     "id": 8484390,
     "name": "Roman Kantserov",
     "team": "CHI",
     "positions": [
      "RW"
+    ]
+   },
+   "drop": {
+    "id": 8480855,
+    "name": "Jack McBain"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 0.91,
+   "next_two_pts": 7.9,
+   "later_pts": 6.26,
+   "win": [
+    0.5222,
+    0.5324
+   ],
+   "now_wins": 0.0101,
+   "ahead_wins": [
+    0.011,
+    0.0479
+   ],
+   "ahead_pts": 7.12,
+   "ahead_week_pts": [
+    1.29,
+    5.82
+   ],
+   "held": false,
+   "keep": 0.361,
+   "later_wins": 0.0491,
+   "value": 0.1181,
+   "status": "fails",
+   "why": "worth 11.8 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8482245:8482447",
+   "add": {
+    "id": 8482245,
+    "name": "Artem Zub",
+    "team": "OTT",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 3.45,
+   "next_two_pts": 10.39,
+   "later_pts": -0.75,
+   "win": [
+    0.5222,
+    0.5605
+   ],
+   "now_wins": 0.0383,
+   "ahead_wins": [
+    0.0805,
+    0.0033
+   ],
+   "ahead_pts": 9.85,
+   "ahead_week_pts": [
+    9.45,
+    0.4
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0058,
+   "value": 0.1163,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +4 win-pts make up for"
+  },
+  {
+   "key": "8482087:8482447",
+   "add": {
+    "id": 8482087,
+    "name": "Kaiden Guhle",
+    "team": "MTL",
+    "positions": [
+     "D"
     ]
    },
    "drop": {
@@ -682,29 +1072,29 @@
    "plays_from": null,
    "when": null,
    "games": 2,
-   "week_pts": 0.75,
-   "next_two_pts": 11.9,
-   "later_pts": -0.13,
+   "week_pts": 0.59,
+   "next_two_pts": 13.18,
+   "later_pts": 0.74,
    "win": [
-    0.5368,
-    0.545
+    0.5222,
+    0.5289
    ],
-   "now_wins": 0.0082,
+   "now_wins": 0.0067,
    "ahead_wins": [
-    0.0364,
-    0.0541
+    0.061,
+    0.0415
    ],
-   "ahead_pts": 10.86,
+   "ahead_pts": 12.18,
    "ahead_week_pts": [
-    4.26,
-    6.61
+    7.15,
+    5.03
    ],
    "held": false,
-   "keep": 0.361,
-   "later_wins": -0.001,
-   "value": 0.0977,
+   "keep": 0.248,
+   "later_wins": 0.0058,
+   "value": 0.1149,
    "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 0 pts later, more than this week's +1 win-pts make up for"
+   "why": "worth 11.5 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8481028:8476455",
@@ -731,13 +1121,13 @@
    "next_two_pts": 10.99,
    "later_pts": 0.3,
    "win": [
-    0.5368,
-    0.5434
+    0.5222,
+    0.5289
    ],
    "now_wins": 0.0067,
    "ahead_wins": [
     0.0792,
-    0.0088
+    0.0089
    ],
    "ahead_pts": 10.37,
    "ahead_week_pts": [
@@ -747,9 +1137,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0024,
-   "value": 0.0971,
+   "value": 0.0972,
    "status": "fails",
-   "why": "worth 9.7 win-pts, under the 14.3 an add costs"
+   "why": "worth 9.7 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8482113:8476457",
@@ -775,13 +1165,13 @@
    "next_two_pts": 4.61,
    "later_pts": 5.02,
    "win": [
-    0.5368,
-    0.5582
+    0.5222,
+    0.5438
    ],
-   "now_wins": 0.0214,
+   "now_wins": 0.0216,
    "ahead_wins": [
     -0.0249,
-    0.0561
+    0.0562
    ],
    "ahead_pts": 3.92,
    "ahead_week_pts": [
@@ -791,9 +1181,53 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0394,
-   "value": 0.0919,
+   "value": 0.0923,
    "status": "fails",
-   "why": "worth 9.2 win-pts, under the 14.3 an add costs"
+   "why": "worth 9.2 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8482113:8482447",
+   "add": {
+    "id": 8482113,
+    "name": "Anton Lundell",
+    "team": "FLA",
+    "positions": [
+     "C"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 2.05,
+   "next_two_pts": 8.33,
+   "later_pts": 0.46,
+   "win": [
+    0.5222,
+    0.5451
+   ],
+   "now_wins": 0.0229,
+   "ahead_wins": [
+    -0.0024,
+    0.0629
+   ],
+   "ahead_pts": 7.39,
+   "ahead_week_pts": [
+    -0.28,
+    7.67
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0036,
+   "value": 0.0871,
+   "status": "fails",
+   "why": "worth 8.7 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8481028:8480807",
@@ -820,13 +1254,13 @@
    "next_two_pts": 10.49,
    "later_pts": 0.22,
    "win": [
-    0.5368,
-    0.5409
+    0.5222,
+    0.5264
    ],
-   "now_wins": 0.0041,
+   "now_wins": 0.0042,
    "ahead_wins": [
     0.0426,
-    0.0384
+    0.0385
    ],
    "ahead_pts": 9.65,
    "ahead_week_pts": [
@@ -836,9 +1270,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0017,
-   "value": 0.0868,
+   "value": 0.0869,
    "status": "fails",
-   "why": "worth 8.7 win-pts, under the 14.3 an add costs"
+   "why": "worth 8.7 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8481606:8476457",
@@ -864,12 +1298,12 @@
    "next_two_pts": 4.31,
    "later_pts": 3.42,
    "win": [
-    0.5368,
-    0.5606
+    0.5222,
+    0.5462
    ],
-   "now_wins": 0.0238,
+   "now_wins": 0.024,
    "ahead_wins": [
-    0.0453,
+    0.0452,
     -0.0093
    ],
    "ahead_pts": 4.17,
@@ -880,53 +1314,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0268,
-   "value": 0.0866,
+   "value": 0.0867,
    "status": "fails",
-   "why": "worth 8.7 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482095:8482447",
-   "add": {
-    "id": 8482095,
-    "name": "Tyler Kleven",
-    "team": "OTT",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 2.8,
-   "next_two_pts": 9.5,
-   "later_pts": -2.82,
-   "win": [
-    0.5368,
-    0.5675
-   ],
-   "now_wins": 0.0308,
-   "ahead_wins": [
-    0.0827,
-    -0.0053
-   ],
-   "ahead_pts": 9.06,
-   "ahead_week_pts": [
-    9.71,
-    -0.65
-   ],
-   "held": false,
-   "keep": 0.09,
-   "later_wins": -0.0221,
-   "value": 0.086,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 3 pts later, more than this week's +3 win-pts make up for"
+   "why": "worth 8.7 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8477903:8476457",
@@ -952,10 +1342,10 @@
    "next_two_pts": 2.61,
    "later_pts": 3.76,
    "win": [
-    0.5368,
-    0.5718
+    0.5222,
+    0.5575
    ],
-   "now_wins": 0.0351,
+   "now_wins": 0.0353,
    "ahead_wins": [
     -0.0047,
     0.0234
@@ -968,9 +1358,53 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0295,
-   "value": 0.0832,
+   "value": 0.0836,
    "status": "fails",
-   "why": "worth 8.3 win-pts, under the 14.3 an add costs"
+   "why": "worth 8.4 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8481606:8482447",
+   "add": {
+    "id": 8481606,
+    "name": "Jordan Spence",
+    "team": "OTT",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 2.27,
+   "next_two_pts": 8.03,
+   "later_pts": -1.14,
+   "win": [
+    0.5222,
+    0.5475
+   ],
+   "now_wins": 0.0253,
+   "ahead_wins": [
+    0.0678,
+    -0.0025
+   ],
+   "ahead_pts": 7.64,
+   "ahead_week_pts": [
+    7.95,
+    -0.3
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0089,
+   "value": 0.0817,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +3 win-pts make up for"
   },
   {
    "key": "8476869:8476457",
@@ -996,13 +1430,13 @@
    "next_two_pts": 2.46,
    "later_pts": 6.22,
    "win": [
-    0.5368,
-    0.5504
+    0.5222,
+    0.5359
    ],
-   "now_wins": 0.0136,
+   "now_wins": 0.0137,
    "ahead_wins": [
     0.01,
-    0.009
+    0.0091
    ],
    "ahead_pts": 2.26,
    "ahead_week_pts": [
@@ -1012,9 +1446,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0488,
-   "value": 0.0814,
+   "value": 0.0815,
    "status": "fails",
-   "why": "worth 8.1 win-pts, under the 14.3 an add costs"
+   "why": "worth 8.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8479980:8476457",
@@ -1040,10 +1474,10 @@
    "next_two_pts": 2.46,
    "later_pts": 6.22,
    "win": [
-    0.5368,
-    0.5504
+    0.5222,
+    0.5359
    ],
-   "now_wins": 0.0136,
+   "now_wins": 0.0137,
    "ahead_wins": [
     0.01,
     0.009
@@ -1056,9 +1490,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0488,
-   "value": 0.0814,
+   "value": 0.0815,
    "status": "fails",
-   "why": "worth 8.1 win-pts, under the 14.3 an add costs"
+   "why": "worth 8.1 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8478569:8476457",
@@ -1085,10 +1519,10 @@
    "next_two_pts": 2.99,
    "later_pts": 7.68,
    "win": [
-    0.5368,
-    0.532
+    0.5222,
+    0.5175
    ],
-   "now_wins": -0.0047,
+   "now_wins": -0.0048,
    "ahead_wins": [
     0.0277,
     -0.0031
@@ -1103,7 +1537,7 @@
    "later_wins": 0.0602,
    "value": 0.08,
    "status": "fails",
-   "why": "worth 8.0 win-pts, under the 14.3 an add costs"
+   "why": "worth 8.0 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8476473:8480807",
@@ -1129,10 +1563,10 @@
    "next_two_pts": 1.47,
    "later_pts": 3.54,
    "win": [
-    0.5368,
-    0.5753
+    0.5222,
+    0.5611
    ],
-   "now_wins": 0.0386,
+   "now_wins": 0.0388,
    "ahead_wins": [
     0.022,
     -0.0092
@@ -1145,9 +1579,53 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0278,
-   "value": 0.0792,
+   "value": 0.0794,
    "status": "fails",
-   "why": "worth 7.9 win-pts, under the 14.3 an add costs"
+   "why": "worth 7.9 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8477903:8482447",
+   "add": {
+    "id": 8477903,
+    "name": "Garnet Hathaway",
+    "team": "FLA",
+    "positions": [
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 3.3,
+   "next_two_pts": 6.32,
+   "later_pts": -0.8,
+   "win": [
+    0.5222,
+    0.5588
+   ],
+   "now_wins": 0.0366,
+   "ahead_wins": [
+    0.018,
+    0.0302
+   ],
+   "ahead_pts": 5.76,
+   "ahead_week_pts": [
+    2.1,
+    3.66
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0062,
+   "value": 0.0785,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +4 win-pts make up for"
   },
   {
    "key": "8481593:8476457",
@@ -1173,13 +1651,13 @@
    "next_two_pts": 2.16,
    "later_pts": 6.12,
    "win": [
-    0.5368,
-    0.5488
+    0.5222,
+    0.5343
    ],
-   "now_wins": 0.012,
+   "now_wins": 0.0121,
    "ahead_wins": [
     0.0088,
-    0.0079
+    0.008
    ],
    "ahead_pts": 1.99,
    "ahead_week_pts": [
@@ -1189,16 +1667,16 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.048,
-   "value": 0.0767,
+   "value": 0.0768,
    "status": "fails",
-   "why": "worth 7.7 win-pts, under the 14.3 an add costs"
+   "why": "worth 7.7 win-pts, under the 19.4 an add costs"
   },
   {
-   "key": "8482245:8482447",
+   "key": "8476869:8482447",
    "add": {
-    "id": 8482245,
-    "name": "Artem Zub",
-    "team": "OTT",
+    "id": 8476869,
+    "name": "Brady Skjei",
+    "team": "NSH",
     "positions": [
      "D"
     ]
@@ -1213,29 +1691,162 @@
    "plays_from": null,
    "when": null,
    "games": 3,
-   "week_pts": 1.83,
-   "next_two_pts": 7.55,
-   "later_pts": -1.6,
+   "week_pts": 1.34,
+   "next_two_pts": 6.17,
+   "later_pts": 1.66,
    "win": [
-    0.5368,
-    0.5569
+    0.5222,
+    0.5372
    ],
-   "now_wins": 0.0202,
+   "now_wins": 0.015,
    "ahead_wins": [
-    0.0723,
-    -0.0101
+    0.0326,
+    0.0158
    ],
-   "ahead_pts": 7.26,
+   "ahead_pts": 5.74,
    "ahead_week_pts": [
-    8.48,
-    -1.22
+    3.82,
+    1.92
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0126,
-   "value": 0.0698,
+   "later_wins": 0.013,
+   "value": 0.0765,
    "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +2 win-pts make up for"
+   "why": "worth 7.7 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8479980:8482447",
+   "add": {
+    "id": 8479980,
+    "name": "Nicolas Hague",
+    "team": "NSH",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 1.34,
+   "next_two_pts": 6.17,
+   "later_pts": 1.66,
+   "win": [
+    0.5222,
+    0.5372
+   ],
+   "now_wins": 0.015,
+   "ahead_wins": [
+    0.0326,
+    0.0158
+   ],
+   "ahead_pts": 5.74,
+   "ahead_week_pts": [
+    3.82,
+    1.92
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.013,
+   "value": 0.0765,
+   "status": "fails",
+   "why": "worth 7.6 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8478569:8482447",
+   "add": {
+    "id": 8478569,
+    "name": "Noel Acciari",
+    "team": "PHI",
+    "positions": [
+     "C",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": -0.31,
+   "next_two_pts": 6.7,
+   "later_pts": 3.12,
+   "win": [
+    0.5222,
+    0.5188
+   ],
+   "now_wins": -0.0035,
+   "ahead_wins": [
+    0.0503,
+    0.0037
+   ],
+   "ahead_pts": 6.34,
+   "ahead_week_pts": [
+    5.89,
+    0.44
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0244,
+   "value": 0.075,
+   "status": "fails",
+   "why": "worth 7.5 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8481593:8482447",
+   "add": {
+    "id": 8481593,
+    "name": "Jayden Struble",
+    "team": "NSH",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 1.2,
+   "next_two_pts": 5.88,
+   "later_pts": 1.56,
+   "win": [
+    0.5222,
+    0.5356
+   ],
+   "now_wins": 0.0134,
+   "ahead_wins": [
+    0.0314,
+    0.0148
+   ],
+   "ahead_pts": 5.46,
+   "ahead_week_pts": [
+    3.68,
+    1.78
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0123,
+   "value": 0.0718,
+   "status": "fails",
+   "why": "worth 7.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8482146:8476457",
@@ -1262,8 +1873,8 @@
    "next_two_pts": 4.36,
    "later_pts": 4.11,
    "win": [
-    0.5368,
-    0.5382
+    0.5222,
+    0.5236
    ],
    "now_wins": 0.0014,
    "ahead_wins": [
@@ -1280,7 +1891,7 @@
    "later_wins": 0.0322,
    "value": 0.069,
    "status": "fails",
-   "why": "worth 6.9 win-pts, under the 14.3 an add costs"
+   "why": "worth 6.9 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8483609:8476455",
@@ -1306,8 +1917,8 @@
    "next_two_pts": 8.39,
    "later_pts": -0.02,
    "win": [
-    0.5368,
-    0.5362
+    0.5222,
+    0.5217
    ],
    "now_wins": -0.0005,
    "ahead_wins": [
@@ -1325,6 +1936,51 @@
    "value": 0.0674,
    "status": "fails",
    "why": "dropping Gabriel Landeskog costs about 0 pts later, more than this week's -0 win-pts make up for"
+  },
+  {
+   "key": "8482146:8482447",
+   "add": {
+    "id": 8482146,
+    "name": "Luke Evangelista",
+    "team": "NJD",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": "2026-10-22",
+   "when": null,
+   "games": 2,
+   "week_pts": 0.24,
+   "next_two_pts": 8.08,
+   "later_pts": -0.45,
+   "win": [
+    0.5222,
+    0.5249
+   ],
+   "now_wins": 0.0027,
+   "ahead_wins": [
+    0.057,
+    0.0077
+   ],
+   "ahead_pts": 7.61,
+   "ahead_week_pts": [
+    6.68,
+    0.93
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0035,
+   "value": 0.0639,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 0 pts later, more than this week's +0 win-pts make up for"
   },
   {
    "key": "8476539:8476457",
@@ -1351,10 +2007,10 @@
    "next_two_pts": -4.72,
    "later_pts": 7.66,
    "win": [
-    0.5368,
-    0.574
+    0.5222,
+    0.5597
    ],
-   "now_wins": 0.0372,
+   "now_wins": 0.0375,
    "ahead_wins": [
     -0.0036,
     -0.0315
@@ -1367,9 +2023,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.06,
-   "value": 0.0622,
+   "value": 0.0625,
    "status": "fails",
-   "why": "worth 6.2 win-pts, under the 14.3 an add costs"
+   "why": "worth 6.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8481726:8480855",
@@ -1396,12 +2052,12 @@
    "next_two_pts": -1.69,
    "later_pts": 4.16,
    "win": [
-    0.5368,
-    0.5793
+    0.5222,
+    0.5651
    ],
-   "now_wins": 0.0426,
+   "now_wins": 0.0429,
    "ahead_wins": [
-    -0.0069,
+    -0.0068,
     -0.0062
    ],
    "ahead_pts": -1.56,
@@ -1412,9 +2068,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0326,
-   "value": 0.0621,
+   "value": 0.0624,
    "status": "fails",
-   "why": "worth 6.2 win-pts, under the 14.3 an add costs"
+   "why": "worth 6.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8478859:8476457",
@@ -1440,13 +2096,13 @@
    "next_two_pts": 2.98,
    "later_pts": 3.2,
    "win": [
-    0.5368,
-    0.5533
+    0.5222,
+    0.5388
    ],
-   "now_wins": 0.0165,
+   "now_wins": 0.0166,
    "ahead_wins": [
     -0.0138,
-    0.0343
+    0.0344
    ],
    "ahead_pts": 2.55,
    "ahead_week_pts": [
@@ -1456,9 +2112,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0251,
-   "value": 0.0621,
+   "value": 0.0623,
    "status": "fails",
-   "why": "worth 6.2 win-pts, under the 14.3 an add costs"
+   "why": "worth 6.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8481028:8480855",
@@ -1485,13 +2141,13 @@
    "next_two_pts": 8.38,
    "later_pts": -0.13,
    "win": [
-    0.5368,
-    0.5338
+    0.5222,
+    0.5192
    ],
    "now_wins": -0.003,
    "ahead_wins": [
     0.034,
-    0.0307
+    0.0308
    ],
    "ahead_pts": 7.71,
    "ahead_week_pts": [
@@ -1529,10 +2185,10 @@
    "next_two_pts": 2.5,
    "later_pts": 3.12,
    "win": [
-    0.5368,
-    0.5506
+    0.5222,
+    0.5361
    ],
-   "now_wins": 0.0138,
+   "now_wins": 0.0139,
    "ahead_wins": [
     0.0354,
     -0.0138
@@ -1545,9 +2201,143 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0244,
-   "value": 0.0599,
+   "value": 0.06,
    "status": "fails",
-   "why": "worth 6.0 win-pts, under the 14.3 an add costs"
+   "why": "worth 6.0 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8478042:8482447",
+   "add": {
+    "id": 8478042,
+    "name": "Viktor Arvidsson",
+    "team": "DET",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 1.73,
+   "next_two_pts": 8.23,
+   "later_pts": -3.07,
+   "win": [
+    0.5222,
+    0.5416
+   ],
+   "now_wins": 0.0193,
+   "ahead_wins": [
+    0.0369,
+    0.0271
+   ],
+   "ahead_pts": 7.6,
+   "ahead_week_pts": [
+    4.32,
+    3.28
+   ],
+   "held": false,
+   "keep": 0.206,
+   "later_wins": -0.024,
+   "value": 0.0592,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 3 pts later, more than this week's +2 win-pts make up for"
+  },
+  {
+   "key": "8476539:8482447",
+   "add": {
+    "id": 8476539,
+    "name": "Jonathan Marchessault",
+    "team": "NSH",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 3.5,
+   "next_two_pts": -1.0,
+   "later_pts": 3.1,
+   "win": [
+    0.5222,
+    0.561
+   ],
+   "now_wins": 0.0388,
+   "ahead_wins": [
+    0.019,
+    -0.0247
+   ],
+   "ahead_pts": -0.75,
+   "ahead_week_pts": [
+    2.23,
+    -2.98
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": 0.0243,
+   "value": 0.0575,
+   "status": "fails",
+   "why": "worth 5.7 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8478859:8482447",
+   "add": {
+    "id": 8478859,
+    "name": "Niko Mikkola",
+    "team": "FLA",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 1.61,
+   "next_two_pts": 6.7,
+   "later_pts": -1.36,
+   "win": [
+    0.5222,
+    0.5401
+   ],
+   "now_wins": 0.0179,
+   "ahead_wins": [
+    0.0088,
+    0.0411
+   ],
+   "ahead_pts": 6.03,
+   "ahead_week_pts": [
+    1.03,
+    5.0
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0107,
+   "value": 0.0572,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +2 win-pts make up for"
   },
   {
    "key": "8483609:8480807",
@@ -1573,13 +2363,13 @@
    "next_two_pts": 7.9,
    "later_pts": -0.11,
    "win": [
-    0.5368,
-    0.5337
+    0.5222,
+    0.5191
    ],
    "now_wins": -0.0031,
    "ahead_wins": [
-    0.0321,
-    0.0289
+    0.032,
+    0.029
    ],
    "ahead_pts": 7.26,
    "ahead_week_pts": [
@@ -1618,10 +2408,10 @@
    "next_two_pts": 3.56,
    "later_pts": 2.16,
    "win": [
-    0.5368,
-    0.5494
+    0.5222,
+    0.5349
    ],
-   "now_wins": 0.0126,
+   "now_wins": 0.0127,
    "ahead_wins": [
     0.0104,
     0.0168
@@ -1634,18 +2424,18 @@
    "held": false,
    "keep": 0.206,
    "later_wins": 0.0169,
-   "value": 0.0567,
+   "value": 0.0568,
    "status": "fails",
-   "why": "worth 5.7 win-pts, under the 14.3 an add costs"
+   "why": "worth 5.7 win-pts, under the 19.4 an add costs"
   },
   {
-   "key": "8479361:8482447",
+   "key": "8484759:8482447",
    "add": {
-    "id": 8479361,
-    "name": "Joseph Woll",
-    "team": "PHI",
+    "id": 8484759,
+    "name": "Carter Yakemchuk",
+    "team": "OTT",
     "positions": [
-     "G"
+     "D"
     ]
    },
    "drop": {
@@ -1657,30 +2447,30 @@
    "until_back": null,
    "plays_from": null,
    "when": null,
-   "games": 2,
-   "week_pts": 1.52,
-   "next_two_pts": 9.19,
-   "later_pts": -4.49,
+   "games": 3,
+   "week_pts": 1.36,
+   "next_two_pts": 6.21,
+   "later_pts": -1.44,
    "win": [
-    0.5368,
-    0.5538
+    0.5222,
+    0.5374
    ],
-   "now_wins": 0.0171,
+   "now_wins": 0.0152,
    "ahead_wins": [
-    0.0358,
-    0.035
+    0.058,
+    -0.007
    ],
-   "ahead_pts": 8.44,
+   "ahead_pts": 5.96,
    "ahead_week_pts": [
-    4.19,
-    4.25
+    6.8,
+    -0.84
    ],
-   "held": false,
-   "keep": 1.0,
-   "later_wins": -0.0352,
-   "value": 0.0526,
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0113,
+   "value": 0.055,
    "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 4 pts later, more than this week's +2 win-pts make up for"
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +2 win-pts make up for"
   },
   {
    "key": "8480188:8476457",
@@ -1707,10 +2497,10 @@
    "next_two_pts": -1.67,
    "later_pts": 3.63,
    "win": [
-    0.5368,
-    0.5676
+    0.5222,
+    0.5533
    ],
-   "now_wins": 0.0308,
+   "now_wins": 0.0311,
    "ahead_wins": [
     0.0227,
     -0.0329
@@ -1723,9 +2513,51 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0285,
-   "value": 0.0491,
+   "value": 0.0493,
    "status": "fails",
-   "why": "worth 4.9 win-pts, under the 14.3 an add costs"
+   "why": "worth 4.9 win-pts, under the 19.4 an add costs"
+  },
+  {
+   "key": "8480015:0:IR",
+   "add": {
+    "id": 8480015,
+    "name": "Owen Tippett",
+    "team": "PHI",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": null,
+   "ir_slot": "IR",
+   "later_drop": "Leevi Meriläinen",
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": -0.38,
+   "next_two_pts": 5.45,
+   "later_pts": 1.2,
+   "win": [
+    0.5222,
+    0.5179
+   ],
+   "now_wins": -0.0044,
+   "ahead_wins": [
+    0.0285,
+    0.0143
+   ],
+   "ahead_pts": 5.06,
+   "ahead_week_pts": [
+    3.34,
+    1.73
+   ],
+   "held": false,
+   "keep": 0.264,
+   "later_wins": 0.0094,
+   "value": 0.0478,
+   "status": "fails",
+   "why": "worth 4.8 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8478042:8476457",
@@ -1752,12 +2584,12 @@
    "next_two_pts": 4.52,
    "later_pts": -1.05,
    "win": [
-    0.5368,
-    0.5547
+    0.5222,
+    0.5403
    ],
-   "now_wins": 0.0179,
+   "now_wins": 0.018,
    "ahead_wins": [
-    0.0143,
+    0.0142,
     0.0203
    ],
    "ahead_pts": 4.13,
@@ -1768,9 +2600,54 @@
    "held": false,
    "keep": 0.206,
    "later_wins": -0.0082,
-   "value": 0.0442,
+   "value": 0.0444,
    "status": "fails",
    "why": "dropping Adam Larsson costs about 1 pts later, more than this week's +2 win-pts make up for"
+  },
+  {
+   "key": "8480188:8482447",
+   "add": {
+    "id": 8480188,
+    "name": "Fabian Zetterlund",
+    "team": "OTT",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 2.91,
+   "next_two_pts": 2.05,
+   "later_pts": -0.93,
+   "win": [
+    0.5222,
+    0.5546
+   ],
+   "now_wins": 0.0324,
+   "ahead_wins": [
+    0.0454,
+    -0.0261
+   ],
+   "ahead_pts": 2.16,
+   "ahead_week_pts": [
+    5.31,
+    -3.15
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0073,
+   "value": 0.0443,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +3 win-pts make up for"
   },
   {
    "key": "8477451:8476457",
@@ -1797,10 +2674,10 @@
    "next_two_pts": -4.27,
    "later_pts": 3.98,
    "win": [
-    0.5368,
-    0.5788
+    0.5222,
+    0.5645
    ],
-   "now_wins": 0.042,
+   "now_wins": 0.0423,
    "ahead_wins": [
     -0.0012,
     -0.0304
@@ -1813,9 +2690,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": 0.0312,
-   "value": 0.0416,
+   "value": 0.0419,
    "status": "fails",
-   "why": "worth 4.2 win-pts, under the 14.3 an add costs"
+   "why": "worth 4.2 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8476473:8476455",
@@ -1841,10 +2718,10 @@
    "next_two_pts": 1.96,
    "later_pts": 3.63,
    "win": [
-    0.5368,
-    0.5293
+    0.5222,
+    0.5148
    ],
-   "now_wins": -0.0074,
+   "now_wins": -0.0075,
    "ahead_wins": [
     0.0588,
     -0.039
@@ -1859,51 +2736,7 @@
    "later_wins": 0.0284,
    "value": 0.0408,
    "status": "fails",
-   "why": "worth 4.1 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482113:8482447",
-   "add": {
-    "id": 8482113,
-    "name": "Anton Lundell",
-    "team": "FLA",
-    "positions": [
-     "C"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.43,
-   "next_two_pts": 5.48,
-   "later_pts": -0.39,
-   "win": [
-    0.5368,
-    0.5415
-   ],
-   "now_wins": 0.0047,
-   "ahead_wins": [
-    -0.0106,
-    0.0496
-   ],
-   "ahead_pts": 4.8,
-   "ahead_week_pts": [
-    -1.24,
-    6.05
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0031,
-   "value": 0.0406,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 0 pts later, more than this week's +0 win-pts make up for"
+   "why": "worth 4.1 win-pts, under the 19.4 an add costs"
   },
   {
    "key": "8482679:8476455",
@@ -1929,8 +2762,8 @@
    "next_two_pts": 5.9,
    "later_pts": -0.34,
    "win": [
-    0.5368,
-    0.5293
+    0.5222,
+    0.5147
    ],
    "now_wins": -0.0075,
    "ahead_wins": [
@@ -1948,850 +2781,6 @@
    "value": 0.0387,
    "status": "fails",
    "why": "dropping Gabriel Landeskog costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8478042:8480855",
-   "add": {
-    "id": 8478042,
-    "name": "Viktor Arvidsson",
-    "team": "DET",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 0.27,
-   "next_two_pts": 5.68,
-   "later_pts": -0.87,
-   "win": [
-    0.5368,
-    0.5398
-   ],
-   "now_wins": 0.003,
-   "ahead_wins": [
-    0.0033,
-    0.0385
-   ],
-   "ahead_pts": 5.08,
-   "ahead_week_pts": [
-    0.39,
-    4.69
-   ],
-   "held": false,
-   "keep": 0.206,
-   "later_wins": -0.0068,
-   "value": 0.0381,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
-  },
-  {
-   "key": "8480797:8476455",
-   "add": {
-    "id": 8480797,
-    "name": "Joel Farabee",
-    "team": "CGY",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476455,
-    "name": "Gabriel Landeskog"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.69,
-   "next_two_pts": 5.83,
-   "later_pts": -0.34,
-   "win": [
-    0.5368,
-    0.5291
-   ],
-   "now_wins": -0.0077,
-   "ahead_wins": [
-    0.0585,
-    -0.0101
-   ],
-   "ahead_pts": 5.62,
-   "ahead_week_pts": [
-    6.85,
-    -1.22
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0027,
-   "value": 0.038,
-   "status": "fails",
-   "why": "dropping Gabriel Landeskog costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8482095:8476455",
-   "add": {
-    "id": 8482095,
-    "name": "Tyler Kleven",
-    "team": "OTT",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8476455,
-    "name": "Gabriel Landeskog"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 3.83,
-   "next_two_pts": -0.91,
-   "later_pts": -0.6,
-   "win": [
-    0.5368,
-    0.5788
-   ],
-   "now_wins": 0.0421,
-   "ahead_wins": [
-    0.0646,
-    -0.0655
-   ],
-   "ahead_pts": -0.33,
-   "ahead_week_pts": [
-    7.57,
-    -7.91
-   ],
-   "held": false,
-   "keep": 0.09,
-   "later_wins": -0.0047,
-   "value": 0.0365,
-   "status": "fails",
-   "why": "dropping Gabriel Landeskog costs about 1 pts later, more than this week's +4 win-pts make up for"
-  },
-  {
-   "key": "8481606:8482447",
-   "add": {
-    "id": 8481606,
-    "name": "Jordan Spence",
-    "team": "OTT",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.65,
-   "next_two_pts": 5.18,
-   "later_pts": -2.0,
-   "win": [
-    0.5368,
-    0.5439
-   ],
-   "now_wins": 0.0071,
-   "ahead_wins": [
-    0.0596,
-    -0.0159
-   ],
-   "ahead_pts": 5.05,
-   "ahead_week_pts": [
-    6.98,
-    -1.93
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0157,
-   "value": 0.0351,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +1 win-pts make up for"
-  },
-  {
-   "key": "8484241:8476457",
-   "add": {
-    "id": 8484241,
-    "name": "Matthew Wood",
-    "team": "NSH",
-    "positions": [
-     "C",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 2.2,
-   "next_two_pts": -5.9,
-   "later_pts": 6.87,
-   "win": [
-    0.5368,
-    0.5611
-   ],
-   "now_wins": 0.0243,
-   "ahead_wins": [
-    -0.01,
-    -0.0344
-   ],
-   "ahead_pts": -5.33,
-   "ahead_week_pts": [
-    -1.17,
-    -4.15
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0538,
-   "value": 0.0337,
-   "status": "fails",
-   "why": "worth 3.4 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8477903:8482447",
-   "add": {
-    "id": 8477903,
-    "name": "Garnet Hathaway",
-    "team": "FLA",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 1.68,
-   "next_two_pts": 3.48,
-   "later_pts": -1.65,
-   "win": [
-    0.5368,
-    0.5552
-   ],
-   "now_wins": 0.0185,
-   "ahead_wins": [
-    0.0097,
-    0.0168
-   ],
-   "ahead_pts": 3.17,
-   "ahead_week_pts": [
-    1.14,
-    2.04
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.013,
-   "value": 0.032,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +2 win-pts make up for"
-  },
-  {
-   "key": "8483609:8480855",
-   "add": {
-    "id": 8483609,
-    "name": "Adam Klapka",
-    "team": "CGY",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.92,
-   "next_two_pts": 5.79,
-   "later_pts": -0.46,
-   "win": [
-    0.5368,
-    0.5265
-   ],
-   "now_wins": -0.0102,
-   "ahead_wins": [
-    0.0235,
-    0.0212
-   ],
-   "ahead_pts": 5.32,
-   "ahead_week_pts": [
-    2.75,
-    2.57
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0036,
-   "value": 0.0309,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8476869:8482447",
-   "add": {
-    "id": 8476869,
-    "name": "Brady Skjei",
-    "team": "NSH",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.28,
-   "next_two_pts": 3.33,
-   "later_pts": 0.81,
-   "win": [
-    0.5368,
-    0.5336
-   ],
-   "now_wins": -0.0031,
-   "ahead_wins": [
-    0.0244,
-    0.0024
-   ],
-   "ahead_pts": 3.15,
-   "ahead_week_pts": [
-    2.85,
-    0.29
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0063,
-   "value": 0.03,
-   "status": "fails",
-   "why": "worth 3.0 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8479980:8482447",
-   "add": {
-    "id": 8479980,
-    "name": "Nicolas Hague",
-    "team": "NSH",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.28,
-   "next_two_pts": 3.33,
-   "later_pts": 0.81,
-   "win": [
-    0.5368,
-    0.5336
-   ],
-   "now_wins": -0.0032,
-   "ahead_wins": [
-    0.0244,
-    0.0024
-   ],
-   "ahead_pts": 3.14,
-   "ahead_week_pts": [
-    2.85,
-    0.29
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0063,
-   "value": 0.03,
-   "status": "fails",
-   "why": "worth 3.0 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482679:8480807",
-   "add": {
-    "id": 8482679,
-    "name": "Matt Coronato",
-    "team": "CGY",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480807,
-    "name": "Mattias Samuelsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.9,
-   "next_two_pts": 5.4,
-   "later_pts": -0.42,
-   "win": [
-    0.5368,
-    0.5267
-   ],
-   "now_wins": -0.01,
-   "ahead_wins": [
-    0.0219,
-    0.0198
-   ],
-   "ahead_pts": 4.97,
-   "ahead_week_pts": [
-    2.57,
-    2.4
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0033,
-   "value": 0.0284,
-   "status": "fails",
-   "why": "dropping Mattias Samuelsson costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8480797:8480807",
-   "add": {
-    "id": 8480797,
-    "name": "Joel Farabee",
-    "team": "CGY",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480807,
-    "name": "Mattias Samuelsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.92,
-   "next_two_pts": 5.34,
-   "later_pts": -0.43,
-   "win": [
-    0.5368,
-    0.5265
-   ],
-   "now_wins": -0.0102,
-   "ahead_wins": [
-    0.0217,
-    0.0196
-   ],
-   "ahead_pts": 4.91,
-   "ahead_week_pts": [
-    2.53,
-    2.37
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0033,
-   "value": 0.0277,
-   "status": "fails",
-   "why": "dropping Mattias Samuelsson costs about 0 pts later, more than this week's -1 win-pts make up for"
-  },
-  {
-   "key": "8482095:8480807",
-   "add": {
-    "id": 8482095,
-    "name": "Tyler Kleven",
-    "team": "OTT",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8480807,
-    "name": "Mattias Samuelsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 3.6,
-   "next_two_pts": -1.41,
-   "later_pts": -0.55,
-   "win": [
-    0.5368,
-    0.5763
-   ],
-   "now_wins": 0.0396,
-   "ahead_wins": [
-    0.0279,
-    -0.0357
-   ],
-   "ahead_pts": -1.05,
-   "ahead_week_pts": [
-    3.26,
-    -4.31
-   ],
-   "held": false,
-   "keep": 0.09,
-   "later_wins": -0.0043,
-   "value": 0.0275,
-   "status": "fails",
-   "why": "dropping Mattias Samuelsson costs about 1 pts later, more than this week's +4 win-pts make up for"
-  },
-  {
-   "key": "8481593:8482447",
-   "add": {
-    "id": 8481593,
-    "name": "Jayden Struble",
-    "team": "NSH",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": -0.43,
-   "next_two_pts": 3.03,
-   "later_pts": 0.71,
-   "win": [
-    0.5368,
-    0.532
-   ],
-   "now_wins": -0.0048,
-   "ahead_wins": [
-    0.0232,
-    0.0013
-   ],
-   "ahead_pts": 2.87,
-   "ahead_week_pts": [
-    2.71,
-    0.16
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0055,
-   "value": 0.0252,
-   "status": "fails",
-   "why": "worth 2.5 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8481726:8476457",
-   "add": {
-    "id": 8481726,
-    "name": "Adam Edstrom",
-    "team": "NSH",
-    "positions": [
-     "C",
-     "LW"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.78,
-   "next_two_pts": -7.01,
-   "later_pts": 8.89,
-   "win": [
-    0.5368,
-    0.5455
-   ],
-   "now_wins": 0.0087,
-   "ahead_wins": [
-    -0.0296,
-    -0.0247
-   ],
-   "ahead_pts": -6.46,
-   "ahead_week_pts": [
-    -3.48,
-    -2.99
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0696,
-   "value": 0.024,
-   "status": "fails",
-   "why": "worth 2.4 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8476925:8476457",
-   "add": {
-    "id": 8476925,
-    "name": "Colton Sissons",
-    "team": "TOR",
-    "positions": [
-     "C",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": -0.46,
-   "next_two_pts": -0.91,
-   "later_pts": 3.82,
-   "win": [
-    0.5368,
-    0.5317
-   ],
-   "now_wins": -0.0051,
-   "ahead_wins": [
-    0.0273,
-    -0.0315
-   ],
-   "ahead_pts": -0.61,
-   "ahead_week_pts": [
-    3.2,
-    -3.81
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.03,
-   "value": 0.0207,
-   "status": "fails",
-   "why": "worth 2.1 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482146:8476455",
-   "add": {
-    "id": 8482146,
-    "name": "Luke Evangelista",
-    "team": "NJD",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476455,
-    "name": "Gabriel Landeskog"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": "2026-10-22",
-   "when": null,
-   "games": 2,
-   "week_pts": -0.35,
-   "next_two_pts": 3.06,
-   "later_pts": -0.18,
-   "win": [
-    0.5368,
-    0.5328
-   ],
-   "now_wins": -0.0039,
-   "ahead_wins": [
-    0.0305,
-    -0.0052
-   ],
-   "ahead_pts": 2.94,
-   "ahead_week_pts": [
-    3.57,
-    -0.63
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0014,
-   "value": 0.02,
-   "status": "fails",
-   "why": "dropping Gabriel Landeskog costs about 0 pts later, more than this week's -0 win-pts make up for"
-  },
-  {
-   "key": "8483525:8476457",
-   "add": {
-    "id": 8483525,
-    "name": "Danila Yurov",
-    "team": "MIN",
-    "positions": [
-     "C",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 2.65,
-   "next_two_pts": -5.45,
-   "later_pts": 3.59,
-   "win": [
-    0.5368,
-    0.566
-   ],
-   "now_wins": 0.0292,
-   "ahead_wins": [
-    -0.0076,
-    -0.0333
-   ],
-   "ahead_pts": -4.91,
-   "ahead_week_pts": [
-    -0.89,
-    -4.02
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0281,
-   "value": 0.0165,
-   "status": "fails",
-   "why": "worth 1.6 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482113:8476455",
-   "add": {
-    "id": 8482113,
-    "name": "Anton Lundell",
-    "team": "FLA",
-    "positions": [
-     "C"
-    ]
-   },
-   "drop": {
-    "id": 8476455,
-    "name": "Gabriel Landeskog"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 1.46,
-   "next_two_pts": -0.63,
-   "later_pts": 0.73,
-   "win": [
-    0.5368,
-    0.5529
-   ],
-   "now_wins": 0.0162,
-   "ahead_wins": [
-    -0.0288,
-    0.0215
-   ],
-   "ahead_pts": -0.78,
-   "ahead_week_pts": [
-    -3.38,
-    2.6
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": 0.0057,
-   "value": 0.0146,
-   "status": "fails",
-   "why": "worth 1.5 win-pts, under the 14.3 an add costs"
-  },
-  {
-   "key": "8482245:8476455",
-   "add": {
-    "id": 8482245,
-    "name": "Artem Zub",
-    "team": "OTT",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8476455,
-    "name": "Gabriel Landeskog"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 2.86,
-   "next_two_pts": -2.86,
-   "later_pts": -0.48,
-   "win": [
-    0.5368,
-    0.5683
-   ],
-   "now_wins": 0.0315,
-   "ahead_wins": [
-    0.0542,
-    -0.0703
-   ],
-   "ahead_pts": -2.14,
-   "ahead_week_pts": [
-    6.34,
-    -8.48
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0037,
-   "value": 0.0117,
-   "status": "fails",
-   "why": "dropping Gabriel Landeskog costs about 0 pts later, more than this week's +3 win-pts make up for"
   }
  ],
  "teams": {
@@ -2883,8 +2872,8 @@
     },
     {
      "id": 8482447,
-     "pts": 7.89,
-     "games": 0.9,
+     "pts": 6.55,
+     "games": 0.7,
      "bench_pts": 0.0,
      "slot": null
     },
@@ -2905,7 +2894,7 @@
     "Blocks": 17.04,
     "Faceoffs": 4.87,
     "+/- and PIM": 4.05,
-    "Goalies": 30.3
+    "Goalies": 28.68
    },
    "stats": {
     "Goals": 6.06,
@@ -2920,9 +2909,9 @@
     "+/-": 0.6,
     "PIM": 12.5
    },
-   "goalie_starts": 3.6,
-   "goalie_lost": 1.35,
-   "rest": 154.38
+   "goalie_starts": 3.5,
+   "goalie_lost": 1.63,
+   "rest": 152.76
   },
   "them": {
    "players": [
@@ -4750,18 +4739,18 @@
     "Shutouts": 0.03
    },
    "xfp": 8.97,
-   "share": 0.543,
+   "share": 0.457,
    "starts": [
     {
      "date": "2026-10-22",
      "opp": "DET",
-     "prob": 0.383,
+     "prob": 0.314,
      "xfp": 8.97
     },
     {
      "date": "2026-10-25",
      "opp": "MIN",
-     "prob": 0.501,
+     "prob": 0.419,
      "xfp": 8.9
     }
    ],
@@ -6917,6 +6906,112 @@
    },
    "gp": 6
   },
+  "8479361": {
+   "id": 8479361,
+   "name": "Joseph Woll",
+   "team": "PHI",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 6,
+    "pts": 55.6,
+    "proj": 54.0,
+    "pts_projected": 55.6,
+    "stats": {
+     "Wins": [
+      1.0,
+      1.9
+     ],
+     "Saves": [
+      176.0,
+      161.5
+     ],
+     "Goals against": [
+      16.0,
+      17.4
+     ],
+     "Shutouts": [
+      0.0,
+      0.3
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-19",
+      "opp": "COL",
+      "pts": 11.4,
+      "proj": 9.1
+     },
+     {
+      "date": "2026-10-15",
+      "opp": "@DET",
+      "pts": 7.4,
+      "proj": 8.8
+     },
+     {
+      "date": "2026-10-11",
+      "opp": "CAR",
+      "pts": 6.1,
+      "proj": 9.3
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "@OTT",
+      "pts": 7.4,
+      "proj": 8.4
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "CAR",
+      "pts": 10.9,
+      "proj": 9.2
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "@NJD",
+      "pts": 12.3,
+      "proj": 9.2
+     }
+    ],
+    "starts": 6,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 1.58,
+    "Saves": 8.54,
+    "Goals against": -2.61,
+    "Shutout": 0.28
+   },
+   "stats": {
+    "Wins": 0.39,
+    "Saves": 24.4,
+    "Goals against": 2.61,
+    "Shutouts": 0.06
+   },
+   "xfp": 8.78,
+   "share": 0.568,
+   "starts": [
+    {
+     "date": "2026-10-21",
+     "opp": "@BUF",
+     "prob": 0.466,
+     "xfp": 8.78
+    },
+    {
+     "date": "2026-10-24",
+     "opp": "ANA",
+     "prob": 0.569,
+     "xfp": 8.91
+    }
+   ],
+   "next": {
+    "date": "2026-10-21",
+    "opp": "@BUF"
+   },
+   "gp": 6
+  },
   "8481028": {
    "id": 8481028,
    "name": "Martin Pospisil",
@@ -7056,6 +7151,154 @@
    "play": 0.97,
    "note": "",
    "durability": 0.943,
+   "kept": 1.0,
+   "replacement": 5.417
+  },
+  "8484390": {
+   "id": 8484390,
+   "name": "Roman Kantserov",
+   "team": "CHI",
+   "positions": "RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 9,
+    "pts": 28.6,
+    "proj": 47.0,
+    "pts_projected": 28.6,
+    "stats": {
+     "Goals": [
+      3.0,
+      3.4
+     ],
+     "Assists": [
+      0.0,
+      3.2
+     ],
+     "PP points": [
+      1.0,
+      1.5
+     ],
+     "SH points": [
+      0.0,
+      0.1
+     ],
+     "GWG": [
+      0.0,
+      0.3
+     ],
+     "Shots": [
+      12.0,
+      28.3
+     ],
+     "Hits": [
+      13.0,
+      8.0
+     ],
+     "Blocks": [
+      2.0,
+      2.3
+     ],
+     "Faceoff wins": [
+      23.0,
+      8.9
+     ],
+     "+/-": [
+      -6.0,
+      -1.3
+     ],
+     "PIM": [
+      4.0,
+      5.5
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-17",
+      "opp": "DAL",
+      "pts": 3.3,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-10-15",
+      "opp": "WPG",
+      "pts": 0.4,
+      "proj": 5.4
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "PIT",
+      "pts": 11.4,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "CAR",
+      "pts": 6.1,
+      "proj": 5.4
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "NYI",
+      "pts": 1.3,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "STL",
+      "pts": 3.2,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "BUF",
+      "pts": 1.2,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "UTA",
+      "pts": -0.6,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-09-29",
+      "opp": "VGK",
+      "pts": 2.3,
+      "proj": 4.9
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 1.63,
+    "Assists": 0.947,
+    "PP, SH, GWG": 0.209,
+    "Shots": 1.465,
+    "Hits": 0.64,
+    "Blocks": 0.217,
+    "Faceoffs": 0.128,
+    "+/- and PIM": 0.103
+   },
+   "xfp": 5.339,
+   "stats": {
+    "Goals": 0.407,
+    "Assists": 0.344,
+    "PP points": 0.188,
+    "SH points": 0.011,
+    "GWG": 0.034,
+    "Shots": 2.929,
+    "Hits": 1.066,
+    "Blocks": 0.272,
+    "Faceoff wins": 1.283,
+    "+/-": -0.179,
+    "PIM": 0.64
+   },
+   "toi": 18.48,
+   "pp_toi": 3.17,
+   "gp": 9,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.893,
    "kept": 1.0,
    "replacement": 5.417
   },
@@ -7473,153 +7716,99 @@
    "kept": 0.997,
    "replacement": 4.362
   },
-  "8484390": {
-   "id": 8484390,
-   "name": "Roman Kantserov",
-   "team": "CHI",
-   "positions": "RW",
+  "8478499": {
+   "id": 8478499,
+   "name": "Adin Hill",
+   "team": "VGK",
+   "positions": "G",
    "owner": "fa",
-   "goalie": false,
+   "goalie": true,
    "season": {
-    "gp": 9,
-    "pts": 28.6,
-    "proj": 47.0,
-    "pts_projected": 28.6,
+    "gp": 4,
+    "pts": 41.5,
+    "proj": 34.8,
+    "pts_projected": 41.5,
     "stats": {
-     "Goals": [
-      3.0,
-      3.4
+     "Wins": [
+      4.0,
+      2.6
      ],
-     "Assists": [
-      0.0,
-      3.2
+     "Saves": [
+      87.0,
+      81.7
      ],
-     "PP points": [
-      1.0,
-      1.5
+     "Goals against": [
+      9.0,
+      9.5
      ],
-     "SH points": [
-      0.0,
-      0.1
-     ],
-     "GWG": [
+     "Shutouts": [
       0.0,
       0.3
-     ],
-     "Shots": [
-      12.0,
-      28.3
-     ],
-     "Hits": [
-      13.0,
-      8.0
-     ],
-     "Blocks": [
-      2.0,
-      2.3
-     ],
-     "Faceoff wins": [
-      23.0,
-      8.9
-     ],
-     "+/-": [
-      -6.0,
-      -1.3
-     ],
-     "PIM": [
-      4.0,
-      5.5
      ]
     },
     "last": [
      {
       "date": "2026-10-17",
-      "opp": "DAL",
-      "pts": 3.3,
-      "proj": 5.3
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "WPG",
-      "pts": 0.4,
-      "proj": 5.4
+      "opp": "PIT",
+      "pts": 10.7,
+      "proj": 8.9
      },
      {
       "date": "2026-10-13",
-      "opp": "PIT",
-      "pts": 11.4,
-      "proj": 5.3
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "CAR",
-      "pts": 6.1,
-      "proj": 5.4
+      "opp": "@NSH",
+      "pts": 12.1,
+      "proj": 8.5
      },
      {
       "date": "2026-10-08",
-      "opp": "NYI",
-      "pts": 1.3,
-      "proj": 5.3
+      "opp": "TOR",
+      "pts": 9.3,
+      "proj": 8.7
      },
      {
-      "date": "2026-10-06",
-      "opp": "STL",
-      "pts": 3.2,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "BUF",
-      "pts": 1.2,
-      "proj": 5.1
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "UTA",
-      "pts": -0.6,
-      "proj": 5.1
-     },
-     {
-      "date": "2026-09-29",
-      "opp": "VGK",
-      "pts": 2.3,
-      "proj": 4.9
+      "date": "2026-10-04",
+      "opp": "@VAN",
+      "pts": 9.3,
+      "proj": 8.8
      }
-    ]
+    ],
+    "starts": 4,
+    "relief": 0
    },
    "per_game": {
-    "Goals": 1.63,
-    "Assists": 0.947,
-    "PP, SH, GWG": 0.209,
-    "Shots": 1.465,
-    "Hits": 0.64,
-    "Blocks": 0.217,
-    "Faceoffs": 0.128,
-    "+/- and PIM": 0.103
+    "Start": 1.0,
+    "Win": 2.42,
+    "Saves": 7.05,
+    "Goals against": -2.34,
+    "Shutout": 0.37
    },
-   "xfp": 5.339,
    "stats": {
-    "Goals": 0.407,
-    "Assists": 0.344,
-    "PP points": 0.188,
-    "SH points": 0.011,
-    "GWG": 0.034,
-    "Shots": 2.929,
-    "Hits": 1.066,
-    "Blocks": 0.272,
-    "Faceoff wins": 1.283,
-    "+/-": -0.179,
-    "PIM": 0.64
+    "Wins": 0.61,
+    "Saves": 20.15,
+    "Goals against": 2.34,
+    "Shutouts": 0.07
    },
-   "toi": 18.48,
-   "pp_toi": 3.17,
-   "gp": 9,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.893,
-   "kept": 1.0,
-   "replacement": 5.417
+   "xfp": 8.51,
+   "share": 0.387,
+   "starts": [
+    {
+     "date": "2026-10-22",
+     "opp": "@STL",
+     "prob": 0.792,
+     "xfp": 8.51
+    },
+    {
+     "date": "2026-10-24",
+     "opp": "@CBJ",
+     "prob": 0.545,
+     "xfp": 8.78
+    }
+   ],
+   "next": {
+    "date": "2026-10-22",
+    "opp": "@STL"
+   },
+   "gp": 4
   },
   "8476473": {
    "id": 8476473,
@@ -10035,112 +10224,6 @@
    "kept": 1.0,
    "replacement": 5.417
   },
-  "8479361": {
-   "id": 8479361,
-   "name": "Joseph Woll",
-   "team": "PHI",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 6,
-    "pts": 55.6,
-    "proj": 54.0,
-    "pts_projected": 55.6,
-    "stats": {
-     "Wins": [
-      1.0,
-      1.9
-     ],
-     "Saves": [
-      176.0,
-      161.5
-     ],
-     "Goals against": [
-      16.0,
-      17.4
-     ],
-     "Shutouts": [
-      0.0,
-      0.3
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-19",
-      "opp": "COL",
-      "pts": 11.4,
-      "proj": 9.1
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "@DET",
-      "pts": 7.4,
-      "proj": 8.8
-     },
-     {
-      "date": "2026-10-11",
-      "opp": "CAR",
-      "pts": 6.1,
-      "proj": 9.3
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "@OTT",
-      "pts": 7.4,
-      "proj": 8.4
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "CAR",
-      "pts": 10.9,
-      "proj": 9.2
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "@NJD",
-      "pts": 12.3,
-      "proj": 9.2
-     }
-    ],
-    "starts": 6,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.58,
-    "Saves": 8.54,
-    "Goals against": -2.61,
-    "Shutout": 0.28
-   },
-   "stats": {
-    "Wins": 0.39,
-    "Saves": 24.4,
-    "Goals against": 2.61,
-    "Shutouts": 0.06
-   },
-   "xfp": 8.78,
-   "share": 0.568,
-   "starts": [
-    {
-     "date": "2026-10-21",
-     "opp": "@BUF",
-     "prob": 0.466,
-     "xfp": 8.78
-    },
-    {
-     "date": "2026-10-24",
-     "opp": "ANA",
-     "prob": 0.569,
-     "xfp": 8.91
-    }
-   ],
-   "next": {
-    "date": "2026-10-21",
-    "opp": "@BUF"
-   },
-   "gp": 6
-  },
   "8480188": {
    "id": 8480188,
    "name": "Fabian Zetterlund",
@@ -10286,6 +10369,154 @@
    "play": 0.97,
    "note": "",
    "durability": 0.991,
+   "kept": 1.0,
+   "replacement": 5.417
+  },
+  "8480015": {
+   "id": 8480015,
+   "name": "Owen Tippett",
+   "team": "PHI",
+   "positions": "LW/RW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 9,
+    "pts": 35.2,
+    "proj": 46.4,
+    "pts_projected": 35.2,
+    "stats": {
+     "Goals": [
+      1.0,
+      2.6
+     ],
+     "Assists": [
+      1.0,
+      2.4
+     ],
+     "PP points": [
+      0.0,
+      0.7
+     ],
+     "SH points": [
+      0.0,
+      0.2
+     ],
+     "GWG": [
+      0.0,
+      0.3
+     ],
+     "Shots": [
+      21.0,
+      23.1
+     ],
+     "Hits": [
+      23.0,
+      18.4
+     ],
+     "Blocks": [
+      5.0,
+      5.8
+     ],
+     "Faceoff wins": [
+      0.0,
+      1.4
+     ],
+     "+/-": [
+      -2.0,
+      -0.5
+     ],
+     "PIM": [
+      4.0,
+      3.0
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-15",
+      "opp": "DET",
+      "pts": 2.0,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "SEA",
+      "pts": 4.3,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-10-11",
+      "opp": "CAR",
+      "pts": 2.2,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "BOS",
+      "pts": 2.2,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "OTT",
+      "pts": 2.6,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-10-05",
+      "opp": "TBL",
+      "pts": 3.4,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "CAR",
+      "pts": 9.2,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "NJD",
+      "pts": 4.2,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-09-30",
+      "opp": "PIT",
+      "pts": 5.1,
+      "proj": 5.1
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 1.136,
+    "Assists": 0.728,
+    "PP, SH, GWG": 0.126,
+    "Shots": 1.262,
+    "Hits": 1.238,
+    "Blocks": 0.498,
+    "Faceoffs": 0.011,
+    "+/- and PIM": 0.07
+   },
+   "xfp": 5.069,
+   "stats": {
+    "Goals": 0.284,
+    "Assists": 0.265,
+    "PP points": 0.064,
+    "SH points": 0.018,
+    "GWG": 0.028,
+    "Shots": 2.524,
+    "Hits": 2.063,
+    "Blocks": 0.622,
+    "Faceoff wins": 0.113,
+    "+/-": -0.065,
+    "PIM": 0.343
+   },
+   "toi": 16.44,
+   "pp_toi": 1.92,
+   "gp": 9,
+   "play": 0.0,
+   "note": "IR",
+   "durability": 0.984,
    "kept": 1.0,
    "replacement": 5.417
   },
@@ -10440,456 +10671,6 @@
    "play": 0.97,
    "note": "",
    "durability": 0.947,
-   "kept": 1.0,
-   "replacement": 5.417
-  },
-  "8484241": {
-   "id": 8484241,
-   "name": "Matthew Wood",
-   "team": "NSH",
-   "positions": "C/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 8,
-    "pts": 24.6,
-    "proj": 29.1,
-    "pts_projected": 24.6,
-    "stats": {
-     "Goals": [
-      1.0,
-      1.7
-     ],
-     "Assists": [
-      1.0,
-      2.0
-     ],
-     "PP points": [
-      2.0,
-      1.2
-     ],
-     "SH points": [
-      0.0,
-      0.1
-     ],
-     "GWG": [
-      0.0,
-      0.1
-     ],
-     "Shots": [
-      12.0,
-      13.3
-     ],
-     "Hits": [
-      10.0,
-      7.8
-     ],
-     "Blocks": [
-      3.0,
-      3.4
-     ],
-     "Faceoff wins": [
-      21.0,
-      10.7
-     ],
-     "+/-": [
-      -1.0,
-      -0.4
-     ],
-     "PIM": [
-      2.0,
-      2.4
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-17",
-      "opp": "STL",
-      "pts": 0.6,
-      "proj": 3.8
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "SJS",
-      "pts": 3.8,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-13",
-      "opp": "VGK",
-      "pts": 0.5,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "OTT",
-      "pts": 3.0,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "MTL",
-      "pts": 7.2,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "TOR",
-      "pts": 4.8,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "DAL",
-      "pts": 2.6,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "MIN",
-      "pts": 2.1,
-      "proj": 3.4
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.814,
-    "Assists": 0.629,
-    "PP, SH, GWG": 0.148,
-    "Shots": 0.807,
-    "Hits": 0.597,
-    "Blocks": 0.326,
-    "Faceoffs": 0.161,
-    "+/- and PIM": 0.059
-   },
-   "xfp": 3.54,
-   "stats": {
-    "Goals": 0.204,
-    "Assists": 0.229,
-    "PP points": 0.139,
-    "SH points": 0.014,
-    "GWG": 0.018,
-    "Shots": 1.614,
-    "Hits": 0.994,
-    "Blocks": 0.408,
-    "Faceoff wins": 1.613,
-    "+/-": -0.059,
-    "PIM": 0.294
-   },
-   "toi": 15.29,
-   "pp_toi": 2.35,
-   "gp": 8,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.955,
-   "kept": 1.0,
-   "replacement": 5.417
-  },
-  "8476925": {
-   "id": 8476925,
-   "name": "Colton Sissons",
-   "team": "TOR",
-   "positions": "C/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 11,
-    "pts": 50.9,
-    "proj": 40.0,
-    "pts_projected": 50.9,
-    "stats": {
-     "Goals": [
-      2.0,
-      1.4
-     ],
-     "Assists": [
-      3.0,
-      1.5
-     ],
-     "PP points": [
-      0.0,
-      0.1
-     ],
-     "SH points": [
-      0.0,
-      0.1
-     ],
-     "GWG": [
-      0.0,
-      0.2
-     ],
-     "Shots": [
-      13.0,
-      12.8
-     ],
-     "Hits": [
-      26.0,
-      18.4
-     ],
-     "Blocks": [
-      6.0,
-      7.5
-     ],
-     "Faceoff wins": [
-      67.0,
-      56.2
-     ],
-     "+/-": [
-      1.0,
-      -0.6
-     ],
-     "PIM": [
-      2.0,
-      4.2
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-20",
-      "opp": "CBJ",
-      "pts": 5.2,
-      "proj": 4.0
-     },
-     {
-      "date": "2026-10-19",
-      "opp": "SJS",
-      "pts": 6.3,
-      "proj": 3.9
-     },
-     {
-      "date": "2026-10-17",
-      "opp": "NYI",
-      "pts": 6.3,
-      "proj": 3.8
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "BUF",
-      "pts": 5.2,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-13",
-      "opp": "UTA",
-      "pts": 3.3,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "COL",
-      "pts": 3.7,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "VGK",
-      "pts": 2.1,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "NSH",
-      "pts": 3.7,
-      "proj": 3.6
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "OTT",
-      "pts": 2.6,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-09-30",
-      "opp": "NYI",
-      "pts": 9.0,
-      "proj": 3.4
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.535,
-    "Assists": 0.476,
-    "PP, SH, GWG": 0.058,
-    "Shots": 0.593,
-    "Hits": 1.082,
-    "Blocks": 0.512,
-    "Faceoffs": 0.587,
-    "+/- and PIM": 0.098
-   },
-   "xfp": 3.941,
-   "stats": {
-    "Goals": 0.134,
-    "Assists": 0.173,
-    "PP points": 0.009,
-    "SH points": 0.009,
-    "GWG": 0.019,
-    "Shots": 1.186,
-    "Hits": 1.803,
-    "Blocks": 0.64,
-    "Faceoff wins": 5.873,
-    "+/-": -0.044,
-    "PIM": 0.399
-   },
-   "toi": 15.05,
-   "pp_toi": 0.06,
-   "gp": 11,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.987,
-   "kept": 1.0,
-   "replacement": 5.417
-  },
-  "8483525": {
-   "id": 8483525,
-   "name": "Danila Yurov",
-   "team": "MIN",
-   "positions": "C/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 10,
-    "pts": 46.8,
-    "proj": 34.9,
-    "pts_projected": 46.8,
-    "stats": {
-     "Goals": [
-      4.0,
-      1.7
-     ],
-     "Assists": [
-      1.0,
-      2.1
-     ],
-     "PP points": [
-      2.0,
-      0.7
-     ],
-     "SH points": [
-      0.0,
-      0.0
-     ],
-     "GWG": [
-      1.0,
-      0.3
-     ],
-     "Shots": [
-      15.0,
-      11.6
-     ],
-     "Hits": [
-      11.0,
-      10.6
-     ],
-     "Blocks": [
-      5.0,
-      5.6
-     ],
-     "Faceoff wins": [
-      50.0,
-      34.2
-     ],
-     "+/-": [
-      1.0,
-      -0.2
-     ],
-     "PIM": [
-      4.0,
-      3.9
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-20",
-      "opp": "EDM",
-      "pts": 1.2,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-18",
-      "opp": "CBJ",
-      "pts": 6.6,
-      "proj": 3.7
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "STL",
-      "pts": 6.6,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-13",
-      "opp": "WPG",
-      "pts": 2.0,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-12",
-      "opp": "VGK",
-      "pts": 9.3,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "FLA",
-      "pts": 2.2,
-      "proj": 3.5
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "TBL",
-      "pts": 3.9,
-      "proj": 3.4
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "BUF",
-      "pts": 6.7,
-      "proj": 3.3
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "BOS",
-      "pts": 2.5,
-      "proj": 3.3
-     },
-     {
-      "date": "2026-10-01",
-      "opp": "NSH",
-      "pts": 5.8,
-      "proj": 3.3
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.806,
-    "Assists": 0.551,
-    "PP, SH, GWG": 0.124,
-    "Shots": 0.644,
-    "Hits": 0.602,
-    "Blocks": 0.435,
-    "Faceoffs": 0.41,
-    "+/- and PIM": 0.122
-   },
-   "xfp": 3.696,
-   "stats": {
-    "Goals": 0.202,
-    "Assists": 0.201,
-    "PP points": 0.095,
-    "SH points": 0.002,
-    "GWG": 0.032,
-    "Shots": 1.289,
-    "Hits": 1.003,
-    "Blocks": 0.544,
-    "Faceoff wins": 4.1,
-    "+/-": -0.002,
-    "PIM": 0.412
-   },
-   "toi": 13.65,
-   "pp_toi": 1.24,
-   "gp": 10,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.922,
    "kept": 1.0,
    "replacement": 5.417
   }
@@ -12127,16 +11908,16 @@
     ],
     "probs": [
      null,
-     0.3826161024762423,
+     0.3140781232515806,
      null,
      null,
-     0.500934678206739,
+     0.419003952090754,
      null,
-     0.5505670492553587,
+     0.4642132048382817,
      null,
-     0.5505670492553587,
+     0.4642132048382817,
      null,
-     0.5505670492553587,
+     0.4642132048382817,
      null
     ]
    },
@@ -12175,71 +11956,72 @@
   ],
   "plan": [
    {
-    "key": "8481028:8476457",
-    "name": "M. Pospisil",
-    "positions": "C/RW",
-    "team": "CGY",
-    "drop": "A. Larsson",
+    "key": "8479361:8482447",
+    "name": "J. Woll",
+    "positions": "G",
+    "team": "PHI",
+    "drop": "L. Meriläinen",
     "cells": [
+     "start",
+     null,
      null,
      "start",
      null,
+     null,
+     "bench",
      "start",
      null,
-     "start",
      null,
-     "start",
      null,
-     "start",
-     "start",
-     null
+     "start"
     ],
-    "slot_games": 6,
-    "slot_starts": null,
+    "slot_games": 4,
+    "slot_starts": 2.07,
     "gain": [
-     1.0801548585461092,
+     3.1468927929993527,
      0.0
     ],
     "plan": true,
     "when": "2026-10-21"
-   },
-   {
-    "key": "8484390:8480855",
-    "name": "R. Kantserov",
-    "positions": "RW",
-    "team": "CHI",
-    "drop": "J. McBain",
-    "cells": [
-     null,
-     null,
-     null,
-     null,
-     null,
-     null,
-     "start",
-     null,
-     "start",
-     null,
-     "start",
-     null
-    ],
-    "slot_games": 3,
-    "slot_starts": null,
-    "gain": [
-     0.9083330719672063,
-     0.0
-    ],
-    "plan": true,
-    "when": "2026-10-26"
    }
   ],
   "streamers": [
    {
-    "key": "8480797:8476457",
+    "key": "8481028:8482447",
+    "name": "M. Pospisil",
+    "positions": "C/RW",
+    "team": "CGY",
+    "drop": "L. Meriläinen",
+    "cells": [
+     null,
+     "start",
+     null,
+     "start",
+     null,
+     "start",
+     null,
+     "start",
+     null,
+     "start",
+     "start",
+     null
+    ],
+    "slot_games": 6,
+    "slot_starts": null,
+    "gain": [
+     1.1939397488668249,
+     13.053004727676665
+    ],
+    "plan": false,
+    "when": null,
+    "recommended": false
+   },
+   {
+    "key": "8480797:8482447",
     "name": "J. Farabee",
     "positions": "LW/RW",
     "team": "CGY",
-    "drop": "A. Larsson",
+    "drop": "L. Meriläinen",
     "cells": [
      null,
      "start",
@@ -12257,19 +12039,19 @@
     "slot_games": 6,
     "slot_starts": null,
     "gain": [
-     -0.20916785694225837,
-     7.684046229243961
+     -0.09538296662154266,
+     10.474359296699873
     ],
     "plan": false,
     "when": null,
     "recommended": false
    },
    {
-    "key": "8483609:8476457",
+    "key": "8483609:8482447",
     "name": "A. Klapka",
     "positions": "RW",
     "team": "CGY",
-    "drop": "A. Larsson",
+    "drop": "L. Meriläinen",
     "cells": [
      null,
      "start",
@@ -12287,19 +12069,19 @@
     "slot_games": 6,
     "slot_starts": null,
     "gain": [
-     0.4309426289307794,
-     8.964267200990093
+     0.5447275192514951,
+     11.754580268446006
     ],
     "plan": false,
     "when": null,
     "recommended": false
    },
    {
-    "key": "8482095:8476457",
+    "key": "8482095:8482447",
     "name": "T. Kleven",
     "positions": "D",
     "team": "OTT",
-    "drop": "A. Larsson",
+    "drop": "L. Meriläinen",
     "cells": [
      "start",
      "start",
@@ -12317,8 +12099,8 @@
     "slot_games": 7,
     "slot_starts": null,
     "gain": [
-     4.312097545577103,
-     8.450257375145583
+     4.425882435897819,
+     11.240570442601495
     ],
     "plan": false,
     "when": null,
@@ -12347,8 +12129,8 @@
     "slot_games": 4,
     "slot_starts": 2.38,
     "gain": [
-     3.906911824420348,
-     5.601636905899426
+     5.529289373085845,
+     6.6201798384223025
     ],
     "plan": false,
     "when": null,
@@ -12490,14 +12272,14 @@
      "LW": 2,
      "RW": 2,
      "D": 3,
-     "G": 2
+     "G": 1
     },
     {
      "C": 0,
      "LW": 0,
-     "RW": 0,
-     "D": 3,
-     "G": 0
+     "RW": 1,
+     "D": 2,
+     "G": 1
     },
     {
      "C": 2,
@@ -12509,19 +12291,19 @@
     {
      "C": 0,
      "LW": 0,
-     "RW": 0,
-     "D": 3,
-     "G": 1
+     "RW": 1,
+     "D": 2,
+     "G": 0
     },
     {
      "C": 0,
      "LW": 0,
      "RW": 2,
      "D": 2,
-     "G": 0
+     "G": 1
     },
     {
-     "C": 1,
+     "C": 2,
      "LW": 2,
      "RW": 2,
      "D": 4,
@@ -12529,60 +12311,60 @@
     },
     {
      "C": 0,
-     "LW": 1,
-     "RW": 0,
+     "LW": 0,
+     "RW": 1,
      "D": 1,
      "G": 0
     },
     {
-     "C": 1,
+     "C": 2,
      "LW": 0,
-     "RW": 2,
-     "D": 4,
-     "G": 2
-    },
-    {
-     "C": 0,
-     "LW": 0,
-     "RW": 0,
-     "D": 1,
-     "G": 0
-    },
-    {
-     "C": 0,
-     "LW": 2,
-     "RW": 2,
-     "D": 3,
-     "G": 2
-    },
-    {
-     "C": 0,
-     "LW": 0,
-     "RW": 0,
-     "D": 2,
-     "G": 0
-    },
-    {
-     "C": 1,
-     "LW": 1,
      "RW": 2,
      "D": 3,
      "G": 1
+    },
+    {
+     "C": 0,
+     "LW": 0,
+     "RW": 0,
+     "D": 1,
+     "G": 0
+    },
+    {
+     "C": 1,
+     "LW": 2,
+     "RW": 2,
+     "D": 2,
+     "G": 2
+    },
+    {
+     "C": 0,
+     "LW": 0,
+     "RW": 2,
+     "D": 2,
+     "G": 1
+    },
+    {
+     "C": 0,
+     "LW": 1,
+     "RW": 2,
+     "D": 3,
+     "G": 0
     }
    ],
    "my_games": [
-    1,
+    2,
+    8,
+    3,
     9,
-    3,
-    8,
-    8,
-    1,
+    7,
+    0,
     10,
-    3,
+    4,
     11,
     3,
-    10,
-    4
+    7,
+    6
    ],
    "benched": [
     0,
@@ -12593,7 +12375,7 @@
     0,
     1,
     0,
-    1,
+    0,
     0,
     0,
     0
@@ -12630,7 +12412,7 @@
      "LW": 2,
      "RW": 2,
      "D": 3,
-     "G": 2
+     "G": 1
     }
    },
    {
@@ -12642,9 +12424,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 0,
-     "D": 3,
-     "G": 0
+     "RW": 1,
+     "D": 2,
+     "G": 1
     }
    },
    {
@@ -12670,9 +12452,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 0,
-     "D": 3,
-     "G": 1
+     "RW": 1,
+     "D": 2,
+     "G": 0
     }
    },
    {
@@ -12686,7 +12468,7 @@
      "LW": 0,
      "RW": 2,
      "D": 2,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12696,7 +12478,7 @@
     "week": 5,
     "games": 3,
     "open": {
-     "C": 1,
+     "C": 2,
      "LW": 2,
      "RW": 2,
      "D": 4,
@@ -12711,8 +12493,8 @@
     "games": 11,
     "open": {
      "C": 0,
-     "LW": 1,
-     "RW": 0,
+     "LW": 0,
+     "RW": 1,
      "D": 1,
      "G": 0
     }
@@ -12724,11 +12506,11 @@
     "week": 5,
     "games": 4,
     "open": {
-     "C": 1,
+     "C": 2,
      "LW": 0,
      "RW": 2,
-     "D": 4,
-     "G": 2
+     "D": 3,
+     "G": 1
     }
    },
    {
@@ -12752,10 +12534,10 @@
     "week": 5,
     "games": 3,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 2,
      "RW": 2,
-     "D": 3,
+     "D": 2,
      "G": 2
     }
    },
@@ -12768,9 +12550,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 0,
+     "RW": 2,
      "D": 2,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12780,11 +12562,11 @@
     "week": 5,
     "games": 5,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 1,
      "RW": 2,
      "D": 3,
-     "G": 1
+     "G": 0
     }
    },
    {
@@ -12794,9 +12576,9 @@
     "week": 6,
     "games": 4,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 1,
-     "RW": 1,
+     "RW": 2,
      "D": 4,
      "G": 1
     }
@@ -12810,7 +12592,7 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 1,
+     "RW": 0,
      "D": 2,
      "G": 0
     }
@@ -12822,10 +12604,10 @@
     "week": 6,
     "games": 4,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 2,
-     "RW": 1,
-     "D": 3,
+     "RW": 2,
+     "D": 2,
      "G": 1
     }
    },
@@ -12850,7 +12632,7 @@
     "week": 6,
     "games": 3,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 2,
      "RW": 2,
      "D": 3,
@@ -12867,7 +12649,7 @@
      "C": 0,
      "LW": 0,
      "RW": 0,
-     "D": 3,
+     "D": 2,
      "G": 0
     }
    },
@@ -12878,11 +12660,11 @@
     "week": 6,
     "games": 6,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 2,
      "RW": 2,
      "D": 2,
-     "G": 2
+     "G": 1
     }
    }
   ],
@@ -13719,6 +13501,21 @@
   "playoffs_from": 24
  },
  "watch": [
+  {
+   "date": "2026-10-21",
+   "id": 8476467,
+   "name": "Jamie Oleksiak",
+   "team": "VAN",
+   "positions": "D",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the top D pair.",
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "value": null,
+   "price": null,
+   "sent": false
+  },
   {
    "date": "2026-10-21",
    "id": 8479442,

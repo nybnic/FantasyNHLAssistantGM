@@ -623,6 +623,24 @@
       "message_id": 571,
       "type": "add"
     },
+    "add-2026-10-21-1431-8479361": {
+      "add": {
+        "id": 8479361,
+        "name": "Joseph Woll",
+        "positions": [
+          "G"
+        ],
+        "slot": null,
+        "team": "PHI"
+      },
+      "add_slot": null,
+      "date": "2026-10-21",
+      "drop": 8482447,
+      "drop_name": "Leevi Meril\u00e4inen",
+      "ir": {},
+      "message_id": 588,
+      "type": "add"
+    },
     "lineup-2026-10-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -878,48 +896,27 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-21T13:56+00:00",
+    "at": "2026-10-21T14:31+00:00",
     "moves": [
       {
         "add": {
-          "id": 8481028,
-          "name": "Martin Pospisil",
+          "id": 8479361,
+          "name": "Joseph Woll",
           "positions": [
-            "C",
-            "RW"
+            "G"
           ],
-          "team": "CGY"
+          "team": "PHI"
         },
         "drop": {
-          "id": 8476457,
-          "name": "Adam Larsson"
+          "id": 8482447,
+          "name": "Leevi Meril\u00e4inen"
         },
-        "key": "8481028:8476457",
-        "message_id": 571,
-        "rec_id": "add-2026-10-21-0526-8481028",
-        "value": 0.2055,
+        "key": "8479361:8482447",
+        "message_id": 588,
+        "rec_id": "add-2026-10-21-1431-8479361",
+        "value": 0.2148,
         "when": "2026-10-21",
         "why": "now"
-      },
-      {
-        "add": {
-          "id": 8484390,
-          "name": "Roman Kantserov",
-          "positions": [
-            "RW"
-          ],
-          "team": "CHI"
-        },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8484390:8480855",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.195,
-        "when": "2026-10-26",
-        "why": "monday"
       }
     ],
     "week": 4
@@ -1105,6 +1102,7 @@
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
       "8476463:promoted": "2026-10-14",
+      "8476467:promoted": "2026-10-21",
       "8476539:promoted": "2026-10-14",
       "8476854:ice time": "2026-10-18",
       "8476882:promoted": "2026-10-15",
@@ -1227,7 +1225,8 @@
       "8471214": {
         "groups": [
           "f3",
-          "pp1"
+          "pp1",
+          "pp2"
         ],
         "since": {
           "pp1": null
@@ -1579,10 +1578,12 @@
       },
       "8476467": {
         "groups": [
-          "d2",
+          "d1",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-21"
+        }
       },
       "8476469": {
         "groups": [
@@ -1816,11 +1817,9 @@
         "groups": [
           "f3",
           "pk1",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-10-19"
-        }
+        "since": {}
       },
       "8477444": {
         "groups": [
@@ -1952,8 +1951,7 @@
       "8477953": {
         "groups": [
           "f2",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {
           "f2": null
@@ -2034,10 +2032,11 @@
       "8478042": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": "2026-10-21"
+          "f2": "2026-10-21",
+          "pp1": "2026-10-21"
         }
       },
       "8478047": {
@@ -2296,7 +2295,8 @@
       },
       "8479365": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -2401,8 +2401,7 @@
       },
       "8479968": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -2435,7 +2434,8 @@
       "8479992": {
         "groups": [
           "f3",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -2690,8 +2690,7 @@
       },
       "8480842": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -3005,7 +3004,8 @@
       },
       "8481716": {
         "groups": [
-          "f2"
+          "f2",
+          "pp2"
         ],
         "since": {
           "f2": null
@@ -3392,7 +3392,8 @@
       },
       "8482703": {
         "groups": [
-          "f2"
+          "f2",
+          "pp2"
         ],
         "since": {
           "f2": null
@@ -3400,8 +3401,7 @@
       },
       "8482705": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3642,8 +3642,7 @@
       },
       "8483491": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3782,8 +3781,7 @@
       },
       "8483766": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -3899,8 +3897,7 @@
       },
       "8484223": {
         "groups": [
-          "d4",
-          "pp2"
+          "d4"
         ],
         "since": {}
       },
@@ -3972,11 +3969,10 @@
         "groups": [
           "f1",
           "pk1",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f1": "2026-10-21",
-          "pp1": "2026-10-19"
+          "f1": "2026-10-21"
         }
       },
       "8484759": {
@@ -4041,15 +4037,13 @@
       "8484806": {
         "groups": [
           "d2",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
       "8484829": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -5375,6 +5369,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "Ice time 22:19 a game in his last 3, up from 17:28. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8476467,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jamie Oleksiak",
+        "positions": "D",
+        "price": null,
+        "sent": false,
+        "team": "VAN",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
