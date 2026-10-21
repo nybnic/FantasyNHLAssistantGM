@@ -39,7 +39,8 @@ like `--add`; then every move is listed), e.g. to weigh a drop Nico is consideri
 and an `ir` input (players of mine to treat as on IR+, `--ir`, this run only) for a
 move made in Yahoo that the bot hasn't been told about yet.
 `schedule` prints every NHL game day by day for this week and next
-(`scripts/schedule.py`).
+(`scripts/schedule.py`). `scoreboard` prints the season's scoreboard (each week:
+your points vs the drafted roster's, `scripts/scorecard.py`).
 
 ## Secrets
 | Where | Name | Used for |

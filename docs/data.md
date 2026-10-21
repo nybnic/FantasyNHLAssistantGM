@@ -59,6 +59,8 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 | `add_pools` | Every add candidate each plan weighed | Solving the add price that paces 36 adds (`engine/addprice.py`) |
 | `league_adds` | Other teams' pickups | Opponent streaming profiles (roadmap item 5) |
 | `day_rosters` | Mine and my opponent's roster before each day's first puck | Scoring each day with that day's players |
+| `my_days`, `my_players`, `draft_roster` | My active roster's ids each day all season (backfilled from git history to Sep 29), who they are, and the roster I drafted | The scoreboard: each week, my points vs the drafted roster's (`engine/scorecard.week_value`, in `results[w].value`) |
+| `league_weeks[w].points_for` | Each team's points for after week w (cumulative), from Standings screenshots (weeks 1-3 backfilled) | Every team's week against our forecast (`scripts/check_forecasts.py`) |
 | `xfp_log.csv` | Each Monday, every NHL player: points per game, ice time, durability; goalies' start share, save %, points per start; everyone's expected points in the week (`week_games`, `week_xfp`) | Projection accuracy player by player against box scores (roadmap item 2); where we differ from Yahoo |
 
 **Private repo `nybnic/FantasyNHLAssistantGM-data`** (third-party data; the workflow checks it out into `archive/` and pushes):
@@ -75,8 +77,9 @@ zoomed-out page reads badly: zoom in, or send it as a file (kept as sent).
 ## 4. Checking forecasts after the fact
 From week 2 on, each week has, before any games: our forecast of all 16 teams and of every player, and
 Yahoo's forecast of all 16 teams (All Matchups) and of my matchup's players. The results come from box
-scores, and from Yahoo's finals where screenshots give them. Not built yet: the script that scores both
-forecasts (roadmap item 7, after 3-4 weeks). Week 1: Yahoo's original projection of my matchup only
+scores, and from Yahoo's finals where screenshots give them. Ours for every team is checked by
+`scripts/check_forecasts.py` (each week's points for from Standings screenshots: send them every Monday);
+Yahoo's needs the All Matchups screenshots (roadmap item 7). Week 1: Yahoo's original projection of my matchup only
 (188.20 - 165.01, from the website); ours for all 16 teams is rebuilt after the fact
 (`scripts/retro_forecast.py`: drafted rosters as of Sep 29, no injury report or confirmed goalies),
 marked `retro`.

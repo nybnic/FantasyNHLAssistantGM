@@ -57,7 +57,12 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   An injured free agent worth holding can be stashed straight into an empty
   IR slot: no drop until he's back.
   `python -m scripts.explain_week` shows every candidate with its value and
-  verdict.
+  verdict. In the chat, `/why Name` (or `/why Pospisil for Larsson`) answers
+  from the latest plan: his best move's value this week, the next two weeks
+  and later, in expected wins, against what an add needs.
+- Monday's result says what your moves since the draft added: your points
+  against the drafted roster's, played through the same week, and what that
+  was worth in wins (`python -m scripts.scorecard` lists every week).
 - `/opp`, then paste your opponent's Yahoo team page (any copy works), to
   refresh their roster. Other teams start from the draft results.
   `/taken Name` tells the bot that a suggested free agent has been taken.

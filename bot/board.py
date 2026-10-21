@@ -96,6 +96,8 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
     rows = []
     for m in p.ranked:
         q = plan.get(report.move_key(m))
+        # A planned move as the plan judged it: a later one with the earlier ones made.
+        m = q.move if q else m
         state = status(m, set(plan), price)
         clash = next((c for c in moves if c is not m and (c.add.id == m.add.id or (c.drop and m.drop and
                                                                                    c.drop.id == m.drop.id))), None)

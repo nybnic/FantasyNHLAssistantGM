@@ -6,8 +6,10 @@ full table lives on the Board (scripts/explain_week.py) and the dashboard.
 from __future__ import annotations
 
 import datetime as dt
+from zoneinfo import ZoneInfo
 
-from config.league import MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK
+from clients.names import normalize_name
+from config.league import MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, TIMEZONE
 from engine import matchup
 from engine.plan import Planned
 
@@ -24,6 +26,12 @@ def swap(m: matchup.Move) -> str:
     return m.add.name + (f" for {m.drop.name}" if m.drop else " into your open spot")
 
 
+# Why a planned move is made on its day (engine/plan.compose's `why`; "now" needs no words).
+WHEN_TEXT = {"spare": "uses this week's slot, so next week's two adds stay free",
+             "monday": "it does nothing this week, so it takes next week's add",
+             "held": "if the week holds: the add stays free to chase with until then"}
+
+
 def _detail(p: Planned) -> str:
     """Why this move, in a few words: its win odds this week when it moves
     them, else what it's worth; then why it's made when it is."""
@@ -35,9 +43,7 @@ def _detail(p: Planned) -> str:
     else:
         # A streaming swap pays in the weeks ahead, not the season (matchup.keep_share).
         head = f"+{100 * m.value:.0f} win-pts, " + ("a keeper" if m.keep >= 0.5 else "for the weeks ahead")
-    when = {"spare": "uses this week's slot, so next week's two adds stay free",
-            "monday": "it does nothing this week, so it takes next week's add",
-            "held": "if the week holds: the add stays free to chase with until then"}.get(p.why)
+    when = WHEN_TEXT.get(p.why)
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
     claim += f"; holds the spot until {m.until_back} is back" if m.until_back else ""
     cond = f"; {condition_text(p.condition)}" if p.condition else ""
@@ -248,3 +254,133 @@ def watch_text(signals: list, values: dict) -> str:
         head = f"Watch: {p.name} ({p.team} {'/'.join(p.positions)}), a free agent"
         blocks.append("\n".join([head, *(watch_why(s) for s in sigs), watch_value(values.get(p.id))]))
     return "\n\n".join(blocks)
+
+
+# /why: one player or move, from the latest plan's Board (bot/board.py), in
+# expected wins (a win-pt is 0.01 of one), the unit the plan itself decides in.
+
+def _wins(x: float) -> str:
+    return f"{round(x, 2) or 0.0:+.2f}"  # no "-0.00"
+
+
+def _names(b: dict) -> dict[int, str]:
+    """Everyone the Board names: id -> name."""
+    names = {int(k): v["name"] for k, v in b.get("players", {}).items()}
+    for r in b["moves"]:
+        names.setdefault(r["add"]["id"], r["add"]["name"])
+        if r["drop"]:
+            names.setdefault(r["drop"]["id"], r["drop"]["name"])
+    return names
+
+
+def find_named(names: dict[int, str], query: str) -> list[int]:
+    """Ids whose name is `query`, else whose last name(s) are ("Ek", "Eriksson Ek")."""
+    q = normalize_name(query)
+    if not q:
+        return []
+    exact = [i for i, n in names.items() if normalize_name(n) == q]
+    return exact or [i for i, n in names.items() if normalize_name(n).endswith(" " + q)]
+
+
+def _label(r: dict) -> str:
+    if r["ir_slot"]:
+        return f"{r['add']['name']} into your empty {r['ir_slot']} slot"
+    return r["add"]["name"] + (f" for {r['drop']['name']}" if r["drop"] else " into your open spot")
+
+
+def _verdict(r: dict, b: dict) -> str:
+    today = dt.date.fromisoformat(b["date"])
+    if r["status"] == "plan":
+        return (f"in the plan, {day_label(dt.date.fromisoformat(r['when']), today)}" if r.get("when")
+                else "in the plan") + (f" ({WHEN_TEXT[r['why']]})" if r["why"] in WHEN_TEXT else "")
+    if r["status"] == "passes":
+        return r["why"] if r["why"].startswith("worth an add") else f"worth an add, not in the plan: {r['why']}"
+    price = b["header"]["price"]
+    if price and r["value"] < price["lam"]:
+        return "not worth an add" + ("" if r["why"].startswith("worth ") else f": {r['why']}")
+    return f"not in the plan: {r['why']}"
+
+
+def move_why(r: dict, b: dict) -> list[str]:
+    """A move's verdict and its value, part by part."""
+    price = b["header"]["price"]
+    lines = [f"{_label(r)}: {_verdict(r, b)}.",
+             f"Worth {_wins(r['value'])} expected wins; " + (f"an add needs {price['lam']:.2f}." if price
+                                                             else "no adds left to spend.")]
+    lines.append(f"This week {_wins(r['now_wins'])}: {r['week_pts']:+.1f} pts, win {_pct(r['win'][0])} -> "
+                 f"{_pct(r['win'][1])}.")
+    ahead = b["header"].get("ahead", [])
+    if ahead and r.get("ahead_wins"):
+        pts = r.get("ahead_week_pts") or []
+        parts = [f"{pts[k]:+.1f} pts vs {w['opponent'] or 'a typical week'}" for k, w in enumerate(ahead) if k < len(pts)]
+        weeks_ = f"Week {ahead[0]['week']}" if len(ahead) == 1 else f"Weeks {ahead[0]['week']}-{ahead[-1]['week']}"
+        lines.append(f"{weeks_} {_wins(sum(r['ahead_wins']))}: " + ", ".join(parts) + ".")
+    hold = b["header"].get("long_run", {}).get("hold_days")
+    counted = (f"only while he'd be held, ~{hold} days" if r["held"] and hold else "only while he'd be held"
+               if r["held"] else f"{r['keep']:.0%} of the season counted" if r["keep"] < 1 else "the season")
+    lines.append(f"Later {_wins(r['later_wins'])}: {r['later_pts']:+.1f} pts ({counted}).")
+    return lines
+
+
+def _player_line(pid: int, b: dict) -> str:
+    """His points a game and his week: lineup points and games left."""
+    p = b.get("players", {}).get(str(pid))
+    if not p:
+        return ""
+    unit = "start" if p["goalie"] else "game"
+    line = f"{p['name']} ({p['team']} {p['positions']}): {p['xfp'] or 0:.1f} pts a {unit}"
+    side = {"me": "me", "them": "them"}.get(p["owner"])
+    row = next((r for r in b.get("teams", {}).get(side, {}).get("players", []) if r["id"] == pid), None) if side else None
+    if row:
+        line += f", {row['pts']:.0f} pts in {row['games']:g} lineup {unit}s left this week"
+        if row["bench_pts"] and side == "me":
+            line += f" ({row['bench_pts']:.0f} more on your bench)"
+    return line + "."
+
+
+def why_text(b: dict | None, query: str) -> str:
+    """/why Name, or /why Add for Drop: what the latest plan makes of him or
+    of that move, from its Board, so it says what the plan computed."""
+    if not b:
+        return "No plan yet: send /week first."
+    names = _names(b)
+    at = dt.datetime.fromisoformat(b["at"]).astimezone(ZoneInfo(TIMEZONE))
+    foot = f"From the plan of {date_text(at.date())} {at:%H:%M}. The dashboard has every move."
+    add_q, sep, drop_q = query.partition(" for ")
+    found = find_named(names, add_q)
+    if len(found) > 1:
+        return "Which one? " + ", ".join(sorted(names[i] for i in found)) + "."
+    if not found:
+        return (f"{add_q.strip()} isn't on the latest plan's Board. It holds your players, those of "
+                f"{b['opponent']}, and the free agents the plan weighed.")
+    pid = found[0]
+    if sep:
+        drops = find_named(names, drop_q)
+        r = next((r for r in b["moves"] if r["add"]["id"] == pid and r["drop"] and r["drop"]["id"] in drops), None)
+        if not r:
+            return (f"{names[pid]} for {drop_q.strip()} wasn't weighed. The plan tries each free agent for the "
+                    "2 players per group (forwards, D, goalies) cheapest to lose, and your most-benched skater.")
+        return "\n".join(move_why(r, b) + [foot])
+    as_add = sorted((r for r in b["moves"] if r["add"]["id"] == pid), key=lambda r: -r["value"])
+    as_drop = sorted((r for r in b["moves"] if r["drop"] and r["drop"]["id"] == pid), key=lambda r: -r["value"])
+    owner = b.get("players", {}).get(str(pid), {}).get("owner") or ("fa" if as_add else "me")
+    lines = [line] if (line := _player_line(pid, b)) else []
+    if as_add:
+        best = next((r for r in as_add if r["status"] == "plan"), as_add[0])
+        lines += move_why(best, b)
+        others = [r for r in as_add if r is not best]
+        if others:
+            lines.append(f"{len(others)} other move{'s' if len(others) > 1 else ''} with him weighed; next best: "
+                         f"{_label(others[0])} {_wins(others[0]['value'])}.")
+    elif owner == "me":
+        if as_drop:
+            best = next((r for r in as_drop if r["status"] == "plan"), as_drop[0])
+            lines += [f"Dropping him: {len(as_drop)} moves weighed, the best:"] + move_why(best, b)
+        else:
+            lines.append("Not weighed as a drop: the plan tries the 2 players per group (forwards, D, goalies) "
+                         "cheapest to lose, and your most-benched skater.")
+    elif owner == "them":
+        lines.append(f"On {b['opponent']}'s roster.")
+    else:
+        lines.append("A free agent, but no move with him reached the plan's shortlist.")
+    return "\n".join(lines + [foot])

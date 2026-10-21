@@ -22,7 +22,7 @@ from league import parse, teams, weeks
 from league import roster as roster_mod
 from notify import telegram
 from state import gm_state
-from bot import common
+from bot import board, common, messages
 from bot.common import NHL_TIME, Outbox, _safe, current_opponent, learn_positions, nhl_date
 from bot.dfo_archive import ARCHIVE_DIR
 
@@ -33,6 +33,8 @@ HELP = (
     "/roster - the roster I think you have\n"
     "/myteam - then send screenshots of your Yahoo team page or paste its text, to correct your roster\n"
     "/week - this week's matchup: expected score, win odds, adds worth making\n"
+    "/why Name - what the plan makes of him: his move's value this week, the next two and later, in expected "
+    "wins, against what an add needs (/why Pospisil for Larsson for one move)\n"
     "Matchup screenshots (the Yahoo app's Matchup tab, scrolled through) - both rosters and the live score, "
     "then an updated plan\n"
     "Transactions screenshots (League > Transactions in the app or website, or the league chat) - every team's "
@@ -181,6 +183,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 taken_command(rest + "\n" + body, league, outbox)
             elif command == "/notmine":
                 notmine_command(rest + "\n" + body, state, players, outbox)
+            elif command == "/why":
+                why_command(rest + " " + body, outbox)
             elif command == "/save":
                 if state["matchup_shots"]:
                     finish_matchup(state, players, league, outbox, save=True)
@@ -550,6 +554,9 @@ def finish_standings(state: dict, league: dict, outbox: Outbox) -> None:
     if old.get("week") == week:
         teams_ = {**old["teams"], **teams_}
     state["standings"] = {"week": week, "teams": teams_, "at": common.nhl_today().isoformat()}
+    # Each week's points for (cumulative), kept: every team's week against our forecast (scripts/check_forecasts.py).
+    state["league_weeks"].setdefault(str(week), {"pairs": [], "scores": {}})["points_for"] = {
+        t: v["pf"] for t, v in teams_.items()}
     mine = teams_.get(MY_TEAM)
     lines = [f"Standings saved: {len(teams_)} of 16 teams, {week} week{'' if week == 1 else 's'} played."
              + (f" You: {mine['w']}-{mine['l']}-{mine['t']}, {mine['pf']:.2f} points for." if mine else "")]
@@ -1000,6 +1007,16 @@ def taken_command(text: str, league: dict, outbox: Outbox) -> None:
         return
     teams.mark_taken(league, [p.id for p in found.players])
     outbox.send("Noted, not a free agent: " + ", ".join(p.name for p in found.players))
+
+
+def why_command(text: str, outbox: Outbox) -> None:
+    """/why Name (or /why Add for Drop): the latest plan's Board on him, so the
+    answer is what the plan computed, not a new run."""
+    query = " ".join(text.split())
+    if not query:
+        outbox.send("Who? Send /why followed by a name (or /why Pospisil for Larsson).")
+        return
+    outbox.send(messages.why_text(board.load(), query))
 
 
 def notmine_command(text: str, state: dict, players: list, outbox: Outbox) -> None:

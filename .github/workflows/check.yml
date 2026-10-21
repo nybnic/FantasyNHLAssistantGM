@@ -27,6 +27,7 @@ on:
           - third-goalie
           - depth
           - trade
+          - scoreboard
       now:
         description: Optional ISO time for --now (dry-run, explain-week), e.g. 2026-10-05T12:30:00+03:00
         type: string
@@ -160,5 +161,6 @@ jobs:
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
             depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ${MOVES:+--try "$MOVES"} ;;
             trade) time python main.py --dry-run --trade "$PLAYERS" ;;
+            scoreboard) python -m scripts.scorecard ;;
             replay) time python -m scripts.replay --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} ${variants[@]:+--variants "${variants[@]}"} ;;
           esac

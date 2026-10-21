@@ -50,7 +50,7 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 | Path | What lives there |
 |---|---|
 | `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
-| `bot/` | The steps: `ingest.py` (Telegram taps, commands, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `watch.py` (the breakout watch: free agents whose role just changed), `common.py` (outbox, dates, free agents) |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands incl. `/why`, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `watch.py` (the breakout watch: free agents whose role just changed), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule (every regular-season opponent), calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` (evidence table) |
 | `engine/` | Decisions: `matchup.py` (the week, every move's value), `plan.py` (the plan), `addprice.py`, `lineup.py`, `availability.py`, `ir.py`, `season.py`, `trade.py`. See `engine/CLAUDE.md` (how the plan works, **the decision log**, judgment calls) |
@@ -74,7 +74,8 @@ python main.py --dry-run --force --now 2026-10-09T06:50:07+00:00   # as of a mom
 python main.py --dry-run --report 1               # week 1's result report (so far, if unfinished)
 python main.py --dry-run --trade "Knight for Bouchard"   # what /trade would reply
 python -m scripts.explain_week                    # the Board: every move weighed, its parts, status and why (--add NAME, --ir NAME, --player NAME)
-python -m scripts.scorecard                       # how the add suggestions turned out, made or skipped
+python -m scripts.scorecard                       # the scoreboard (moves since the draft vs the drafted roster, by week), then each add suggestion
+python -m scripts.check_forecasts                 # every team's week against our forecast: level, spread, streaming, team effects (offline)
 python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, stat by stat
 python -m scripts.backtest                        # model accuracy (--season, --horizon)
 python -m scripts.check_sigma                     # do projected margins come true? (--ahead 1|2, --season 20242025)
@@ -101,6 +102,16 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
   numbers, and say plainly when something is untested. Before arguing about a
   recommendation, decompose it (`explain_week`, or project the move's parts):
   Kelly for Samuelsson read +40 until it turned out 70% rested on one untested input.
+- **Engine freeze (Nico, 2026-10-21).** A change to how moves are valued or the plan is
+  chosen (`engine/matchup.py`, `plan.py`, `addprice.py`, `availability.py`, `model/`) ships
+  only with its evidence: a replay (`scripts/replay.py`) or backtest that gains more than
+  2 SE, or a calibration on logged weeks (`check_sigma`, `check_gaps`, `check_forecasts`).
+  Exempt: bug fixes (the code doesn't do what a logged decision says), input fixes
+  (misreads, a data source), and wording. A question about one recommendation ("why
+  Pinto?") is answered with `/why` or `explain_week`; if it points at a rule, it goes to
+  the roadmap's "Questions for the replay" and is tested in a batch, not patched in the
+  session that raised it. Whether the engine works is read off the scoreboard (Monday's
+  result: the moves since the draft, in points and wins), not off single weeks.
 - **Settled decisions live in the decision log** (`engine/CLAUDE.md`). Don't reopen
   them without new evidence. Add an entry when Nico makes a call.
 - **State is bot-owned.** `state/*.json` changes on every run, so run
@@ -144,6 +155,8 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
 - Untested, and labeled so: durability (DFO projected GP, not archived), the 0.02 change margin, opponents streaming (frozen rosters). The add price's
   logged pools for weeks 1-2 predate the 2026-10-09 valuation changes (recalibrate
   mid-November). IR stashes don't see the others' returns. A plan run takes ~1 min locally.
+- 2026-10-21: the scoreboard (Monday's result: the moves since the draft vs the drafted roster), `/why`,
+  the engine freeze; opponent streaming tested on weeks 1-3 and not modeled (no effect).
 - Calibration so far: projected team margins come true at 0.80 (0.75 / 0.70 one and two
   weeks ahead); fringe players' per-game gaps at 1.02 now, ~0.75 by week 20 (both seasons).
 

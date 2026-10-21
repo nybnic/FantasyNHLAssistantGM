@@ -38,6 +38,23 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
    breakout watch's thresholds against what the flagged players then scored (`state.watch.alerted`, and
    `state.watch.log` with each one's value: is half the add price the right bar for a promotion?).
 
+7. **The scoreboard** (Nico, 2026-10-21): built (see the log). Monday's result says what the moves since
+   the draft added, in points and wins, against keeping the drafted roster, and the season so far. Done
+   when: the first live Monday (Oct 26) reports weeks 1-4 and the numbers are sanity-checked against
+   Yahoo's finals. From week 5 the week's first plan also logs its forecast of that difference.
+
+### Questions for the replay (engine freeze, Nico 2026-10-21)
+A rule changes only with replay, backtest or calibration evidence (CLAUDE.md, Rules). Questions about
+one recommendation land here and are tested in batches:
+- `plan.CHANGE_MARGIN` 0.02; keepers held for Wednesday; more weight on later points; the add price
+  (item 5).
+- Opponent streaming: no effect in weeks 1-3 (decision log, 2026-10-21). Re-run
+  `scripts/check_forecasts.py` monthly (needs the Standings screenshot every Monday); an add effect
+  beyond 2 SE reopens it.
+- The forecast level: every team beats our forecast by ~22 pts a week (weeks 1-3). It cancels in a
+  matchup, so nothing decides on it; check whether it is early-season scoring (it should shrink) before
+  touching the model.
+
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
 
@@ -85,7 +102,7 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
   weeks of real results and logged candidates exist (`scripts/sim_add_policy.py --logged`).
 - IR: read Yahoo's own injury tag (IR, IR-LT, O, DTD) from screenshots instead of
   inferring it from DFO. (The spot crunch when an IR'd player returns: done 2026-10-09.)
-- Opponent profiles: being logged since 2026-10-01 (`league_adds` from Transactions;
+- Opponent profiles (streaming tested 2026-10-21: no effect yet, see "Questions for the replay"): being logged since 2026-10-01 (`league_adds` from Transactions;
   Yahoo's score vs the box scores' best lineup in `results[week]["live"]`). Once 3-4 weeks
   show an effect, shade opponents' projections (inactive managers, heavy streamers).
   Nico (2026-10-02): wait for data, no league-wide prior. Today the plan credits my
@@ -229,3 +246,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-20 | Depth on the real NHL schedule (Nico: open lineup slots matter a lot here; "as few benched players that have a game"): every night Oct 22 - Apr 4 (weeks 4-26, the playoffs alone with `--weeks 24 26`), goalie points x P(3+ starts) a week, stand-ins on every NHL team's schedule, each team's empty slot-games and benched games a week, my roster player by player. In the Check workflow (command: depth; ~1.5 min). Mine: 231 a week (3rd), F 4th, D 7th, G 5th. 8.6 points a week sit on my bench, nearly all Pinto (1.15 of his 3.0 games a week, 6.4 pts: the fifth C) and Landeskog (0.5, 2.3); no D or G is ever benched. D slots go empty ~16 of 28 slot-games a week on almost every team (four D at ~3 games each), so a fifth D would rarely sit, but in place of the least useful forward he adds 0.1 a week (D score ~4.5 a game, forwards ~5.9): not light on D in points. RW slots are my emptiest forward slot (10 a week; need RW 3.7, playoffs 5.4). So the gain is turning Pinto's benched games into RW games: Pinto for Mark Stone +3.9 / +0.6, Konecny +2.9 / +1.2, Marner +3.3 / +0.8; in the playoffs Pinto for Marchenko +3.8 / +6.2 | (this commit) |
 | 2026-10-20 | Pinto for Raymond, or Pinto for Meriläinen? (Nico). New: `depth --try "OUT > IN, ..."` (scenarios on the real schedule, both sides; Check input `moves`) and Check command `trade` (/trade's full evaluation of a named trade). Engine (explain_week, 12:55 UTC): Meriläinen for Pinto +44.4 win-pts (+14.1 pts this week, 48% -> 61%, +43.2 later), for Landeskog +31.4, for Larsson +12.5, for McBain +7.8; add price 12.3. /trade Pinto for Raymond: +3.1 pts a week for me, -0.1 for Retrot Chicken Wings (6 weeks). Depth, season: Raymond for Pinto +2.7 / +0.6; with Landeskog > Meriläinen too +0.6, vs Meriläinen for Pinto alone -1.3 (snapshot goalie values predate the start-share fix; the same goalie on both sides, so the difference, +1.9 a week, stands). Read: both use one add; dropping Landeskog for Meriläinen instead keeps Pinto as the chip for Raymond, ~13 win-pts worse if no trade comes, ~13 better if it does: worth it only at 50%+ odds they accept | (this commit) |
 | 2026-10-21 | Add price: the logged pools keep each week's best moves per add and drop, not per add (Nico: "make the edit"). With one drop shared by most of a week's candidates the simulation saw almost no second adds: price 8.7 -> 14.3 live today, the pace the budget allows instead of ~2 a week. Weeks 1-3 keep the bias until they age out | ca599ab |
+| 2026-10-21 | Review (Nico: "evaluate critically"), then four of its proposals (Nico: "Do scoreboard, opp streaming, why command and engine freeze"). **Scoreboard**: Monday's result adds what the moves since the draft added, my points with each day's real roster vs the drafted roster's, both played through the week's box scores with the best lineup each day and the goalie minimum, worth so many wins at the week's first-plan odds, whether they decided the result, and the season so far (`engine/scorecard.week_value`, `results[w].value`; `scripts/scorecard.py` and Check `scoreboard` list every week). My active roster is now recorded every day all season (`my_days`; backfilled Sep 29 - Oct 20 from git history by repair `2026-10-21 scoreboard since the draft`, checked identical to the day_rosters snapshots), and the week's first plan logs the drafted roster's projection (the forecast, from week 5). **Opponent streaming**: tested before building, and not built. `scripts/check_forecasts.py` on all 48 team-weeks (points for per week now kept from Standings screenshots, weeks 1-3 backfilled by repair): a level bias of +22 pts a team a week, misses spread like our sd, no add effect (-1.4 +/- 7.5 pts per add-week), no team effect (-0.38); decision log. **/why Name** (and `/why Add for Drop`): the latest Board's view of him in expected wins, part by part (this week, the next two against their opponents, later), against what an add needs, from `bot/messages.why_text`; the Board now shows a planned move as the plan judged it (a later one with the earlier made: Kantserov's row had today's-roster value under the plan's). **Engine freeze**: CLAUDE.md rule and decision log | (this commit) |

@@ -259,6 +259,73 @@ def _no_game_unread(state: dict, players: list[RosterPlayer], league: dict) -> N
         live["through"] = "2026-10-17"
 
 
+# The scoreboard (engine/scorecard.week_value) plays the drafted roster against
+# the real one, day by day. The draft (Yahoo, Sep 28: state/roster.json's seed,
+# 1e9e0d5) and my active roster each day since, from the day_rosters snapshots
+# in git history (Oct 1 on) and the seed roster with Samuelsson on IR+ (a669458)
+# for Sep 29-30.
+DRAFT_ROSTER = [
+    (8484801, "Macklin Celebrini", "SJS", ["C"]), (8476460, "Mark Scheifele", "WPG", ["C"]),
+    (8476887, "Filip Forsberg", "NSH", ["LW"]), (8477949, "Alex Tuch", "WSH", ["LW", "RW"]),
+    (8485406, "Porter Martone", "PHI", ["RW"]), (8474564, "Steven Stamkos", "NSH", ["C", "RW"]),
+    (8480865, "Noah Dobson", "MTL", ["D"]), (8480807, "Mattias Samuelsson", "BUF", ["D"]),
+    (8480145, "Neal Pionk", "WPG", ["D"]), (8476457, "Adam Larsson", "SEA", ["D"]),
+    (SCHENN, "Brayden Schenn", "NYI", ["C", "LW"]), (8478872, "Karel Vejmelka", "UTA", ["G"]),
+    (8481519, "Spencer Knight", "CHI", ["G"]), (MURASHOV, "Sergei Murashov", "PIT", ["G"]),
+]
+CELEBRINI, SAMUELSSON, MARTONE = 8484801, 8480807, 8485406
+LINDELL, MCBAIN, PINTO, LANDESKOG, MERILAINEN = 8476902, 8480855, 8481596, 8476455, 8482447
+SINCE_DRAFT = [  # (first NHL date, out, in) of my active roster
+    ("2026-10-01", [SCHENN, MURASHOV], [SAMUELSSON, LINDELL, MCBAIN]),  # Samuelsson back from IR+
+    ("2026-10-07", [CELEBRINI], [PINTO]),  # Celebrini to IR
+    ("2026-10-12", [LINDELL], [CELEBRINI]),
+    ("2026-10-16", [MARTONE], [LANDESKOG]),
+    ("2026-10-20", [PINTO], [MERILAINEN]),
+]
+SINCE_DRAFT_PLAYERS = {LINDELL: ("Esa Lindell", "DAL", ["D"]), MCBAIN: ("Jack McBain", "UTA", ["C", "LW"]),
+                       PINTO: ("Shane Pinto", "OTT", ["C"]), LANDESKOG: ("Gabriel Landeskog", "COL", ["LW", "RW"]),
+                       MERILAINEN: ("Leevi Meriläinen", "VAN", ["G"])}
+
+
+def _since_draft_days(last: dt.date) -> dict[str, list[int]]:
+    roster = {p[0] for p in DRAFT_ROSTER} - {SAMUELSSON}  # on IR+ from the start
+    changes = {d: (out, into) for d, out, into in SINCE_DRAFT}
+    days, d = {}, dt.date(2026, 9, 29)
+    while d <= last:
+        if d.isoformat() in changes:
+            out, into = changes[d.isoformat()]
+            roster = (roster - set(out)) | set(into)
+        days[d.isoformat()] = sorted(roster)
+        d += dt.timedelta(days=1)
+    return days
+
+
+def _scoreboard_since_draft(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-21: the scoreboard needs the drafted roster and every day's roster;
+    # day_rosters keeps 14 days. Days the bot has recorded itself stay as they are.
+    state["draft_roster"] = [{"id": i, "name": n, "team": t, "positions": pos} for i, n, t, pos in DRAFT_ROSTER]
+    for i, n, t, pos in DRAFT_ROSTER:
+        state.setdefault("my_players", {}).setdefault(str(i), {"name": n, "team": t, "positions": pos})
+    for i, (n, t, pos) in SINCE_DRAFT_PLAYERS.items():
+        state["my_players"].setdefault(str(i), {"name": n, "team": t, "positions": pos})
+    for day, ids in _since_draft_days(dt.date(2026, 10, 20)).items():
+        state.setdefault("my_days", {}).setdefault(day, ids)
+
+
+def _points_for_by_week(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-21: standings keep only the latest week; each week's points for
+    # (cumulative) now go to league_weeks too, so every team's week can be checked
+    # against our forecast (scripts/check_forecasts.py). Weeks 1-2 from the
+    # repairs above, the latest from the saved standings.
+    weeks_ = {1: {t: pf for t, *_, pf in WEEK_1_STANDINGS}, 2: {t: pf for t, *_, pf in WEEK_2_STANDINGS}}
+    latest = state.get("standings") or {}
+    if latest.get("week"):
+        weeks_[latest["week"]] = {t: v["pf"] for t, v in latest["teams"].items()}
+    for week, pf in weeks_.items():
+        state.setdefault("league_weeks", {}).setdefault(str(week), {"pairs": [], "scores": {}}).setdefault(
+            "points_for", pf)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -270,4 +337,6 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-13 forsberg slot unread", _forsberg_slot_unread),
            ("2026-10-15 score after the last puck", _score_after_last_puck),
            ("2026-10-17 no game unread", _no_game_unread),
-           ("2026-10-18 week 2 standings", _week_2_standings)]
+           ("2026-10-18 week 2 standings", _week_2_standings),
+           ("2026-10-21 scoreboard since the draft", _scoreboard_since_draft),
+           ("2026-10-21 points for by week", _points_for_by_week)]
