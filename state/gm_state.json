@@ -303,7 +303,7 @@
       "updates": 0
     }
   },
-  "dfo_archived": "2026-10-20",
+  "dfo_archived": "2026-10-21",
   "health_alerts": {},
   "ir_noted": [],
   "last_error": null,
@@ -956,7 +956,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-21T16:01+00:00",
+    "at": "2026-10-21T17:01+00:00",
     "moves": [
       {
         "add": {
@@ -1231,6 +1231,7 @@
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
       "8478851:ice time": "2026-10-18",
+      "8478856:promoted": "2026-10-21",
       "8478911:promoted": "2026-10-19",
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
@@ -1281,6 +1282,7 @@
       "8482482:promoted": "2026-10-14",
       "8482655:ice time": "2026-10-18",
       "8482679:promoted": "2026-10-17",
+      "8482705:promoted": "2026-10-21",
       "8482713:promoted": "2026-10-14",
       "8482731:ice time": "2026-10-21",
       "8482758:promoted": "2026-10-20",
@@ -1565,13 +1567,6 @@
           "d3",
           "pk2",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8475790": {
-        "groups": [
-          "d3",
-          "pk2"
         ],
         "since": {}
       },
@@ -1880,6 +1875,13 @@
         ],
         "since": {}
       },
+      "8477369": {
+        "groups": [
+          "d2",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8477380": {
         "groups": [
           "f4"
@@ -1982,12 +1984,12 @@
       },
       "8477501": {
         "groups": [
-          "f2",
+          "f1",
           "pk1",
           "pp2"
         ],
         "since": {
-          "f2": "2026-10-16"
+          "f1": "2026-10-21"
         }
       },
       "8477505": {
@@ -2133,6 +2135,12 @@
           "f2": "2026-10-21",
           "pp1": "2026-10-21"
         }
+      },
+      "8478046": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8478047": {
         "groups": [
@@ -2341,10 +2349,12 @@
       },
       "8478856": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-21"
+        }
       },
       "8478859": {
         "groups": [
@@ -2910,7 +2920,7 @@
       },
       "8481161": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -3092,15 +3102,6 @@
           "ir"
         ],
         "since": {}
-      },
-      "8481716": {
-        "groups": [
-          "f2",
-          "pp2"
-        ],
-        "since": {
-          "f2": null
-        }
       },
       "8481721": {
         "groups": [
@@ -3495,9 +3496,12 @@
       },
       "8482705": {
         "groups": [
-          "f3"
+          "f2",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-21"
+        }
       },
       "8482713": {
         "groups": [
@@ -5524,6 +5528,36 @@
         "value": 0.0496,
         "verdict": "+5 win-pts against the 18.0 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8478856,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Conor Garland",
+        "positions": "RW",
+        "price": null,
+        "sent": false,
+        "team": "CBJ",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-21",
+        "id": 8482705,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Cole Sillinger",
+        "positions": "C/RW",
+        "price": null,
+        "sent": false,
+        "team": "CBJ",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
