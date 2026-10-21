@@ -165,3 +165,13 @@ Full rules: `docs/league-rules.md` (kept in sync with `config/league.py` by a te
   real newlines: write multi-line edit scripts to a file with the Write tool instead.
 - Scratch scripts that import the project need `PYTHONPATH=.` (or run as `python -m scripts.x`).
 - `clients.names.normalize_name` drops digits ("Hurt 0" -> "hurt"): mind it in test fixtures.
+
+## Working from a cloud session (Nico on his phone)
+- **Don't try the NHL or DailyFaceoff APIs from here**: the sandbox can't reach them,
+  and every attempt wastes tokens (Nico, 2026-10-21). Go straight to the alternatives:
+  - The latest plan run's output is committed: `state/board.json`, `site/data.json`,
+    `state/*.json` (`git pull` first, a run may have just pushed).
+  - For live numbers, run the **Check** workflow (`.github/workflows/check.yml`) with the
+    GitHub MCP tools (`actions_run_trigger`, then `get_job_logs`): `explain-week` (with
+    `players` / `ir`), `dry-run`, `trade`, `schedule`, ... (`docs/operations.md`).
+  - Tests run offline (`python -m pytest`).
