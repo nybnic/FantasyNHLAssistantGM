@@ -30,7 +30,7 @@ plan's numbers are in board.json (bot/board.py). The keys:
 - transaction_rows_at: when the newest of those screenshots was sent (Helsinki time)
 - transactions_seen: each applied transaction's key -> its time, so overlapping
   screenshots apply nothing twice; also the season's log of league moves (the newest 3000 kept)
-- add_pools: per fantasy week, the candidate adds the plan weighed (full-week
+- add_pools: per fantasy week, the best candidate moves per add and drop (full-week
   gain, later points, add id, drop id) with sigma and tau: the add price is
   solved over them (engine/addprice.py), the newest 12 weeks kept
 - day_rosters: per NHL date, my active roster and my opponent's as they were
