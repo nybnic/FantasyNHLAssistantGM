@@ -28,8 +28,8 @@ def test_each_suggestion_is_scored_against_its_drop_once_its_window_closes():
                  _decision("done", 5, None, D + dt.timedelta(days=10))]  # still inside its window
     scored = scorecard.score(decisions, _Ctx(), D + dt.timedelta(days=15))
     assert [(s.decision, s.add, s.gain) for s in scored] == [("done", "P9", 8.0 - 2.75), ("skip", "P7", 13.5)]
-    assert scorecard.line(scored) == ("Suggestions so far (14 days after each, raw points): "
-                                      "1 made, +5 pts vs their drops; 1 not made, would have been +14.")
+    assert scorecard.line(scored) == ("Suggestions not made (14 days after each, raw points): 1, "
+                                      "would have been +14 vs their drops.")
     assert scorecard.line([]) is None
 
 
@@ -79,10 +79,8 @@ def test_the_scoreboard_plays_my_rosters_against_the_drafted_one():
     assert v["wins"] == round(0.5 - matchup._phi(-5.25 / (2 * 30.0 ** 2) ** 0.5), 4)
     assert scorecard.outcome(v) == "they turned a loss into a win"
     text = scorecard.value_line(v, [v, {"added": -3.0, "margin": -10.0, "wins": -0.02}])
-    assert text.split("\n") == [
-        f"Your moves since the draft: +5 pts this week (34 vs the drafted roster's 29), {v['wins']:+.2f} wins at "
-        "this week's odds; they turned a loss into a win. Forecast at the week's first plan: +4.",
-        f"Season, 2 weeks: +2 pts, {v['wins'] - 0.02:+.2f} wins, 1 result decided by them."]
+    assert text == ("Against keeping the drafted roster (doing nothing): +5 pts this week; season +2 pts, "
+                    f"{v['wins'] - 0.02:+.2f} wins.")
 
 
 def test_a_missed_goalie_minimum_zeroes_goalie_points_on_either_roster():
@@ -112,3 +110,84 @@ def test_the_weekly_result_scores_each_finished_week_once_and_keeps_it(tmp_path)
     assert values == [state["results"][str(week)]["value"]] and values[0]["added"] == 5.25
     state["my_days"].pop(days[0].isoformat())  # computed once: kept though the record is gone
     assert weekly.season_values(state, mine, week, ctx) == values
+
+
+
+# Each move against the team just before it.
+def _day(n):
+    return (dt.date(2026, 10, 1) + dt.timedelta(days=n)).isoformat()
+
+
+NAMES = {str(i): {"name": f"P{i}", "team": "BOS", "positions": ["G" if i >= 90 else "C"]}
+         for i in (1, 2, 3, 4, 5, 6, 7, 8, 90, 91)}
+
+
+def test_moves_are_read_off_the_daily_roster_with_ir_stints_and_cuts_told_apart():
+    my_days = {_day(0): [1, 2, 3, 90], _day(1): [1, 2, 3, 90],
+               _day(2): [1, 2, 4, 5, 6],  # 3 out for 4 (a Done tap's pair), 90 cut for 6 back from IR, 5 into the open spot
+               _day(3): [1, 4, 5, 6], _day(4): [1, 4, 5, 6, 91],  # 2 to IR (back on day 6); 91 into an open spot
+               _day(5): [1, 4, 5, 91, 2], _day(6): [1, 4, 7, 91, 2],  # 2 back from IR cuts 6; 5 out for 7
+               }
+    adds = [{"id": i, "date": _day(d)} for i, d in ((4, 2), (5, 2), (91, 4), (7, 6))]
+    moves = scorecard.made_moves(adds, my_days, NAMES, on_ir=set(), known={4: 3})
+    got = [(m.add, m.drop, m.day.isoformat(), m.until and m.until.isoformat(), m.cut, m.cut_from and m.cut_from.isoformat())
+           for m in moves]
+    assert got == [(4, 3, _day(2), None, None, None),
+                   (5, None, _day(2), _day(5), 90, _day(2)),  # into the open spot, so 90's cut is his
+                   (91, None, _day(4), None, 6, _day(5)),  # the latest open-spot add holds 6's cut
+                   (7, 5, _day(6), None, None, None)]  # the day's only drop, nobody back from IR
+    assert moves[0].key == "4:3" and moves[1].key == "5:0"
+
+
+def test_a_move_is_scored_with_its_swap_undone_and_checked_against_the_forecast():
+    from league.roster import RosterPlayer
+    p = {i: RosterPlayer(i, f"P{i}", "BOS", ["C"]) for i in (1, 5, 9)}
+    days = [D + dt.timedelta(days=k) for k in range(7)]
+    history = {d: [p[1], p[9]] for d in days}  # 9 added on day 0 for 5
+    m = scorecard.MadeMove(9, 5, D, None)
+    first = {"expected": [200.0, 200.0], "so_far": [0.0, 0.0], "sd": [30.0, 30.0]}
+    later = [D + dt.timedelta(days=7 + k) for k in range(7)]
+    by_week = scorecard.move_weeks(m, history | {d: [p[1], p[9]] for d in later}, {5: p[5]}, _WeekCtx(),
+                                   {40: first}, [(40, days), (41, later)])
+    assert by_week[0]["pts"] == 8.0 - 2.75 and by_week[1] == {"week": 41, "pts": 0.0, "wins": None}
+    forecast = {"date": "2026-09-30", "value": 0.2, "now_wins": 0.05, "ahead_wins": [0.02, 0.01], "week_pts": 4.0,
+                "ahead_week_pts": [1.0, 1.0], "later_wins": 0.12, "price": 0.14}
+    c = scorecard.move_check(m, by_week, forecast, {"9": {"name": "Add"}, "5": {"name": "Drop"}})
+    assert c["pts"] == 5.25 and c["forecast"]["pts"] == 6.0 and c["forecast"]["wins"] == 0.08
+    assert scorecard.check_line(c) == (
+        f"Add for Drop (Thu 1 Oct), its first 3 weeks: +5 pts, {c['wins']:+.2f} wins; the plan forecast +6 pts, "
+        "+0.08 (all in +0.20 with later points; an add cost 0.14).")
+    assert scorecard.checks_line([c]) == (f"Moves checked so far: 1, +5 pts, {c['wins']:+.2f} wins in their first 3 "
+                                          f"weeks; the 1 with a forecast {c['wins']:+.2f} wins against +0.08 forecast.")
+    c.pop("forecast")
+    assert scorecard.check_line(c).endswith("(no forecast saved: from before the Board, or not the plan's move).")
+
+
+def test_a_move_is_checked_once_its_first_three_weeks_are_over_and_forecasts_are_logged(tmp_path):
+    from bot import weekly
+    from league import weeks
+    from state import gm_state
+    state = gm_state.load(tmp_path / "s.json")
+    start = weeks.week_of(D)
+    days = [d for w in range(start, start + 3) for d in weeks.days(w)]
+    before = days[0] - dt.timedelta(days=1)
+    state["my_players"] = {"1": {"name": "Keeper", "team": "BOS", "positions": ["C"]},
+                           "5": {"name": "Drafted", "team": "BOS", "positions": ["LW"]},
+                           "9": {"name": "Add", "team": "BOS", "positions": ["LW"]}}
+    state["my_days"] = {before.isoformat(): [1, 5]} | {d.isoformat(): [1, 9] for d in days}
+    state["adds"] = [{"id": 9, "name": "Add", "date": days[0].isoformat(), "source": "done"}]
+    b = {"date": before.isoformat(), "at": "x", "header": {"price": {"lam": 0.14}},
+         "plan": {"moves": [{"key": "9:5"}]},
+         "moves": [{"key": "9:5", "value": 0.2, "now_wins": 0.05, "ahead_wins": [0.02, 0.01], "week_pts": 4.0,
+                    "ahead_week_pts": [1.0, 1.0], "later_wins": 0.12}, {"key": "8:5", "value": 0.3}]}
+    weekly.log_forecasts(state, b)
+    assert list(state["move_forecasts"]) == ["9:5"] and state["move_forecasts"]["9:5"]["price"] == 0.14
+    ctx = _WeekCtx()
+    ctx.today = days[-1]  # the third week's last day isn't over
+    assert weekly.check_moves(state, [], start + 2, ctx) == []
+    ctx.today = days[-1] + dt.timedelta(days=1)
+    assert weekly.check_moves(state, [], start + 1, ctx) == []  # only two weeks reported so far
+    new = weekly.check_moves(state, [], start + 2, ctx)
+    assert [c["key"] for c in new] == ["9:5"] and new[0]["drop"] == "Drafted" and new[0]["pts"] == 5.25
+    assert new[0]["forecast"]["wins"] == 0.08
+    assert weekly.check_moves(state, [], start + 2, ctx) == []  # once

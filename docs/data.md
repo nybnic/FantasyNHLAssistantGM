@@ -60,6 +60,7 @@ Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current dat
 | `league_adds` | Other teams' pickups | Opponent streaming profiles (roadmap item 5) |
 | `day_rosters` | Mine and my opponent's roster before each day's first puck | Scoring each day with that day's players |
 | `my_days`, `my_players`, `draft_roster` | My active roster's ids each day all season (backfilled from git history to Sep 29), who they are, and the roster I drafted | The scoreboard: each week, my points vs the drafted roster's (`engine/scorecard.week_value`, in `results[w].value`) |
+| `move_forecasts`, `moves_checked` | The plan's last values of each move it held (logged by every plan run; Landeskog's and Meriläinen's from git history), and each move I made checked over its first 3 weeks | Each move against the team before it, and against its forecast (`bot/weekly.check_moves`, Monday's result) |
 | `league_weeks[w].points_for` | Each team's points for after week w (cumulative), from Standings screenshots (weeks 1-3 backfilled) | Every team's week against our forecast (`scripts/check_forecasts.py`) |
 | `xfp_log.csv` | Each Monday, every NHL player: points per game, ice time, durability; goalies' start share, save %, points per start; everyone's expected points in the week (`week_games`, `week_xfp`) | Projection accuracy player by player against box scores (roadmap item 2); where we differ from Yahoo |
 

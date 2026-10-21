@@ -40,6 +40,11 @@ plan's numbers are in board.json (bot/board.py). The keys:
   kept all season, and my_players: id -> {name, team, positions} of everyone in
   it; draft_roster: the roster I drafted ([{id, name, team, positions}]). The
   scoreboard plays both through each week (engine/scorecard.week_value)
+- move_forecasts: each move the plan has held ("add id:drop id", 0 for an open
+  spot) -> the Board's latest values of it ({date, at, value, now_wins, ahead_wins,
+  week_pts, ahead_week_pts, later_wins, price}); moves_checked: each move I made
+  ("key@first day") checked over its first three weeks against the team just
+  before it, and against that forecast (bot/weekly.check_moves)
 - ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
   "id:back"), so each is said once while it holds
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
@@ -94,7 +99,7 @@ STATE_FILE = Path("state/gm_state.json")
 # own bookkeeping (Telegram offset, pending cards, screenshot buffers, flags).
 LEDGER_KEYS = ("adds", "decisions", "transactions_seen", "league_adds", "day_rosters", "standings",
                "live_score", "results", "league_weeks", "add_pools", "seen_mine", "opponents", "my_days",
-               "my_players", "draft_roster")
+               "my_players", "draft_roster", "move_forecasts", "moves_checked")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
 KEEP_TRANSACTIONS = 3000  # a season of league moves (who, when) is the opponent and stash evidence
@@ -176,6 +181,8 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("my_days", {})
     state.setdefault("my_players", {})
     state.setdefault("draft_roster", [])
+    state.setdefault("move_forecasts", {})
+    state.setdefault("moves_checked", {})
     state.setdefault("ir_noted", [])
     state.setdefault("health_alerts", {})
     state.setdefault("seen_mine", {})

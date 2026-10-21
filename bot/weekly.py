@@ -32,6 +32,7 @@ SITE_DIR = Path("site")  # the dashboard: index.html (ours) and data.json (writt
 
 
 
+KEEP_FORECASTS = 200  # the plan's moves' forecasts kept (log_forecasts): weeks of plans, ~2-5 new a week
 MIN_KNOWN_ROSTER = 10  # a league team's roster counts toward the matchup spread from this many players
 
 
@@ -328,6 +329,77 @@ def season_values(state: dict, players: list, week: int, ctx) -> list[dict]:
     return out
 
 
+def _known_drops(state: dict) -> dict[int, int]:
+    """Each add's drop where one was named: a Done tap's, else the plan's move with him."""
+    known = {d["add"]: d["drop"] for d in state["decisions"]
+             if d["type"] == "add" and d.get("decision") == "done" and d.get("add") and d.get("drop")}
+    for key in state.get("move_forecasts", {}):
+        add, drop = (int(x) for x in key.split(":")[:2])
+        if drop:
+            known.setdefault(add, drop)
+    return known
+
+
+def made_moves(state: dict, players: list) -> list:
+    """Every add I made with the player he replaced (engine/scorecard.made_moves)."""
+    on_ir = {p.id for p in players if p.slot in roster_mod.IR_SLOTS}
+    return scorecard.made_moves(state["adds"], state.get("my_days", {}), state.get("my_players", {}), on_ir,
+                                _known_drops(state))
+
+
+def move_by_week(state: dict, m, spans: list[int], ctx) -> list[dict] | None:
+    """One move week by week over `spans` (finished weeks with every day's roster
+    recorded), against the team just before it; None if a week can't be scored."""
+    my_days, names = state.get("my_days", {}), state.get("my_players", {})
+    wk_days = [(w, weeks.days(w)) for w in spans]
+    if not all(d < ctx.today and d.isoformat() in my_days for _, ds in wk_days for d in ds):
+        return None
+    if not all(str(i) in names for _, ds in wk_days for d in ds for i in my_days[d.isoformat()]):
+        return None
+    history = {d: [roster_mod.RosterPlayer(i, **names[str(i)]) for i in my_days[d.isoformat()]]
+               for _, ds in wk_days for d in ds}
+    people = {i: roster_mod.RosterPlayer(i, **names[str(i)]) for i in (m.drop, m.cut) if i and str(i) in names}
+    firsts = {w: state["results"].get(str(w), {}).get("first") for w in spans}
+    return scorecard.move_weeks(m, history, people, ctx, firsts, wk_days)
+
+
+def check_moves(state: dict, players: list, week: int, ctx) -> list[dict]:
+    """Moves whose first weeks (scorecard.CHECK_WEEKS) are over by `week`,
+    each checked once against the team just before it and the plan's forecast,
+    kept in moves_checked; returns the new ones."""
+    checked = state.setdefault("moves_checked", {})
+    new = []
+    for m in made_moves(state, players):
+        tag = f"{m.key}@{m.day.isoformat()}"
+        start = weeks.week_of(m.day)
+        if tag in checked or start is None or start + scorecard.CHECK_WEEKS - 1 > week:
+            continue
+        by_week = move_by_week(state, m, list(range(start, start + scorecard.CHECK_WEEKS)), ctx)
+        if by_week is None:
+            continue
+        checked[tag] = scorecard.move_check(m, by_week, state.get("move_forecasts", {}).get(m.key),
+                                            state.get("my_players", {}))
+        new.append(checked[tag])
+    return new
+
+
+def log_forecasts(state: dict, b: dict) -> None:
+    """The plan's moves as its Board values them, kept by move: a move made
+    later is checked against the plan's last forecast before it (check_moves)."""
+    price = (b["header"].get("price") or {}).get("lam")
+    rows = {r["key"]: r for r in b["moves"]}
+    saved = state.setdefault("move_forecasts", {})
+    for q in b["plan"]["moves"]:
+        r = rows.get(q["key"])
+        if r:
+            saved[q["key"]] = {"date": b["date"], "at": b["at"], "value": r["value"], "now_wins": r["now_wins"],
+                               "ahead_wins": r.get("ahead_wins") or [], "week_pts": r["week_pts"],
+                               "ahead_week_pts": r.get("ahead_week_pts") or [], "later_wins": r["later_wins"],
+                               "price": price}
+    for key in sorted(saved, key=lambda k: saved[k]["at"])[:-KEEP_FORECASTS]:
+        del saved[key]
+
+
 def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dict | None:
     """The week's result as report.result_view has it, scored from box scores
     with each day's roster (days before ctx.today only). None without an opponent."""
@@ -352,11 +424,17 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
                   if d["type"] == "add" and d["decision"] == "skip" and first <= d["date"] <= last)
     plan = state["results"].get(str(week), {}).get("first")
     value = _safe(moves_value, state, week, players, sum(theirs), ctx, finished)
-    season = (_safe(season_values, state, players, week - 1, ctx) or []) + ([value] if value else [])
+    text = None
+    if finished:
+        season = (_safe(season_values, state, players, week - 1, ctx) or []) + ([value] if value else [])
+        checked = _safe(check_moves, state, players, week, ctx) or []
+        lines = ([scorecard.check_line(c) for c in checked]
+                 + [scorecard.checks_line(list(state.get("moves_checked", {}).values())) if checked else None,
+                    scorecard.value_line(value, season)])
+        text = "\n".join(x for x in lines if x) or None
     return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
                               report.budget_view(state["adds"], week), finished,
-                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)),
-                              value, scorecard.value_line(value, season) if finished else None)
+                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)), value, text)
 
 
 def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -864,6 +942,8 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     odds_note = _safe(season_odds, state, wk, week)
     details = _safe(player_details, p, players, league, opponent)
     b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed, details)
+    if b:
+        _safe(log_forecasts, state, b)
     views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.plan)
     data = _safe(dashboard_data, b, p, views, date, changed) if b else None
     if data:
