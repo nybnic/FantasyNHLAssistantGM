@@ -231,3 +231,13 @@ def test_streaming_view_has_each_nights_games_and_open_slots_and_each_teams_oppo
     teams = {t["team"]: t["cells"] for t in view["teams"]}
     assert teams["WPG"] == ["CHI", "@DAL", None] and teams["BOS"] == ["@DAL", None, None]
     assert [w["week"] for w in view["weeks"]] == [1, 2]
+
+
+def test_the_result_carries_the_scoreboard_before_the_suggestions_line():
+    plan = {"at": "2026-11-09T10:00+00:00", "expected": [150.0, 140.0], "sd": [25.0, 25.0], "win": 0.61}
+    view = report.result_view(7, "Gwp", [dt.date(2026, 11, 9)], [160.0], [155.0], [True, True], plan, [], 0,
+                              report.budget_view([], 7), True, "Suggestions so far: ...", {"added": 12.0},
+                              "Your moves since the draft: +12 pts this week.")
+    lines = report.result_text(view).split("\n")
+    assert lines[-2:] == ["Your moves since the draft: +12 pts this week.", "Suggestions so far: ..."]
+    assert view["value"] == {"added": 12.0}

@@ -1297,3 +1297,71 @@ def test_the_2026_10_12_repair_puts_eriksson_ek_on_the_opponents_roster_unless_p
     league = {"teams": {"Löllöt Höntsääjät": {"players": []}, "Gwp": {"players": [gwp]}}, "taken": []}
     repairs.apply(state, [], league)  # a later read put him elsewhere: left alone
     assert league["teams"]["Löllöt Höntsääjät"]["players"] == []
+
+
+def test_why_command_answers_from_the_latest_board(monkeypatch, tmp_path):
+    message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/why Kelly"}}
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])
+    from bot import board, messages
+    monkeypatch.setattr(board, "load", lambda: {"board": 1})
+    monkeypatch.setattr(messages, "why_text", lambda b, q: f"why {q} from {b}")
+    ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
+    assert sent == ["why Kelly from {'board': 1}"]
+    message["message"]["text"] = "/why"
+    sent.clear()
+    ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
+    assert sent[0].startswith("Who? Send /why")
+
+
+def test_new_standings_keep_each_weeks_points_for(monkeypatch, tmp_path):
+    rows = [{"team": "Bahelin Boys", "w": 1, "l": 0, "t": 0, "pf": 200.0},
+            {"team": "HAN-NES", "w": 0, "l": 1, "t": 0, "pf": 150.0}]
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    state["standings_rows"] = rows
+    ingest.finish_standings(state, {"teams": {t: {} for t in ("Bahelin Boys", "HAN-NES")}}, common.Outbox(settings))
+    assert state["league_weeks"]["1"]["points_for"] == {"Bahelin Boys": 200.0, "HAN-NES": 150.0}
+
+
+def test_the_2026_10_21_repairs_backfill_the_scoreboard_and_points_for(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if not name.startswith("2026-10-21")]
+    state["my_days"] = {"2026-10-20": [1, 2]}  # recorded by the bot itself: kept
+    state["standings"] = {"week": 3, "at": "2026-10-19", "teams": {"Lazy Lew": {"w": 3, "l": 0, "t": 0, "pf": 736.45}}}
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert len(state["draft_roster"]) == 14 and state["draft_roster"][10]["name"] == "Brayden Schenn"
+    days = state["my_days"]
+    assert len(days) == 22 and days["2026-10-20"] == [1, 2]
+    assert 8480807 not in days["2026-09-29"] and 8475170 in days["2026-09-30"]  # Samuelsson on IR+, Schenn drafted
+    assert 8481596 in days["2026-10-07"] and 8484801 not in days["2026-10-07"]  # Pinto in, Celebrini on IR
+    assert 8476455 in days["2026-10-19"] and 8485406 not in days["2026-10-19"]  # Landeskog for Martone
+    assert all(str(i) in state["my_players"] for ids in days.values() for i in ids if i > 2)
+    pf = {w: v["points_for"] for w, v in state["league_weeks"].items()}
+    assert pf["1"]["Lazy Lew"] == 244.5 and pf["2"]["Lazy Lew"] == 488.2 and pf["3"]["Lazy Lew"] == 736.45
+
+
+def test_my_roster_is_recorded_each_day_for_the_scoreboard(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    weekly.snapshot_rosters(state, players, {"teams": {}, "taken": []}, NOW)
+    assert state["my_days"]["2026-10-01"] == [1, 2]
+    assert state["my_players"]["2"] == {"name": "B", "team": "TOR", "positions": ["C"]}
+
+
+def test_the_drafted_rosters_forecast_is_kept_only_with_the_weeks_first_plan(monkeypatch, tmp_path):
+    state = gm_state.load(tmp_path / "s.json")
+    state["draft_roster"] = [{"id": 1, "name": "A", "team": "BOS", "positions": ["C"]}]
+    me = matchup.TeamWeek("me", 0.0, 200.0, 900.0, 30, 0, 4.0, 0.95)
+    them = matchup.TeamWeek("them", 0.0, 190.0, 900.0, 30, 0, 4.0, 0.95)
+    projected = []
+    monkeypatch.setattr(matchup, "project", lambda name, roster, *a, **k: projected.append(roster) or
+                        dataclasses.replace(me, expected=185.0))
+    wk = type("Wk", (), {"ctx": None, "schedule": {}, "lines": {}, "starters": {}})()
+    weekly.record_plan(state, 2, "R", me, them, NOW)
+    weekly.record_drafted(state, 2, wk)
+    assert state["results"]["2"]["first"]["drafted"] == 185.0 and [p.id for p in projected[0]] == [1]
+    state["results"]["3"] = {}
+    weekly.record_plan(state, 3, "R", me, them, NOW)
+    weekly.record_plan(state, 3, "R", me, them, NOW + dt.timedelta(days=2))  # a later plan: no forecast
+    weekly.record_drafted(state, 3, wk)
+    assert "drafted" not in state["results"]["3"]["first"]

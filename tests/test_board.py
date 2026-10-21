@@ -153,3 +153,64 @@ def test_the_board_carries_the_breakdowns_and_saves_one_player_a_line(tmp_path):
     assert loaded["players"]["1"]["per_game"] == {"Blocks": 1.6} and loaded["teams"] == details["teams"]
     data = weekly.dashboard_data(b, p, {"schedule": {"days": []}, "budget": {}}, NOW.date(), "")
     assert data["teams"] is b["teams"] and data["players"] is b["players"]
+
+
+def _why_board():
+    """A Board with a planned add, a Monday keeper, a move under the price, the
+    weeks ahead and the breakdowns /why reads."""
+    tolvanen = _move(2, "Eeli Tolvanen", 4.9, 9.2, 0.21, drop=RosterPlayer(7, "Esa Lindell", "DAL", ["D"]))
+    tolvanen.ahead_wins, tolvanen.ahead_week_pts = (0.03, 0.02), (3.0, 2.0)
+    kelly = _move(3, "Parker Kelly", 0.0, 37.3, 0.16)
+    arvidsson = _move(5, "Viktor Arvidsson", 5.5, 0.5, 0.21)
+    p = _plan([kelly, tolvanen, arvidsson], [(tolvanen, NOW.date(), "now"), (kelly, MONDAY, "monday")])
+    p.wk.ahead = [matchup.WeekAhead(3, frozenset(), -2.0, 40.0, "Löllöt Höntsääjät"),
+                  matchup.WeekAhead(4, frozenset(), 5.0, 40.0, "Jättiläisentie Giants")]
+    details = {"players": {"7": {"id": 7, "name": "Esa Lindell", "team": "DAL", "positions": "D", "owner": "me",
+                                 "goalie": False, "xfp": 4.1}},
+               "teams": {"me": {"players": [{"id": 7, "pts": 8.2, "games": 2.0, "bench_pts": 4.0, "slot": "D"}]}}}
+    return board.build(p, 2, "Retrot Chicken Wings", NOW, NOW.date(), details=details)
+
+
+def test_why_gives_a_planned_moves_value_part_by_part_against_what_an_add_needs():
+    text = messages.why_text(_why_board(), "tolvanen")
+    lines = text.split("\n")
+    assert lines[0] == "Eeli Tolvanen for Esa Lindell: in the plan, Fri 9 Oct (today)."
+    assert lines[1].startswith("Worth +0.") and lines[1].endswith("expected wins; an add needs 0.10.")
+    assert lines[2] == "This week +0.05: +4.9 pts, win 16% -> 21%."
+    assert lines[3] == "Weeks 3-4 +0.05: +3.0 pts vs Löllöt Höntsääjät, +2.0 pts vs Jättiläisentie Giants."
+    assert lines[4].startswith("Later +0.08: +9.2 pts")
+    assert lines[-1] == "From the plan of Fri 9 Oct 09:09. The dashboard has every move."
+
+
+def test_why_my_player_shows_his_week_and_the_best_move_dropping_him():
+    text = messages.why_text(_why_board(), "Esa Lindell")
+    assert text.startswith("Esa Lindell (DAL D): 4.1 pts a game, 8 pts in 2 lineup games left this week "
+                           "(4 more on your bench).\nDropping him: 1 moves weighed, the best:\nEeli Tolvanen for")
+
+
+def test_why_a_keeper_and_a_move_under_the_price_say_when_and_why_not():
+    b = _why_board()
+    assert "in the plan, Mon 12 Oct (it does nothing this week, so it takes next week's add)" \
+        in messages.why_text(b, "Kelly")
+    assert messages.why_text(b, "Viktor Arvidsson").split("\n")[0] == \
+        "Viktor Arvidsson for Mattias Samuelsson: not worth an add."
+    assert messages.why_text(b, "Arvidsson for Samuelsson").startswith("Viktor Arvidsson for Mattias Samuelsson")
+    assert messages.why_text(b, "Kelly for Lindell").startswith("Parker Kelly for Lindell wasn't weighed.")
+
+
+def test_why_asks_which_one_or_says_who_the_board_holds():
+    b = _why_board()
+    b["moves"][0]["add"]["name"] = "Parker Lindell"
+    assert messages.why_text(b, "Lindell") == "Which one? Esa Lindell, Parker Lindell."
+    assert messages.why_text(b, "Nobody").startswith("Nobody isn't on the latest plan's Board.")
+    assert messages.why_text(None, "Kelly") == "No plan yet: send /week first."
+
+
+def test_a_planned_move_on_the_board_is_the_one_the_plan_judged():
+    first = _move(2, "First", 5.0, 9.0, 0.21)
+    second_today = _move(6, "Second", 4.0, 2.0, 0.25, drop=RosterPlayer(8, "X", "DAL", ["D"]))
+    second_planned = _move(6, "Second", 4.0, 12.0, 0.25, drop=RosterPlayer(8, "X", "DAL", ["D"]))
+    b = board.build(_plan([first, second_today], [(first, NOW.date(), "now"), (second_planned, MONDAY, "monday")],
+                          max_moves=2), 2, "R", NOW, NOW.date())
+    row = next(r for r in b["moves"] if r["key"] == "6:8")
+    assert row["later_pts"] == 12.0 and row["status"] == "plan"

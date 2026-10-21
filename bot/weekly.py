@@ -251,6 +251,10 @@ def snapshot_rosters(state: dict, players: list, league: dict, now: dt.datetime)
     if games and now >= games[0].start:
         return  # lineups are locking: today's snapshot stays as it was
     opponent = current_opponent(state, week)
+    mine = roster_mod.active(players)
+    state["my_days"][date.isoformat()] = [p.id for p in mine]  # the scoreboard's record, kept all season
+    for p in mine:
+        state["my_players"][str(p.id)] = {"name": p.name, "team": p.team, "positions": list(p.positions)}
     state["day_rosters"][date.isoformat()] = {
         "me": [asdict(p) for p in roster_mod.active(players)],
         "them": {"team": opponent, "players": [asdict(p) for p in teams.players(league, opponent)]}
@@ -280,6 +284,50 @@ def rosters_by_day(state: dict, side: str, current: list, days: list[dt.date], t
     return out
 
 
+def my_history(state: dict, players: list, days: list[dt.date], today: dt.date) -> dict[dt.date, list]:
+    """Each finished day's roster of mine: the season's record (my_days), else
+    the day's snapshot as the week's score has it (rosters_by_day)."""
+    added_on = {a["id"]: dt.date.fromisoformat(a["date"]) for a in state["adds"] if a["id"] is not None}
+    out = rosters_by_day(state, "me", roster_mod.active(players), days, today, added_on)
+    known = state.get("my_players", {})
+    for d in out:
+        ids = state.get("my_days", {}).get(d.isoformat())
+        if ids and all(str(i) in known for i in ids):
+            out[d] = [roster_mod.RosterPlayer(i, **known[str(i)]) for i in ids]
+    return out
+
+
+def drafted_roster(state: dict) -> list:
+    return [roster_mod.RosterPlayer(**p) for p in state.get("draft_roster", [])]
+
+
+def moves_value(state: dict, week: int, players: list, theirs: float, ctx, finished: bool = True) -> dict | None:
+    """The scoreboard's week (engine/scorecard.week_value): my real rosters vs
+    the drafted one, against the opponent's `theirs` points. None without a
+    drafted roster or before the week's first finished day."""
+    days = [d for d in weeks.days(week) if d < ctx.today]
+    if not days or not state.get("draft_roster"):
+        return None
+    first = state["results"].get(str(week), {}).get("first")
+    return scorecard.week_value(my_history(state, players, days, ctx.today), drafted_roster(state), theirs, ctx,
+                                days, first, finished)
+
+
+def season_values(state: dict, players: list, week: int, ctx) -> list[dict]:
+    """Every finished week's scoreboard up to `week`, computed once and kept in
+    results[w]["value"] (a week before the daily record, or before its result,
+    is skipped)."""
+    out = []
+    for w in range(1, week + 1):
+        entry = state["results"].get(str(w), {})
+        if "value" not in entry and "final" in entry and all(
+                d.isoformat() in state.get("my_days", {}) for d in weeks.days(w)):
+            entry["value"] = moves_value(state, w, players, entry["final"]["score"][1], ctx)
+        if entry.get("value"):
+            out.append(entry["value"])
+    return out
+
+
 def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dict | None:
     """The week's result as report.result_view has it, scored from box scores
     with each day's roster (days before ctx.today only). None without an opponent."""
@@ -303,9 +351,12 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
     skipped = sum(1 for d in state["decisions"]
                   if d["type"] == "add" and d["decision"] == "skip" and first <= d["date"] <= last)
     plan = state["results"].get(str(week), {}).get("first")
+    value = _safe(moves_value, state, week, players, sum(theirs), ctx, finished)
+    season = (_safe(season_values, state, players, week - 1, ctx) or []) + ([value] if value else [])
     return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
                               report.budget_view(state["adds"], week), finished,
-                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)))
+                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)),
+                              value, scorecard.value_line(value, season) if finished else None)
 
 
 def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -334,6 +385,8 @@ def report_step(state: dict, players: list, league: dict, now: dt.datetime, outb
     entry = state["results"].setdefault(str(week), {"opponent": view["opponent"]})
     entry["final"] = {"score": [round(x, 2) for x in view["final"]], "goalie_min": view["goalie_min"],
                       "at": now.isoformat(timespec="minutes"), "source": "box scores"}
+    if view.get("value"):
+        entry["value"] = view["value"]
 
 
 def _week_schedule(week: int) -> dict[dt.date, list]:
@@ -547,6 +600,18 @@ def record_plan(state: dict, week: int, opponent: str, me: matchup.TeamWeek, the
     entry = state["results"].setdefault(str(week), {"opponent": opponent})
     entry.setdefault("first", plan)
     entry["last"] = plan
+
+
+def record_drafted(state: dict, week: int, wk: WeekInputs) -> None:
+    """The drafted roster's projected week at the week's first plan, next to
+    mine: what the moves since the draft were forecast to add that week (the
+    scoreboard, engine/scorecard.week_value)."""
+    entry = state["results"].get(str(week), {})
+    first = entry.get("first")
+    if not first or "drafted" in first or first["at"] != entry["last"]["at"] or not state.get("draft_roster"):
+        return  # only alongside the first plan: a later one has other days banked
+    t = matchup.project(MY_TEAM, drafted_roster(state), wk.ctx, wk.schedule, wk.lines, wk.starters)
+    first["drafted"] = round(t.expected, 2)
 
 
 def record_league(state: dict, league: dict, week: int, opponent: str, wk: WeekInputs, now: dt.datetime) -> None:
@@ -815,6 +880,7 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
              ir_text], activations=p.activations))
         record_plan(state, week, opponent, wk.me, wk.them, now)
         _safe(record_league, state, league, week, opponent, wk, now)
+        _safe(record_drafted, state, week, wk)
         png = _safe(snapshot.card_png, data) if data else None
         if png:
             outbox.send_photo(png, "Everything weighed: tap Dashboard.")

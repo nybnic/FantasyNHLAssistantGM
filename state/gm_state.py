@@ -36,6 +36,10 @@ plan's numbers are in board.json (bot/board.py). The keys:
 - day_rosters: per NHL date, my active roster and my opponent's as they were
   before that day's first puck ({"me": [...], "them": {"team", "players"}}):
   the week's banked points are scored with each day's players (the last 14 days)
+- my_days: per NHL date, the ids on my active roster before that day's first puck,
+  kept all season, and my_players: id -> {name, team, positions} of everyone in
+  it; draft_roster: the roster I drafted ([{id, name, team, positions}]). The
+  scoreboard plays both through each week (engine/scorecard.week_value)
 - ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
   "id:back"), so each is said once while it holds
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
@@ -45,7 +49,9 @@ plan's numbers are in board.json (bot/board.py). The keys:
   yahoo, box, yahoo_projected}]), and Yahoo's first forecast of the week from a
   matchup screenshot ("yahoo_first": {at, through, score, projected}), Yahoo's
   original projection from the website ("yahoo_orig": [mine, theirs]);
-  what calibrating the model is checked on
+  what calibrating the model is checked on. "first" also holds "drafted": the
+  drafted roster's projected week; "value": the scoreboard once the week is
+  over ({actual, drafted, added, margin, wins, forecast}, engine/scorecard.week_value)
 - league_adds: each other team's adds (NHL dates), from Transactions screenshots:
   how much each streams (opponent profiles; logged, not yet used)
 - dfo_archived: the last NHL date whose DFO line charts went to the private archive (bot/dfo_archive.py)
@@ -87,7 +93,8 @@ STATE_FILE = Path("state/gm_state.json")
 # these keys live in ledger.json next to the state file, which keeps the run's
 # own bookkeeping (Telegram offset, pending cards, screenshot buffers, flags).
 LEDGER_KEYS = ("adds", "decisions", "transactions_seen", "league_adds", "day_rosters", "standings",
-               "live_score", "results", "league_weeks", "add_pools", "seen_mine", "opponents")
+               "live_score", "results", "league_weeks", "add_pools", "seen_mine", "opponents", "my_days",
+               "my_players", "draft_roster")
 KEEP_DAYS = 14
 KEEP_DECISIONS = 1000
 KEEP_TRANSACTIONS = 3000  # a season of league moves (who, when) is the opponent and stash evidence
@@ -166,6 +173,9 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("transactions_seen", {})
     state.setdefault("add_pools", {})
     state.setdefault("day_rosters", {})
+    state.setdefault("my_days", {})
+    state.setdefault("my_players", {})
+    state.setdefault("draft_roster", [])
     state.setdefault("ir_noted", [])
     state.setdefault("health_alerts", {})
     state.setdefault("seen_mine", {})
