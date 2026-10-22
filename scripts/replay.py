@@ -421,7 +421,7 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                 rule = price_all
             roster = list(lazy_by_week[0][t])
             used, wins, pts, planned, done = 0, 0, 0.0, 0, 0
-            picks, prices = [], []  # the live price's simulated Monday pools; each Monday's price
+            picks, prices, tops = [], [], []  # the live price's simulated Monday pools; each Monday's price; best two
             exits = {}  # add -> the Monday his planned exit is due
             mine_taken = set(drafted)
             for w, m in enumerate(mondays):
@@ -438,12 +438,13 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                     if used >= cap or price == math.inf:
                         break
                     leaving = {pid for pid, due in exits.items() if due <= m}
-                    collect = {} if price is None and rule[0] == "live" else None
+                    collect = {} if price is None else None
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
                                      discount, n_weeks, used, EXITS.get(name), price if price is not None else PRICE,
                                      leaving, name not in SKATERS_ONLY, collect)
                     if price is None:  # the Monday's price, before its first move
-                        price = monday_price(rule, used, w, n_weeks, picks, collect)
+                        tops.append((w, *collect.get("top", (None, None))))
+                        price = monday_price(rule, used, w, n_weeks, picks, collect if rule[0] == "live" else None)
                         prices.append(price)
                     if move is None or move[0] < price:
                         break
@@ -459,7 +460,7 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                 score = actual(s, roster, m)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
-            out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices)
+            out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices, tops)
         print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
     return out
 
@@ -540,7 +541,8 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
     `collect`: a dict given the week's candidates as the bot logs them (addprice.pool_entry:
-    "pool") and the week's later_weight ("weight"), for the live price."""
+    "pool") and the week's later_weight ("weight"), for the live price, and the best two
+    moves' values with no player shared ("top"), to compare with the live bot's."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
     future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
@@ -622,14 +624,18 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 matchup.LONG_RUN_DISCOUNT = saved_discount
             now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
             value = now + after
-            pool.append([round(week_gain, 2), round(after / later_weight, 2), a.id, d.id])
+            pool.append([round(week_gain, 2), round(after / later_weight, 2), a.id, d.id, value])
             if best is None or value > best[0]:
                 best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
     finally:
         matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
     if collect is not None:
+        by_value = sorted(pool, key=lambda x: -x[4])
+        first = by_value[0] if by_value else None
+        second = next((x for x in by_value[1:] if x[2] != first[2] and x[3] != first[3]), None) if first else None
         pool.sort(key=lambda x: x[0] + x[1], reverse=True)
-        collect.update(pool={"moves": pool[:addprice.POOL_SIZE], "sigma": sd_now, "tau": tau}, weight=later_weight)
+        collect.update(pool={"moves": [x[:4] for x in pool[:addprice.POOL_SIZE]], "sigma": sd_now, "tau": tau},
+                       weight=later_weight, top=(first[4] if first else None, second[4] if second else None))
     return best
 
 
@@ -676,6 +682,23 @@ def main() -> None:
         print(f"  {name}: price {mean(p for s in finite for p in s):.3f} on average (by thirds of the season "
               + " / ".join(f"{x:.3f}" for x in thirds) + f"), Monday to Monday it moves {mean(jumps or [0]):.3f}"
               f" on average, {max(jumps or [0]):.3f} at most")
+    # The move values a Monday offers (the first price-rule variant's, its roster as it went), by
+    # the season's stage, to set a replayed bar on the live bot's scale (its Boards' values).
+    rule_names = [nm for nm in names if isinstance(VARIANTS[nm][3], tuple)]
+    if rule_names:
+        tops = [x for k, t in teams for x in results[(k, t, rule_names[0])][6]]
+        print(f"  move values on Mondays ({rule_names[0]}): best / second best with no player shared,"
+              " median and 75th percentile; share of Mondays whose second clears 0.08 / 0.12")
+        for lo, hi in ((0, 2), (2, 5), (5, 12), (12, 30)):
+            rows = [(b, s2) for w, b, s2 in tops if lo <= w < hi and b is not None]
+            if not rows:
+                continue
+            best = sorted(b for b, _ in rows)
+            sec = sorted(s2 if s2 is not None else 0.0 for _, s2 in rows)
+            q = lambda v, f: v[min(int(f * len(v)), len(v) - 1)]
+            print(f"    weeks {lo + 1}-{hi}: best {q(best, .5):.3f} / {q(best, .75):.3f}, second {q(sec, .5):.3f} /"
+                  f" {q(sec, .75):.3f}; second over 0.08 {sum(x >= 0.08 for x in sec) / len(sec):.0%},"
+                  f" over 0.12 {sum(x >= 0.12 for x in sec) / len(sec):.0%}")
 
 
 if __name__ == "__main__":
