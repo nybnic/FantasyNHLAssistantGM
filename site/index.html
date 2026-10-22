@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1422">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Assistant GM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Assistant GM</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -100,6 +106,12 @@
   .more { margin-top: 8px; background: none; border: 1px solid var(--grid); color: var(--text-2); border-radius: 6px;
           font-size: 12px; padding: 4px 10px; cursor: pointer; }
   .empty { color: var(--text-2); padding: 40px 0; text-align: center; }
+  /* while data.json loads: the page's shape, pulsing (still, for anyone who asks for less motion) */
+  .skeleton { display: flex; flex-direction: column; gap: 12px; max-width: 760px; margin: 0 auto; padding: 16px 14px; }
+  .skeleton i { display: block; height: 150px; border-radius: 16px; background: var(--card); animation: pulse 1.4s ease-in-out infinite; }
+  .skeleton i:first-child { height: 140px; background: transparent; box-shadow: inset 0 0 0 14px var(--card); border-radius: 50%; width: 140px; }
+  @keyframes pulse { 50% { opacity: .55; } }
+  @media (prefers-reduced-motion: reduce) { .skeleton i { animation: none; } }
   /* breakdowns: bars as HTML rows (tap a row for its sheet) */
   .bars { display: grid; grid-template-columns: minmax(96px, 38%) 1fr auto; gap: 4px 8px; align-items: center; font-size: 13px; }
   .bars .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -294,7 +306,7 @@
 </style>
 </head>
 <body>
-<main id="app"><p class="empty">Loading...</p></main>
+<main id="app" aria-busy="true"><div class="skeleton"><i></i><i></i><i></i></div></main>
 <div class="tip" id="tip" role="tooltip"></div>
 <script>
 "use strict";
@@ -331,19 +343,26 @@ const pair = v => `${v[0].toFixed(0)}-${v[1].toFixed(0)}`;
 function fmtDay(iso, opts = { weekday: "short", day: "numeric", month: "short" }) {
   return new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opts);
 }
+let tipAt = 0;  // where the page was scrolled when the number was shown
 function showTip(evt, lines) {
   tip.replaceChildren();
   lines.forEach((line, i) => tip.append(el(i === 0 ? "b" : "div", {}, line)));
   tip.style.display = "block";
+  tipAt = scrollY;
   const x = Math.min(evt.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
   tip.style.left = `${Math.max(8, x)}px`;
-  tip.style.top = `${evt.clientY + 14}px`;
+  tip.style.top = `${Math.max(8, Math.min(evt.clientY + 14, window.innerHeight - tip.offsetHeight - 70))}px`;  // above the tab bar
 }
 const hideTip = () => { tip.style.display = "none"; };
+// A number behind a mark: shown under the mouse, and pinned by a tap (a phone has no hover);
+// a tap anywhere else, or a scroll, takes it away.
 function hover(node, lines) {
-  node.addEventListener("pointermove", e => showTip(e, lines));
-  node.addEventListener("pointerleave", hideTip);
+  node.addEventListener("pointermove", e => { if (e.pointerType === "mouse") showTip(e, lines); });
+  node.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hideTip(); });
+  node.addEventListener("click", e => { e.stopPropagation(); showTip(e, typeof lines === "function" ? lines(e) : lines); });
 }
+addEventListener("click", hideTip);
+addEventListener("scroll", () => { if (Math.abs(scrollY - tipAt) > 40) hideTip(); }, { passive: true });  // a real scroll, not a nudge
 function key(token, label) {
   const s = el("span"); const i = el("i"); i.style.background = css(token); s.append(i, document.createTextNode(label)); return s;
 }
@@ -955,13 +974,15 @@ function whyCard() {
   svg.append(svgEl("text", { x: m.l, y: H - 6 }, "← they win by"));
   svg.append(svgEl("text", { x: W - m.r, y: H - 6, "text-anchor": "end" }, "you win by →"));
   const hit = svgEl("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" });
-  hit.addEventListener("pointermove", e => {
+  const odds = e => {
     const r = svg.getBoundingClientRect(), v = lo + ((e.clientX - r.left) * W / r.width - m.l) / (W - m.l - m.r) * (top - lo);
     const z = (v - mu) / sd;
-    showTip(e, v >= 0 ? [`You win by ${f0(v)} or more`, `${pct(1 - Phi(z))} of outcomes`]
-                      : [`They win by ${f0(-v)} or more`, `${pct(Phi(z))} of outcomes`]);
-  });
-  hit.addEventListener("pointerleave", hideTip);
+    return v >= 0 ? [`You win by ${f0(v)} or more`, `${pct(1 - Phi(z))} of outcomes`]
+                  : [`They win by ${f0(-v)} or more`, `${pct(Phi(z))} of outcomes`];
+  };
+  hit.addEventListener("pointermove", e => { if (e.pointerType === "mouse") showTip(e, odds(e)); });
+  hit.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hideTip(); });
+  hit.addEventListener("click", e => { e.stopPropagation(); showTip(e, odds(e)); });
   svg.append(hit);
   card.append(svg);
   const legend = el("div", { class: "legend" });
@@ -1732,7 +1753,7 @@ function safe(build) {
     return card;
   }
 }
-function message(text) { app.replaceChildren(el("p", { class: "empty" }, text)); }
+function message(text) { app.removeAttribute("aria-busy"); app.replaceChildren(el("p", { class: "empty" }, text)); }
 function render() {
   if (!data) return;
   if (CARD === "result") {  // Monday's result: its own data (engine/report.result_view)
@@ -1767,7 +1788,7 @@ function render() {
 
 (window.__DATA__ ? Promise.resolve(window.__DATA__)
   : fetch("data.json", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
-  .then(d => { data = d; render(); openLinked(); })
+  .then(d => { data = d; app.removeAttribute("aria-busy"); render(); openLinked(); })
   .catch(e => message(e.message === "404" ? "No plan yet: send /week to the bot."
                                           : `The plan couldn't be loaded (${e.message}). Reopen the page to try again.`));
 // A link to one move or player (a card's "Why?": #move=KEY, or #player=ID) opens its sheet.

@@ -92,6 +92,8 @@ python -m scripts.third_goalie                    # a third goalie for a skater,
 python -m scripts.fit_goalie_starts               # who starts next: last result, back-to-backs
 python -m scripts.depth                           # every team's depth by slot, needs, spares, 1-for-1s both sides gain (offline)
 python -m scripts.render_slides --png data/charts/slides   # docs/model-overview.pdf from its HTML
+python -m scripts.snapshots                     # every card and dashboard tab at a phone's width -> data/charts/snapshots/
+python -m scripts.make_icons                    # the dashboard's home-screen icons (site/icon-*.png)
 ```
 A dry run writes `data/charts/` (the charts, `board.json`, `data.json` and a copy of the
 dashboard). Preview it: `python -m http.server 8765 --directory data/charts` (the

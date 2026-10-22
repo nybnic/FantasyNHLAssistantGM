@@ -305,5 +305,10 @@ def test_every_dashboard_tab_draws_on_a_phone():
                 assert page.locator(".tabbar button.on").count() == 1
                 if tab.startswith("move="):
                     assert page.locator(".sheet h2").first.inner_text().startswith("Add ")
+                if tab == "today":  # a phone has no hover: a tap on a mark pins its number, a tap elsewhere hides it
+                    page.locator("section.card svg rect[rx]").first.click()
+                    assert page.locator("#tip").is_visible() and page.locator("#tip b").inner_text()
+                    page.mouse.click(5, 5)
+                    assert not page.locator("#tip").is_visible()
         finally:
             browser.close()

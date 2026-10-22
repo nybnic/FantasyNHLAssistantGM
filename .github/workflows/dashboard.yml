@@ -9,7 +9,7 @@ name: Dashboard
 on:
   push:
     branches: [main]
-    paths: [site/index.html]
+    paths: [site/index.html, site/manifest.webmanifest, 'site/icon-*.png']
   workflow_dispatch: {}
 
 permissions:
