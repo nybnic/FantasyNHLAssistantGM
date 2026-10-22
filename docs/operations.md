@@ -65,7 +65,10 @@ changes `index.html` (one Pages deploy at a time). Each Telegram Dashboard butto
 links the page with a unique `?v=` so the in-app browser loads it fresh, and data
 from another version of the page shows "updating" instead of breaking it
 (2026-10-09: a page change waited hours for a plan run, then a fresh page met
-cached data and showed "No plan yet"). One-time setup: repo Settings > Pages >
+cached data and showed "No plan yet"). The message goes out during the run and the
+publish waits in GitHub's queue after it (2-15 min), so on nybnic.github.io the page
+also reads main's `data.json` through GitHub's API (committed at the run's end; 60
+reads an hour per address, unauthenticated) and shows whichever is newer. One-time setup: repo Settings > Pages >
 Source: GitHub Actions. The page is public (like `state/`) and marked
 noindex. Preview a dry run's copy: `python -m http.server 8765 --directory data/charts`.
 
@@ -135,6 +138,7 @@ roster names one of them.
 | 2026-10-17 | Matchup screenshots sent 06:47 Helsinki, every row Final or No Game, read the score right (203.15-196.85, the player rows add up to it), but three "No Game"s (McBain, Stamkos, Nylander) went unread: the game line was looked for 2-3.5 heights below the row's first name box, the opponent's, 2 px taller, and sat exactly 2 below. So the night didn't look over, the score was dropped (through None) and the reply came from box scores still missing Friday's COL-PIT game ("192-170, win 87%") | Each player's game line is measured from his own name line, 1.75-3.5 heights below, and a positions line is never taken for it (every archived matchup screenshot re-read: only statuses changed, all right); repair `2026-10-17 no game unread` |
 | 2026-09-29 - 10-01 | No evening briefings. GitHub ran the `*/30` schedule only ~3 times a day (e.g. 15:33, 20:29, 00:06 UTC on Sep 30), never inside the 21:00-23:00 Helsinki window | The relay's Cloudflare crons start the runs; GitHub's cron stays as backup |
 | 2026-10-22 | A /week took 11 min, 52 s of it the plan: the run before spent 4 min 12 s installing the headless browser's system libraries (apt; the 4-min limit, so its card probably fell back to the chart), then its dashboard publish waited ~12 min in GitHub's Pages queue, and the workflow-wide concurrency held the next run until that publish was done | Concurrency on the bot's job only (the publish runs on its own); the system libraries installed only when the cached browser can't start |
+| 2026-10-22 | The 20:03 plan card read win 45%, the dashboard opened from it 48%: the page was still the 19:41 run's, as that run's publish (`deploy-dashboard`) sat queued in GitHub after the message went out | The live page reads main's `data.json` through GitHub's API too and shows the newer (`site/index.html`, `loadData`) |
 
 ## Calendar assumptions to verify
 - Week 19 = Feb 1-14 2027 (the double week): confirmed in Yahoo 2026-10-01. Still to check

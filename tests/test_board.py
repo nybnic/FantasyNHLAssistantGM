@@ -318,3 +318,33 @@ def test_every_dashboard_tab_draws_on_a_phone():
                     assert not page.locator("#tip").is_visible()
         finally:
             browser.close()
+def test_the_live_dashboard_shows_mains_data_when_pages_lags():
+    """Pages publishes a run's data.json minutes after its message: on nybnic.github.io the page
+    also reads main's copy and shows the newer one, and Pages' when GitHub's API refuses."""
+    import os
+    from pathlib import Path
+    import pytest
+    from notify import snapshot
+    sync_api = pytest.importorskip("playwright.sync_api")
+    data = json.loads(Path("site/data.json").read_text(encoding="utf-8"))
+    old, new = dict(data, generated="2026-10-22T16:41+00:00"), dict(data, generated="2026-10-22T17:03+00:00")
+    site = "https://nybnic.github.io/FantasyNHLAssistantGM/"
+    with sync_api.sync_playwright() as pw:
+        try:
+            browser = pw.chromium.launch(executable_path=os.environ.get("CHROMIUM_EXECUTABLE"))
+        except Exception as e:
+            pytest.skip(f"no browser: {str(e).splitlines()[0]}")
+        try:
+            for main, shown in [((200, new), new), ((403, {"message": "rate limit"}), old), ((200, old), old)]:
+                page = browser.new_page(viewport={"width": 390, "height": 844}, locale="en-GB")
+                page.route("**/*", lambda r: r.abort())  # nothing from outside (fonts) in a test
+                page.route(site, lambda r: r.fulfill(path=str(snapshot.PAGE), content_type="text/html"))
+                page.route(site + "data.json", lambda r: r.fulfill(json=old))
+                status, body = main
+                page.route("https://api.github.com/**", lambda r: r.fulfill(
+                    status=status, json=body, headers={"Access-Control-Allow-Origin": "*"}))
+                page.goto(site)
+                page.wait_for_selector("body[data-ready='1']", timeout=20_000)
+                assert page.evaluate("data.generated") == shown["generated"], main[0]
+        finally:
+            browser.close()
