@@ -485,9 +485,12 @@ function raceCard() {
   const done = days.filter(d => d < data.date).length;
   const series = side => {
     const t = h[side], exp = t.by_day || {}, out = [0];
+    // Each night still to come scaled so the line ends at the final score the odds read (finals).
+    const end = finals(h)[side === "me" ? 0 : 1], rest = t.expected - t.so_far;
+    const scale = rest > 0 ? (end - t.so_far) / rest : 1;
     days.forEach((d, i) => {
       const banked = race ? (race[side][race.days.indexOf(d)] || 0) : t.so_far / Math.max(done, 1);  // no race: spread evenly
-      out.push(out.at(-1) + (d < data.date ? banked : exp[d] || 0));
+      out.push(out.at(-1) + (d < data.date ? banked : scale * (exp[d] || 0)));
     });
     return out;
   };
@@ -1000,8 +1003,19 @@ function whyCard() {
     .map(([who, t]) => `${who === "you" ? "Your" : "Their"} goalies reach 3 games ${pct(t.goalie_min)}: the minimum costs ${f1(t.goalie_lost)} pts expected.`);
   card.append(el("div", { class: "note", style: "margin-top:6px" },
     `Most likely you ${by(mu)} pts, give or take ${f0(sd)}. The area is how often each final margin happens: ` +
-    `blue is the share you win. ${lost.join(" ")}`));
+    `blue is the share you win. ${shrunk(h)}${lost.join(" ")}`));
   return card;
+}
+
+// Why the final score differs from the players' projections added up: the part still to come
+// counts at the size projected margins come true (0.80, engine/matchup.MARGIN_REALIZES).
+function shrunk(h) {
+  const [a, b] = finals(h), raw = h.me.expected - h.them.expected;
+  if (!h.final || Math.abs(raw - (a - b)) < 1) return "";
+  const rest = (h.me.expected - h.me.so_far) - (h.them.expected - h.them.so_far);
+  return `The players' projections add up to ${f0(h.me.expected)}-${f0(h.them.expected)}, ${rest >= 0 ? "you" : "they"} ` +
+         `${f0(Math.abs(rest))} up on the nights left; projected gaps come true at about 80% of their size, so it's ` +
+         `read as ${f0(a)}-${f0(b)}. `;
 }
 
 // ---- player by player ---------------------------------------------------------------
@@ -1421,18 +1435,21 @@ function ring(win) {
   box.append(svg, mid);
   return box;
 }
+// The final scores as the win odds read them (header.final: the part still to come at the size
+// margins realize), so "→ 206 / → 211" and "45%" agree; the raw projection before it was in data.json.
+function finals(h) { return h.final || [h.me.expected, h.them.expected]; }
 function scoreBars(h) {
-  const box = el("div", { class: "nc-bars" }), hi = Math.max(h.me.expected, h.them.expected, 1);
-  [["You", h.me, "#4D9BF0", "#22508A", "#FFFFFF"], [shortTeam(data.opponent), h.them, "#F07A45", "#7A3A1E", "#FFB08C"]]
-    .forEach(([name, t, solid, dark, ink]) => {
+  const [endMe, endThem] = finals(h), box = el("div", { class: "nc-bars" }), hi = Math.max(endMe, endThem, 1);
+  [["You", h.me, endMe, "#4D9BF0", "#22508A", "#FFFFFF"], [shortTeam(data.opponent), h.them, endThem, "#F07A45", "#7A3A1E", "#FFB08C"]]
+    .forEach(([name, t, end, solid, dark, ink]) => {
       const row = el("div"), head = el("div", { class: "nc-team" });
       const score = el("span", { class: "nc-score cond num" });
       score.style.color = ink;
-      if (t.so_far) { score.append(f0(t.so_far) + " "); score.append(el("small", {}, `→ ${f0(t.expected)}`)); }
-      else { score.append(f0(t.expected) + " "); score.append(el("small", {}, "proj")); }
+      if (t.so_far) { score.append(f0(t.so_far) + " "); score.append(el("small", {}, `→ ${f0(end)}`)); }
+      else { score.append(f0(end) + " "); score.append(el("small", {}, "proj")); }
       head.append(el("span", {}, name), score);
       const bar = el("div", { class: "nc-bar" });
-      [[t.so_far, solid], [t.expected - t.so_far, dark]].forEach(([v, c]) => {
+      [[t.so_far, solid], [end - t.so_far, dark]].forEach(([v, c]) => {
         if (v <= 0) return;
         const i = el("i"); i.style.width = `${(100 * v / hi).toFixed(1)}%`; i.style.background = c; bar.append(i);
       });

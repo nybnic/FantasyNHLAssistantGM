@@ -558,6 +558,15 @@ def margin(me: TeamWeek, them: TeamWeek) -> float:
     return banked + MARGIN_REALIZES * (me.expected - them.expected - banked)
 
 
+def final_scores(me: TeamWeek, them: TeamWeek) -> tuple[float, float]:
+    """Both teams' final scores as P(win) reads them (shown, not decided on): each
+    side's points still to come moved toward the two sides' average, so the gap is
+    `margin`'s and the total unchanged (2026-10-22: "expect 210-207", win 45%)."""
+    rest_me, rest_them = me.expected - me.so_far, them.expected - them.so_far
+    mid, half_gap = (rest_me + rest_them) / 2, MARGIN_REALIZES * (rest_me - rest_them) / 2
+    return me.so_far + mid + half_gap, them.so_far + mid - half_gap
+
+
 def win_prob(me: TeamWeek, them: TeamWeek, gain: float = 0.0, variance: float | None = None) -> float:
     """P(win). `gain`: a move's points this week on top (a fringe gap realizes
     in full this week, GAP_REALIZES), with the trial roster's `variance`."""

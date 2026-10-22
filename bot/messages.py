@@ -166,13 +166,13 @@ def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.Team
     if html:
         so_far = f"<code>{me.so_far:.0f}-{them.so_far:.0f}</code> so far · " if me.so_far or them.so_far else ""
         head = [f"<b>Week {week} vs {_esc(opponent)}</b>",
-                f"{so_far}expect <code>{me.expected:.0f}-{them.expected:.0f}</code>{yahoo_text}",
+                f"{so_far}expect <code>{_expect(me, them)}</code>{yahoo_text}",
                 f"🎯 Win <b>{win}</b>"]
         blocks = ["\n".join(head)] + activation_blocks(activations, today) + plan_blocks(plan, today, adds_left_week)
         return "\n\n".join(blocks + ["\n".join(f"{mark} {_esc(line)}" for mark, line in tail)])
     head = (f"Week {week} vs {opponent}: " + (f"{me.so_far:.0f}-{them.so_far:.0f} so far, " if me.so_far or them.so_far
                                                else "")
-            + f"expect {me.expected:.0f}-{them.expected:.0f}{yahoo_text}. Win {win}.")
+            + f"expect {_expect(me, them)}{yahoo_text}. Win {win}.")
     lines = [head] + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week)
     for mark, line in tail:  # the playoff odds share the budget's line
         if mark == "🏆":
@@ -259,11 +259,17 @@ def change_text(old: list[dict], plan: list[Planned], reason: str, today: dt.dat
                      + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week))
 
 
+def _expect(me: matchup.TeamWeek, them: matchup.TeamWeek) -> str:
+    """The final score as the win odds read it (`matchup.final_scores`), not the raw projection."""
+    a, b = matchup.final_scores(me, them)
+    return f"{a:.0f}-{b:.0f}"
+
+
 def _score(me: matchup.TeamWeek, them: matchup.TeamWeek, html: bool = False) -> str:
     if html:
         return (f"📊 <code>{me.so_far:.0f}-{them.so_far:.0f}</code>, expect "
-                f"<code>{me.expected:.0f}-{them.expected:.0f}</code>: win <b>{_pct(matchup.win_prob(me, them))}</b>.")
-    return (f"{me.so_far:.0f}-{them.so_far:.0f}, expect {me.expected:.0f}-{them.expected:.0f}: "
+                f"<code>{_expect(me, them)}</code>: win <b>{_pct(matchup.win_prob(me, them))}</b>.")
+    return (f"{me.so_far:.0f}-{them.so_far:.0f}, expect {_expect(me, them)}: "
             f"win {_pct(matchup.win_prob(me, them))}.")
 
 

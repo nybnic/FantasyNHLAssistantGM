@@ -33,7 +33,7 @@ def test_the_plan_message_leads_with_the_matchup_then_what_to_do_and_stays_short
     ahead = [matchup.WeekAhead(3, frozenset(), -12.0, 46.0, "Lallat"), matchup.WeekAhead(4, frozenset(), None, 45.0)]
     text = _text([plan.Planned(kelly, FRIDAY, "spare")], best=olivier, ahead=ahead)
     lines = text.split("\n")
-    assert lines[0] == ("Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-250 (Yahoo 230-257). Win 16%.")
+    assert lines[0] == ("Week 2 vs Retrot Chicken Wings: 137-163 so far, expect 223-249 (Yahoo 230-257). Win 16%.")
     assert lines[1] == ("Fri 9 Oct (today): Parker Kelly for Mattias Samuelsson (+31 win-pts, a keeper; uses this "
                         "week's slot, so next week's two adds stay free).")
     assert lines[2] == ("For this week alone, the best is Mathieu Olivier for Esa Lindell: win 16% -> 22%. "
@@ -77,7 +77,7 @@ def test_the_goalie_minimum_and_other_warnings_appear_only_when_they_apply():
 def test_a_screenshot_gets_the_score_and_the_plan_in_one_line():
     kelly = _move("Parker Kelly", SAMUELSSON, 0.16, long_term=34.2, next_weeks=11.1)
     assert messages.score_text(ME, THEM, [plan.Planned(kelly, FRIDAY, "spare")], FRIDAY) == (
-        "137-163, expect 223-250: win 16%. Plan unchanged: Parker Kelly for Mattias Samuelsson today (Fri 9 Oct).")
+        "137-163, expect 223-249: win 16%. Plan unchanged: Parker Kelly for Mattias Samuelsson today (Fri 9 Oct).")
     assert messages.score_text(ME, THEM, [plan.Planned(kelly, MONDAY, "monday")], FRIDAY).endswith(
         "Plan unchanged: Parker Kelly for Mattias Samuelsson on Mon 12 Oct.")
 
@@ -115,7 +115,7 @@ def test_the_html_plan_groups_moves_by_day_with_markers_and_escapes_names():
                               ["Changed since the last plan: Kelly was taken."], html=True)
     blocks = text.split("\n\n")
     assert blocks[0] == ("<b>Week 2 vs Retrot Chicken Wings</b>\n<code>137-163</code> so far · expect "
-                         "<code>223-250</code> (Yahoo 230-257)\n🎯 Win <b>16%</b>")
+                         "<code>223-249</code> (Yahoo 230-257)\n🎯 Win <b>16%</b>")
     assert blocks[1].split("\n")[:2] == ["📅 <b>Fri 9 Oct (today)</b>", "➕ <b>Parker Kelly</b>  ➖ Mattias Samuelsson"]
     assert blocks[2].split("\n")[:2] == ["📅 <b>Mon 12 Oct</b>", "➕ <b>A &amp; &lt;B&gt;</b>  ➖ Esa Lindell"]
     tail = blocks[3].split("\n")

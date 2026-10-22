@@ -122,6 +122,8 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "win": _r(matchup.win_prob(wk.me, wk.them), 4),
             # The final margin as P(win) reads it: banked points in full, the rest as it realizes.
             "margin": _r(matchup.margin(wk.me, wk.them)), "sd": _r(math.sqrt(wk.me.variance + wk.them.variance)),
+            # Both final scores read the same way (the headline's "→"; `expected` stays the raw projection).
+            "final": [_r(x) for x in matchup.final_scores(wk.me, wk.them)],
             "live": wk.live,
             "yahoo_projected": wk.yahoo_projected,
             "adds_left": {"season": MAX_ADDS_PER_SEASON - wk.season_used, "week": wk.max_moves},

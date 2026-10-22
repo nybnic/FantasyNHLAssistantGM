@@ -650,6 +650,16 @@ def _tw(so_far, expected, variance=400.0):
     return matchup.TeamWeek("t", so_far, expected, variance, 10, 0, 3, 1.0)
 
 
+def test_the_final_score_shown_is_the_one_p_win_reads():
+    """2026-10-22: "61-94 so far, expect 210-207", win 45%. Behind 33, the 36 still to make up count
+    at MARGIN_REALIZES, so the score shown is 206-211: its gap is the margin, its total the projection's."""
+    me, them = _tw(60.75, 209.51), _tw(93.5, 207.16)
+    a, b = matchup.final_scores(me, them)
+    assert a - b == pytest.approx(matchup.margin(me, them)) and a + b == pytest.approx(209.51 + 207.16)
+    assert (round(a), round(b)) == (206, 211) and matchup.win_prob(me, them) < 0.5
+    assert matchup.final_scores(_tw(0, 220.0), _tw(0, 200.0)) == pytest.approx((218.0, 202.0))
+
+
 def test_p_win_counts_banked_points_in_full_and_the_rest_at_its_realized_size():
     # 26 points down, all banked: the shrink leaves it alone.
     banked = matchup.margin(_tw(137, 223.0), _tw(163, 249.0))
