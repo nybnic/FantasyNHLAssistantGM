@@ -7,13 +7,19 @@ when a matchup is close; across the league's matchups (expected margins with
 spread tau, a week's result with spread sigma) the average worth of one point
 is 1 / sqrt(2 pi (sigma^2 + tau^2)) wins.
 
-An add costs what it could buy later: its price `lam` is set so that spending
-whenever a move beats it (at most MAX_ADDS_PER_WEEK a week) uses adds at the
-pace the budget allows. `solve` finds it by simulating weeks: margins drawn
-around zero with spread tau, and the add candidates the bot has actually seen
-(this week's, and earlier weeks' from its log), each pool a typical week's.
-So a close week with good streamers clears the price twice, a lopsided one
-not at all. Until 4-6 weeks are logged the pools are few: treat lam as provisional.
+An add costs what it could buy later. The live price (`pacing_price`, Nico
+2026-10-22): a fixed bar times how the budget stands, (the even pace / the pace
+the adds left allow) squared, so saved adds lower the bar and spending ahead
+of pace raises it, and it moves only when adds are made or saved. A move is
+made when its value clears it (at most MAX_ADDS_PER_WEEK a week); a close week
+with good moves clears it twice, a lopsided one not at all, through the moves'
+values (win-pts), not the price.
+
+`solve` is the earlier price (to 2026-10-22, still used by scripts/replay.py and
+the simulations): set so spending at it uses adds at the budget's pace,
+simulated over the candidates the bot logged each week. It followed the
+current week's shortlist (8.7 -> 22 win-pts in a day), and pacing did as well
+in the replay (engine/CLAUDE.md, "Replayed").
 """
 from __future__ import annotations
 
@@ -25,6 +31,14 @@ import numpy as np
 from config.league import MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK, PLAYOFF_WEEKS, REGULAR_SEASON_WEEKS
 
 PLAYOFF_RESERVE = 6  # adds kept for playoff weeks (decision log)
+# The price when adds go at an even pace, in wins (12 win-pts), and how hard the
+# budget pushes it. Set on the live plans of Oct 9-22 (about 1.3 adds a week at
+# 0.12); the replay's own bar (0.08) doesn't carry over, its move values running
+# 2-3x the live ones early in the season. PUSH 2 replayed best (+0.22 +/- 0.11
+# wins a season vs the simulated price). Re-check BAR mid-December against the
+# per-move scoreboard (Nico, 2026-10-22).
+BAR = 0.12
+PUSH = 2.0
 DEFAULT_TAU = 20.0  # spread of matchup margins until league rosters give one (a judgment call)
 SIMS_PER_POOL = 3000
 POOL_SIZE = 25  # candidate moves (add and drop) kept per week for the simulation
@@ -53,8 +67,23 @@ def pace(adds_left: int, week: int) -> float | None:
     return spare / (REGULAR_SEASON_WEEKS - week + 1)
 
 
-def even_pace() -> float:
+def even_pace(week: int | None = None) -> float:
+    """Adds a week spent evenly: the regular season's share, or the playoffs'."""
+    if week is not None and week > REGULAR_SEASON_WEEKS:
+        return PLAYOFF_RESERVE / len(PLAYOFF_WEEKS)
     return (MAX_ADDS_PER_SEASON - PLAYOFF_RESERVE) / REGULAR_SEASON_WEEKS
+
+
+def pacing_price(adds_left: int, week: int) -> float | None:
+    """The price an add must buy: BAR x (the even pace / the pace the adds left
+    allow) ** PUSH. None when the regular season's share is spent (the rest are
+    for the playoffs); infinite with none left."""
+    need = pace(adds_left, week)
+    if need is None:
+        return None
+    if need <= 0:
+        return math.inf
+    return BAR * (even_pace(week) / need) ** PUSH
 
 
 def _phi(x: np.ndarray) -> np.ndarray:

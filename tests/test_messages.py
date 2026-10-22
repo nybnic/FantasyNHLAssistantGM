@@ -44,7 +44,8 @@ def test_the_plan_message_leads_with_the_matchup_then_what_to_do_and_stays_short
     assert "Not worth an add: -4 win-pts in all, as dropping Esa Lindell costs 10 later, against the 10" in _text(
         [plan.Planned(kelly, FRIDAY, "spare")], best=costly)
     assert lines[3] == "Ahead: wk 3 vs Lallat 40%, wk 4 (opponent not known)."
-    assert lines[4] == "Adds: 1 this week, 33 this season. Playoffs 21%, title 1%."
+    assert lines[4] == ("Adds: 1 this week, 33 this season. An add needs 10 win-pts (ahead of pace: a higher bar). "
+                        "Playoffs 21%, title 1%.")
     assert len(lines) == 5
 
 

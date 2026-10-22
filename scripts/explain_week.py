@@ -18,6 +18,7 @@ import argparse
 import datetime as dt
 
 from bot import board, common, weekly
+from engine import addprice
 from clients.names import normalize_name
 from league import roster as roster_mod
 from league import teams, weeks
@@ -82,8 +83,8 @@ def main_() -> None:
     print(f"\n  P(win) {h['win']:.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
           f"{h['adds_left']['week']} allowed now; matchup spread tau {h['tau']:.1f} pts, a later point = "
           f"{100 * h['later_weight']:.2f} win-pts")
-    print("  add price: " + (f"{100 * h['price']['lam']:.1f} win-pts (pace {h['price']['pace']:.2f} adds a week, "
-                             f"{len(state['add_pools'])} week(s) of candidates logged)" if h["price"]
+    print("  add price: " + (f"{100 * h['price']['lam']:.1f} win-pts (the adds left allow {h['price']['pace']:.2f} a "
+                             f"week, an even pace {addprice.even_pace(week):.2f}: addprice.pacing_price)" if h["price"]
                              else "none (budget spent)")
           + ("; no adds left this week: everyone joins Monday" if not wk.max_moves else "")
           + (f"; {len(wk.available_from)} free agents on waivers" if wk.available_from and wk.max_moves else ""))

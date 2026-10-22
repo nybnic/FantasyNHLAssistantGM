@@ -25,8 +25,9 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    on a night the slot is full counts zero. Players in IR slots coming back are mixed
    in (`ir_returns`), and projected missed games cost only the edge over a streamer
    (`matchup.durability`).
-3. **The add price** (`engine/addprice.py`): the win-pts an add must buy (~10), set by
-   simulating weeks so the 36 adds last (6 kept for the playoffs, at most 2 a week).
+3. **The add price** (`engine/addprice.pacing_price`): the win-pts an add must buy, 12 at an
+   even pace x (even pace / the pace the adds left allow)^2, so the 36 adds last (6 kept for
+   the playoffs, at most 2 a week). It moves only when adds are made or saved (Nico, 2026-10-22).
 4. **The plan** (`engine/plan.py`): `compose` (best first, no shared add or drop; a
    keeper that does nothing this week waits for Monday only if another move can use
    this week's slot), `time_moves` (the exact day: the drop's games first, the add in

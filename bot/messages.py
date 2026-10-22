@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from clients.names import normalize_name
 from config.league import MAX_ADDS_PER_SEASON, MIN_GOALIE_GAMES_PER_WEEK, TIMEZONE
-from engine import matchup
+from engine import addprice, matchup
 from engine.plan import Planned
 
 GOALIE_WARN_BELOW = 0.9  # the goalie minimum gets a line only when at risk
@@ -143,6 +143,8 @@ def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.Team
             f"wk {w.week} vs {w.opponent} {_pct(matchup._phi(w.margin / w.sd))}" if w.margin is not None
             else f"wk {w.week} (opponent not known)" for w in ahead) + ".")
     budget = f"Adds: {adds_left_week} this week, {MAX_ADDS_PER_SEASON - season_used} this season."
+    if price and price.lam != float("inf"):
+        budget += f" An add needs {100 * price.lam:.0f} win-pts ({pace_text(price.pace, week)})."
     if odds:
         budget += f" Playoffs {odds.playoffs:.0%}, title {odds.title:.0%}."
     lines.append(budget)
@@ -151,6 +153,14 @@ def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.Team
         lines.append(f"Goalie minimum at risk: ~{games:.1f} games of {MIN_GOALIE_GAMES_PER_WEEK}, "
                      f"{_pct(me.goalie_min_prob)} to make it. Pick up a goalie who plays this week.")
     return "\n".join(lines + [w for w in warnings if w])
+
+
+def pace_text(need: float, week: int) -> str:
+    """How the budget stands, as the add price reads it (addprice.pacing_price)."""
+    ratio = need / addprice.even_pace(week)
+    if abs(ratio - 1) < 0.05:
+        return "on pace"
+    return "adds saved: a lower bar" if ratio > 1 else "ahead of pace: a higher bar"
 
 
 def this_week_line(best: matchup.Move | None, plan: list[Planned], price, adds_left_week: int) -> str:

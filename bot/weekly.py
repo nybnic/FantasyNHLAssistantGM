@@ -216,19 +216,12 @@ def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOd
     return odds, note
 
 
-def add_price(state: dict, week: int, wk: WeekInputs, ranked: list, date: dt.date) -> addprice.AddPrice | None:
-    """The add's price, solved over this week's candidates and the ones logged
-    in earlier weeks (state["add_pools"]). With this week's adds spent, its
-    candidates can't join until Monday, so the logged pools stay as they are
-    (the price then judges Monday's moves)."""
-    if wk.pace is None:
-        return None
-    if wk.max_moves:
-        sigma_now = math.sqrt(wk.me.variance + wk.them.variance)
-        remaining = sum(d >= date for d in wk.days)
-        state["add_pools"][str(week)] = addprice.pool_entry(ranked, remaining, sigma_now, wk.tau)
-    lam = addprice.solve(list(state["add_pools"].values()), wk.pace, wk.later_weight)
-    return addprice.AddPrice(lam, wk.later_weight, wk.pace)
+def add_price(week: int, wk: WeekInputs) -> addprice.AddPrice | None:
+    """The add's price (addprice.pacing_price): a fixed bar times how the season's
+    budget stands, so it moves only when adds are made or saved. None when the
+    regular season's share is spent."""
+    lam = addprice.pacing_price(MAX_ADDS_PER_SEASON - wk.season_used, week)
+    return None if lam is None else addprice.AddPrice(lam, wk.later_weight, wk.pace)
 
 
 def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date],
@@ -818,7 +811,7 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
                                      wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
                                      wk.later_weight, wk.ahead)
-    wk.price = add_price(state, week, wk, ranked, date)
+    wk.price = add_price(week, wk)
     held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
     season_left = MAX_ADDS_PER_SEASON - wk.season_used - wk.max_moves
     monday_slots = min(MAX_ADDS_PER_WEEK, max(season_left, 0)) if week < weeks.LAST_WEEK else 0

@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from config import league as config
 from engine import addprice
 
 
@@ -70,3 +71,17 @@ def test_the_pool_keeps_each_adds_other_drops_so_a_second_add_is_seen():
     same_drop = _pool([[8.0, 0.0, 1, 10], [6.0, 0.0, 2, 10]])
     _, v2 = addprice._picks(same_drop, weight, 200, np.random.default_rng(1))
     assert not np.isfinite(v2).any()
+
+
+def test_the_price_is_the_bar_on_pace_lower_with_adds_saved_higher_when_spent_ahead():
+    even = addprice.even_pace()
+    weeks_left = lambda week: config.REGULAR_SEASON_WEEKS - week + 1
+    # Week 1, nothing spent: exactly the even pace, so the bar.
+    assert addprice.pacing_price(36, 1) == pytest.approx(addprice.BAR)
+    # Week 4 with 5 used (Nico's, 2026-10-22): 25 spare for 20 weeks, 1.25 a week.
+    assert addprice.pacing_price(31, 4) == pytest.approx(addprice.BAR * (even / (25 / weeks_left(4))) ** 2)
+    assert addprice.pacing_price(34, 4) < addprice.BAR < addprice.pacing_price(24, 4)
+    assert addprice.pacing_price(6, 10) is None  # only the playoff adds left
+    # The playoffs: 6 for 3 weeks is their even pace.
+    assert addprice.pacing_price(6, 24) == pytest.approx(addprice.BAR)
+    assert addprice.pacing_price(0, 25) == math.inf

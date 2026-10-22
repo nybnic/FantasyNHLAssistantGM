@@ -7,7 +7,7 @@ import main
 from bot import common, daily, ingest, weekly
 from clients import goalie_client, nhl_client, screenshot
 from config.settings import load_settings
-from engine import matchup, report
+from engine import addprice, matchup, report
 from league import parse, teams, weeks
 from league.roster import RosterPlayer
 from notify import charts, telegram
@@ -934,8 +934,8 @@ def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_
     wk = weekly.week_inputs(dt.date(2026, 10, 2), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
     assert wk.max_moves == 0
     assert wk.available_from == {7: dt.date(2026, 10, 5), 8: dt.date(2026, 10, 6)}  # Monday, or a later waiver day
-    # Monday's moves are still priced, but this week's candidates can't join: none logged.
-    assert weekly.add_price(state, 1, wk, [], wk.days[0]) is not None and "1" not in state["add_pools"]
+    # Monday's moves are still priced: by the budget, whatever this week's candidates.
+    assert weekly.add_price(1, wk).lam == addprice.pacing_price(36 - wk.season_used, 1)
 
 
 def test_other_teams_adds_are_logged_from_transactions(monkeypatch, tmp_path):

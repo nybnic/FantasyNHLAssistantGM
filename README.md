@@ -45,10 +45,12 @@ Every decision is scored in one currency: **expected fantasy points (xFP)**.
   Every add is valued in **win-pts** (percentage points of a weekly win): what
   it does to this week's win odds and to the next two weeks' against their
   real opponents, plus its later points at what a point is worth in a typical
-  week. It's made when that beats the **add price**, set so that spending at
-  that bar (at most 2 a week) uses the 36 adds at the right pace, 6 kept for
-  the playoffs. So a close week with good streamers gets 2 adds, a lopsided one
-  none. The plan is one coherent set (no two moves share a player); a keeper
+  week. It's made when that beats the **add price**: 12 win-pts when adds go
+  at an even pace (30 over the 23 regular-season weeks, 6 kept for the
+  playoffs), lower when you've saved adds, higher when you've spent ahead of
+  pace (squared), at most 2 a week. The price moves only when adds are made or
+  saved; a close week with good moves gets 2 adds and a lopsided one none
+  through the moves' values. The plan is one coherent set (no two moves share a player); a keeper
   that adds nothing now waits for Monday only if another move can use this
   week's add. Once you've seen it, the plan changes only when a move can't be
   made or a new one is clearly better (2 win-pts). Your streaming
