@@ -79,6 +79,7 @@ class WeekInputs:
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
     strengths: dict | None = None  # team -> (mean, sd) of a typical week's points (team_strengths)
     ahead: list = field(default_factory=list)  # matchup.WeekAhead: the next weeks vs their opponents (plan_moves)
+    banked: dict | None = None  # the dashboard's race: each finished day's points, mine and theirs (race_days)
 
 
 def week_inputs(date: dt.date, week: int, players: list, league: dict, state: dict,
@@ -137,7 +138,23 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         max_moves=max_moves,
         weeks_after=weeks.LAST_WEEK - week,
         available_from=available_from,
+        banked=_safe(race_days, ctx, days, date, (roster_mod.active(players), my_days, sum(mine[:2])),
+                     (them_roster, their_days, sum(theirs[:2]))),
     )
+
+
+def race_days(ctx, days: list[dt.date], date: dt.date, *sides) -> dict:
+    """Each finished day's points for each side ((roster, rosters by day, the
+    banked total)), from the box scores with that day's best lineup, as the
+    banked total does; scaled to that total (a matchup screenshot's when there
+    is one), so the race ends where the score is. For the dashboard only."""
+    done = [d for d in days if d < date]
+    out = {"days": [d.isoformat() for d in done]}
+    for name, (roster, history, total) in zip(("me", "them"), sides):
+        pts = [sum(matchup._so_far(roster, ctx, [d], history)[:2]) for d in done]
+        scale = total / sum(pts) if sum(pts) > 0 else 1.0
+        out[name] = [round(x * scale, 1) for x in pts]
+    return out
 
 
 def replacement_xfp(pool: list, ctx) -> dict[str, float]:
@@ -609,6 +626,7 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
         "weeks": weeks_shown,
         "moves": sorted(b["moves"], key=lambda r: -r["value"])[:DASHBOARD_MOVES],
         "teams": b.get("teams"), "players": b.get("players"), "games": b.get("games"),
+        "race": getattr(wk, "banked", None),
         **(views or {}),
     }
 

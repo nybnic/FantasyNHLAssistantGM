@@ -11,34 +11,23 @@
 <style>
   /* Tokens: the dataviz reference palette (slots 1-3: blue, orange, aqua; validated
      all-pairs for colour-blind separation in both modes). Dark values are their own steps. */
+  /* Tokens: the night palette (the Telegram cards'); blue you, orange them, aqua the plan. */
   :root {
-    color-scheme: light;
-    --surface: #fcfcfb; --card: #ffffff; --text: #0b0b0b; --text-2: #52514e; --muted: #8a8984;
-    --grid: #e6e5e1; --blue: #2a78d6; --blue-soft: #86b6ef; --orange: #eb6834; --aqua: #1baf7a; --neutral: #a3a29d;
-    --on-blue: #ffffff; --orange-soft: #f5b398;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --surface: #1a1a19; --card: #232321; --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e87;
-      --grid: #383835; --blue: #3987e5; --blue-soft: #1c5cab; --orange: #d95926; --aqua: #199e70; --neutral: #6f6e69; --orange-soft: #8f3d1c;
-    }
-  }
-  :root[data-theme="dark"] {
     color-scheme: dark;
-    --surface: #1a1a19; --card: #232321; --text: #ffffff; --text-2: #c3c2b7; --muted: #8f8e87;
-    --grid: #383835; --blue: #3987e5; --blue-soft: #1c5cab; --orange: #d95926; --aqua: #199e70; --neutral: #6f6e69; --orange-soft: #8f3d1c;
+    --surface: #0B1422; --card: #13213A; --text: #ffffff; --text-2: #B7C2D3; --muted: #6B7A90;
+    --grid: #1E2E48; --blue: #4D9BF0; --blue-soft: #22508A; --orange: #F07A45; --aqua: #2CC28B; --neutral: #6B7A90;
+    --on-blue: #0B1422; --orange-soft: #7A3A1E;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--surface); color: var(--text);
-         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+         font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
   body.card-mode { background: #0B1422; }
   body.card-mode main { max-width: 390px; padding: 0; }
   h1 { font-size: 20px; margin: 0 0 2px; }
   h2 { font-size: 16px; margin: 0 0 6px; }
   .sub, .note { color: var(--text-2); font-size: 13px; }
-  .card { background: var(--card); border: 1px solid var(--grid); border-radius: 12px; padding: 14px; margin-top: 12px; }
+  .card { background: var(--card); border-radius: 16px; padding: 14px; margin-top: 12px; }
   .hero { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
   .hero .big { font-size: 48px; font-weight: 650; line-height: 1; }
   .facts { display: grid; grid-template-columns: auto auto; gap: 2px 14px; font-size: 14px; }
@@ -50,22 +39,9 @@
          max-width: 260px; z-index: 5; }
   .tip b { display: block; font-size: 14px; }
   .num { font-variant-numeric: tabular-nums; }
-  /* the plan */
-  .plan { list-style: none; margin: 0; padding: 0; }
-  .plan li { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--grid); }
-  .plan li:first-child { border-top: 0; padding-top: 0; }
-  .day { flex: none; min-width: 58px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 6px;
-         padding: 2px 6px; border: 1px solid var(--blue); color: var(--text); }
-  .day.today { background: var(--blue); color: var(--on-blue); }
-  .swap { font-weight: 600; }
-  .changed { margin: 8px 0 0; padding: 6px 8px; border-left: 3px solid var(--orange); font-size: 13px; }
+  /* the plan's notes */
+  .changed { margin: 8px 0 0; padding: 8px 10px; background: #2A1E1A; border-radius: 10px; font-size: 13px; }
   .aside { margin: 10px 0 0; font-size: 13px; color: var(--text-2); }
-  /* weeks */
-  .weeks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .wk { border: 1px solid var(--grid); border-radius: 10px; padding: 8px; min-width: 0; }
-  .wk.now { border-color: var(--blue); }
-  .wk .v { font-size: 24px; font-weight: 650; line-height: 1.1; }
-  .wk .l { font-size: 12px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-2); margin-top: 8px; }
   .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   /* grid */
@@ -85,19 +61,14 @@
   tr.sep td { border-top: 1px solid var(--grid); padding-top: 6px; }
   .grid th.today { color: var(--text); font-weight: 600; }
   .tabs { float: right; display: flex; border: 1px solid var(--grid); border-radius: 8px; overflow: hidden; }
-  .tabs button { background: none; border: 0; color: var(--text-2); font-size: 12px; padding: 4px 10px; cursor: pointer; }
+  .tabs button { background: none; border: 0; color: var(--text-2); font-size: 12px; padding: 4px 10px; cursor: pointer;
+                 white-space: nowrap; min-height: 30px; }
+  main.nc .tabs { float: none; width: fit-content; flex: none; }
   .tabs button.on { background: var(--blue); color: var(--on-blue); }
-  .badge { font-size: 10px; font-weight: 600; color: var(--on-blue); background: var(--blue); border-radius: 4px;
-           padding: 0 4px; margin-right: 5px; }
-  tr.planrow .name { font-weight: 600; }
-  .toggle { display: block; font-size: 13px; color: var(--text-2); margin-top: 6px; }
-  .dots { display: flex; gap: 2px; justify-content: center; align-items: center; height: 20px; }
-  .dots.square { flex-wrap: wrap; width: 16px; margin: 0 auto; gap: 2px; align-content: center; }
-  .dots i { display: block; flex: none; width: 7px; height: 7px; border-radius: 50%; box-sizing: border-box; }
-  .dots i.d-full { background: var(--blue); }
-  .dots i.d-empty { border: 1px solid var(--muted); }
-  .dots i.d-added { background: var(--aqua); }
-  .dots i.d-freed { border: 2px solid var(--aqua); }
+  i.d-full { background: var(--blue); }
+  i.d-empty { border: 1px solid var(--muted); }
+  i.d-added { background: var(--aqua); }
+  i.d-freed { border: 2px solid var(--aqua); }
   .lost { color: var(--orange); font-weight: 600; }
   .open { font-weight: 600; }
   .zero { color: var(--muted); }
@@ -129,8 +100,6 @@
   .more { margin-top: 8px; background: none; border: 1px solid var(--grid); color: var(--text-2); border-radius: 6px;
           font-size: 12px; padding: 4px 10px; cursor: pointer; }
   .empty { color: var(--text-2); padding: 40px 0; text-align: center; }
-  button.theme { float: right; background: none; border: 1px solid var(--grid); color: var(--text-2); border-radius: 6px;
-                 font-size: 12px; padding: 3px 8px; cursor: pointer; }
   /* breakdowns: bars as HTML rows (tap a row for its sheet) */
   .bars { display: grid; grid-template-columns: minmax(96px, 38%) 1fr auto; gap: 4px 8px; align-items: center; font-size: 13px; }
   .bars .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -171,6 +140,94 @@
              padding: 3px 9px; cursor: pointer; margin: 6px 6px 0 0; }
   .tap { cursor: pointer; }
   .flags { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-2); }
+  /* the dashboard (tabs) */
+  main.nc { max-width: 760px; margin: 0 auto; padding: 16px 14px 96px; gap: 12px; }
+  main.nc .card { margin-top: 0; }
+  main.nc h2 { font-size: 17px; margin: 0; }
+  .wrap { white-space: normal !important; }
+  .nc-tile.now { background: #182A47; border: 1.5px solid var(--blue); }
+  .nc-tile.tap { cursor: pointer; }
+  button.nc-row, button.prow, button.mrow { width: 100%; background: none; border: 0; color: inherit; font: inherit;
+                                            text-align: left; cursor: pointer; }
+  .fresh { display: flex; align-items: center; gap: 6px; background: var(--card); border-radius: 999px; padding: 4px 10px;
+           font-size: 12px; color: #DCE3EE; white-space: nowrap; }
+  .fresh i { width: 7px; height: 7px; border-radius: 50%; background: var(--aqua); }
+  .fresh.stale i { background: var(--orange); }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; justify-content: center;
+            background: var(--card); border-top: 1px solid var(--grid); padding: 0 6px env(safe-area-inset-bottom); }
+  .tabbar button { flex: 1; max-width: 140px; background: none; border: 0; color: var(--text-2); cursor: pointer;
+                   font: 600 11px Inter, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center;
+                   gap: 3px; padding: 8px 0; min-height: 54px; }
+  .tabbar button.on { color: #7DB8FF; }
+  .tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round;
+                stroke-linejoin: round; }
+  .prow { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--grid); }
+  .prow.muted { opacity: .6; }
+  .pmid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .pname { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .pname small { color: var(--text-2); font-weight: 400; font-size: 12px; margin-left: 5px; }
+  .pline { display: flex; align-items: center; gap: 8px; }
+  .pbar { flex: 1; display: flex; gap: 2px; height: 7px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+  .pbar i { height: 7px; border-radius: 3px; }
+  .pdots { display: flex; gap: 4px; min-width: 56px; justify-content: flex-end; }
+  .sdot { display: block; width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box; flex: none; }
+  .legend .sdot { display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+  .fly { display: grid; grid-template-columns: 36px 1fr 92px 1fr 36px; gap: 6px; align-items: center; font-size: 13px; margin-top: 8px; }
+  .fly > span { text-align: center; }
+  .fly .l, .fly .r { display: flex; height: 12px; }
+  .fly .l { justify-content: flex-end; }
+  .fly i { display: block; height: 12px; border-radius: 3px; }
+  .fly .me { text-align: right; color: #7DB8FF; }
+  .fly .them { color: #FFA57D; }
+  .mrow { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+  .mname { flex: 1; min-width: 0; font-size: 14px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mname.on { color: #fff; font-weight: 700; }
+  .nc-val.dim { color: var(--text-2); }
+  .mbar { position: relative; display: flex; gap: 2px; height: 10px; }
+  .mbar i { display: block; height: 10px; border-radius: 2px; }
+  .mbar b { position: absolute; top: -3px; width: 2px; height: 16px; background: #fff; }
+  .tokens { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+  .tokens i { aspect-ratio: 1; border-radius: 4px; box-sizing: border-box; }
+  .legend i.tok { width: 11px; height: 11px; border-radius: 3px; box-sizing: border-box; }
+  .t-used { background: var(--blue); } .t-open { border: 1.5px solid var(--muted); } .t-kept { background: #5A3A2A; }
+  .weekpick { display: flex; gap: 6px; }
+  .weekpick button { flex: 1; min-width: 0; background: var(--card); color: var(--text-2); border: 1.5px solid transparent;
+                     border-radius: 12px; padding: 8px; cursor: pointer; text-align: left; font: 500 12px Inter, system-ui, sans-serif;
+                     display: flex; flex-direction: column; gap: 2px; }
+  .weekpick button.on { border-color: var(--blue); color: #fff; }
+  .weekpick b { font-size: 16px; color: #fff; }
+  .weekpick b span { color: #7DB8FF; }
+  .weekpick span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sgrid, .stgrid { display: grid; align-items: center; margin-top: 8px; min-width: 320px; }
+  .stgrid { gap: 3px; }
+  .sday { text-align: center; font-size: 12px; line-height: 1.25; color: var(--text-2); padding: 3px 0; border-radius: 6px 6px 0 0; }
+  .sday.today { color: #fff; font-weight: 700; background: rgba(77, 155, 240, .12); }
+  .sday.off { background: #1E3A5F; color: #fff; }
+  .sgroup { grid-column: 1 / -1; font-size: 12px; font-weight: 700; color: var(--text-2); letter-spacing: .04em;
+            padding: 8px 0 2px; border-top: 1px solid var(--grid); }
+  .swho { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; padding: 4px 0; }
+  .swho b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .swho small { font-size: 11px; color: var(--text-2); white-space: nowrap; }
+  .swho.add b, .swho.add small { color: var(--aqua); }
+  .swho.drop b { color: var(--text-2); } .swho.drop small { color: #FFA57D; }
+  .swho.sum { font-size: 12px; color: var(--text-2); }
+  .swho.me, .snum.me { color: #7DB8FF; } .swho.them, .snum.them { color: #FFA57D; } .swho.lost, .snum.lost { color: var(--orange); }
+  .scell { display: flex; justify-content: center; align-items: center; height: 32px; }
+  .scell.slots { gap: 2px; flex-wrap: wrap; align-content: center; padding: 0 2px; }
+  .scell.slots.sq { width: 18px; margin: 0 auto; }
+  .scell.slots i { display: block; width: 7px; height: 7px; border-radius: 50%; box-sizing: border-box; }
+  .snum { text-align: center; font-size: 13px; font-weight: 700; }
+  .snum.zero { color: var(--muted); font-weight: 400; }
+  .tbadge { width: 34px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            color: #fff; font: 700 11px "Barlow Condensed", system-ui, sans-serif; }
+  .tbadge.logo { background: transparent !important; }
+  .tbadge img { width: 30px; height: 26px; object-fit: contain; }
+  .scell2 { height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            font: 600 11px "Barlow Condensed", system-ui, sans-serif; box-sizing: border-box; }
+  .scell2.plain { background: var(--surface); border: 1px solid #2A3A55; }
+  .scell2.off { background: #1E3A5F; }
+  .scell2.offbg { background: #13263F; }
+  .scell2.use { background: var(--blue); color: var(--on-blue); }
   /* the Telegram card (?card): night style, read at about 80% on a phone, so no text under 13px */
   .nc { background: #0B1422; color: #fff; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px;
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -212,7 +269,7 @@
   .nc-wk.now { border-color: #4D9BF0; }
   .nc-wk span { display: block; font-size: 13px; color: #B7C2D3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nc-wk b { display: block; font-size: 24px; line-height: 1.1; }
-  .nc svg text { fill: #B7C2D3; font-size: 13px; }
+  .nc svg.big-text text { fill: #B7C2D3; font-size: 13px; }
   .nc-table { display: grid; grid-template-columns: 1fr 70px 70px; gap: 4px 8px; align-items: baseline;
               border-top: 1px solid #1E2E48; padding-top: 10px; font-size: 14px; }
   .nc-table > :nth-child(3n+2), .nc-table > :nth-child(3n) { text-align: right; }
@@ -291,79 +348,149 @@ function key(token, label) {
   const s = el("span"); const i = el("i"); i.style.background = css(token); s.append(i, document.createTextNode(label)); return s;
 }
 
-// ---- header ---------------------------------------------------------------
-function header() {
-  const h = data.header;
-  const box = el("section");
-  if (!CARD) {
-    const theme = el("button", { class: "theme", type: "button" }, "Theme");
-    theme.onclick = () => {
-      const root = document.documentElement;
-      const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-      root.dataset.theme = dark ? "light" : "dark";
-      try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
-      render();
-    };
-    box.append(theme);
-  }
-  box.append(el("h1", {}, `Week ${data.week} vs ${data.opponent}`));
-  const updated = new Date(data.generated);
-  box.append(el("div", { class: "sub" }, `${fmtDay(data.days[0])} - ${fmtDay(data.days[1])} · updated ${updated.toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })}`));
-  const card = el("div", { class: "card" });
-  const hero = el("div", { class: "hero" });
-  const big = el("div");
-  big.append(el("div", { class: "big num" }, pct(h.win)), el("div", { class: "sub" }, "chance to win this week"));
-  const facts = el("div", { class: "facts num" });
-  const rows = [];
-  if (h.me.so_far || h.them.so_far) rows.push(["So far", pair([h.me.so_far, h.them.so_far])]);
-  rows.push(["Projected", pair([h.me.expected, h.them.expected])]);
-  if (h.yahoo_projected) rows.push(["Yahoo", pair(h.yahoo_projected)]);
-  rows.push(["Adds left", `${h.adds_left.week} this week, ${h.adds_left.season} season`]);
-  if (h.season) rows.push(["Season", `playoffs ${pct(h.season.playoffs)}, title ${pct(h.season.title)}`]);
-  rows.forEach(([k, v]) => facts.append(el("span", {}, k), el("span", {}, v)));
-  hero.append(big, facts);
-  card.append(hero);
-  box.append(card);
-  return box;
+// ---- the dashboard: five tabs in a bar at the bottom, each a few cards; a sheet per player and per move ----
+const TABS = [["today", "Today"], ["matchup", "Matchup"], ["moves", "Moves"], ["schedule", "Schedule"], ["watch", "Watch"]];
+const TAB_ICONS = {
+  today: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
+  matchup: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  moves: '<path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4"/>',
+  schedule: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  watch: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>' };
+const hashTab = () => (location.hash.match(/^#(today|matchup|moves|schedule|watch)$/) || [])[1];
+let tab = hashTab() || recall("tab", "today");
+function pickTab(v) {
+  tab = v;
+  remember("tab", v);
+  history.replaceState(null, "", `#${v}`);
+  render();
+  scrollTo(0, 0);
+}
+function tabBar() {
+  const nav = el("nav", { class: "tabbar", "aria-label": "Dashboard" });
+  TABS.forEach(([v, name]) => {
+    const b = el("button", { type: "button", class: v === tab ? "on" : "" });
+    if (v === tab) b.setAttribute("aria-current", "page");
+    const icon = document.createElementNS(NS, "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("aria-hidden", "true");
+    icon.innerHTML = TAB_ICONS[v];  // a fixed icon, not data
+    b.append(icon, document.createTextNode(name));
+    b.onclick = () => pickTab(v);
+    nav.append(b);
+  });
+  return nav;
+}
+// How fresh the plan is: the run's time; orange once it's over 2 hours old.
+function freshness() {
+  const at = new Date(data.generated), mins = Math.round((Date.now() - at) / 60000);
+  const pill = el("span", { class: "fresh" + (mins > 120 ? " stale" : "") });
+  pill.append(el("i"), document.createTextNode(mins < 60 ? `${Math.max(mins, 0)} min ago`
+    : at.toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })));
+  pill.title = "When the plan was last run";
+  return pill;
 }
 
-// ---- the plan ---------------------------------------------------------------
-function planCard() {
-  const card = el("section", { class: "card" });
-  card.append(el("h2", {}, "The plan"));
-  if (!data.plan.length) card.append(el("div", {}, data.plan_empty));
-  const list = el("ul", { class: "plan" });
-  data.plan.forEach(p => {
-    const li = el("li");
-    if (!CARD && data.moves.some(r => r.key === p.key)) { li.classList.add("tap"); li.onclick = () => openSheet("move", p.key); }
-    li.append(el("span", { class: "day" + (p.today ? " today" : "") }, p.day));
-    const body = el("div");
-    body.append(el("div", { class: "swap" }, p.swap), el("div", { class: "note" }, p.detail));
-    li.append(body);
-    list.append(li);
+// ---- Today: the odds and the score, the plan, the race, why the win %, the nights, the weeks ahead ----
+function todayTop() {
+  const h = data.header, box = el("section", { class: "top" }), row = el("div", { class: "nc-top" });
+  const title = el("span", { class: "nc-week cond" }, `WEEK ${data.week} `);
+  title.append(el("span", {}, `vs ${data.opponent}`));
+  row.append(title, freshness());
+  const hero = el("div", { class: "nc-hero" });
+  hero.append(ring(h.win), scoreBars(h));
+  const facts = [];
+  if (h.yahoo_projected) facts.push(`Yahoo ${pair(h.yahoo_projected)}`);
+  facts.push(`adds ${h.adds_left.week} this week, ${h.adds_left.season} season`);
+  if (h.season) facts.push(`playoffs ${pct(h.season.playoffs)}, title ${pct(h.season.title)}`);
+  box.append(row, hero, el("div", { class: "nc-dim wrap" }, facts.join(" · ")));
+  return box;
+}
+// The plan's later moves as rows (day, + add − drop, value); `tap`: each opens its sheet.
+function planRows(rows, tap) {
+  const next = el("div", { class: "nc-next" });
+  rows.forEach(p => {
+    const r = p.key ? data.moves.find(m => m.key === p.key) : null, link = tap && r;
+    const row = el(link ? "button" : "div", { class: "nc-row" + (link ? " tap" : "") });
+    if (link) { row.type = "button"; row.onclick = () => openSheet("move", r.key); }
+    row.append(el("span", { class: "nc-day cond" }, p.today ? "TODAY" : dayShort(p.day)), swapSpan(r, p.swap));
+    if (r) row.append(el("span", { class: "nc-val cond num" }, wp(r.value)));
+    next.append(row);
   });
-  card.append(list);
+  return next;
+}
+function weekTiles() {
+  const weeks = el("div", { class: "nc-weeks" });
+  data.weeks.forEach((w, i) => {
+    const t = el("div", { class: "nc-wk" + (i === 0 ? " now" : "") });
+    t.append(el("span", {}, i === 0 ? `Wk ${w.week} · now` : `Wk ${w.week}`),
+             el("b", { class: "cond num" }, w.win == null ? "?" : pct(w.win)),
+             el("span", {}, (w.opponent ? shortTeam(w.opponent) : "not known") + (w.margin != null ? ` · ${signed(w.margin, 0)}` : "")));
+    weeks.append(t);
+  });
+  return weeks;
+}
+function planSection() {
+  const card = el("section", { class: "card" }), head = el("div", { class: "nc-row" });
+  head.append(el("h2", {}, "The plan"));
+  if (data.header.price) head.append(el("span", { class: "nc-dim" }, `an add costs ${Math.round(100 * data.header.price.lam)}`));
+  card.append(head);
+  const today = data.plan.filter(p => p.today), later = data.plan.filter(p => !p.today);
+  const tile = todayTile(today[0]), r = today[0] && today[0].key ? data.moves.find(m => m.key === today[0].key) : null;
+  tile.classList.add("now");
+  if (r) {
+    tile.classList.add("tap");
+    tile.setAttribute("role", "button");
+    tile.tabIndex = 0;
+    tile.onclick = () => openSheet("move", r.key);
+    tile.onkeydown = e => { if (e.key === "Enter") openSheet("move", r.key); };
+  }
+  card.append(tile);
+  const rest = today.slice(1).concat(later);
+  if (rest.length) card.append(planRows(rest, true));
   if (data.changed) card.append(el("p", { class: "changed" }, `Changed since the last plan: ${data.changed}.`));
   if (data.this_week_line) card.append(el("p", { class: "aside" }, data.this_week_line));
   return card;
 }
-
-// ---- this week and the next two ----------------------------------------------
-function weeksCard() {
+// Each team's points through the week: banked day by day (solid), then expected (dashed).
+function raceCard() {
+  const h = data.header, race = data.race, start = new Date(data.days[0] + "T12:00:00");
+  const days = [...Array(7)].map((_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d.toLocaleDateString("sv-SE"); });
+  const done = days.filter(d => d < data.date).length;
+  const series = side => {
+    const t = h[side], exp = t.by_day || {}, out = [0];
+    days.forEach((d, i) => {
+      const banked = race ? (race[side][race.days.indexOf(d)] || 0) : t.so_far / Math.max(done, 1);  // no race: spread evenly
+      out.push(out.at(-1) + (d < data.date ? banked : exp[d] || 0));
+    });
+    return out;
+  };
+  const A = series("me"), B = series("them"), hi = Math.max(...A, ...B, 1);
   const card = el("section", { class: "card" });
-  card.append(el("h2", {}, "This week and the next two"));
-  const grid = el("div", { class: "weeks" });
-  data.weeks.forEach((w, i) => {
-    const t = el("div", { class: "wk" + (i === 0 ? " now" : "") });
-    t.append(el("div", { class: "l" }, i === 0 ? `Week ${w.week}, now` : `Week ${w.week}`),
-             el("div", { class: "v num" }, w.win == null ? "?" : pct(w.win)),
-             el("div", { class: "l" }, w.opponent ? `vs ${w.opponent}` : "opponent not known"));
-    if (w.margin != null) t.append(el("div", { class: "l num", title: "expected margin" }, `${signed(w.margin, 0)} pts`));
-    grid.append(t);
+  card.append(el("h2", {}, "The race so far, and where it's heading"));
+  const W = width(), H = 170, m = { l: 10, r: 36, t: 12, b: 24 };
+  const X = i => m.l + i * (W - m.l - m.r) / 7, Y = v => m.t + (1 - v / hi) * (H - m.t - m.b);
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "big-text", role: "img",
+                             "aria-label": `Score so far ${f0(A[done])} to ${f0(B[done])}, expected ${f0(A[7])} to ${f0(B[7])}` });
+  svg.append(svgEl("rect", { x: X(done), y: m.t, width: X(7) - X(done), height: H - m.t - m.b, fill: "#182A47" }));
+  [0.5, 1].forEach(f => svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(hi * f), y2: Y(hi * f), stroke: css("--grid") })));
+  svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: "#2A3A55" }));
+  [[B, "--orange"], [A, "--blue"]].forEach(([s, token]) => {
+    const pts = i => `${X(i).toFixed(1)},${Y(s[i]).toFixed(1)}`;
+    svg.append(svgEl("polyline", { points: s.slice(0, done + 1).map((_, i) => pts(i)).join(" "), fill: "none",
+                                   stroke: css(token), "stroke-width": 3, "stroke-linejoin": "round" }));
+    svg.append(svgEl("polyline", { points: s.slice(done).map((_, i) => pts(i + done)).join(" "), fill: "none",
+                                   stroke: css(token), "stroke-width": 2.5, "stroke-dasharray": "4 4" }));
+    svg.append(svgEl("circle", { cx: X(done), cy: Y(s[done]), r: 4, fill: css(token) }));
   });
-  card.append(grid);
-  if (!CARD) card.append(el("div", { class: "note", style: "margin-top:8px" },
-    "Later weeks are played against their real opponents: a point there counts by how close that week is."));
+  const ends = [[A[7], "--blue"], [B[7], "--orange"]].sort((x, y) => y[0] - x[0]);  // the higher one on top, kept apart
+  const ys = [Y(ends[0][0]), Math.max(Y(ends[1][0]), Y(ends[0][0]) + 15)];
+  ends.forEach(([v, token], k) => svg.append(svgEl("text", { x: X(7) + 4, y: ys[k] + 4, fill: css(token), "font-weight": 700 }, f0(v))));
+  days.forEach((d, i) => svg.append(svgEl("text", { x: X(i + 1), y: H - 6, "text-anchor": "middle",
+    "font-weight": d === data.date ? 700 : 400 }, fmtDay(d, { weekday: "short" }))));
+  card.append(svg);
+  const legend = el("div", { class: "legend" });
+  legend.append(key("--blue", "You"), key("--orange", data.opponent), el("span", {}, "Solid: banked · dashed: expected"));
+  card.append(legend);
   return card;
 }
 
@@ -382,7 +509,7 @@ function nightsCard() {
   const card = el("section", { class: "card" });
   if (!CARD && byDay(data.header.me))
     card.append(tabsEl([["points", "Points"], ["games", "Games"]], nightsView, v => { nightsView = v; remember("nightsView", v); render(); }));
-  card.append(el("h2", {}, points ? "Expected points left, night by night" : "Lineup games left this week"));
+  card.append(el("h2", {}, points ? "Nights left: expected points" : "Nights left: lineup games"));
   if (!nights.length) { card.append(el("div", { class: "note" }, "No games left this week.")); return card; }
   const W = width(), H = 150, m = { l: 26, r: 6, t: 16, b: 22 };
   const hi = Math.max(4, ...nights.map(n => Math.max(n.mine, n.theirs)));
@@ -422,318 +549,255 @@ function label(r) {
   const last = n => n.split(" ").slice(1).join(" ") || n;
   return r.drop ? `${last(r.add.name)} for ${last(r.drop.name)}` : r.ir_slot ? `${last(r.add.name)} (${r.ir_slot})` : `${last(r.add.name)} (open spot)`;
 }
-function valueCard() {
+// ---- Moves: the top moves' value by when it pays, against the add price; every move; the budget ----
+function movesBars() {
   const rows = [...data.moves].sort((a, b) => b.value - a.value).slice(0, 8);
-  const card = el("section", { class: "card" });
-  card.append(el("h2", {}, "Top moves: what each is worth"));
-  card.append(el("div", { class: "note" }, "In win-pts: percentage points of a weekly win, summed over this week, the next two and later."));
-  if (!rows.length) return card;
-  const price = data.header.price ? data.header.price.lam : null;
-  const W = width(), rowH = 26, m = { l: 132, r: 40, t: 18, b: 8 }, H = m.t + m.b + rowH * rows.length;
-  const lo = Math.min(0, ...rows.map(r => PARTS.reduce((a, [k]) => a + Math.min(0, part(r, k)), 0)));
-  const hi = Math.max(price || 0, ...rows.map(r => PARTS.reduce((a, [k]) => a + Math.max(0, part(r, k)), 0)));
-  const X = v => m.l + (v - lo) / ((hi - lo) || 1) * (W - m.l - m.r);
-  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Each move's value, by when it pays" });
-  svg.append(svgEl("line", { x1: X(0), x2: X(0), y1: m.t - 4, y2: H - m.b, stroke: css("--muted") }));
-  rows.forEach((r, i) => {
-    const y = m.t + i * rowH + 4, h = rowH - 10;
-    const name = svgEl("text", { x: m.l - 8, y: y + h - 3, "text-anchor": "end", fill: css(r.status === "plan" ? "--text" : "--text-2"),
-                                 "font-weight": r.status === "plan" ? 700 : 400, class: "tap" }, label(r));
-    name.addEventListener("click", () => openSheet("move", r.key));
-    svg.append(name);
-    const row = svgEl("rect", { x: 0, y: y - 4, width: m.l - 4, height: rowH, fill: "transparent", class: "tap" });
-    row.addEventListener("click", () => openSheet("move", r.key));
-    svg.append(row);
-    let pos = 0, neg = 0;
-    PARTS.forEach(([k, token, name]) => {
-      const v = part(r, k);
-      if (!v) return;
-      const a = v > 0 ? pos : neg + v, b = v > 0 ? pos + v : neg;
-      const seg = svgEl("rect", { x: X(a) + 1, y, width: Math.max(1, X(b) - X(a) - 2), height: h, rx: 2, fill: css(token) });
-      hover(seg, [label(r), `${name}: ${wp(v)} win-pts`, `In all: ${wp(r.value)} win-pts`]);
-      svg.append(seg);
-      if (v > 0) pos += v; else neg += v;
-    });
-    svg.append(svgEl("text", { x: X(pos) + 6, y: y + h - 3, fill: css("--text") }, wp(r.value)));
-  });
-  if (price != null) {
-    svg.append(svgEl("line", { x1: X(price), x2: X(price), y1: m.t - 4, y2: H - m.b, stroke: css("--text-2") }));
-    svg.append(svgEl("text", { x: X(price), y: m.t - 8, "text-anchor": "middle" }, `an add costs ${Math.round(price * 100)}`));
-  }
-  card.append(svg);
+  const price = data.header.price ? data.header.price.lam : null, card = el("section", { class: "card" });
+  card.append(el("h2", {}, "Top moves, in win-pts"));
   const legend = el("div", { class: "legend" });
   PARTS.forEach(([, token, name]) => legend.append(key(token, name)));
-  legend.append(el("span", {}, "Bold: in the plan. Tap a move for its parts."));
+  if (price != null) legend.append(el("span", {}, `white line: an add costs ${Math.round(100 * price)}`));
   card.append(legend);
+  const hi = 1.05 * Math.max(price || 0, ...rows.map(r => PARTS.reduce((a, [k]) => a + Math.max(0, part(r, k)), 0))) || 1;
+  rows.forEach(r => {
+    const planned = data.plan.find(p => p.key === r.key);
+    const row = el("button", { type: "button", class: "mrow" }), head = el("span", { class: "nc-row" });
+    head.append(avatar(r.add.id, 30), el("span", { class: "mname" + (planned ? " on" : "") }, label(r)));
+    if (planned) head.append(el("span", { class: "nc-day cond" }, planned.today ? "TODAY" : dayShort(planned.day)));
+    head.append(el("span", { class: "nc-val cond num" + (planned ? "" : " dim") }, wp(r.value)));
+    const bar = el("span", { class: "mbar" });
+    PARTS.forEach(([k, token, name]) => {
+      const v = part(r, k);
+      if (v <= 0) return;
+      const i = el("i");
+      i.style.width = `${(100 * v / hi).toFixed(1)}%`;
+      i.style.background = css(token);
+      bar.append(i);
+    });
+    if (price != null) { const t = el("b"); t.style.left = `${(100 * price / hi).toFixed(1)}%`; bar.append(t); }
+    row.append(head, bar);
+    row.onclick = () => openSheet("move", r.key);
+    card.append(row);
+  });
+  card.append(el("div", { class: "note" }, "In the plan: white, with its day. Tap a move for its parts; past the white line it's worth an add."));
+  return card;
+}
+function budgetTokens() {
+  const b = data.budget, used = b.used.at(-1) ?? 0, regular = b.cap - b.reserve;
+  const card = el("section", { class: "card" }), head = el("div", { class: "nc-row" });
+  const left = el("span", { class: "nc-score cond num" }, String(b.cap - used));
+  left.append(el("small", {}, ` left of ${b.cap}`));
+  head.append(el("h2", {}, "The add budget"), left);
+  const grid = el("div", { class: "tokens" });
+  for (let i = 0; i < b.cap; i++) grid.append(el("i", { class: i < used ? "t-used" : i < regular ? "t-open" : "t-kept" }));
+  const legend = el("div", { class: "legend" });
+  const swatch = (cls, text) => { const sp = el("span"); sp.append(el("i", { class: `tok ${cls}` }), document.createTextNode(text)); return sp; };
+  legend.append(swatch("t-used", `Used: ${used}`), swatch("t-open", `Regular season: ${Math.max(regular - used, 0)}`),
+                swatch("t-kept", `Kept for the playoffs: ${b.reserve}`));
+  const week = data.header.adds_left.week;
+  card.append(head, grid, legend, el("div", { class: "note" },
+    `On an even pace you'd have used ${b.pace[b.week - 1].toFixed(1)} by now. This week: ${week} add${week === 1 ? "" : "s"} left.`));
   return card;
 }
 
-// ---- schedule grid: by player, or by slot ------------------------------------------
-let gridView = "player", gridPlan = true;
-try { gridView = localStorage.getItem("gridView") || "player"; } catch (e) {}
-function gridHead(s, table) {
-  const thead = el("thead"), weeks = el("tr"), days = el("tr");
-  weeks.append(el("th", { class: "name" }, ""));
-  days.append(el("th", { class: "name" }, ""));
-  let run = [];
-  s.days.forEach(d => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0 }); run.at(-1).n++; });
-  run.forEach((r, k) => {
-    const w = s.weeks[k] || { week: r.week, opponent: "" };
-    weeks.append(el("th", { colspan: r.n, class: "wkh" + (k ? " brk" : "") }, `Week ${w.week} vs ${w.opponent}`));
-  });
-  s.days.forEach((d, i) => days.append(el("th", { class: (brk(s, i) ? "brk" : "") + (d.date === data.date ? " today" : "") },
-                                          `${d.label} ${d.day}`)));
-  thead.append(weeks, days);
-  table.append(thead);
+// ---- Schedule: my lineup night by night (this week and the next two), then every team's games ----
+let schedWeek = null, schedPlan = recall("schedPlan", "plan") === "plan", schedView = recall("schedView", "players");
+let streamAll = false;
+function schedDays() {
+  const s = data.schedule;
+  if (!s.days.some(d => d.week === schedWeek)) schedWeek = data.week;
+  return s.days.map((d, i) => i).filter(i => s.days[i].week === schedWeek && s.days[i].date >= data.date);
 }
-const brk = (s, i) => i > 0 && s.days[i].week !== s.days[i - 1].week;
-function countRows(s, tbody, rows) {
-  rows.forEach(([name, vals, cls], k) => {
-    const tr = el("tr", { class: k === 0 ? "sep" : "" });
-    tr.append(el("td", { class: "name" }, name));
-    vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brk(s, i) ? "brk " : "") + (cls ? cls(v) : "") },
-                                         cls && !v ? "·" : v)));
-    tbody.append(tr);
+function weekPicker() {
+  const s = data.schedule;
+  if (!s || !s.days.length) return null;
+  schedDays();
+  const mine = s.with_plan && schedPlan ? s.with_plan.my_games : s.my_games, box = el("div", { class: "weekpick" });
+  (data.weeks || []).forEach(w => {
+    const ix = s.days.map((d, i) => i).filter(i => s.days[i].week === w.week);
+    if (!ix.length) return;
+    const sum = arr => ix.reduce((a, i) => a + (arr[i] || 0), 0);
+    const b = el("button", { type: "button", class: w.week === schedWeek ? "on" : "" });
+    const top = el("b", { class: "cond" }, `WK ${w.week} `);
+    top.append(el("span", {}, w.win == null ? "" : pct(w.win)));
+    b.append(top, el("span", {}, w.opponent ? `vs ${shortTeam(w.opponent)}` : "opponent not known"),
+             el("span", { class: "num" }, `games ${sum(mine)} v ${sum(s.their_games)}`));
+    b.onclick = () => { schedWeek = w.week; render(); };
+    box.append(b);
   });
+  return box;
 }
-function addRows(s, tbody, rows, plan) {
-  rows.forEach((r, k) => {
-    const tr = el("tr", { class: (k === 0 ? "sep" : "") + (plan ? " planrow" : "") });
-    const name = el("td", { class: "name" });
-    if (plan) name.append(el("span", { class: "badge" }, "Plan"));
-    name.append(document.createTextNode(`+ ${r.name} ${r.positions}`));
-    tr.append(name);
-    r.cells.forEach((c, i) => {
-      const td = el("td", { class: brk(s, i) ? "brk" : "" });
-      if (c) {
-        const box = el("div", { class: `cell s-${c}` });
-        hover(box, [`${r.name} ${c === "start" ? "would start" : "would play, no slot free"}`,
-                    plan ? `In the plan${r.drop ? ` for ${r.drop}` : ""}${r.when ? `, from ${fmtDay(r.when)}` : ""}`
-                         : `Best streamer${r.drop ? ` for ${r.drop}` : ""}`]);
-        td.append(box);
-      }
-      tr.append(td);
-    });
-    tbody.append(tr);
-  });
+// One night's dot: filled if he dresses, a ring if he sits, a goalie's by his chance to start;
+// dashed for a free agent who'd dress.
+function dot(kind, color, prob, dashed) {
+  const i = el("i", { class: "sdot" });
+  if (!kind) return i;
+  if (dashed) i.style.border = `2px dashed ${color}`;
+  else if (kind === "bench") i.style.border = `2px solid ${color}`;
+  else i.style.background = prob != null ? `conic-gradient(${color} 0 ${Math.round(100 * prob)}%, #2A3A55 0)` : color;
+  return i;
 }
-function byPlayer(s, tbody) {
+const GROUP_OF = pos => pos.includes("G") ? "GOALIES" : pos === "D" ? "DEFENSE" : "FORWARDS";
+function lineupRows(grid, ix) {
+  const s = data.schedule, plan = schedPlan && s.with_plan;
+  const blue = css("--blue"), aqua = css("--aqua");
+  const joins = {}, groups = { FORWARDS: [], DEFENSE: [], GOALIES: [] };
+  (s.plan || []).forEach(r => { const drop = r.key.split(":")[1]; if (drop && drop !== "0") joins[drop] = r.when; });
+  const before = iso => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() - 1); return fmtDay(d.toLocaleDateString("sv-SE"), { weekday: "short", day: "numeric" }); };
   s.rows.forEach(r => {
-    const tr = el("tr");
-    tr.append(el("td", { class: "name" }, `${r.name} ${r.positions}`));
-    r.cells.forEach((c, i) => {
-      const td = el("td", { class: brk(s, i) ? "brk" : "" });
-      if (c) {
-        const prob = r.probs[i];
-        const box = el("div", { class: `cell ${c}` }, prob != null ? Math.round(prob * 100) : "");
-        hover(box, [c === "start" ? "Starts" : "Plays, but no slot free", `${r.name}, ${s.days[i].label} ${s.days[i].day}`]
-          .concat(prob != null ? [`${Math.round(prob * 100)}% chance to start`] : []));
-        td.append(box);
-      }
-      tr.append(td);
-    });
-    tbody.append(tr);
+    const leaves = plan ? joins[r.id] : null, cells = plan && r.plan_cells ? r.plan_cells : r.cells;
+    groups[GROUP_OF(r.positions)].push({
+      name: lastName(r.name), sub: leaves ? (leaves <= data.date ? "− dropped today" : `− until ${before(leaves)}`) : r.positions,
+      cls: leaves ? "drop" : "", dots: ix.map(i => dot(leaves && s.days[i].date >= leaves ? null : cells[i], blue,
+                                                       r.probs[i] != null ? r.probs[i] : null)) });
   });
-  addRows(s, tbody, s.plan || [], true);
-  addRows(s, tbody, s.streamers || [], false);
-  const positions = Object.keys(s.slots || (s.open[0] || {}));
-  countRows(s, tbody, positions.map(p => [`Open ${p}`, s.open.map(o => o[p]), v => v ? "open" : "zero"])
-    .concat([["Your lineup games", s.my_games], ["Their lineup games", s.their_games]]));
+  if (plan) (s.plan || []).forEach(r => groups[GROUP_OF(r.positions)].push({
+    name: lastName(r.name), sub: r.when && r.when > data.date ? `+ from ${fmtDay(r.when, { weekday: "short", day: "numeric" })}` : "+ today",
+    cls: "add", dots: ix.map(i => dot(r.cells[i], aqua)) }));
+  const streams = (s.streamers || []).map(r => ({ name: lastName(r.name), sub: `${r.positions} · ${r.team}`, cls: "fa",
+                                                    dots: ix.map(i => dot(r.cells[i] === "start" ? "start" : null, aqua, null, true)) }));
+  Object.entries(groups).concat(streams.length ? [["COULD STREAM", streams]] : []).forEach(([title, rows]) => {
+    if (!rows.length) return;
+    grid.append(el("span", { class: "sgroup" }, title));
+    rows.forEach(r => {
+      const who = el("span", { class: `swho ${r.cls}` });
+      who.append(el("b", {}, r.name), el("small", {}, r.sub));
+      grid.append(who, ...r.dots.map(d => { const c = el("span", { class: "scell" }); c.append(d); return c; }));
+    });
+  });
 }
-function bySlot(s, tbody) {
-  const plan = gridPlan && s.with_plan ? s.with_plan : null;
-  const open = plan ? plan.open : s.open;
+function slotRows(grid, ix) {  // my lineup's slots each night: filled, open, or filled / freed by the plan
+  const s = data.schedule, plan = schedPlan && s.with_plan ? s.with_plan : null, open = plan ? plan.open : s.open;
+  grid.append(el("span", { class: "sgroup" }, "SLOTS"));
   Object.entries(s.slots).forEach(([pos, cap]) => {
-    const tr = el("tr");
-    tr.append(el("td", { class: "name" }, `${pos} ×${cap}`));
-    s.days.forEach((d, i) => {
-      const td = el("td", { class: brk(s, i) ? "brk" : "" });
-      const was = cap - s.open[i][pos], now = cap - open[i][pos];
-      const dots = el("div", { class: "dots" + (cap > 3 ? " square" : "") });  // 4 D slots: 2 x 2
+    const who = el("span", { class: "swho" });
+    who.append(el("b", {}, pos), el("small", {}, `×${cap}`));
+    grid.append(who);
+    ix.forEach(i => {
+      const was = cap - s.open[i][pos], now = cap - open[i][pos], c = el("span", { class: "scell slots" + (cap > 3 ? " sq" : "") });
       for (let k = 0; k < cap; k++) {
         const kind = k < Math.min(was, now) ? "full" : k < now ? "added" : k < was ? "freed" : "empty";
-        dots.append(el("i", { class: `d-${kind}` }));
+        c.append(el("i", { class: `d-${kind}` }));
       }
-      hover(dots, [`${pos}, ${d.label} ${d.day}`, `${now} of ${cap} slots filled`]
-        .concat(now > was ? [`${now - was} filled by the plan`] : now < was ? [`${was - now} freed by the plan`] : [])
-        .concat(open[i][pos] ? [`${open[i][pos]} open: a streamer could play`] : []));
-      td.append(dots);
-      tr.append(td);
+      grid.append(c);
     });
-    tbody.append(tr);
   });
-  const benched = plan ? plan.benched : s.benched;
-  countRows(s, tbody, [["Games lost (lineup full)", benched, v => v ? "lost" : "zero"],
-                       ["Your lineup games", plan ? plan.my_games : s.my_games],
-                       ["Their lineup games", s.their_games]]);
 }
-function grid() {
+function scheduleCard() {
   const s = data.schedule;
-  const card = el("section", { class: "card" });
-  const tabs = el("div", { class: "tabs", role: "tablist" });
-  [["player", "By player"], ["slot", "By slot"]].forEach(([v, name]) => {
-    const b = el("button", { type: "button", role: "tab", "aria-selected": String(gridView === v), class: gridView === v ? "on" : "" }, name);
-    b.onclick = () => { gridView = v; try { localStorage.setItem("gridView", v); } catch (e) {} render(); };
-    tabs.append(b);
+  if (!s || !s.days.length) return null;
+  const ix = schedDays(), card = el("section", { class: "card" });
+  card.append(el("h2", {}, "My lineup, night by night"));
+  const toggles = el("div", { class: "nc-row" });
+  toggles.append(tabsEl([["players", "Players"], ["slots", "Slots"]], schedView, v => { schedView = v; remember("schedView", v); render(); }));
+  if (s.with_plan) toggles.append(tabsEl([["plan", "With plan"], ["asis", "As is"]], schedPlan ? "plan" : "asis",
+                                         v => { schedPlan = v === "plan"; remember("schedPlan", v); render(); }));
+  card.append(toggles);
+  const grid = el("div", { class: "sgrid" });
+  grid.style.gridTemplateColumns = `96px repeat(${ix.length}, minmax(0, 1fr))`;
+  grid.append(el("span"));
+  ix.forEach(i => {
+    const d = s.days[i], h = el("span", { class: "sday" + (d.date === data.date ? " today" : "") }, d.label);
+    h.append(el("br"), document.createTextNode(String(d.day)));
+    grid.append(h);
   });
-  card.append(tabs, el("h2", {}, "Games by day"));
-  card.append(el("div", { class: "note" }, gridView === "player"
-    ? "Who starts, games lost to a full lineup, the plan's adds and the best streamer per position."
-    : "Your lineup slots each night: open ones are where an add would play."));
-  if (gridView === "slot" && s.with_plan) {
-    const label = el("label", { class: "toggle" });
-    const box = el("input", { type: "checkbox" });
-    box.checked = gridPlan;
-    box.onchange = () => { gridPlan = box.checked; render(); };
-    label.append(box, document.createTextNode(" With the plan's moves"));
-    card.append(label);
-  }
-  const table = el("table", { class: "grid" });
-  gridHead(s, table);
-  const tbody = el("tbody");
-  (gridView === "slot" && s.slots ? bySlot : byPlayer)(s, tbody);
-  table.append(tbody);
+  (schedView === "slots" ? slotRows : lineupRows)(grid, ix);
+  const plan = schedPlan && s.with_plan ? s.with_plan : null;
+  const sums = [["Open slots", ix.map(i => Object.values((plan ? plan.open : s.open)[i]).reduce((a, b) => a + b, 0)), ""],
+                ["Your games", ix.map(i => (plan ? plan.my_games : s.my_games)[i]), "me"],
+                [shortTeam((s.weeks.find(w => w.week === schedWeek) || {}).opponent || "Them"), ix.map(i => s.their_games[i]), "them"]];
+  const lost = ix.map(i => (plan ? plan.benched : s.benched)[i]);
+  if (lost.some(Boolean)) sums.splice(1, 0, ["Lost: lineup full", lost, "lost"]);
+  grid.append(el("span", { class: "sgroup" }, ""));
+  sums.forEach(([name, vals, cls]) => {
+    grid.append(el("span", { class: `swho sum ${cls}` }, name));
+    vals.forEach(v => grid.append(el("span", { class: `snum num ${cls}` + (v ? "" : " zero") }, v ? String(v) : "·")));
+  });
   const scroll = el("div", { class: "scroll" });
-  scroll.append(table);
+  scroll.append(grid);
   card.append(scroll);
   const legend = el("div", { class: "legend" });
-  const ring = (token, text, width = 2) => {
-    const sp = el("span"); const i = el("i"); i.style.border = `${width}px solid ${css(token)}`; sp.append(i, document.createTextNode(text)); return sp;
-  };
-  if (gridView === "player") {
-    legend.append(key("--blue", "Starts"), key("--orange", "Plays, no slot free"), ring("--blue", "An add would start"),
-                  el("span", {}, "Goalie cells: % chance to start"));
-  } else {
-    legend.append(key("--blue", "Filled"), ring("--muted", "Open", 1));
-    if (s.with_plan && gridPlan) legend.append(key("--aqua", "Filled by the plan"), ring("--aqua", "Freed by the plan"));
-  }
+  const ring = (text, style) => { const sp = el("span"), i = el("i", { class: "sdot" }); i.style.cssText = style; sp.append(i, document.createTextNode(text)); return sp; };
+  if (schedView === "slots") legend.append(key("--blue", "Filled"), ring("Open", `border:1.5px solid ${css("--muted")}`),
+                                           key("--aqua", "Filled by the plan"), ring("Freed by the plan", `border:2px solid ${css("--aqua")}`));
+  else legend.append(key("--blue", "Dresses"), ring("Sits: no slot free", `border:2px solid ${css("--blue")}`),
+                     ring("Goalie: chance to start", `background:conic-gradient(${css("--blue")} 0 60%, #2A3A55 0)`),
+                     key("--aqua", "Plan add"), ring("Free agent who'd dress", `border:2px dashed ${css("--aqua")}`));
   card.append(legend);
   return card;
 }
 
-// ---- streaming: every team's games against your open slots, this week and the next two ----
+// ---- streaming: every team's games in the chosen week, against your open slots ------------------
 let streamPos = recall("streamPos", "all");
+function teamBadge(team) {  // the team's logo on its colour, its abbreviation if the logo can't load
+  const b = el("span", { class: "tbadge" }, team);
+  b.style.background = TEAM_COLORS[team] || "#3A4A63";
+  const img = el("img", { alt: team, src: `https://assets.nhle.com/logos/nhl/svg/${team}_dark.svg` });
+  img.addEventListener("load", () => { b.textContent = ""; b.append(img); b.classList.add("logo"); });
+  return b;
+}
 function streamCard() {
   const s = data.streaming;
   if (!s || !s.days.length) return null;
   const pos = s.slots[streamPos] ? streamPos : "all";
+  const ix = s.days.map((d, i) => i).filter(i => s.days[i].week === (schedWeek ?? data.week) && s.days[i].date >= data.date);
+  if (!ix.length) return null;
   const card = el("section", { class: "card" });
+  card.append(el("h2", {}, `League-wide streaming · wk ${schedWeek ?? data.week}`));
   const tabs = tabsEl([["all", "All"]].concat(Object.keys(s.slots).map(p => [p, p])), pos,
                       v => { streamPos = v; remember("streamPos", v); render(); });
   tabs.classList.add("tight");
-  card.append(tabs, el("h2", {}, "Streaming schedule"));
+  card.append(tabs);
   card.append(el("div", { class: "note" }, pos === "all"
-    ? "Every team's games, this week and the next two, best schedule first: the most games on off-nights"
-      + " (half the league or less playing), then the most games. Pick a position to see which fall on nights your lineup has that slot open."
-    : `Filled: a game on a night your lineup has a ${pos} slot open, with the plan's moves made. Count: those games / all games.`
-      + " Best schedule first: the most of those games, then the most games."
+    ? "Every team's games, best schedule first: the most on off-nights (half the league or less playing), then the most games. Under each day: NHL games that night."
+    : `Blue: a game on a night your lineup has a ${pos} slot open, with the plan's moves made. Count: those games / all games.`
       + (pos === "G" ? " A goalie's game counts only if he starts." : "")));
-  const usable = (i) => pos !== "all" && s.days[i].open && s.days[i].open[pos] > 0;
-  // An off-night: half the league or less plays, when lineups have slots open.
-  const offNight = (i) => s.days[i].games * 2 <= s.teams.length / 2;
-  const weeks = s.weeks.map(w => w.week);
-  const rows = s.teams.map(t => {
-    const per = weeks.map(w => ({ games: 0, use: 0, off: 0, known: false }));
-    t.cells.forEach((c, i) => {
-      if (!c) return;
-      const k = weeks.indexOf(s.days[i].week);
-      if (k < 0) return;
-      per[k].games++;
-      per[k].known = per[k].known || !!s.days[i].open;
-      if (usable(i)) per[k].use++;
-      if (offNight(i)) per[k].off++;
+  const usable = i => pos !== "all" && s.days[i].open && s.days[i].open[pos] > 0;
+  const off = i => s.days[i].games * 2 <= s.teams.length / 2;  // an off-night, when lineups have slots open
+  let rows = s.teams.map(t => ({ team: t.team, cells: t.cells, games: ix.filter(i => t.cells[i]).length,
+                                good: ix.filter(i => t.cells[i] && (pos === "all" ? off(i) : usable(i))).length }))
+    .sort((a, b) => (b.good - a.good) || (b.games - a.games) || a.team.localeCompare(b.team));
+  const total = rows.length;
+  if (!streamAll) rows = rows.slice(0, 10);
+  const grid = el("div", { class: "stgrid" });
+  grid.style.gridTemplateColumns = `40px 38px repeat(${ix.length}, minmax(0, 1fr))`;
+  grid.append(el("span"), el("span", { class: "sday" }, pos === "all" ? "off/gp" : `${pos}/gp`));
+  ix.forEach(i => {
+    const d = s.days[i], h = el("span", { class: "sday" + (off(i) ? " off" : "") + (d.date === data.date ? " today" : "") }, d.label);
+    h.append(el("br"), el("b", { class: "num" }, String(d.games)));
+    grid.append(h);
+  });
+  rows.forEach(r => {
+    grid.append(teamBadge(r.team), el("b", { class: "snum num" }, `${r.good}/${r.games}`));
+    ix.forEach(i => {
+      const c = r.cells[i];
+      grid.append(el("span", { class: "scell2" + (c ? usable(i) ? " use" : off(i) ? " off" : " plain" : off(i) ? " offbg" : "") }, c || ""));
     });
-    const tot = per.reduce((a, w) => ({ games: a.games + w.games, use: a.use + w.use, off: a.off + w.off }),
-                           { games: 0, use: 0, off: 0 });
-    return { ...t, per, tot };
   });
-  // Best schedule first: games I could play (by position; on All, games on off-nights),
-  // then all games, the sooner the better.
-  const best = w => pos === "all" ? w.off : w.use;
-  rows.sort((a, b) => (best(b.tot) - best(a.tot)) || (b.tot.games - a.tot.games)
-                      || (best(b.per[0]) - best(a.per[0])) || (b.per[0].games - a.per[0].games)
-                      || a.team.localeCompare(b.team));
-  const table = el("table", { class: "grid" });
-  const thead = el("thead"), wkRow = el("tr"), dayRow = el("tr");
-  wkRow.append(el("th", { class: "name" }, ""), el("th", { colspan: weeks.length, class: "wkh" }, pos === "all" ? "Games" : `${pos} games`));
-  dayRow.append(el("th", { class: "name" }, "Team"));
-  weeks.forEach(w => dayRow.append(el("th", {}, `W${w}`)));
-  let run = [];
-  s.days.forEach(d => { if (!run.length || run.at(-1).week !== d.week) run.push({ week: d.week, n: 0 }); run.at(-1).n++; });
-  run.forEach(r => {
-    const w = s.weeks.find(x => x.week === r.week) || { week: r.week };
-    wkRow.append(el("th", { colspan: r.n, class: "wkh brk" }, `Week ${w.week}${w.opponent ? ` vs ${w.opponent}` : ""}`));
-  });
-  const brkAt = i => i === 0 || s.days[i].week !== s.days[i - 1].week;
-  s.days.forEach((d, i) => dayRow.append(el("th", { class: (brkAt(i) ? "brk" : "") + (d.date === data.date ? " today" : "") },
-                                             `${d.label} ${d.day}`)));
-  thead.append(wkRow, dayRow);
-  table.append(thead);
-  const tbody = el("tbody");
-  const countRow = (name, vals, cls) => {
-    const tr = el("tr");
-    tr.append(el("td", { class: "name" }, name));
-    weeks.forEach(() => tr.append(el("td")));
-    vals.forEach((v, i) => tr.append(el("td", { class: "num " + (brkAt(i) ? "brk " : "") + (cls ? cls(v) : "") },
-                                         v == null ? "" : cls && !v ? "·" : v)));
-    tbody.append(tr);
-  };
-  countRow("NHL games", s.days.map(d => d.games));
-  if (pos !== "all") countRow(`Open ${pos}`, s.days.map(d => d.open ? d.open[pos] : null), v => v ? "open" : "zero");
-  rows.forEach((r, k) => {
-    const tr = el("tr", { class: k === 0 ? "sep" : "" });
-    tr.append(el("td", { class: "name" }, r.team));
-    r.per.forEach(w => tr.append(el("td", { class: "num sum" + (w.games ? "" : " zero") },
-                                    pos === "all" || !w.known ? String(w.games) : `${w.use}/${w.games}`)));
-    r.cells.forEach((c, i) => {
-      const td = el("td", { class: brkAt(i) ? "brk" : "" });
-      if (c) {
-        const d = s.days[i];
-        const box = el("div", { class: "cell sc " + (pos === "all" ? "plain" : usable(i) ? "use" : "full") }, c);
-        const lines = [`${r.team} ${c.startsWith("@") ? "at " + c.slice(1) : "vs " + c}`, `${d.label} ${d.day} · ${d.games} NHL games`];
-        if (pos !== "all") lines.push(!d.open ? "Your lineup that night isn't projected"
-          : d.open[pos] ? `${d.open[pos]} ${pos} slot${d.open[pos] > 1 ? "s" : ""} open: he'd play` : `Your ${pos} slots are full: he'd sit`);
-        hover(box, lines);
-        td.append(box);
-      }
-      tr.append(td);
-    });
-    tbody.append(tr);
-  });
-  table.append(tbody);
   const scroll = el("div", { class: "scroll" });
-  scroll.append(table);
+  scroll.append(grid);
   card.append(scroll);
-  if (pos !== "all") {
-    const legend = el("div", { class: "legend" });
-    const muted = el("span", {}, "Grey: plays, slot full");
-    legend.append(key("--blue", `${pos} slot open`), muted);
-    card.append(legend);
+  if (total > 10) {
+    const more = el("button", { class: "more", type: "button" }, streamAll ? "Show the top 10" : `Show all ${total} teams`);
+    more.onclick = () => { streamAll = !streamAll; render(); };
+    card.append(more);
   }
   return card;
 }
 
-// ---- the breakout watch: free agents whose role just changed (bot/watch.py) --------
-let watchOpen = recall("watchOpen", "0") === "1";
+// ---- Watch: free agents whose role just changed (bot/watch.py) -----------------------------------
 function watchCard() {
   const list = data.watch;
   if (!list) return null;
-  // Folded by default, so a long list doesn't push the rest down; the choice is remembered.
-  const card = el("details", { class: "card watch" });
-  card.open = watchOpen;
-  card.ontoggle = () => { watchOpen = card.open; remember("watchOpen", watchOpen ? "1" : "0"); };
-  const sent = list.filter(r => r.sent).length;
-  const summary = el("summary");
-  summary.append(el("h2", {}, "Breakout watch"),
-                 el("span", { class: "note" }, !list.length ? "nothing flagged"
-                   : `${list.length} flagged` + (sent ? `, ${sent} sent` : "")));
-  card.append(summary);
-  card.append(el("div", { class: "note" }, "Free agents whose role changed in the last 14 days. A line promotion alone is sent only when the plan values him at half the add price or more; the rest are listed here."));
+  const card = el("section", { class: "card watch" }), sent = list.filter(r => r.sent).length;
+  const head = el("div", { class: "nc-row" });
+  head.append(el("h2", {}, "Breakout watch"),
+              el("span", { class: "nc-dim" }, !list.length ? "nothing flagged" : `${list.length} flagged` + (sent ? `, ${sent} sent` : "")));
+  card.append(head, el("div", { class: "note" }, "Free agents whose role changed in the last 14 days. A line promotion alone is sent only when the plan values him at half the add price or more; the rest are listed here."));
   if (!list.length) return card;
   const ul = el("ul");
   list.forEach(r => {
-    const li = el("li");
-    const who = el("div", { class: "who" }, `${r.name} `);
+    const li = el("li"), who = el("div", { class: "who" }, `${r.name} `);
     who.append(el("small", { class: "note" }, `${r.team} ${r.positions} · ${fmtDay(r.date)}`),
                el("span", { class: "chip" + (r.sent ? " plan" : "") }, r.sent ? "Sent" : "Listed"));
     li.append(who, el("div", { class: "note" }, r.why), el("div", { class: "note" }, r.verdict));
@@ -780,33 +844,6 @@ function moveTable() {
   }
   card.append(el("div", { class: "note", style: "margin-top:8px" },
     "Win-pts. Blue dot: in the plan. Grey: worth an add, but not in it. Ring: under the add's price. Tap a column to sort, a move for its parts."));
-  return card;
-}
-
-// ---- the add budget ---------------------------------------------------------------
-function budgetCard() {
-  const b = data.budget;
-  const card = el("section", { class: "card" });
-  card.append(el("h2", {}, `Adds: ${b.used.at(-1) ?? 0} of ${b.cap} used`));
-  const W = width(), H = 150, m = { l: 30, r: 8, t: 8, b: 22 };
-  const n = b.pace.length, X = w => m.l + (w - 1) / (n - 1) * (W - m.l - m.r), Y = v => m.t + (1 - v / (b.cap + 2)) * (H - m.t - m.b);
-  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Adds used against an even pace" });
-  svg.append(svgEl("rect", { x: X(b.playoffs_from) - 4, y: m.t, width: W - m.r - X(b.playoffs_from) + 4, height: H - m.t - m.b, fill: css("--grid"), opacity: 0.6 }));
-  svg.append(svgEl("text", { x: W - m.r - 2, y: H - m.b - 6, "text-anchor": "end" }, `playoffs: ${b.reserve} kept`));
-  for (const t of [0, 10, 20, 30]) {
-    svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), stroke: css("--grid") }));
-    svg.append(svgEl("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, t));
-  }
-  [1, 5, 10, 15, 20, 25].filter(w => w <= n).forEach(w => svg.append(svgEl("text", { x: X(w), y: H - 6, "text-anchor": "middle" }, `Wk ${w}`)));
-  svg.append(svgEl("polyline", { points: b.pace.map((v, i) => `${X(i + 1)},${Y(v)}`).join(" "), fill: "none", stroke: css("--muted"), "stroke-width": 2 }));
-  if (b.used.length) {
-    const steps = b.used.flatMap((v, i) => [`${X(i + 1)},${Y(i ? b.used[i - 1] : 0)}`, `${X(i + 1)},${Y(v)}`]);
-    svg.append(svgEl("polyline", { points: steps.join(" "), fill: "none", stroke: css("--blue"), "stroke-width": 2 }));
-  }
-  card.append(svg);
-  const legend = el("div", { class: "legend" });
-  legend.append(key("--muted", "Even pace"), key("--blue", "Used"));
-  card.append(legend);
   return card;
 }
 
@@ -885,21 +922,7 @@ function whyCard() {
   const h = data.header;
   if (h.margin == null || h.sd == null) return null;
   const card = el("section", { class: "card" });
-  card.append(el("h2", {}, `Why ${pct(h.win)}: the projected score`));
-  const opp = data.opponent;
-  const hi = Math.max(h.me.expected, h.them.expected);
-  const score = el("div", { class: "scoreline num" });
-  [["You", h.me, "--blue", "--blue-soft"], [opp, h.them, "--orange", "--orange-soft"]].forEach(([name, t, solid, soft]) => {
-    const rest = t.expected - t.so_far;
-    score.append(el("span", { class: "lbl" }, name === "You" ? "You" : "Them"),
-                 track([{ v: t.so_far, token: solid, tip: [name, `Banked so far: ${f1(t.so_far)}`] },
-                        { v: rest, token: soft, tip: [name, `Rest of the week: ${f1(rest)} expected`,
-                                                       `Goalies reach 3 games: ${pct(t.goalie_min)}`] }], 0, hi, "pair"),
-                 el("span", { class: "val" }, t.so_far ? `${f0(t.so_far)} + ${f0(rest)} = ${f0(t.expected)}` : f0(t.expected)));
-  });
-  card.append(score);
-  card.append(el("div", { class: "note", style: "margin-top:6px" }, `Solid: banked so far. Light: still to come. Them: ${opp}.`));
-
+  card.append(el("h2", {}, `Why ${pct(h.win)}: how the week could end`));
   // How the week could end: the final margin's spread, split where they win and where you do.
   const mu = h.margin, sd = h.sd;
   const W = width(), H = 170, m = { l: 10, r: 10, t: 24, b: 40 };
@@ -915,15 +938,17 @@ function whyCard() {
     for (let i = 0; i <= n; i++) { const v = a + (b - a) * i / n; pts.push(`${X(v).toFixed(1)},${Y(dens(v)).toFixed(1)}`); }
     return `M${X(a)},${Y(0)} L${pts.join(" L")} L${X(b)},${Y(0)} Z`;
   };
-  svg.append(svgEl("path", { d: area(lo, 0), fill: css("--orange"), opacity: 0.6 }));
-  svg.append(svgEl("path", { d: area(0, top), fill: css("--blue"), opacity: 0.75 }));
+  svg.append(svgEl("path", { d: area(lo, 0), fill: css("--orange"), opacity: 0.85 }));
+  svg.append(svgEl("path", { d: area(0, top), fill: css("--blue"), opacity: 0.9 }));
   svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: css("--muted") }));
   svg.append(svgEl("line", { x1: X(0), x2: X(0), y1: m.t - 6, y2: Y(0), stroke: css("--text"), "stroke-width": 1.5 }));
   svg.append(svgEl("text", { x: X(0), y: m.t - 10, "text-anchor": "middle", fill: css("--text") }, "even"));
   svg.append(svgEl("line", { x1: X(mu), x2: X(mu), y1: Y(1), y2: Y(0), stroke: css("--text"), "stroke-dasharray": "3 3" }));
   const near = Math.abs(X(mu) - X(0)) < 70;  // keep "most likely" clear of "even"
-  svg.append(svgEl("text", { x: X(mu), y: Y(1) - 4 + (near ? 14 : 0), fill: css("--text"), "font-weight": 600,
-                             "text-anchor": X(mu) > W - 90 ? "end" : X(mu) < 90 ? "start" : "middle" }, `most likely: ${by(mu)}`));
+  // Near "even": beside its line, on the side the margin is (left of it for a loss), not across it.
+  const beside = mu < 0 ? { x: Math.min(X(mu), X(0)) - 6, "text-anchor": "end" } : { x: Math.max(X(mu), X(0)) + 6, "text-anchor": "start" };
+  svg.append(svgEl("text", { ...(near ? beside : { x: X(mu), "text-anchor": X(mu) > W - 90 ? "end" : X(mu) < 90 ? "start" : "middle" }),
+                             y: Y(1) - 4 + (near ? 14 : 0), fill: css("--text"), "font-weight": 600 }, `most likely: ${by(mu)}`));
   const step = sd > 60 ? 50 : 25;
   for (let t = Math.ceil(lo / step) * step; t <= top; t += step)
     svg.append(svgEl("text", { x: X(t), y: H - 24, "text-anchor": "middle" }, Math.abs(t)));
@@ -938,7 +963,6 @@ function whyCard() {
   });
   hit.addEventListener("pointerleave", hideTip);
   svg.append(hit);
-  card.append(el("h3", { style: "margin:14px 0 2px;font-size:14px" }, "How the week could end"));
   card.append(svg);
   const legend = el("div", { class: "legend" });
   legend.append(key("--orange", `They win: ${pct(1 - h.win)}`), key("--blue", `You win: ${pct(h.win)}`));
@@ -956,72 +980,70 @@ let side = recall("teamSide", "me");
 function playersCard() {
   const T = data.teams;
   if (!T || !T.me || !T.them) return null;
-  const card = el("section", { class: "card" });
-  card.append(tabsEl([["me", "You"], ["them", lastName(data.opponent)]], side, v => { side = v; remember("teamSide", v); render(); }));
-  card.append(el("h2", {}, "Player by player"));
-  card.append(el("div", { class: "note" }, "Expected points for the rest of the week in the best lineup each night. Dashed: games with no slot free. Tap a player."));
-  const t = T[side], h = data.header[side], token = sideToken(side);
-  const rows = t.players;
-  const hi = Math.max(1, ...rows.map(r => (r.pts || 0) + (r.bench_pts || 0)));
-  const box = el("div", { class: "bars", style: "margin-top:8px" });
-  rows.forEach(r => {
-    const p = person(r.id) || { name: String(r.id), positions: "" };
-    const goalie = p.goalie;
-    const tipLines = [p.name, `${f1(r.pts)} pts expected in ${goalie ? `${f1(r.games)} expected starts` : `${f0(r.games)} lineup games`}`]
-      .concat(r.bench_pts ? [`${f1(r.bench_pts)} pts on nights with no slot free`] : []);
-    const bar = track([{ v: r.pts, token, tip: tipLines }, { v: r.bench_pts, token, ghost: true, tip: tipLines }], 0, hi);
-    const value = r.slot ? r.slot : r.pts || r.bench_pts
-      ? valSub(f1(r.pts), goalie ? `${f1(r.games)} GS` : `${f0(r.games)} gp`) : "no games";
-    barRow(box, shortName(p.name), p.positions, bar, value, person(r.id) ? () => openSheet("player", r.id) : null,
-           r.pts ? "" : "muted");
+  const card = el("section", { class: "card" }), head = el("div", { class: "nc-row" });
+  head.append(el("h2", {}, "Player by player"),
+              tabsEl([["me", "You"], ["them", shortTeam(data.opponent)]], side, v => { side = v; remember("teamSide", v); render(); }));
+  card.append(head, el("div", { class: "note" },
+    "Expected points for the rest of the week, and each game left: filled if he's in the best lineup that night, a ring if he'd sit, a goalie's by his chance to start. Tap a player."));
+  const t = T[side], h = data.header[side], color = css(sideToken(side)), s = data.schedule;
+  const ix = s ? s.days.map((d, i) => i).filter(i => s.days[i].week === data.week && s.days[i].date >= data.date) : [];
+  const hi = Math.max(1, ...t.players.map(r => (r.pts || 0) + (r.bench_pts || 0)));
+  t.players.forEach(r => {
+    const p = person(r.id) || { name: String(r.id), positions: "", team: "" };
+    const row = el("button", { type: "button", class: "prow" });
+    if (person(r.id)) row.onclick = () => openSheet("player", r.id);
+    const mid = el("span", { class: "pmid" }), top = el("span", { class: "nc-row" }), name = el("span", { class: "pname" }, shortName(p.name));
+    name.append(el("small", {}, `${p.positions} · ${p.team}`));
+    top.append(name, el("b", { class: "num" }, r.slot || (r.pts || r.bench_pts ? f1(r.pts) : "no games")));
+    const line = el("span", { class: "pline" }), bar = el("span", { class: "pbar" });
+    [[r.pts, color, ""], [r.bench_pts, "transparent", `inset 0 0 0 1.5px ${color}`]].forEach(([v, bg, shadow]) => {
+      if (!v) return;
+      const i = el("i");
+      i.style.cssText = `width:${(100 * v / hi).toFixed(1)}%;background:${bg};box-shadow:${shadow}`;
+      bar.append(i);
+    });
+    const dots = el("span", { class: "pdots" }), mine = side === "me" && s ? s.rows.find(q => q.id === r.id) : null;
+    if (mine) ix.forEach(i => { if (mine.cells[i]) dots.append(dot(mine.cells[i], color, mine.probs[i])); });
+    else if (p.goalie && p.starts) p.starts.forEach(st => dots.append(dot("start", color, st.prob)));
+    else for (let k = 0; k < Math.round(r.games || 0); k++) dots.append(dot("start", color));
+    line.append(bar, dots);
+    mid.append(top, line);
+    row.append(avatar(r.id, 34), mid);
+    if (!r.pts && !r.bench_pts) row.classList.add("muted");
+    card.append(row);
   });
   if (t.goalie_lost > 0.05)
-    barRow(box, "Goalie minimum", "", el("span", { class: "note" }, `${pct(h.goalie_min)} to reach 3 games`),
-           `−${f1(t.goalie_lost)}`, null);
-  box.append(el("div", { class: "rule" }));
-  const sum = el("div", { class: "row" });
-  sum.append(el("span", { class: "lbl total" }, "Rest of the week"), el("span", { class: "val total num" }, f1(t.rest)));
-  box.append(sum);
-  card.append(box);
-  card.append(el("div", { class: "note", style: "margin-top:6px" },
-    `${f1(h.so_far)} banked + ${f1(t.rest)} to come = ${f1(h.expected)} projected.`));
+    card.append(el("div", { class: "note", style: "margin-top:8px" },
+      `Goalie minimum: ${pct(h.goalie_min)} to reach 3 games, which costs ${f1(t.goalie_lost)} pts expected.`));
+  const sum = el("div", { class: "nc-row", style: "margin-top:8px;font-size:14px" });
+  sum.append(el("span", { class: "nc-dim" }, `${f1(h.so_far)} banked + ${f1(t.rest)} to come`), el("b", { class: "num" }, `= ${f1(h.expected)}`));
+  card.append(sum);
   return card;
 }
 
-// ---- where the points come from, by stat ---------------------------------------------------
+// ---- where the points come from, by stat: you on the left, them on the right -------------------------
 function statsCard() {
   const T = data.teams;
   if (!T || !T.me || !T.them) return null;
   if (statView === "stats" && T.me.stats && T.them.stats) return statCountsCard(T);
-  const cats = Object.keys(T.me.by_stat).filter(c => c !== "Goalies");
-  const vals = cats.flatMap(c => [T.me.by_stat[c], T.them.by_stat[c] ?? 0]);
-  const lo = Math.min(0, ...vals), hi = Math.max(1, ...vals);
-  const card = el("section", { class: "card" });
-  if (T.me.stats) card.append(statTabs());
-  card.append(el("h2", {}, "Where the points come from"));
-  card.append(el("div", { class: "note" }, "Rest of the week: fantasy points by stat, you and them."));
-  const box = el("div", { class: "bars", style: "margin-top:8px" });
+  const cats = Object.keys(T.me.by_stat), card = el("section", { class: "card" }), head = el("div", { class: "nc-row" });
+  head.append(el("h2", {}, "Where the points come from"));
+  if (T.me.stats) head.append(statTabs());
+  card.append(head, el("div", { class: "note" }, `Rest of the week, fantasy points: you on the left, ${data.opponent} on the right.`));
+  const hi = Math.max(1, ...cats.flatMap(c => [T.me.by_stat[c] ?? 0, T.them.by_stat[c] ?? 0]).map(Math.abs));
+  const fly = el("div", { class: "fly" });
   cats.forEach(c => {
-    const a = T.me.by_stat[c], b = T.them.by_stat[c] ?? 0;
-    const tip = [c, `You: ${f1(a)}`, `${data.opponent}: ${f1(b)}`, `Difference: ${signed(a - b)}`];
-    const bar = track([{ v: a, token: "--blue", alone: true, top: "0", h: "45%", tip },
-                       { v: b, token: "--orange", alone: true, top: "55%", h: "45%", tip }], lo, hi, "pair");
-    barRow(box, c, "", bar, valSub(f1(a), `/ ${f1(b)}`), null);
+    const a = T.me.by_stat[c] ?? 0, b = T.them.by_stat[c] ?? 0;
+    const bar = (v, token, cls) => { const w = el("span", { class: cls }), i = el("i"); i.style.width = `${(100 * Math.abs(v) / hi).toFixed(1)}%`; i.style.background = css(token); w.append(i); return w; };
+    fly.append(el("b", { class: "num me" }, f1(a)), bar(a, "--blue", "l"), el("span", {}, c), bar(b, "--orange", "r"), el("b", { class: "num them" }, f1(b)));
   });
-  const skaters = side => cats.reduce((a, c) => a + (T[side].by_stat[c] ?? 0), 0);
-  [["Skaters", skaters("me"), skaters("them")], ["Goalies", T.me.by_stat.Goalies ?? 0, T.them.by_stat.Goalies ?? 0]].forEach(([name, a, b], i) => {
-    if (!i) box.append(el("div", { class: "rule" }));
-    const row = el("div", { class: "row" });
-    row.append(el("span", { class: "lbl" + (i ? "" : " total"), style: i ? "grid-column: span 2" : "" }, name),
-               el("span", { class: "val num" + (i ? "" : " total") }, `${f1(a)} / ${f1(b)}`));
-    box.append(row);
-  });
-  card.append(box);
-  card.append(el("div", { class: "note", style: "margin-top:6px" },
-    "Goalies are net of what the 3-game minimum costs (it can zero the week's goalie points, banked ones too)."));
-  const legend = el("div", { class: "legend" });
-  legend.append(key("--blue", "You"), key("--orange", data.opponent));
-  card.append(legend);
+  card.append(fly);
+  const skaters = side_ => cats.filter(c => c !== "Goalies").reduce((x, c) => x + (T[side_].by_stat[c] ?? 0), 0);
+  const edge = cats.filter(c => c !== "Goalies").map(c => [c, (T.me.by_stat[c] ?? 0) - (T.them.by_stat[c] ?? 0)]).sort((x, y) => y[1] - x[1]);
+  card.append(el("div", { class: "note", style: "margin-top:8px" },
+    `Skaters ${f0(skaters("me"))} to ${f0(skaters("them"))}, goalies ${f0(T.me.by_stat.Goalies ?? 0)} to ${f0(T.them.by_stat.Goalies ?? 0)} `
+    + `(net of what the 3-game minimum costs). Your biggest edge: ${edge[0][0].toLowerCase()} (${signed(edge[0][1])})`
+    + (edge.at(-1)[1] < 0 ? `; theirs: ${edge.at(-1)[0].toLowerCase()} (${signed(-edge.at(-1)[1])}).` : ".")));
   return card;
 }
 
@@ -1664,7 +1686,7 @@ function resultCard() {
   const cum = xs => xs.reduce((a, x) => a.concat(a.at(-1) + x), [0]);
   const A = cum(v.mine), B = cum(v.theirs), hi = Math.max(...A, ...B, 1);
   const X = i => m.l + i * (W - m.l - m.r) / n, Y = y => m.t + (1 - y / hi) * (H - m.t - m.b);
-  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Each team's points, day by day" });
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, class: "big-text", role: "img", "aria-label": "Each team's points, day by day" });
   [0.5, 1].forEach(f => svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(hi * f), y2: Y(hi * f), stroke: "#1E2E48" })));
   svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: "#2A3A55" }));
   [[B, "#F07A45", 2.5], [A, "#4D9BF0", 3]].forEach(([s, c, w]) => {
@@ -1730,15 +1752,19 @@ function render() {
     settled().then(() => { document.body.dataset.ready = "1"; });  // notify/snapshot.py waits for this
     return;
   } else {
-    app.replaceChildren(...[header, planCard, whyCard, playersCard, statsCard, weeksCard, nightsCard,
-                            valueCard, grid, streamCard, watchCard, moveTable, budgetCard].map(safe).filter(Boolean));
+    document.body.classList.add("dash");
+    app.classList.add("nc");
+    const pages = { today: [todayTop, planSection, raceCard, whyCard, nightsCard, weekTiles],
+                    matchup: [playersCard, statsCard], moves: [movesBars, moveTable, budgetTokens],
+                    schedule: [weekPicker, scheduleCard, streamCard], watch: [watchCard] };
+    app.replaceChildren(...(pages[tab] || pages.today).map(safe).filter(Boolean));
+    document.querySelector(".tabbar")?.remove();
+    document.body.append(tabBar());
     drawSheet();
   }
   document.body.dataset.ready = "1";  // notify/snapshot.py waits for this
 }
 
-try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
-if (CARD) document.documentElement.dataset.theme = "light";
 (window.__DATA__ ? Promise.resolve(window.__DATA__)
   : fetch("data.json", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
   .then(d => { data = d; render(); openLinked(); })
@@ -1758,7 +1784,9 @@ addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(render, 150);
 });
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+addEventListener("hashchange", () => {  // a tab's link, or a move's or player's (a card's "Why?")
+  if (hashTab() && hashTab() !== tab) { tab = hashTab(); render(); } else openLinked();
+});
 </script>
 </body>
 </html>

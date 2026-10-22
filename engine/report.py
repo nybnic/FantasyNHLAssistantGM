@@ -81,9 +81,12 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
             benched.append(lost)
             for pid, (slot, prob) in day.items():
                 cells.setdefault(pid, {})[d.isoformat()] = ("start" if slot != BENCH else "bench", prob)
-    with_plan = None
+    with_plan, plan_cells = None, {}
     if plan and after:
         lineups = {d.isoformat(): day for wk in after if wk for d, day in wk.lineups.items()}
+        for d, day in lineups.items():
+            for pid, (slot, prob) in day.items():
+                plan_cells.setdefault(pid, {})[d] = ("start" if slot != BENCH else "bench", prob)
         with_plan = {"open": [], "my_games": [], "benched": []}
         for d, games, open_now, lost in zip(days, my_games, open_slots, benched):
             if d["date"] in lineups:
@@ -98,6 +101,10 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
         rows.append({"id": p.id, "name": _short(p.name), "positions": "/".join(p.positions),
                      "cells": [mine.get(d["date"], (None, None))[0] for d in days],
                      "probs": [mine[d["date"]][1] if p.is_goalie and d["date"] in mine else None for d in days]})
+        if plan_cells:  # with the plan made: his nights where the grid has them, none after his drop
+            theirs_ = plan_cells.get(p.id, {})
+            rows[-1]["plan_cells"] = [theirs_.get(d["date"], (None, None))[0] if d["date"] in lineups
+                                      else rows[-1]["cells"][i] for i, d in enumerate(days)]
     chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
     planned = {entry["move"].add.id for entry in plan}
     plan_rows = [_add_row(entry, days, plan=True) for entry in plan]

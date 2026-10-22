@@ -241,3 +241,16 @@ def test_the_result_carries_the_scoreboard_before_the_suggestions_line():
     lines = report.result_text(view).split("\n")
     assert lines[-2:] == ["Your moves since the draft: +12 pts this week.", "Suggestions so far: ..."]
     assert view["value"] == {"added": 12.0}
+
+
+def test_with_the_plan_a_players_nights_follow_the_plans_lineups_and_end_at_his_drop():
+    knight, larsson = RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G"), RosterPlayer(5, "Adam Larsson", "SEA", ["D"], "D")
+    mine = _team(0, {THU: 5.0, FRI: 5.0}, {THU: {3: ("G", 0.6), 5: ("D", 1.0)}, FRI: {5: ("D", 1.0)}})
+    with_plan = _team(0, {THU: 9.0, FRI: 5.0}, {THU: {3: ("G", 0.6), 5: ("BN", 1.0), 1: ("D", 1.0)}, FRI: {1: ("D", 1.0)}})
+    nurse = matchup.Move(RosterPlayer(1, "Darnell Nurse", "SJS", ["D"]), larsson, 2.0, 0.0, 0.0, 2, 0.46, 0.5)
+    view = report.schedule_view([knight, larsson], [(1, "Bahelin Boys", mine, mine)], [], [],
+                                [{"move": nurse, "this_week": with_plan, "next_week": None, "when": FRI}], [with_plan])
+    rows = {r["name"]: r for r in view["rows"]}
+    assert rows["A. Larsson"]["cells"] == ["start", "start"] and rows["A. Larsson"]["plan_cells"] == ["bench", None]
+    assert rows["S. Knight"]["plan_cells"] == ["start", None] and rows["S. Knight"]["id"] == 3
+    assert "plan_cells" not in report.schedule_view([knight], [(1, "B", mine, mine)])["rows"][0]  # no plan, as is only

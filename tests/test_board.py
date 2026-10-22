@@ -263,3 +263,44 @@ def test_a_planned_move_on_the_board_is_the_one_the_plan_judged():
                           max_moves=2), 2, "R", NOW, NOW.date())
     row = next(r for r in b["moves"] if r["key"] == "6:8")
     assert row["later_pts"] == 12.0 and row["status"] == "plan"
+
+
+def test_the_race_is_each_finished_days_points_adding_up_to_the_banked_score(monkeypatch):
+    days = [dt.date(2026, 10, 19) + dt.timedelta(i) for i in range(7)]
+    by_day = {"me": {days[0]: 9.0, days[1]: 46.0, days[2]: 5.0}, "them": {days[0]: 23.0, days[1]: 57.0, days[2]: 13.0}}
+    monkeypatch.setattr(matchup, "_so_far", lambda roster, ctx, ds, history: (by_day[roster][ds[0]], 0.0, 0))
+    race = weekly.race_days(None, days, days[3], ("me", {}, 61.0), ("them", {}, 93.0))  # Thursday: Mon-Wed are done
+    assert race["days"] == ["2026-10-19", "2026-10-20", "2026-10-21"]
+    assert race["me"] == [9.1, 46.8, 5.1] and round(sum(race["me"])) == 61  # scaled to the screenshot's 61
+    assert sum(race["them"]) == 93.0
+
+
+def test_every_dashboard_tab_draws_on_a_phone():
+    """Each tab (site/index.html#today ... #watch) on the latest plan run's data: no card that
+    couldn't be drawn, no script error, nothing wider than the phone, and a move's link opens its sheet."""
+    import os
+    from pathlib import Path
+    import pytest
+    from notify import snapshot
+    sync_api = pytest.importorskip("playwright.sync_api")
+    data = json.loads(Path("site/data.json").read_text(encoding="utf-8"))
+    with sync_api.sync_playwright() as pw:
+        try:
+            browser = pw.chromium.launch(executable_path=os.environ.get("CHROMIUM_EXECUTABLE"))
+        except Exception as e:
+            pytest.skip(f"no browser: {str(e).splitlines()[0]}")
+        try:
+            for tab in ["today", "matchup", "moves", "schedule", "watch"] + [f"move={p['key']}" for p in data["plan"][:1] if p["key"]]:
+                page = browser.new_page(viewport={"width": 390, "height": 844}, locale="en-GB")
+                errors = []
+                page.on("pageerror", lambda e: errors.append(str(e)))
+                page.add_init_script(f"window.__DATA__ = {json.dumps(data)};")
+                page.goto(snapshot.PAGE.resolve().as_uri() + f"#{tab}")
+                page.wait_for_selector("body[data-ready='1']", timeout=20_000)
+                assert not errors and "couldn't be drawn" not in page.locator("main").inner_text(), (tab, errors)
+                assert page.evaluate("document.documentElement.scrollWidth") <= 390, tab
+                assert page.locator(".tabbar button.on").count() == 1
+                if tab.startswith("move="):
+                    assert page.locator(".sheet h2").first.inner_text().startswith("Add ")
+        finally:
+            browser.close()
