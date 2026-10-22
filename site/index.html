@@ -1397,13 +1397,16 @@ function nhlSeason() {
   const d = new Date(data.date + "T12:00:00"), y = d.getFullYear() - (d.getMonth() < 8 ? 1 : 0);
   return `${y}${y + 1}`;
 }
-// A player's face: his NHL headshot on his team's colour, his initials if it can't load.
+// A player's face: his NHL headshot on his team's colour, his initials until it loads (or if it can't:
+// the headshots are cut out, so the initials would show through them).
 function avatar(id, size, sign) {
   const p = person(id) || { name: "?" };
-  const box = el("div", { class: "av" }, initials(p.name));
+  const box = el("div", { class: "av" }), ini = el("span", {}, initials(p.name));
+  box.append(ini);
   box.style.cssText = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.4)}px;background:${TEAM_COLORS[p.team] || "#3A4A63"}`;
   if (p.team) {
     const img = el("img", { alt: "", src: `https://assets.nhle.com/mugs/nhl/${nhlSeason()}/${p.team}/${id}.png` });
+    img.addEventListener("load", () => ini.remove());
     img.addEventListener("error", () => img.remove());
     box.append(img);
   }
