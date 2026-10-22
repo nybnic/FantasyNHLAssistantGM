@@ -10,7 +10,7 @@ from config.settings import load_settings
 from engine import addprice, matchup, report
 from league import parse, teams, weeks
 from league.roster import RosterPlayer
-from notify import charts, telegram
+from notify import charts, snapshot, telegram
 from state import gm_state
 
 NOW = dt.datetime(2026, 10, 1, 12, tzinfo=dt.timezone.utc)
@@ -803,6 +803,7 @@ def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):
     monkeypatch.setattr(weekly, "week_result", lambda *a: view)
     monkeypatch.setattr(report, "result_text", lambda v: "Week 1 result")
     monkeypatch.setattr(charts, "result_chart", lambda v: None)
+    monkeypatch.setattr(snapshot, "card_png", lambda *a, **k: None)
     morning, noon = (dt.datetime(2026, 10, 5, h, tzinfo=dt.timezone.utc) for h in (7, 9))  # 10:00, 12:00 Helsinki
     weekly.report_step(state, players, {"teams": {}, "taken": []}, morning, common.Outbox(settings), lambda d: None)
     assert sent == []

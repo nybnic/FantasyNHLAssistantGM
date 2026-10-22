@@ -212,6 +212,7 @@
   .nc-wk.now { border-color: #4D9BF0; }
   .nc-wk span { display: block; font-size: 13px; color: #B7C2D3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nc-wk b { display: block; font-size: 24px; line-height: 1.1; }
+  .nc svg text { fill: #B7C2D3; font-size: 13px; }
   .nc-table { display: grid; grid-template-columns: 1fr 70px 70px; gap: 4px 8px; align-items: baseline;
               border-top: 1px solid #1E2E48; padding-top: 10px; font-size: 14px; }
   .nc-table > :nth-child(3n+2), .nc-table > :nth-child(3n) { text-align: right; }
@@ -1624,6 +1625,71 @@ function moveCard() {
   return card;
 }
 
+// ---- Monday's result (?card=result): the final score, the race day by day, the forecast, the moves ----
+// Its data is engine/report.result_view's, not the dashboard's.
+function resultCard() {
+  const v = data, [me, them] = v.final, card = el("div", { class: "nc" }), top = el("div", { class: "nc-top" });
+  const title = el("span", { class: "nc-week cond" }, `WEEK ${v.week} `);
+  title.append(el("span", {}, v.finished ? "· final" : "· so far"));
+  const outcome = !v.finished ? null : me > them ? ["WIN", "#2CC28B"] : me < them ? ["LOSS", "#F07A45"] : ["TIE", "#B7C2D3"];
+  top.append(title);
+  if (outcome) {
+    const badge = el("span", { class: "cond", style: `background:${outcome[1]};color:#0B1422;font-size:18px;letter-spacing:.1em;padding:2px 12px;border-radius:6px` }, outcome[0]);
+    top.append(badge);
+  }
+  card.append(top);
+  const score = el("div", { class: "nc-tile", style: "flex-direction:row;justify-content:space-around;align-items:center" });
+  [["You", me, "#FFFFFF"], [shortTeam(v.opponent), them, "#B7C2D3"]].forEach(([name, pts, ink], i) => {
+    const side = el("div", { style: "display:flex;flex-direction:column;align-items:center;gap:4px" });
+    side.append(el("span", { class: "nc-big cond num", style: `font-size:56px;color:${ink}` }, f0(pts)),
+                el("span", { style: "font-size:14px;font-weight:600" }, name));
+    score.append(side);
+    if (!i) score.append(el("span", { class: "nc-big cond", style: "color:#5D6F88;font-size:34px" }, ":"));
+  });
+  card.append(score);
+  const facts = [];
+  if (v.plan) facts.push(`Monday's forecast: ${f0(v.plan.expected[0])}-${f0(v.plan.expected[1])}, ${pct(v.plan.win)} to win`);
+  ["You", "They"].forEach((who, i) => { if (!v.goalie_min[i]) facts.push(`${who} missed the goalie minimum`); });
+  if (facts.length) card.append(el("div", { class: "nc-dim", style: "margin-top:-4px;white-space:normal" }, facts.join(" · ")));
+  // The race: each team's points so far, day by day.
+  const race = el("div", { class: "nc-tile" }), head = el("div", { class: "nc-row" });
+  const best = v.mine.reduce((b, x, i) => x > v.mine[b] ? i : b, 0);
+  head.append(el("b", { style: "font-size:14px" }, "The race, day by day"),
+              el("span", { class: "nc-dim" }, `${fmtDay(v.days[best], { weekday: "long" })}'s ${f0(v.mine[best])}-pt night`));
+  race.append(head);
+  const W = 330, H = 160, m = { l: 8, r: 8, t: 10, b: 24 }, n = v.days.length;
+  const cum = xs => xs.reduce((a, x) => a.concat(a.at(-1) + x), [0]);
+  const A = cum(v.mine), B = cum(v.theirs), hi = Math.max(...A, ...B, 1);
+  const X = i => m.l + i * (W - m.l - m.r) / n, Y = y => m.t + (1 - y / hi) * (H - m.t - m.b);
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Each team's points, day by day" });
+  [0.5, 1].forEach(f => svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(hi * f), y2: Y(hi * f), stroke: "#1E2E48" })));
+  svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: "#2A3A55" }));
+  [[B, "#F07A45", 2.5], [A, "#4D9BF0", 3]].forEach(([s, c, w]) => {
+    svg.append(svgEl("polyline", { points: s.map((y, i) => `${X(i)},${Y(y)}`).join(" "), fill: "none", stroke: c,
+                                   "stroke-width": w, "stroke-linejoin": "round" }));
+    svg.append(svgEl("circle", { cx: X(n), cy: Y(s.at(-1)), r: 4, fill: c }));
+  });
+  v.days.forEach((d, i) => svg.append(svgEl("text", { x: X(i + 1), y: H - 6, "text-anchor": "middle", fill: "#B7C2D3",
+                                                      "font-size": 13 }, fmtDay(d, { weekday: "narrow" }))));
+  race.append(svg);
+  const key = el("div", { class: "nc-dim" });
+  key.append(el("span", { style: "color:#7DB8FF;font-weight:700" }, "You"), document.createTextNode(" · "),
+             el("span", { style: "color:#FFA57D;font-weight:700" }, v.opponent));
+  race.append(key);
+  card.append(race);
+  // The moves: what each did, and the adds left.
+  const moves = el("div", { class: "nc-tile" });
+  moves.append(el("b", { style: "font-size:14px" }, "Your moves"));
+  const lines = (v.moves_text || "").split("\n").filter(Boolean);
+  if (v.added && v.added.length) lines.unshift(`Added: ${v.added.join(", ")}`);
+  if (!lines.length) lines.push("No adds this week.");
+  lines.forEach(l => moves.append(el("div", { class: "nc-detail" }, l)));
+  const b = v.budget, used = b.used.length ? b.used.at(-1) : 0;
+  moves.append(el("div", { class: "nc-dim" }, `${b.cap - used} adds left · ${used} used vs ${b.pace[v.week - 1].toFixed(1)} at an even pace`));
+  card.append(moves);
+  return card;
+}
+
 // The screenshot waits for the fonts and the headshots (or their failure), at most a few seconds.
 function settled(ms = 5000) {
   const imgs = [...app.querySelectorAll("img")].filter(i => !i.complete)
@@ -1644,6 +1710,12 @@ function safe(build) {
 function message(text) { app.replaceChildren(el("p", { class: "empty" }, text)); }
 function render() {
   if (!data) return;
+  if (CARD === "result") {  // Monday's result: its own data (engine/report.result_view)
+    document.body.classList.add("card-mode");
+    app.replaceChildren(safe(resultCard));
+    settled().then(() => { document.body.dataset.ready = "1"; });
+    return;
+  }
   if (!data.header || !data.plan) {  // the data is an older version's (a deploy in progress)
     message("The dashboard is updating. Reopen it in a minute.");
     document.body.dataset.ready = "1";

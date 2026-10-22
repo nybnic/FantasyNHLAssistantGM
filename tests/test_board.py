@@ -134,7 +134,8 @@ def test_the_card_image_falls_back_when_no_browser_can_render_it(monkeypatch):
 
 
 def test_the_cards_are_readable_on_a_phone():
-    """The Telegram cards (site/index.html?card, ?card=move) on the latest plan run's data: no
+    """The Telegram cards (site/index.html?card, ?card=move) on the latest plan run's data, and
+    Monday's result (?card=result) on a week of its own: no
     text under 13px (Telegram shows them at ~80%), not too tall, and the plan's moves named.
     Skipped without a browser; CHROMIUM_EXECUTABLE points Playwright at one it didn't install."""
     import os
@@ -144,6 +145,12 @@ def test_the_cards_are_readable_on_a_phone():
     sync_api = pytest.importorskip("playwright.sync_api")
     data = json.loads(Path("site/data.json").read_text(encoding="utf-8"))
     moves = {r["key"]: r for r in data["moves"]}
+    from engine import report
+    days = [dt.date(2026, 10, 12) + dt.timedelta(i) for i in range(7)]
+    result = report.result_view(3, "Löllöt Höntsääjät", days, [9.6, 81.1, 26.7, 74.9, 8.2, 88.1, 0.0],
+                                [42.8, 55.4, 3.5, 68.6, 25.4, 48.9, 20.0], [True, False],
+                                {"at": "2026-10-12T07:21+00:00", "expected": [203.6, 200.0], "sd": [32, 31], "win": 0.53},
+                                [{"name": "Gabriel Landeskog", "date": "2026-10-13"}], 1, report.budget_view([], 3))
     shown = []
     with sync_api.sync_playwright() as pw:
         try:
@@ -151,10 +158,11 @@ def test_the_cards_are_readable_on_a_phone():
         except Exception as e:
             pytest.skip(f"no browser: {str(e).splitlines()[0]}")
         try:
-            for kind, key in [("plan", None)] + [("move", p["key"]) for p in data["plan"] if p["key"] in moves][:1]:
+            pages = [("plan", None, data)] + [("move", p["key"], data) for p in data["plan"] if p["key"] in moves][:1]
+            for kind, key, page_data in pages + [("result", None, result)]:
                 tab = browser.new_page(viewport={"width": snapshot.WIDTH, "height": 800}, locale="en-GB")
                 tab.add_init_script(f"window.__CARD__ = {json.dumps(kind)}; window.__CARD_KEY__ = {json.dumps(key)}; "
-                                    f"window.__DATA__ = {json.dumps(data)};")
+                                    f"window.__DATA__ = {json.dumps(page_data)};")
                 tab.goto(snapshot.PAGE.resolve().as_uri())
                 tab.wait_for_selector("body[data-ready='1']", timeout=20_000)
                 smallest = tab.evaluate("""() => Math.min(...[...document.querySelectorAll('.nc *')]
@@ -166,6 +174,9 @@ def test_the_cards_are_readable_on_a_phone():
     for kind, key, box, smallest, text in shown:
         assert box["width"] == snapshot.WIDTH and box["height"] <= (1.75 if kind == "plan" else 2.4) * box["width"]
         assert smallest >= 13 and "couldn't be drawn" not in text
+        if kind == "result":
+            assert "WIN" in text and "Höntsääjät" in text and "They missed the goalie minimum" in text
+            continue
         for p in data["plan"] if kind == "plan" else [moves[key]]:
             r = moves.get(p["key"])
             assert r["add"]["name"].split(" ", 1)[1] in text if r else p["swap"] in text

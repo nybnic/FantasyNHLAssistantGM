@@ -448,7 +448,7 @@ def report_step(state: dict, players: list, league: dict, now: dt.datetime, outb
         logger.info("No opponent known for week %s; no result to report", week)
         return
     outbox.send(report.result_text(view))
-    png = _safe(charts.result_chart, view)
+    png = _safe(snapshot.card_png, view, snapshot.PAGE, "result") or _safe(charts.result_chart, view)  # no browser: the chart
     if png:
         outbox.send_photo(png)
     if not view["finished"]:
