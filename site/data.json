@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-22T05:05+00:00",
+ "generated": "2026-10-22T10:28+00:00",
  "date": "2026-10-22",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -53,7 +53,7 @@
    "week": 1
   },
   "price": {
-   "lam": 0.2203,
+   "lam": 0.1307,
    "later_weight": 0.00798,
    "pace": 1.25
   },
@@ -91,16 +91,30 @@
  },
  "plan": [
   {
-   "day": "Fri 23 Oct (tomorrow)",
+   "day": "Thu 22 Oct (today)",
+   "today": true,
+   "swap": "Martin Pospisil for Leevi Meriläinen",
+   "detail": "win 48% -> 50%, +19 win-pts in all",
+   "key": "8481028:8482447"
+  },
+  {
+   "day": "Mon 26 Oct",
    "today": false,
    "swap": "Darnell Nurse for Adam Larsson",
-   "detail": "+27 win-pts, for the weeks ahead; uses this week's slot, so next week's two adds stay free; a claim, plays from Fri 23 Oct",
+   "detail": "+27 win-pts, for the weeks ahead; it does nothing this week, so it takes next week's add; a claim, plays from Fri 23 Oct",
    "key": "8477498:8476457"
+  },
+  {
+   "day": "Mon 26 Oct",
+   "today": false,
+   "swap": "Roman Kantserov for Jack McBain",
+   "detail": "win 50% -> 51%, +20 win-pts in all; it does nothing this week, so it takes next week's add",
+   "key": "8484390:8480855"
   }
  ],
  "plan_empty": "No add is worth one of yours now.",
- "changed": "",
- "this_week_line": "For this week alone, the best is Ryan Hartman for Mattias Samuelsson: win 48% -> 56%. Not worth an add: -3 win-pts in all, as dropping Mattias Samuelsson costs 11 later, against the 22 an add costs.",
+ "changed": "the new plan is better by 40 win-pts",
+ "this_week_line": "For this week alone, the best is Ryan Hartman for Mattias Samuelsson: win 48% -> 56%. Not worth an add: -3 win-pts in all, as dropping Mattias Samuelsson costs 11 later, against the 13 an add costs.",
  "weeks": [
   {
    "week": 4,
@@ -140,7 +154,7 @@
    "later_drop": null,
    "until_back": null,
    "plays_from": "2026-10-23",
-   "when": "2026-10-23",
+   "when": "2026-10-26",
    "games": 2,
    "week_pts": 0.36,
    "next_two_pts": 14.79,
@@ -164,7 +178,7 @@
    "later_wins": 0.1552,
    "value": 0.2717,
    "status": "plan",
-   "why": "spare"
+   "why": "monday"
   },
   {
    "key": "8477498:8482447",
@@ -208,7 +222,7 @@
    "later_wins": 0.1011,
    "value": 0.2475,
    "status": "passes",
-   "why": "worth an add, but the plan's Darnell Nurse uses the same player"
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8484390:8482447",
@@ -252,7 +266,51 @@
    "later_wins": 0.0821,
    "value": 0.2295,
    "status": "passes",
-   "why": "worth an add, but this week's go to Darnell Nurse"
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
+  },
+  {
+   "key": "8484390:8480855",
+   "add": {
+    "id": 8484390,
+    "name": "Roman Kantserov",
+    "team": "CHI",
+    "positions": [
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8480855,
+    "name": "Jack McBain"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": "2026-10-26",
+   "games": 2,
+   "week_pts": 0.91,
+   "next_two_pts": 7.9,
+   "later_pts": 16.65,
+   "win": [
+    0.4978,
+    0.5085
+   ],
+   "now_wins": 0.0107,
+   "ahead_wins": [
+    0.0111,
+    0.0479
+   ],
+   "ahead_pts": 7.12,
+   "ahead_week_pts": [
+    1.29,
+    5.82
+   ],
+   "held": false,
+   "keep": 0.694,
+   "later_wins": 0.1328,
+   "value": 0.2025,
+   "status": "plan",
+   "why": "monday"
   },
   {
    "key": "8481028:8482447",
@@ -273,14 +331,14 @@
    "later_drop": null,
    "until_back": null,
    "plays_from": null,
-   "when": null,
+   "when": "2026-10-22",
    "games": 2,
    "week_pts": 1.66,
    "next_two_pts": 24.49,
    "later_pts": -1.77,
    "win": [
-    0.4754,
-    0.4948
+    0.4822,
+    0.5017
    ],
    "now_wins": 0.0194,
    "ahead_wins": [
@@ -295,9 +353,9 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0141,
-   "value": 0.1942,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +2 win-pts make up for"
+   "value": 0.1943,
+   "status": "plan",
+   "why": "now"
   },
   {
    "key": "8484390:8476455",
@@ -340,8 +398,8 @@
    "keep": 0.436,
    "later_wins": 0.1131,
    "value": 0.1781,
-   "status": "fails",
-   "why": "worth 17.8 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Roman Kantserov uses the same player"
   },
   {
    "key": "8481028:8476457",
@@ -385,8 +443,8 @@
    "keep": 0.0,
    "later_wins": 0.0041,
    "value": 0.1732,
-   "status": "fails",
-   "why": "worth 17.3 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same player"
   },
   {
    "key": "8484390:8476457",
@@ -429,8 +487,8 @@
    "keep": 0.436,
    "later_wins": 0.0615,
    "value": 0.1692,
-   "status": "fails",
-   "why": "worth 16.9 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
   {
    "key": "8478499:8482447",
@@ -473,8 +531,8 @@
    "keep": 1.0,
    "later_wins": 0.0299,
    "value": 0.1686,
-   "status": "fails",
-   "why": "worth 16.9 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8483609:8482447",
@@ -517,8 +575,8 @@
    "keep": 0.0,
    "later_wins": -0.0167,
    "value": 0.1642,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +1 win-pts make up for"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8482087:8476457",
@@ -561,8 +619,8 @@
    "keep": 0.217,
    "later_wins": 0.0802,
    "value": 0.158,
-   "status": "fails",
-   "why": "worth 15.8 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
   {
    "key": "8483609:8476457",
@@ -605,52 +663,8 @@
    "keep": 0.0,
    "later_wins": 0.0015,
    "value": 0.1432,
-   "status": "fails",
-   "why": "worth 14.3 win-pts, under the 22.0 an add costs"
-  },
-  {
-   "key": "8484390:8480855",
-   "add": {
-    "id": 8484390,
-    "name": "Roman Kantserov",
-    "team": "CHI",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 0.91,
-   "next_two_pts": 7.9,
-   "later_pts": 8.79,
-   "win": [
-    0.4754,
-    0.486
-   ],
-   "now_wins": 0.0107,
-   "ahead_wins": [
-    0.0111,
-    0.0479
-   ],
-   "ahead_pts": 7.12,
-   "ahead_week_pts": [
-    1.29,
-    5.82
-   ],
-   "held": false,
-   "keep": 0.436,
-   "later_wins": 0.0702,
-   "value": 0.1398,
-   "status": "fails",
-   "why": "worth 14.0 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
   {
    "key": "8482095:8476457",
@@ -693,8 +707,8 @@
    "keep": 0.158,
    "later_wins": 0.0625,
    "value": 0.1396,
-   "status": "fails",
-   "why": "worth 14.0 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
   {
    "key": "8476473:8482447",
@@ -737,8 +751,8 @@
    "keep": 0.0,
    "later_wins": 0.0124,
    "value": 0.1384,
-   "status": "fails",
-   "why": "worth 13.8 win-pts, under the 22.0 an add costs"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8482679:8482447",
@@ -781,8 +795,8 @@
    "keep": 0.0,
    "later_wins": -0.0192,
    "value": 0.1353,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +0 win-pts make up for"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8480797:8482447",
@@ -826,8 +840,8 @@
    "keep": 0.0,
    "later_wins": -0.0192,
    "value": 0.1346,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +0 win-pts make up for"
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8476473:8476457",
@@ -871,7 +885,7 @@
    "later_wins": 0.0306,
    "value": 0.1172,
    "status": "fails",
-   "why": "worth 11.7 win-pts, under the 22.0 an add costs"
+   "why": "worth 11.7 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8482679:8476457",
@@ -1137,7 +1151,7 @@
    "later_wins": 0.0265,
    "value": 0.0929,
    "status": "fails",
-   "why": "worth 9.3 win-pts, under the 22.0 an add costs"
+   "why": "worth 9.3 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8477498:8480807",
@@ -1181,7 +1195,7 @@
    "later_wins": 0.0533,
    "value": 0.0908,
    "status": "fails",
-   "why": "worth 9.1 win-pts, under the 22.0 an add costs"
+   "why": "worth 9.1 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8482146:8482447",
@@ -1226,7 +1240,7 @@
    "later_wins": 0.0149,
    "value": 0.0897,
    "status": "fails",
-   "why": "worth 9.0 win-pts, under the 22.0 an add costs"
+   "why": "worth 9.0 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8484860:8482447",
@@ -1537,7 +1551,7 @@
    "later_wins": 0.0331,
    "value": 0.0683,
    "status": "fails",
-   "why": "worth 6.8 win-pts, under the 22.0 an add costs"
+   "why": "worth 6.8 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478042:8476455",
@@ -1582,7 +1596,7 @@
    "later_wins": 0.0251,
    "value": 0.0656,
    "status": "fails",
-   "why": "worth 6.6 win-pts, under the 22.0 an add costs"
+   "why": "worth 6.6 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8481593:8482447",
@@ -1671,7 +1685,7 @@
    "later_wins": 0.0127,
    "value": 0.0642,
    "status": "fails",
-   "why": "worth 6.4 win-pts, under the 22.0 an add costs"
+   "why": "worth 6.4 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8481028:8476455",
@@ -1761,7 +1775,7 @@
    "later_wins": 0.0205,
    "value": 0.0606,
    "status": "fails",
-   "why": "worth 6.1 win-pts, under the 22.0 an add costs"
+   "why": "worth 6.1 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8479361:8482447",
@@ -1849,7 +1863,7 @@
    "later_wins": 0.0252,
    "value": 0.0587,
    "status": "fails",
-   "why": "worth 5.9 win-pts, under the 22.0 an add costs"
+   "why": "worth 5.9 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478542:8482447",
@@ -1895,7 +1909,7 @@
    "later_wins": 0.0082,
    "value": 0.0566,
    "status": "fails",
-   "why": "worth 5.7 win-pts, under the 22.0 an add costs"
+   "why": "worth 5.7 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8476539:8482447",
@@ -1940,7 +1954,7 @@
    "later_wins": 0.0104,
    "value": 0.0533,
    "status": "fails",
-   "why": "worth 5.3 win-pts, under the 22.0 an add costs"
+   "why": "worth 5.3 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8480950:8482447",
@@ -2028,7 +2042,7 @@
    "later_wins": 0.0059,
    "value": 0.0519,
    "status": "fails",
-   "why": "worth 5.2 win-pts, under the 22.0 an add costs"
+   "why": "worth 5.2 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8482245:8482447",
@@ -2116,7 +2130,7 @@
    "later_wins": 0.0171,
    "value": 0.0489,
    "status": "fails",
-   "why": "worth 4.9 win-pts, under the 22.0 an add costs"
+   "why": "worth 4.9 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8479980:8476457",
@@ -2160,7 +2174,7 @@
    "later_wins": 0.0171,
    "value": 0.0489,
    "status": "fails",
-   "why": "worth 4.9 win-pts, under the 22.0 an add costs"
+   "why": "worth 4.9 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8476473:8480807",
@@ -2381,7 +2395,7 @@
    "later_wins": 0.0163,
    "value": 0.0441,
    "status": "fails",
-   "why": "worth 4.4 win-pts, under the 22.0 an add costs"
+   "why": "worth 4.4 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8482095:8480807",
@@ -2470,7 +2484,7 @@
    "later_wins": 0.0309,
    "value": 0.0425,
    "status": "fails",
-   "why": "worth 4.3 win-pts, under the 22.0 an add costs"
+   "why": "worth 4.3 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8475831:8482447",
@@ -2559,7 +2573,7 @@
    "later_wins": 0.0103,
    "value": 0.0387,
    "status": "fails",
-   "why": "worth 3.9 win-pts, under the 22.0 an add costs"
+   "why": "worth 3.9 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478042:8480855",
@@ -2649,7 +2663,7 @@
    "later_wins": 0.0354,
    "value": 0.0358,
    "status": "fails",
-   "why": "worth 3.6 win-pts, under the 22.0 an add costs"
+   "why": "worth 3.6 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478542:8476457",
@@ -2695,7 +2709,7 @@
    "later_wins": 0.0264,
    "value": 0.0353,
    "status": "fails",
-   "why": "worth 3.5 win-pts, under the 22.0 an add costs"
+   "why": "worth 3.5 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8483525:8482447",
@@ -2740,7 +2754,7 @@
    "later_wins": 0.0065,
    "value": 0.035,
    "status": "fails",
-   "why": "worth 3.5 win-pts, under the 22.0 an add costs"
+   "why": "worth 3.5 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8483609:8476455",
@@ -11907,36 +11921,6 @@
   ],
   "plan": [
    {
-    "key": "8477498:8476457",
-    "name": "D. Nurse",
-    "positions": "D",
-    "team": "SJS",
-    "drop": "A. Larsson",
-    "cells": [
-     null,
-     null,
-     "start",
-     null,
-     null,
-     "start",
-     null,
-     "start",
-     null,
-     "start",
-     null
-    ],
-    "slot_games": 4,
-    "slot_starts": null,
-    "gain": [
-     0.36473957445434735,
-     0.0
-    ],
-    "plan": true,
-    "when": "2026-10-23"
-   }
-  ],
-  "streamers": [
-   {
     "key": "8481028:8482447",
     "name": "M. Pospisil",
     "positions": "C/RW",
@@ -11959,12 +11943,69 @@
     "slot_starts": null,
     "gain": [
      1.6589566210834903,
-     13.095107668120022
+     0.0
     ],
-    "plan": false,
-    "when": null,
-    "recommended": false
+    "plan": true,
+    "when": "2026-10-22"
    },
+   {
+    "key": "8477498:8476457",
+    "name": "D. Nurse",
+    "positions": "D",
+    "team": "SJS",
+    "drop": "A. Larsson",
+    "cells": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     "start",
+     null,
+     "start",
+     null,
+     "start",
+     null
+    ],
+    "slot_games": 3,
+    "slot_starts": null,
+    "gain": [
+     0.36473957445434735,
+     0.0
+    ],
+    "plan": true,
+    "when": "2026-10-26"
+   },
+   {
+    "key": "8484390:8480855",
+    "name": "R. Kantserov",
+    "positions": "RW",
+    "team": "CHI",
+    "drop": "J. McBain",
+    "cells": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     "start",
+     null,
+     "start",
+     null,
+     "start",
+     null
+    ],
+    "slot_games": 3,
+    "slot_starts": null,
+    "gain": [
+     0.9083330719672063,
+     0.0
+    ],
+    "plan": true,
+    "when": "2026-10-26"
+   }
+  ],
+  "streamers": [
    {
     "key": "8480797:8482447",
     "name": "J. Farabee",
@@ -12205,9 +12246,9 @@
     {
      "C": 0,
      "LW": 0,
-     "RW": 1,
+     "RW": 0,
      "D": 2,
-     "G": 0
+     "G": 1
     },
     {
      "C": 2,
@@ -12219,7 +12260,7 @@
     {
      "C": 0,
      "LW": 0,
-     "RW": 1,
+     "RW": 0,
      "D": 2,
      "G": 1
     },
@@ -12228,10 +12269,10 @@
      "LW": 0,
      "RW": 2,
      "D": 2,
-     "G": 0
+     "G": 1
     },
     {
-     "C": 2,
+     "C": 1,
      "LW": 2,
      "RW": 2,
      "D": 4,
@@ -12239,13 +12280,13 @@
     },
     {
      "C": 0,
-     "LW": 0,
-     "RW": 1,
+     "LW": 1,
+     "RW": 0,
      "D": 0,
      "G": 0
     },
     {
-     "C": 2,
+     "C": 1,
      "LW": 0,
      "RW": 2,
      "D": 4,
@@ -12259,7 +12300,7 @@
      "G": 0
     },
     {
-     "C": 1,
+     "C": 0,
      "LW": 2,
      "RW": 2,
      "D": 3,
@@ -12268,12 +12309,12 @@
     {
      "C": 0,
      "LW": 0,
-     "RW": 2,
+     "RW": 0,
      "D": 1,
-     "G": 0
+     "G": 1
     },
     {
-     "C": 0,
+     "C": 1,
      "LW": 1,
      "RW": 2,
      "D": 3,
@@ -12283,15 +12324,15 @@
    "my_games": [
     9,
     3,
-    8,
-    8,
-    0,
-    11,
-    2,
-    12,
-    2,
     9,
-    5
+    7,
+    1,
+    11,
+    3,
+    12,
+    3,
+    10,
+    4
    ],
    "benched": [
     0,
@@ -12299,9 +12340,9 @@
     0,
     0,
     0,
-    1,
     0,
-    1,
+    0,
+    0,
     0,
     0,
     0
@@ -12336,9 +12377,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 1,
+     "RW": 0,
      "D": 2,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12364,7 +12405,7 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 1,
+     "RW": 0,
      "D": 2,
      "G": 1
     }
@@ -12380,7 +12421,7 @@
      "LW": 0,
      "RW": 2,
      "D": 2,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12390,7 +12431,7 @@
     "week": 5,
     "games": 3,
     "open": {
-     "C": 2,
+     "C": 1,
      "LW": 2,
      "RW": 2,
      "D": 4,
@@ -12405,8 +12446,8 @@
     "games": 11,
     "open": {
      "C": 0,
-     "LW": 0,
-     "RW": 1,
+     "LW": 1,
+     "RW": 0,
      "D": 0,
      "G": 0
     }
@@ -12418,7 +12459,7 @@
     "week": 5,
     "games": 4,
     "open": {
-     "C": 2,
+     "C": 1,
      "LW": 0,
      "RW": 2,
      "D": 4,
@@ -12446,7 +12487,7 @@
     "week": 5,
     "games": 3,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 2,
      "RW": 2,
      "D": 3,
@@ -12462,9 +12503,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 2,
+     "RW": 0,
      "D": 1,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12474,7 +12515,7 @@
     "week": 5,
     "games": 5,
     "open": {
-     "C": 0,
+     "C": 1,
      "LW": 1,
      "RW": 2,
      "D": 3,
@@ -12488,9 +12529,9 @@
     "week": 6,
     "games": 4,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 1,
-     "RW": 2,
+     "RW": 1,
      "D": 3,
      "G": 1
     }
@@ -12504,9 +12545,9 @@
     "open": {
      "C": 0,
      "LW": 0,
-     "RW": 0,
+     "RW": 1,
      "D": 2,
-     "G": 0
+     "G": 1
     }
    },
    {
@@ -12516,9 +12557,9 @@
     "week": 6,
     "games": 4,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 2,
-     "RW": 2,
+     "RW": 1,
      "D": 2,
      "G": 1
     }
@@ -12544,7 +12585,7 @@
     "week": 6,
     "games": 3,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 2,
      "RW": 2,
      "D": 2,
@@ -12572,7 +12613,7 @@
     "week": 6,
     "games": 6,
     "open": {
-     "C": 1,
+     "C": 0,
      "LW": 2,
      "RW": 2,
      "D": 2,
