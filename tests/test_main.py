@@ -1340,6 +1340,26 @@ def test_the_2026_10_21_repairs_backfill_the_scoreboard_and_points_for(tmp_path)
     assert pf["1"]["Lazy Lew"] == 244.5 and pf["2"]["Lazy Lew"] == 488.2 and pf["3"]["Lazy Lew"] == 736.45
 
 
+def test_the_2026_10_22_repair_saves_hc_buljus_team_page(tmp_path):
+    from league import positions
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-22 hc bulju team page"]
+    league = {"teams": {"HC Bulju": {"updated": "2026-09-29", "players": [
+                  {"id": 8480893, "name": "Kirill Marchenko", "team": "CBJ", "positions": ["RW"], "slot": None}]},
+                        "Gwp": {"updated": "2026-09-29", "players": [
+                  {"id": 8476958, "name": "Jaccob Slavin", "team": "CAR", "positions": ["D"], "slot": None}]}},
+              "taken": [8478469]}
+    repairs.apply(state, [], league)
+    bulju = league["teams"]["HC Bulju"]
+    assert bulju["updated"] == "2026-10-22" and len(bulju["players"]) == 15
+    assert all(p["slot"] is None for p in bulju["players"])  # other teams' slots aren't kept
+    marchenko = next(p for p in bulju["players"] if p["id"] == 8480893)
+    assert marchenko["team"] == "TOR" and marchenko["positions"] == ["LW", "RW"]
+    assert league["teams"]["Gwp"]["players"] == [] and league["taken"] == []  # Slavin and Chabot are HC Bulju's
+    assert positions.load()[8476389] == ["C", "RW"]  # Trocheck's RW learned
+
+
 def test_my_roster_is_recorded_each_day_for_the_scoreboard(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
     monkeypatch.setattr(nhl_client, "games_on", lambda d: [])

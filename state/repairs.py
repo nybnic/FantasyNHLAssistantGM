@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from clients.names import normalize_name
 from config.league import TIMEZONE
-from league import teams
+from league import positions, teams
 from league.roster import RosterPlayer
 
 SCHENN, MURASHOV = 8475170, 8483703
@@ -346,6 +346,33 @@ def _move_forecasts(state: dict, players: list[RosterPlayer], league: dict) -> N
         state.setdefault("move_forecasts", {}).setdefault(key, f)
 
 
+# Nico's two screenshots of HC Bulju's team page (Yahoo app), sent in a development
+# session on 2026-10-22 (14:40) and read with clients/screenshot.py: id, name, NHL
+# team and positions as Yahoo showed them. Thomas Chabot was in IR+ ("O").
+HC_BULJU_OCT_22 = [
+    (8483445, "Cutter Gauthier", "ANA", ["C", "LW", "RW"]), (8475158, "Ryan O'Reilly", "NSH", ["C"]),
+    (8486067, "Gavin McKenna", "TOR", ["LW"]), (8480893, "Kirill Marchenko", "TOR", ["LW", "RW"]),
+    (8476389, "Vincent Trocheck", "UTA", ["C", "RW"]), (8477960, "Adrian Kempe", "LAK", ["RW"]),
+    (8478460, "Zach Werenski", "CBJ", ["D"]), (8480803, "Evan Bouchard", "EDM", ["D"]),
+    (8479410, "Mikhail Sergachev", "UTA", ["D"]), (8476958, "Jaccob Slavin", "CAR", ["D"]),
+    (8479542, "Brandon Hagel", "TBL", ["LW", "RW"]), (8485406, "Porter Martone", "PHI", ["RW"]),
+    (8478469, "Thomas Chabot", "OTT", ["D"]), (8478435, "Dan Vladar", "PHI", ["G"]),
+    (8474596, "Jake Allen", "NJD", ["G"]),
+]
+
+
+def _hc_bulju_team_page(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-22: HC Bulju's page as bot/ingest.save_team would have saved it: the same 15
+    # players the transactions had left them with, now dated, with Yahoo's positions learned
+    # (Marchenko LW/RW, Trocheck C/RW; both had one) and Marchenko's team (TOR, not CBJ).
+    # Slots stay unset, as for every other team: Chabot's IR+ is read from DFO's status.
+    roster = [RosterPlayer(pid, name, team, pos, None) for pid, name, team, pos in HC_BULJU_OCT_22]
+    teams.set_team(league, "HC Bulju", roster, dt.date(2026, 10, 22))
+    known = positions.load()
+    if positions.learn(known, {p.id: p.positions for p in roster}):
+        positions.save(known)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -360,4 +387,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-18 week 2 standings", _week_2_standings),
            ("2026-10-21 scoreboard since the draft", _scoreboard_since_draft),
            ("2026-10-21 points for by week", _points_for_by_week),
-           ("2026-10-21 move forecasts", _move_forecasts)]
+           ("2026-10-21 move forecasts", _move_forecasts),
+           ("2026-10-22 hc bulju team page", _hc_bulju_team_page)]
