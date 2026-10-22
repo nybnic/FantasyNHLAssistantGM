@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-22T15:05+00:00",
+    "at": "2026-10-22T16:29+00:00",
     "moves": [
       {
         "add": {
@@ -896,7 +896,7 @@
         "key": "8477498:8476457",
         "message_id": null,
         "rec_id": null,
-        "value": 0.2707,
+        "value": 0.2704,
         "when": "2026-10-26",
         "why": "monday"
       },
@@ -916,7 +916,7 @@
         "key": "8484390:8480855",
         "message_id": null,
         "rec_id": null,
-        "value": 0.2015,
+        "value": 0.2012,
         "when": "2026-10-26",
         "why": "monday"
       }
@@ -1083,7 +1083,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784732,
+  "telegram_offset": 929784733,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1192,6 +1192,7 @@
       "8482713:promoted": "2026-10-14",
       "8482731:ice time": "2026-10-21",
       "8482758:promoted": "2026-10-20",
+      "8482775:promoted": "2026-10-22",
       "8482803:promoted": "2026-10-14",
       "8483460:promoted": "2026-10-16",
       "8483468:promoted": "2026-10-19",
@@ -2411,7 +2412,8 @@
       },
       "8479968": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3450,10 +3452,12 @@
       },
       "8482758": {
         "groups": [
-          "f2"
+          "f2",
+          "pp1"
         ],
         "since": {
-          "f2": "2026-10-20"
+          "f2": "2026-10-20",
+          "pp1": "2026-10-22"
         }
       },
       "8482765": {
@@ -3471,10 +3475,13 @@
       },
       "8482775": {
         "groups": [
-          "f4",
-          "pp2"
+          "f1",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-22",
+          "pp1": "2026-10-22"
+        }
       },
       "8482802": {
         "groups": [
@@ -3717,7 +3724,8 @@
       },
       "8483546": {
         "groups": [
-          "d3"
+          "d3",
+          "ir"
         ],
         "since": {}
       },
@@ -3757,7 +3765,8 @@
       },
       "8483686": {
         "groups": [
-          "d3"
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
@@ -5531,6 +5540,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-22",
+        "id": 8482775,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Oliver Kapanen",
+        "positions": "C",
+        "price": 0.1307,
+        "sent": false,
+        "team": "MTL",
+        "value": -0.1587,
+        "verdict": "-16 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line and the first power play."
       }
     ]
   },
