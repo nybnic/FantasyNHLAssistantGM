@@ -303,8 +303,9 @@ def test_every_dashboard_tab_draws_on_a_phone():
                 assert not errors and "couldn't be drawn" not in page.locator("main").inner_text(), (tab, errors)
                 assert page.evaluate("document.documentElement.scrollWidth") <= 390, tab
                 assert page.locator(".tabbar button.on").count() == 1
-                if tab.startswith("move="):
-                    assert page.locator(".sheet h2").first.inner_text().startswith("Add ")
+                if tab.startswith("move="):  # its sheet opens with the move's card: the add and the drop face to face
+                    add = next(r for r in data["moves"] if r["key"] == tab[5:])["add"]["name"]
+                    assert page.locator(".sheet .in-sheet .nc-who b").first.inner_text() == add
                 if tab == "today":  # a phone has no hover: a tap on a mark pins its number, a tap elsewhere hides it
                     page.locator("section.card svg rect[rx]").first.click()
                     assert page.locator("#tip").is_visible() and page.locator("#tip b").inner_text()

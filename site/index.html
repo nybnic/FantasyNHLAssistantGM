@@ -287,8 +287,8 @@
   .nc-table > :nth-child(3n+2), .nc-table > :nth-child(3n) { text-align: right; }
   .nc-table b { font-size: 22px; }
   .nc-dots { display: grid; gap: 8px; align-items: center; }
-  .nc-dotrow { display: flex; gap: 5px; flex-wrap: wrap; }
-  .nc-dot { display: block; width: 14px; height: 14px; border-radius: 50%; box-sizing: border-box; }
+  .nc-dotrow { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nc-dot { display: block; width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box; }
   .nc-parts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; font-size: 13px; color: #B7C2D3; }
   .nc-parts b { font-size: 15px; }
   .nc-stats { display: grid; grid-template-columns: 1fr 96px 1fr; gap: 6px; align-items: center; font-size: 13px; }
@@ -296,6 +296,14 @@
   .nc-stats div { display: flex; height: 10px; }
   .nc-stats .nc-l { justify-content: flex-end; }
   .nc-stats i { display: block; height: 10px; border-radius: 3px; }
+  .sheet { position: relative; }
+  .sheet .close { position: absolute; top: 14px; right: 16px; float: none; z-index: 1; }
+  .sheet .nc.in-sheet { padding: 0; background: transparent; margin-top: 4px; }
+  .sheet .in-sheet .nc-top { padding-right: 76px; }
+  .sheet .nc-tile { background: var(--surface); }
+  .sheet .av .bdg { border-color: var(--surface); }
+  .sheet-head { justify-content: flex-start; margin-right: 70px; }
+  .sheet-head h2 { margin: 0; font-size: 18px; white-space: normal; }
   .av { position: relative; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff;
         font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-weight: 700; flex: none; }
   .av img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -1250,9 +1258,12 @@ function playerSheet(id) {
   const p = person(id);
   if (!p) return null;
   const out = [];
+  const head = el("div", { class: "nc-row sheet-head" }), who = el("div", { class: "nc-who" });
   const title = el("h2", {}, p.name);
   title.append(el("span", { class: "chip" }, ownerLabel(p)));
-  out.push(title, el("div", { class: "sub" }, `${p.team} · ${p.positions} · ${p.gp} games this season`));
+  who.append(title, el("span", {}, `${p.positions} · ${p.team} · ${p.gp} games this season`));
+  head.append(avatar(p.id, 56), who);
+  out.push(head);
   const hero = el("div", { class: "hero", style: "margin-top:10px" });
   const big = el("div");
   big.append(el("div", { class: "big num", style: "font-size:40px" }, p.xfp == null ? "?" : f2(p.xfp)),
@@ -1302,61 +1313,14 @@ function playerSheet(id) {
 }
 
 const STATUS = { plan: "In the plan", passes: "Worth an add", fails: "Under the price" };
-function waterfall(r) {
-  const h = data.header;
-  const steps = [["This week", r.now_wins, "--blue"]]
-    .concat((h.ahead || []).map((w, k) => [`Wk ${w.week}`, (r.ahead_wins || [])[k] || 0, "--orange"]))
-    .concat([["Later", r.later_wins, "--aqua"]]);
-  const price = h.price ? h.price.lam : null;
-  let run = 0;
-  const bars = steps.map(([name, v, token]) => { const a = run; run += v; return { name, a, b: run, v, token }; });
-  bars.push({ name: "In all", a: 0, b: r.value, v: r.value, token: "--text-2", total: true });
-  const all = bars.flatMap(b => [b.a, b.b]).concat(price != null ? [price] : []).concat([0]);
-  const lo = Math.min(...all) * 100, hi = Math.max(...all) * 100;
-  const W = width() - 4, H = 190, m = { l: 30, r: 8, t: 18, b: 24 };
-  const band = (W - m.l - m.r) / bars.length, bw = Math.min(40, band * 0.56);
-  const Y = v => m.t + (hi - v) / ((hi - lo) || 1) * (H - m.t - m.b);
-  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "The move's value, step by step" });
-  const ticks = []; const span = hi - lo, st = span > 40 ? 20 : span > 16 ? 10 : 5;
-  for (let t = Math.ceil(lo / st) * st; t <= hi; t += st) ticks.push(t);
-  ticks.forEach(t => {
-    svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), stroke: css(t === 0 ? "--muted" : "--grid") }));
-    svg.append(svgEl("text", { x: m.l - 6, y: Y(t) + 4, "text-anchor": "end" }, t));
-  });
-  bars.forEach((b, i) => {
-    const x = m.l + band * i + (band - bw) / 2;
-    const y1 = Y(Math.max(b.a, b.b) * 100), y2 = Y(Math.min(b.a, b.b) * 100);
-    const rect = svgEl("rect", { x, y: y1, width: bw, height: Math.max(1.5, y2 - y1), rx: 3, fill: css(b.token) });
-    hover(rect, [b.name, `${wp(b.v)} win-pts`].concat(b.total ? [] : [`Running total: ${wp(b.b)}`]));
-    svg.append(rect);
-    if (i < bars.length - 1 && !b.total)
-      svg.append(svgEl("line", { x1: x + bw, x2: x + band, y1: Y(b.b * 100), y2: Y(b.b * 100), stroke: css("--muted"), "stroke-dasharray": "2 2" }));
-    svg.append(svgEl("text", { x: x + bw / 2, y: b.v >= -0.005 ? y1 - 4 : y2 + 12, "text-anchor": "middle", fill: css("--text"),
-                               "font-weight": b.total ? 700 : 400 }, wp(b.v)));
-    svg.append(svgEl("text", { x: x + bw / 2, y: H - 6, "text-anchor": "middle" }, b.name));
-  });
-  if (price != null) {
-    svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(price * 100), y2: Y(price * 100), stroke: css("--text"), "stroke-dasharray": "5 4" }));
-  }
-  const wrap = el("div");
-  wrap.append(svg);
-  const legend = el("div", { class: "legend" });
-  legend.append(key("--blue", "This week"), key("--orange", "Weeks ahead"), key("--aqua", "Later"));
-  if (price != null) legend.append(el("span", {}, `- - - an add costs ${Math.round(price * 100)}`));
-  wrap.append(legend);
-  return wrap;
-}
 function moveSheet(moveKey) {
   const r = data.moves.find(x => x.key === moveKey);
   if (!r) return null;
-  const h = data.header, out = [];
-  const title = el("h2", {}, r.drop ? `Add ${r.add.name}, drop ${r.drop.name}` : r.ir_slot ? `Add ${r.add.name} to ${r.ir_slot}` : `Add ${r.add.name} (open spot)`);
-  title.append(el("span", { class: "chip" + (r.status === "plan" ? " plan" : "") }, STATUS[r.status] || r.status));
-  const planned = (data.plan || []).find(q => q.key === r.key);
-  out.push(title, el("div", { class: "note" }, planned ? `${planned.day}: ${planned.detail}` : r.why));
-  out.push(el("h3", {}, "What it's worth, in win-pts"));
-  out.push(waterfall(r));
-  out.push(el("div", { class: "note" }, "Win-pts: percentage points of a weekly win. Each week's points count by how close that matchup is; later points at a typical week's worth (win-pts a point, the Win column)."));
+  const h = data.header, out = [], planned = (data.plan || []).find(q => q.key === r.key);
+  // First the move's card, as Telegram shows it on its day; then what the card leaves out.
+  const card = moveCard(r.key);
+  card.classList.add("in-sheet");
+  out.push(card, el("div", { class: "note" }, planned ? `${planned.day}: ${planned.detail}` : `${STATUS[r.status] || r.status}: ${r.why}`));
   out.push(el("h3", {}, "From points to win-pts"));
   const rows = [[`This week (${r.games} game${r.games === 1 ? "" : "s"} left)`, signed(r.week_pts),
                  `${pct(r.win[0])} → ${pct(r.win[1])}`, wp(r.now_wins)]];
@@ -1373,6 +1337,7 @@ function moveSheet(moveKey) {
   rows.push([laterName, signed(r.later_pts), `× ${(100 * h.later_weight).toFixed(2)} each`, wp(r.later_wins)]);
   rows.push(["In all", "", h.price ? `the price: ${Math.round(100 * h.price.lam)}` : "", wp(r.value)]);
   out.push(kvTable(["", "Points", "Win", "Win-pts"], rows, true));
+  out.push(el("div", { class: "note" }, "Win-pts: percentage points of a weekly win. Each week's points count by how close that matchup is; later points at a typical week's worth."));
   const flags = [];
   if (r.when) flags.push(`Make it ${fmtDay(r.when)}.`);
   if (r.plays_from) flags.push(`On waivers: plays from ${fmtDay(r.plays_from)}.`);
@@ -1382,48 +1347,27 @@ function moveSheet(moveKey) {
   else if (keep < 1) flags.push(`Near your streaming spots: the closer the weaker of the two is to waiver level, the less of the season counts (${pct(keep)} here).`);
   if (flags.length) { const ul = el("ul", { class: "flags" }); flags.forEach(f => ul.append(el("li", {}, f))); out.push(ul); }
   const a = person(r.add.id), d = r.drop ? person(r.drop.id) : null;
-  if (a) {
-    const both = d && !!d.goalie === !!a.goalie;
-    const tabs = statTabs();
-    tabs.style.marginTop = "10px";
-    out.push(tabs, el("h3", {}, both ? `${a.goalie ? "A start" : "A game"}: ${lastName(a.name)} vs ${lastName(d.name)}` : `${lastName(a.name)}, ${a.goalie ? "a start" : "a game"}`));
-    out.push(perGameBars(both ? [a, d] : [a], ["--blue", "--orange"]));
-    if (both) {
-      const legend = el("div", { class: "legend" });
-      legend.append(key("--blue", `${a.name} (add)`), key("--orange", `${d.name} (drop)`));
-      if (statView !== "stats") out.push(legend);  // the stat table names its columns
-      if (!a.goalie)
-        out.push(kvTable(["", lastName(a.name), lastName(d.name)], [
-          ["Ice time a game (PP)", `${mmss(a.toi)} (${mmss(a.pp_toi)})`, `${mmss(d.toi)} (${mmss(d.pp_toi)})`],
-          ["Games this season", String(a.gp), String(d.gp)],
-          ["Tonight", pct(a.play) + (a.note ? ` ${a.note}` : ""), pct(d.play) + (d.note ? ` ${d.note}` : "")],
-          ["Games projected", pct(a.durability), pct(d.durability)],
-          ["Long-run points kept", pct(a.kept), pct(d.kept)],
-        ]));
-    }
-    const sides = [a, d].filter(Boolean);
-    const sched = scheduleTable(sides);
-    if (sched) {
-      out.push(el("h3", {}, "Games this week and the next two"), sched);
-      if (d) {
-        const legend = el("div", { class: "legend" });
-        legend.append(key("--blue", `${a.name} (add)`), key("--orange", `${d.name} (drop)`));
-        out.push(legend);
-      }
-    }
-    if (sides.some(p => "season" in p)) {
-      out.push(el("h3", {}, "Season so far"));
-      if (d && !!d.goalie === !!a.goalie) out.push(seasonTable(sides));
-      else sides.forEach(p => out.push(el("div", { class: "sub" }, p.name), seasonTable([p])));
-    }
-    const btns = el("div");
-    [a, d].filter(Boolean).forEach(p => {
-      const b = el("button", { class: "linkish", type: "button" }, `${p.name} →`);
-      b.onclick = () => openSheet("player", p.id);
-      btns.append(b);
-    });
-    out.push(btns);
+  if (!a) return out;
+  const sides = [a, d].filter(Boolean);
+  if (sides.every(p => !p.goalie)) {
+    out.push(el("h3", {}, "Availability"));
+    out.push(kvTable(["", ...sides.map(p => lastName(p.name))], [
+      ["Tonight", ...sides.map(p => pct(p.play) + (p.note ? ` ${p.note}` : ""))],
+      ["Games projected", ...sides.map(p => pct(p.durability))],
+      ["Long-run points kept", ...sides.map(p => pct(p.kept))]]));
   }
+  if (sides.some(p => "season" in p)) {
+    out.push(el("h3", {}, "Season so far"));
+    if (d && !!d.goalie === !!a.goalie) out.push(seasonTable(sides));
+    else sides.forEach(p => out.push(el("div", { class: "sub" }, p.name), seasonTable([p])));
+  }
+  const btns = el("div");
+  sides.forEach(p => {
+    const b = el("button", { class: "linkish", type: "button" }, `${p.name} →`);
+    b.onclick = () => openSheet("player", p.id);
+    btns.append(b);
+  });
+  out.push(btns);
   return out;
 }
 
@@ -1563,18 +1507,19 @@ function gameDots(cells, probs, color, from) {
     if (d.date < from || !cells[i]) return;
     const dot = el("i", { class: "nc-dot" }), p = probs ? probs[i] : null;
     if (cells[i] === "bench") dot.style.border = `2px solid ${color}`;
+    else if (cells[i] === "game") dot.style.background = "#6B7A90";  // a game, his lineup spot not worked out
     else dot.style.background = p != null ? `conic-gradient(${color} 0 ${Math.round(100 * p)}%, #2A3A55 0)` : color;
     (by[d.week] = by[d.week] || []).push(dot);
   });
   return by;
 }
-function moveCard() {
-  const r = data.moves.find(m => m.key === CARD_KEY);
-  if (!r) throw new Error(`no move ${CARD_KEY}`);
+function moveCard(key = CARD_KEY) {
+  const r = data.moves.find(m => m.key === key);
+  if (!r) throw new Error(`no move ${key}`);
   const p = data.plan.find(q => q.key === r.key), h = data.header;
   const a = person(r.add.id) || r.add, d = r.drop ? person(r.drop.id) || r.drop : null;
   const card = el("div", { class: "nc" }), top = el("div", { class: "nc-top" });
-  top.append(el("span", { class: "nc-week cond", style: "color:#7DB8FF" }, p ? dayShort(p.day) : "THE MOVE"),
+  top.append(el("span", { class: "nc-week cond", style: "color:#7DB8FF" }, p ? dayShort(p.day) : (STATUS[r.status] || "The move").toUpperCase()),
              el("span", { class: "nc-dim" }, `an add costs ${Math.round(100 * h.price.lam)}`));
   card.append(top);
   // Who: the add and the drop, their points a game so far and projected.
@@ -1606,14 +1551,20 @@ function moveCard() {
   card.append(tile);
   // When they play: each game a dot, by week, from the move's day.
   const s = data.schedule, from = r.when || data.date;
-  const planRow = (s.plan || []).find(q => q.key === r.key), dropRow = d ? s.rows.find(q => q.id === d.id) : null;
-  if (planRow) {
-    const sides = [[a, gameDots(planRow.cells, null, "#4D9BF0", from)]]
+  const dropRow = d ? s.rows.find(q => q.id === d.id) : null;
+  // The add's nights: the plan's adds (and the best streamer per position) are solved into my lineup;
+  // any other move shows just his team's games.
+  const addRow = (s.plan || []).find(q => q.key === r.key) || (s.streamers || []).find(q => q.key === r.key);
+  const G = data.games, theirGames = G && a.team ? G.teams[a.team] || [] : [];
+  const addCells = addRow ? addRow.cells : G ? s.days.map(x => { const i = G.days.findIndex(y => y.date === x.date);
+                                                              return i >= 0 && theirGames[i] ? "game" : null; }) : null;
+  if (addCells) {
+    const sides = [[a, gameDots(addCells, null, "#4D9BF0", from)]]
       .concat(dropRow ? [[d, gameDots(dropRow.cells, dropRow.probs, "#F07A45", from)]] : []);
     const weeksShown = [...new Set(s.days.filter(x => x.date >= from).map(x => x.week))];
     const box = el("div", { class: "nc-tile" });
     const count = by => Object.values(by).flat().filter(i => !i.style.border).length;
-    box.append(el("b", { style: "font-size:14px" }, "Lineup games, from " + (p ? p.day.replace(/ \(.*\)/, "") : fmtDay(from))));
+    box.append(el("b", { style: "font-size:14px" }, "Lineup games, from " + (p ? p.day.replace(/ \(.*\)/, "") : fmtDay(from).replace(",", ""))));
     const grid = el("div", { class: "nc-dots" });
     grid.style.gridTemplateColumns = `76px repeat(${weeksShown.length}, minmax(0, 1fr)) 24px`;
     grid.append(el("span"), ...weeksShown.map(w => el("span", { class: "nc-dim" }, `Wk ${w}`)), el("span"));
@@ -1623,8 +1574,9 @@ function moveCard() {
       grid.append(el("b", { class: "num", style: "text-align:right" }, String(count(by))));
     });
     box.append(grid);
-    const key = el("div", { class: "nc-dim" });
-    key.textContent = "Filled: in your best lineup that night · ring: no slot free";
+    const key = el("div", { class: "nc-dim wrap" });
+    key.textContent = (addRow ? "" : "Grey: his games (only the plan's moves are solved into your lineup) · ")
+                      + "Filled: in your best lineup that night · ring: no slot free";
     box.append(key);
     card.append(box);
   }
