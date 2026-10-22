@@ -209,7 +209,12 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   last at 2 SE. The live price averaged 0.27 but by thirds of the season 0.61 / 0.16 / 0.02 (a few early pools
   price high, then it dumps the rest late) and moved 0.054 Monday to Monday (1.62 at most); the pacing bars
   stay ~0.09-0.12 all season and move 0.009-0.019. The old fixed 0.09 with an even-pace cap (8 leagues): +0.02
-  (0.16), 25.3 adds. Not yet live: Nico decides.
+  (0.16), 25.3 adds. Not yet live: Nico decides. The replay's bar doesn't carry over to the live bot: its
+  move values run 2-3x the live ones at this stage (Mondays, weeks 3-5: best 0.72, second best 0.30, medians;
+  live, each day's first plan Oct 9-22: ~0.24 and ~0.11), as its rosters, drafted on preseason projections
+  with no IR and lazy injury handling, leave holes early; they fall to 0.11 / 0.05 after week 12. What
+  carries over is the shape: a pacing bar no worse than the live price, and spending early when moves are
+  rich didn't cost. A live bar of ~0.12-0.13 would have made ~1.3 adds a week on the live plans so far.
 
 ## Judgment calls (untested)
 `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
