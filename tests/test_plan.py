@@ -254,3 +254,32 @@ def test_a_move_the_new_plan_keeps_is_judged_at_the_plans_value():
     current = {plan.key(goalie): goalie, plan.key(other_goalie): other_goalie, plan.key(arvidsson_today): arvidsson_today}
     verdict = plan.decide([_stored(goalie), _stored(arvidsson_today)], new, current, {}, PRICE)
     assert verdict == plan.Verdict(False, "the new plan is better by 3 win-pts")  # not "no longer worth an add"
+
+
+def test_a_due_moves_card_is_its_image_with_the_words_as_caption_and_a_why_link(monkeypatch, tmp_path):
+    from notify import snapshot
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "t")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    photos, texts = [], []
+    monkeypatch.setattr(telegram, "send_photo", lambda *a, **k: photos.append((a, k)) or 7)
+    monkeypatch.setattr(telegram, "send_message", lambda *a, **k: texts.append((a, k)) or 8)
+    drawn = []
+    monkeypatch.setattr(snapshot, "card_png", lambda data, page, kind, key: drawn.append((kind, key)) or b"png")
+    state = gm_state.load(tmp_path / "state.json")
+    kelly = _move(1, "Parker Kelly", 0.20)
+    q = plan.Planned(kelly, FRIDAY, "spare")
+    p = SimpleNamespace(plan=[q], open_spots=0, ir_moves=[])
+    now = dt.datetime(2026, 10, 9, 6, tzinfo=dt.timezone.utc)
+    outbox = common.Outbox(load_settings())
+    stored = [{"rec_id": None}]
+    weekly.send_cards(state, p, stored, FRIDAY, now, outbox, {"moves": [{"key": q.key}]})
+    (args, kwargs), = photos
+    assert drawn == [("move", q.key)] and args[2] == b"png" and args[3].startswith("📅 <b>Make it Fri 9 Oct (today)</b>")
+    assert [b for b, _ in args[4]] == ["Done", "Other drop", "Taken", "Skip"] and args[5] is True
+    assert args[6][0][0] == "Why?" and args[6][0][1].endswith(f"#move={q.key}")
+    assert stored[0]["message_id"] == 7 and not texts
+    # Without the move in the dashboard's data (or without a browser): the words alone, the link kept.
+    stored = [{"rec_id": None}]
+    weekly.send_cards(state, p, stored, FRIDAY, now, outbox, {"moves": []})
+    (args, kwargs), = texts
+    assert args[2].startswith("📅 <b>Make it") and args[4] is True and args[5][0][0] == "Why?"

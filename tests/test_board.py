@@ -133,39 +133,42 @@ def test_the_card_image_falls_back_when_no_browser_can_render_it(monkeypatch):
     assert snapshot.card_png({"week": 2}) is None
 
 
-def test_the_card_is_readable_on_a_phone():
-    """The Telegram card (site/index.html?card) on the latest plan run's data: no text under 13px
-    (Telegram shows it at ~80%), close to square, and the plan's moves named. Skipped without a
-    browser; CHROMIUM_EXECUTABLE points Playwright at one it didn't install."""
+def test_the_cards_are_readable_on_a_phone():
+    """The Telegram cards (site/index.html?card, ?card=move) on the latest plan run's data: no
+    text under 13px (Telegram shows them at ~80%), not too tall, and the plan's moves named.
+    Skipped without a browser; CHROMIUM_EXECUTABLE points Playwright at one it didn't install."""
     import os
     from pathlib import Path
     import pytest
     from notify import snapshot
     sync_api = pytest.importorskip("playwright.sync_api")
     data = json.loads(Path("site/data.json").read_text(encoding="utf-8"))
+    moves = {r["key"]: r for r in data["moves"]}
+    shown = []
     with sync_api.sync_playwright() as pw:
         try:
             browser = pw.chromium.launch(executable_path=os.environ.get("CHROMIUM_EXECUTABLE"))
         except Exception as e:
             pytest.skip(f"no browser: {str(e).splitlines()[0]}")
         try:
-            tab = browser.new_page(viewport={"width": snapshot.WIDTH, "height": 800}, locale="en-GB")
-            tab.add_init_script(f"window.__CARD__ = true; window.__DATA__ = {json.dumps(data)};")
-            tab.goto(snapshot.PAGE.resolve().as_uri())
-            tab.wait_for_selector("body[data-ready='1']", timeout=20_000)
-            box = tab.locator("main").bounding_box()
-            smallest = tab.evaluate("""() => Math.min(...[...document.querySelectorAll('.nc *')]
-                .filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
-                .map(e => parseFloat(getComputedStyle(e).fontSize)))""")
-            text = tab.locator(".nc").inner_text()
+            for kind, key in [("plan", None)] + [("move", p["key"]) for p in data["plan"] if p["key"] in moves][:1]:
+                tab = browser.new_page(viewport={"width": snapshot.WIDTH, "height": 800}, locale="en-GB")
+                tab.add_init_script(f"window.__CARD__ = {json.dumps(kind)}; window.__CARD_KEY__ = {json.dumps(key)}; "
+                                    f"window.__DATA__ = {json.dumps(data)};")
+                tab.goto(snapshot.PAGE.resolve().as_uri())
+                tab.wait_for_selector("body[data-ready='1']", timeout=20_000)
+                smallest = tab.evaluate("""() => Math.min(...[...document.querySelectorAll('.nc *')]
+                    .filter(e => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()))
+                    .map(e => parseFloat(getComputedStyle(e).fontSize)))""")
+                shown.append((kind, key, tab.locator("main").bounding_box(), smallest, tab.locator(".nc").inner_text()))
         finally:
             browser.close()
-    assert box["width"] == snapshot.WIDTH and box["height"] <= 1.75 * box["width"]
-    assert smallest >= 13
-    moves = {r["key"]: r for r in data["moves"]}
-    for p in data["plan"]:
-        r = moves.get(p["key"])
-        assert r["add"]["name"].split(" ", 1)[1] in text if r else p["swap"] in text
+    for kind, key, box, smallest, text in shown:
+        assert box["width"] == snapshot.WIDTH and box["height"] <= (1.75 if kind == "plan" else 2.4) * box["width"]
+        assert smallest >= 13 and "couldn't be drawn" not in text
+        for p in data["plan"] if kind == "plan" else [moves[key]]:
+            r = moves.get(p["key"])
+            assert r["add"]["name"].split(" ", 1)[1] in text if r else p["swap"] in text
 
 
 def test_the_board_carries_the_breakdowns_and_saves_one_player_a_line(tmp_path):

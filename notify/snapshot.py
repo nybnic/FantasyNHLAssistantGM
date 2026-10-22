@@ -20,14 +20,16 @@ TIMEOUT_MS = 20_000
 TIME_ZONE = "Europe/Helsinki"  # "updated" in Nico's time; CI runs in UTC
 
 
-def card_png(data: dict, page: Path = PAGE) -> bytes | None:
-    """The card as a PNG, or None if it can't be rendered."""
+def card_png(data: dict, page: Path = PAGE, kind: str = "plan", key: str | None = None) -> bytes | None:
+    """A card as a PNG, or None if it can't be rendered: the plan's (`kind` "plan"),
+    a move's ("move", its `key`) or Monday's result ("result")."""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         logger.info("Playwright isn't installed: no card image")
         return None
-    script = f"window.__CARD__ = true; window.__DATA__ = {json.dumps(data, ensure_ascii=False)};"
+    script = (f"window.__CARD__ = {json.dumps(kind)}; window.__CARD_KEY__ = {json.dumps(key)}; "
+              f"window.__DATA__ = {json.dumps(data, ensure_ascii=False)};")
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch()

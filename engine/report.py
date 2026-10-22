@@ -40,11 +40,11 @@ def _slots(day: dict) -> tuple[int, dict[str, int], int]:
 
 def _add_row(entry: dict, days: list[dict], plan: bool = False) -> dict:
     """An added player's row: where he'd slot in on each day, over the trial
-    lineups of this week and next (entry: {"move", "this_week", "next_week"},
-    and for a planned move its "when")."""
+    lineups of this week, next and (when given) the one after (entry: {"move",
+    "this_week", "next_week", "third_week"}, and for a planned move its "when")."""
     m = entry["move"]
     merged, starts = {}, 0.0
-    for wk in (entry["this_week"], entry["next_week"]):
+    for wk in (entry["this_week"], entry["next_week"], entry.get("third_week")):
         for d, day in (wk.lineups if wk else {}).items():
             if m.add.id in day:
                 slot, prob = day[m.add.id]
@@ -95,7 +95,7 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
     rows = []
     for p in players:
         mine = cells.get(p.id, {})
-        rows.append({"name": _short(p.name), "positions": "/".join(p.positions),
+        rows.append({"id": p.id, "name": _short(p.name), "positions": "/".join(p.positions),
                      "cells": [mine.get(d["date"], (None, None))[0] for d in days],
                      "probs": [mine[d["date"]][1] if p.is_goalie and d["date"] in mine else None for d in days]})
     chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}

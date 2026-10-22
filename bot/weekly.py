@@ -506,15 +506,22 @@ def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
 
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,
                ranked: list, moves: list, plan: list = ()) -> dict:
-    """The dashboard's schedule grid (this week and next, with the best
-    streamer per position), the streaming schedule (every team, this week
-    and the next two), the add budget and the breakout watch's list."""
+    """The dashboard's schedule grid (this week and the next two: my best lineup
+    each night as is and with the plan, the best streamer per position), the
+    streaming schedule (every team, this week and the next two), the add budget
+    and the breakout watch's list."""
     spans = [(week, current_opponent(state, week), wk.me, wk.them)]
     if nxt.week:
         opp = current_opponent(state, nxt.week)
         theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, nxt.schedule,
                                  wk.lines, wk.starters, True)
         spans.append((nxt.week, opp or "?", nxt.mine, theirs))
+        if sched := third_schedule(wk, nxt):
+            opp = current_opponent(state, nxt.week + 1)
+            mine = matchup.project(MY_TEAM, players, wk.ctx, sched, wk.lines, wk.starters, True)
+            theirs = matchup.project(opp or "?", teams.players(league, opp) if opp else [], wk.ctx, sched,
+                                     wk.lines, wk.starters, True)
+            spans.append((nxt.week + 1, opp or "?", mine, theirs))
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
                                 wk.available_from)
     plan_entries, after = plan_weeks(players, plan, wk, nxt)
@@ -532,11 +539,17 @@ def streaming(state: dict, players: list, plan: list, week: int, wk: WeekInputs,
     spans = [(week, current_opponent(state, week), wk.schedule, mine[0])]
     if nxt.week:
         spans.append((nxt.week, current_opponent(state, nxt.week), nxt.schedule, mine[1]))
-        sched = {d: g for d, g in wk.future.items() if weeks.week_of(d) == nxt.week + 1}
-        if sched:
-            third = matchup.project(MY_TEAM, plan_roster(players, plan, drops=True), wk.ctx, sched, wk.lines, wk.starters, True)
+        if sched := third_schedule(wk, nxt):
+            third = (after[2] if len(after) > 2 and after[2] else  # plan_weeks projected it with the plan made
+                     matchup.project(MY_TEAM, plan_roster(players, plan, drops=True), wk.ctx, sched, wk.lines,
+                                     wk.starters, True))
             spans.append((nxt.week + 1, current_opponent(state, nxt.week + 1), sched, third))
     return report.streaming_view(spans, wk.ctx.today)
+
+
+def third_schedule(wk: WeekInputs, nxt: NextWeek) -> dict:
+    """The NHL games of the week after next (wk.future holds the weeks ahead)."""
+    return {d: g for d, g in wk.future.items() if weeks.week_of(d) == nxt.week + 1} if nxt.week else {}
 
 
 def plan_roster(players: list, plan: list, drops: bool = False) -> list:
@@ -550,8 +563,8 @@ def plan_roster(players: list, plan: list, drops: bool = False) -> list:
 
 def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tuple[list[dict], list]:
     """My roster with the whole plan made, each move from its day (an add
-    counts from then, his drop until then), projected over this week and next:
-    each planned add's grid row, and the weeks for the grid's "with the plan"."""
+    counts from then, his drop until then), projected over this week and the
+    next two: each planned add's grid row, and the weeks for the grid's "with the plan"."""
     if not plan:
         return [], []
     roster, joins, leaves = plan_roster(players, plan), {}, {}
@@ -564,8 +577,12 @@ def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tupl
                                 so_far=wk.so_far, leaves=leaves)
     next_week_ = (matchup.project(MY_TEAM, roster, wk.ctx, nxt.schedule, wk.lines, wk.starters, True, joins,
                                   leaves=leaves) if nxt.week else None)
-    entries = [{"move": q.move, "this_week": this_week, "next_week": next_week_, "when": q.when} for q in plan]
-    return entries, [this_week, next_week_]
+    sched = third_schedule(wk, nxt)
+    third = (matchup.project(MY_TEAM, roster, wk.ctx, sched, wk.lines, wk.starters, True, joins, leaves=leaves)
+             if sched else None)
+    entries = [{"move": q.move, "this_week": this_week, "next_week": next_week_, "third_week": third, "when": q.when}
+               for q in plan]
+    return entries, [this_week, next_week_, third]
 
 
 DASHBOARD_MOVES = 60  # the move table's rows (the Board keeps every one)
@@ -988,16 +1005,19 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
                     and rec["add"]["id"] not in mine):  # a card whose add was made isn't replaced
                 outbox.mark(rec["message_id"], label)
     stored = [_stored(q, by_key.get(q.key)) for q in p.plan]
-    send_cards(state, p, stored, date, now, outbox)
+    send_cards(state, p, stored, date, now, outbox, data)
     state["plan"] = {"week": week, "at": now.isoformat(timespec="minutes"), "moves": stored,
                      "activations": [{"back": b.id, "drop": d.id, "drop_name": d.name} for b, d in p.activations if d]}
     return p
 
 
 def send_cards(state: dict, p: PlanMoves, stored: list[dict], date: dt.date, now: dt.datetime,
-               outbox: Outbox) -> None:
+               outbox: Outbox, data: dict | None = None) -> None:
     """Each planned move due today as its own message with Done / Taken /
-    Skip, once (`stored`: the plan as kept, its card's ids written back)."""
+    Skip, once (`stored`: the plan as kept, its card's ids written back): the
+    move's card (site/index.html?card=move, from the dashboard's `data`) with
+    the words as its caption, or the words alone when it can't be drawn; and a
+    "Why?" link to the move's sheet on the dashboard."""
     due = [(q, s) for q, s in zip(p.plan, stored) if q.when <= date]
     for i, (q, s) in enumerate(due):
         if s["rec_id"]:
@@ -1014,7 +1034,11 @@ def send_cards(state: dict, p: PlanMoves, stored: list[dict], date: dt.date, now
         opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
                  else None)
         text = messages.card_text(q, date, matchup.move_text(move, opens.player.name if opens else None))
-        message_id = outbox.send(text, buttons, html=True)
+        links = [(messages.WHY_BUTTON, f"{telegram.dashboard_link()}#move={q.key}")]
+        drawn = data and any(r["key"] == q.key for r in data.get("moves", []))
+        png = _safe(snapshot.card_png, data, snapshot.PAGE, "move", q.key) if drawn else None
+        message_id = (outbox.send_photo(png, text, buttons, html=True, links=links) if png
+                      else outbox.send(text, buttons, html=True, links=links))
         s["rec_id"], s["message_id"] = rec_id, message_id
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None,

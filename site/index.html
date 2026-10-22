@@ -212,6 +212,20 @@
   .nc-wk.now { border-color: #4D9BF0; }
   .nc-wk span { display: block; font-size: 13px; color: #B7C2D3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nc-wk b { display: block; font-size: 24px; line-height: 1.1; }
+  .nc-table { display: grid; grid-template-columns: 1fr 70px 70px; gap: 4px 8px; align-items: baseline;
+              border-top: 1px solid #1E2E48; padding-top: 10px; font-size: 14px; }
+  .nc-table > :nth-child(3n+2), .nc-table > :nth-child(3n) { text-align: right; }
+  .nc-table b { font-size: 22px; }
+  .nc-dots { display: grid; gap: 8px; align-items: center; }
+  .nc-dotrow { display: flex; gap: 5px; flex-wrap: wrap; }
+  .nc-dot { display: block; width: 14px; height: 14px; border-radius: 50%; box-sizing: border-box; }
+  .nc-parts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; font-size: 13px; color: #B7C2D3; }
+  .nc-parts b { font-size: 15px; }
+  .nc-stats { display: grid; grid-template-columns: 1fr 96px 1fr; gap: 6px; align-items: center; font-size: 13px; }
+  .nc-stats span { text-align: center; }
+  .nc-stats div { display: flex; height: 10px; }
+  .nc-stats .nc-l { justify-content: flex-end; }
+  .nc-stats i { display: block; height: 10px; border-radius: 3px; }
   .av { position: relative; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff;
         font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-weight: 700; flex: none; }
   .av img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -231,7 +245,11 @@
 const NS = "http://www.w3.org/2000/svg";
 const app = document.getElementById("app");
 const tip = document.getElementById("tip");
-const CARD = window.__CARD__ || new URLSearchParams(location.search).has("card");
+// ?card: the plan's card; ?card=move&key=K: a move's; ?card=result: Monday's result (window.__CARD__ in a screenshot).
+const PARAMS = new URLSearchParams(location.search);
+const CARD = window.__CARD__ ? (window.__CARD__ === true ? "plan" : window.__CARD__)
+                             : PARAMS.has("card") ? PARAMS.get("card") || "plan" : null;
+const CARD_KEY = window.__CARD_KEY__ || PARAMS.get("key");
 let data = null, showAll = false, sortKey = "value";
 
 function el(tag, attrs = {}, text) {
@@ -1489,6 +1507,123 @@ function nightCard() {
   card.append(weeks);
   return card;
 }
+// ---- a move's card (?card=move&key=K): sent with its Done / Taken / Skip on its day ---------
+// Each game from the move's day to the end of the week after next, a dot: filled if he'd be in my
+// best lineup that night (the add with the plan made, the drop as my roster is), a ring if he'd sit.
+function gameDots(cells, probs, color, from) {
+  const s = data.schedule, by = {};
+  s.days.forEach((d, i) => {
+    if (d.date < from || !cells[i]) return;
+    const dot = el("i", { class: "nc-dot" }), p = probs ? probs[i] : null;
+    if (cells[i] === "bench") dot.style.border = `2px solid ${color}`;
+    else dot.style.background = p != null ? `conic-gradient(${color} 0 ${Math.round(100 * p)}%, #2A3A55 0)` : color;
+    (by[d.week] = by[d.week] || []).push(dot);
+  });
+  return by;
+}
+function moveCard() {
+  const r = data.moves.find(m => m.key === CARD_KEY);
+  if (!r) throw new Error(`no move ${CARD_KEY}`);
+  const p = data.plan.find(q => q.key === r.key), h = data.header;
+  const a = person(r.add.id) || r.add, d = r.drop ? person(r.drop.id) || r.drop : null;
+  const card = el("div", { class: "nc" }), top = el("div", { class: "nc-top" });
+  top.append(el("span", { class: "nc-week cond", style: "color:#7DB8FF" }, p ? dayShort(p.day) : "THE MOVE"),
+             el("span", { class: "nc-dim" }, `an add costs ${Math.round(100 * h.price.lam)}`));
+  card.append(top);
+  // Who: the add and the drop, their points a game so far and projected.
+  const tile = el("div", { class: "nc-tile" });
+  const line = (pl, sign, value) => {
+    const row = el("div", { class: "nc-row" }), who = el("div", { class: `nc-who ${sign}` });
+    who.style.textAlign = "left";
+    who.append(el("b", {}, pl.name), el("span", {}, `${pl.positions} · ${pl.team}`));
+    row.append(avatar(pl.id, 48, sign), who);
+    if (value) row.append(el("span", { class: "nc-val cond num", style: "font-size:34px" }, value));
+    return row;
+  };
+  tile.append(line(a, "add", wp(r.value)));
+  if (d) tile.append(line(d, "drop"));
+  else tile.append(el("div", { class: "nc-detail" }, r.ir_slot ? `Into your empty ${r.ir_slot} slot.` : "Into your open spot."));
+  const rate = pl => { const s = pl.season, games = s ? (pl.goalie ? s.starts : s.gp) : 0;
+                       return games ? f2((pl.goalie ? s.pts_projected : s.pts) / games) : "-"; };
+  const table = el("div", { class: "nc-table" });
+  const unit = d && !!d.goalie !== !!a.goalie ? "game / start" : a.goalie ? "start" : "game";
+  table.append(el("span", { class: "nc-dim" }, `Fantasy pts a ${unit}`),
+               el("span", { class: "nc-dim" }, "so far"), el("span", { class: "nc-dim" }, "projected"));
+  [[a, "#7DB8FF"], ...(d ? [[d, "#FFA57D"]] : [])].forEach(([pl, ink]) => {
+    table.append(el("span", {}, lastName(pl.name)));
+    [rate(pl), pl.xfp == null ? "-" : f2(pl.xfp)].forEach(v => {
+      const b = el("b", { class: "cond num" }, v); b.style.color = ink; table.append(b);
+    });
+  });
+  tile.append(table);
+  card.append(tile);
+  // When they play: each game a dot, by week, from the move's day.
+  const s = data.schedule, from = r.when || data.date;
+  const planRow = (s.plan || []).find(q => q.key === r.key), dropRow = d ? s.rows.find(q => q.id === d.id) : null;
+  if (planRow) {
+    const sides = [[a, gameDots(planRow.cells, null, "#4D9BF0", from)]]
+      .concat(dropRow ? [[d, gameDots(dropRow.cells, dropRow.probs, "#F07A45", from)]] : []);
+    const weeksShown = [...new Set(s.days.filter(x => x.date >= from).map(x => x.week))];
+    const box = el("div", { class: "nc-tile" });
+    const count = by => Object.values(by).flat().filter(i => !i.style.border).length;
+    box.append(el("b", { style: "font-size:14px" }, "Lineup games, from " + (p ? p.day.replace(/ \(.*\)/, "") : fmtDay(from))));
+    const grid = el("div", { class: "nc-dots" });
+    grid.style.gridTemplateColumns = `76px repeat(${weeksShown.length}, minmax(0, 1fr)) 24px`;
+    grid.append(el("span"), ...weeksShown.map(w => el("span", { class: "nc-dim" }, `Wk ${w}`)), el("span"));
+    sides.forEach(([pl, by]) => {
+      grid.append(el("span", { style: "font-size:14px;font-weight:600" }, lastName(pl.name)));
+      weeksShown.forEach(w => { const c = el("span", { class: "nc-dotrow" }); c.append(...(by[w] || [])); grid.append(c); });
+      grid.append(el("b", { class: "num", style: "text-align:right" }, String(count(by))));
+    });
+    box.append(grid);
+    const key = el("div", { class: "nc-dim" });
+    key.textContent = "Filled: in your best lineup that night · ring: no slot free";
+    box.append(key);
+    card.append(box);
+  }
+  // Where the value comes from: this week, each week ahead (its win odds), later; against the add's price.
+  const parts = [["This week", r.now_wins, "#4D9BF0", r.now_wins >= 0.005 ? `${pct(r.win[0])} → ${pct(r.win[1])}` : ""]]
+    .concat((h.ahead || []).map((w, k) => [`Wk ${w.week}`, (r.ahead_wins || [])[k] || 0, "#F07A45",
+                                           w.win == null ? "" : `${pct(w.win)} → ${pct(w.win + ((r.ahead_wins || [])[k] || 0))}`]))
+    .concat([["Later", r.later_wins, "#2CC28B", "the season"]]);
+  const vbox = el("div", { class: "nc-tile" });
+  vbox.append(el("b", { style: "font-size:14px" }, `Where the ${wp(r.value)} comes from`));
+  const hi = Math.max(r.value, h.price.lam, ...parts.map(x => x[1])) * 1.05, bar = el("div", { class: "nc-bar", style: "height:18px;position:relative" });
+  parts.forEach(([, v, c]) => { if (v > 0) { const i = el("i"); i.style.width = `${(100 * v / hi).toFixed(1)}%`; i.style.background = c; bar.append(i); } });
+  const tick = el("i", { style: `position:absolute;left:${(100 * h.price.lam / hi).toFixed(1)}%;top:-4px;bottom:-4px;width:2px;background:#fff` });
+  bar.append(tick);
+  vbox.append(bar);
+  const legend = el("div", { class: "nc-parts" }), shown = parts.filter(x => Math.abs(x[1]) >= 0.005 || x[0] === "Later");
+  legend.style.gridTemplateColumns = `repeat(${shown.length}, minmax(0, 1fr))`;
+  shown.forEach(([name, v, c, odds]) => {
+    const cell = el("span"), num = el("b", { class: "num" }, wp(v));
+    num.style.color = c;
+    cell.append(num, document.createTextNode(` ${name.toLowerCase()}`), el("br"), document.createTextNode(odds));
+    legend.append(cell);
+  });
+  vbox.append(legend, el("div", { class: "nc-dim" }, `White line: the ${Math.round(100 * h.price.lam)} an add costs.`));
+  card.append(vbox);
+  // A game (a start), by stat: the add against the drop, when they're the same kind; the 4 biggest stats.
+  const both = (!d || !!d.goalie === !!a.goalie) && a.per_game && (!d || d.per_game);
+  if (both) {
+    const big = c => Math.max(Math.abs(a.per_game[c]), d ? Math.abs(d.per_game[c] || 0) : 0);
+    const sbox = el("div", { class: "nc-tile" }), cats = Object.keys(a.per_game).sort((x, y) => big(y) - big(x)).slice(0, 4);
+    sbox.append(el("b", { style: "font-size:14px" }, `A ${a.goalie ? "start" : "game"}, the biggest stats`));
+    const top = Math.max(...cats.map(big), 0.1);
+    const g = el("div", { class: "nc-stats" });
+    cats.forEach(c => {
+      const left = el("div", { class: "nc-l" }), right = el("div");
+      const bar = (v, color) => { const i = el("i"); i.style.width = `${(100 * Math.abs(v) / top).toFixed(1)}%`; i.style.background = color; return i; };
+      left.append(bar(a.per_game[c], "#4D9BF0"));
+      if (d) right.append(bar(d.per_game[c] || 0, "#F07A45"));
+      g.append(left, el("span", {}, c), right);
+    });
+    sbox.append(g);
+    card.append(sbox);
+  }
+  return card;
+}
+
 // The screenshot waits for the fonts and the headshots (or their failure), at most a few seconds.
 function settled(ms = 5000) {
   const imgs = [...app.querySelectorAll("img")].filter(i => !i.complete)
@@ -1516,7 +1651,7 @@ function render() {
   }
   if (CARD) {
     document.body.classList.add("card-mode");
-    app.replaceChildren(safe(nightCard));
+    app.replaceChildren(safe(CARD === "move" ? moveCard : nightCard));
     settled().then(() => { document.body.dataset.ready = "1"; });  // notify/snapshot.py waits for this
     return;
   } else {
@@ -1531,9 +1666,14 @@ try { const t = localStorage.getItem("theme"); if (t) document.documentElement.d
 if (CARD) document.documentElement.dataset.theme = "light";
 (window.__DATA__ ? Promise.resolve(window.__DATA__)
   : fetch("data.json", { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }))
-  .then(d => { data = d; render(); })
+  .then(d => { data = d; render(); openLinked(); })
   .catch(e => message(e.message === "404" ? "No plan yet: send /week to the bot."
                                           : `The plan couldn't be loaded (${e.message}). Reopen the page to try again.`));
+// A link to one move or player (a card's "Why?": #move=KEY, or #player=ID) opens its sheet.
+function openLinked() {
+  const m = location.hash.match(/^#(move|player)=(.+)$/);
+  if (m && !CARD) openSheet(m[1], decodeURIComponent(m[2]));
+}
 // Only a new width redraws: a phone's address bar showing or hiding fires resize on
 // scroll, and a redraw would rebuild an open sheet back at its top.
 let resizeTimer, lastWidth = innerWidth;

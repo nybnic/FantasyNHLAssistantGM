@@ -40,7 +40,8 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    once; a screenshot gets the score or the change), `site/data.json` + `site/index.html`
    (the dashboard: the plan, why the win %, player by player, points by stat, the streaming schedule, and a tap-open
    sheet per player and per move; the Board's `teams`/`players` from `engine/report.py`),
-   its `?card` view screenshotted for Telegram (`notify/snapshot.py`).
+   its `?card` view screenshotted for Telegram (`notify/snapshot.py`; `?card=move&key=` is each move's card,
+   sent with its Done/Taken/Skip and a "Why?" link to its sheet, `#move=KEY`).
    When: Monday and Wednesday noon and `/week` = the full plan; a screenshot or
    Taken/Skip tap = a check; once an evening = silent unless the plan changed.
 7. **The breakout watch** (`bot/watch.py`), every run: a free agent whose role just changed (a goalie

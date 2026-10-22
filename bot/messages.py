@@ -15,6 +15,7 @@ from engine import addprice, matchup
 from engine.plan import Planned
 
 GOALIE_WARN_BELOW = 0.9  # the goalie minimum gets a line only when at risk
+WHY_BUTTON = "Why?"  # a move card's link to its sheet on the dashboard
 
 
 def _pct(p: float) -> str:
