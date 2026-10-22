@@ -950,7 +950,7 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
             matchup.biggest_swing(p.ranked), wk.price if wk.max_moves else None, odds, wk.yahoo_projected,
             [f"Changed since the last plan: {changed}." if changed else "",
              messages.league_warning(teams.moves_through(league), teams.updated(league, opponent), date),
-             ir_text], activations=p.activations))
+             ir_text], activations=p.activations, html=True), html=True)
         record_plan(state, week, opponent, wk.me, wk.them, now)
         _safe(record_league, state, league, week, opponent, wk, now)
         _safe(record_drafted, state, week, wk)
@@ -960,17 +960,19 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
         elif views and (png := _safe(charts.schedule_chart, views["schedule"])):  # no browser: the old chart
             outbox.send_photo(png, "Schedule, this week and next. Everything weighed: tap Dashboard.")
     elif changed:
-        outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves, p.activations))
+        outbox.send(messages.change_text(old_open, p.plan, changed, date, wk.max_moves, p.activations, html=True),
+                    html=True)
     elif p.plan and not old_open:  # moves where there were none: say so before any card
-        outbox.send(messages.new_plan_text(p.plan, date, wk.max_moves, *((wk.me, wk.them) if mode == "check" else ())))
+        outbox.send(messages.new_plan_text(p.plan, date, wk.max_moves, *((wk.me, wk.them) if mode == "check" else ()),
+                                           html=True), html=True)
     elif mode == "check":
-        outbox.send(messages.score_text(wk.me, wk.them, p.plan, date))
+        outbox.send(messages.score_text(wk.me, wk.them, p.plan, date, html=True), html=True)
     if not changed:  # a move made only if its goalie started tonight: he does, so go (once: then it's plain)
         for o in old_open:
             c = o.get("if_starts")
             s = (wk.starters.get(c["team"]) or {}) if c and o["when"] == date.isoformat() else {}
             if s.get("confirmed") and normalize_name(s["goalie_name"]) == normalize_name(c["goalie"]):
-                outbox.send(messages.confirmed_text(o))
+                outbox.send(messages.confirmed_text(o, html=True), html=True)
     if wk.live_check:  # one per screenshot day (a later plan the same day replaces it)
         entry = state["results"].setdefault(str(week), {"opponent": opponent})
         entry["live"] = [c for c in entry.get("live", []) if c["through"] != wk.live_check["through"]] + [wk.live_check]
@@ -1011,8 +1013,8 @@ def send_cards(state: dict, p: PlanMoves, stored: list[dict], date: dt.date, now
         k = sum(m.drop is None and not m.ir_slot for m in [d[0].move for d in due[:i]]) - p.open_spots
         opens = (p.ir_moves[k] if move.drop is None and not move.ir_slot and 0 <= k < len(p.ir_moves)
                  else None)
-        text = messages.make_it(q, date) + "\n" + matchup.move_text(move, opens.player.name if opens else None)
-        message_id = outbox.send(text, buttons)
+        text = messages.card_text(q, date, matchup.move_text(move, opens.player.name if opens else None))
+        message_id = outbox.send(text, buttons, html=True)
         s["rec_id"], s["message_id"] = rec_id, message_id
         state["pending"][rec_id] = {"type": "add", "date": date.isoformat(), "add": asdict(move.add),
                                     "drop": move.drop.id if move.drop else None,

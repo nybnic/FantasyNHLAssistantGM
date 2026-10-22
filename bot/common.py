@@ -23,9 +23,10 @@ NHL_TIME = ZoneInfo("America/New_York")
 CHART_DIR = Path("data/charts")  # where a dry run saves the charts it would send
 
 
-def _buttons(buttons: list[tuple[str, str]] | None) -> str:
-    """A dry run's printout of a message's buttons: its own, then the dashboard link every message has."""
-    return " [" + " | ".join([b[0] for b in buttons or []] + [f"{telegram.DASHBOARD_BUTTON} (link)"]) + "]"
+def _buttons(buttons: list[tuple[str, str]] | None, links: list[tuple[str, str]] | None = None) -> str:
+    """A dry run's printout of a message's buttons: its own, its links, then the dashboard link every message has."""
+    return " [" + " | ".join([b[0] for b in buttons or []] + [f"{label} ({url})" for label, url in links or []]
+                             + [f"{telegram.DASHBOARD_BUTTON} (link)"]) + "]"
 
 
 class Outbox:
@@ -34,11 +35,13 @@ class Outbox:
     def __init__(self, settings: Settings):
         self.settings = settings
 
-    def send(self, text: str, buttons: list[tuple[str, str]] | None = None) -> int | None:
+    def send(self, text: str, buttons: list[tuple[str, str]] | None = None, html: bool = False,
+             links: list[tuple[str, str]] | None = None) -> int | None:
         if self.settings.dry_run:
-            print(f"\n----- Telegram message{_buttons(buttons)}\n{text}")
+            print(f"\n----- Telegram message{_buttons(buttons, links)}\n{text}")
             return None
-        return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons)
+        return telegram.send_message(self.settings.telegram_bot_token, self.settings.telegram_chat_id, text, buttons,
+                                     html, links)
 
     def mark(self, message_id: int | None, label: str) -> None:
         """Replace a message's buttons with an inert label (a replaced add card)."""
@@ -48,16 +51,16 @@ class Outbox:
             telegram.mark_handled(self.settings.telegram_bot_token, self.settings.telegram_chat_id, message_id,
                                   label)
 
-    def send_photo(self, png: bytes, caption: str | None = None,
-                   buttons: list[tuple[str, str]] | None = None) -> int | None:
+    def send_photo(self, png: bytes, caption: str | None = None, buttons: list[tuple[str, str]] | None = None,
+                   html: bool = False, links: list[tuple[str, str]] | None = None) -> int | None:
         if self.settings.dry_run:
             CHART_DIR.mkdir(parents=True, exist_ok=True)
             path = CHART_DIR / f"{len(list(CHART_DIR.glob('*.png'))):02d}.png"
             path.write_bytes(png)
-            print(f"\n----- Telegram photo{_buttons(buttons)}: {path}" + (f"\n{caption}" if caption else ""))
+            print(f"\n----- Telegram photo{_buttons(buttons, links)}: {path}" + (f"\n{caption}" if caption else ""))
             return None
         return telegram.send_photo(self.settings.telegram_bot_token, self.settings.telegram_chat_id, png,
-                                   caption, buttons)
+                                   caption, buttons, html, links)
 
 
 def nhl_today() -> dt.date:

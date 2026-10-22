@@ -6,6 +6,7 @@ full table lives on the Board (scripts/explain_week.py) and the dashboard.
 from __future__ import annotations
 
 import datetime as dt
+from html import escape as html_escape
 from zoneinfo import ZoneInfo
 
 from clients.names import normalize_name
@@ -76,20 +77,29 @@ def day_label(when: dt.date, today: dt.date) -> str:
     return date_text(when) + (" (today)" if when == today else " (tomorrow)" if (when - today).days == 1 else "")
 
 
-def confirmed_text(stored: dict) -> str:
+def confirmed_text(stored: dict, html: bool = False) -> str:
     """A move made only if its goalie starts tonight: he does (bot/weekly.run_plan)."""
     c = stored["if_starts"]
     move = stored["add"]["name"] + (f" for {stored['drop']['name']}" if stored.get("drop") else "")
-    return f"{c['goalie']} is confirmed in {c['team']}'s net tonight: make {move} now."
+    text = f"{c['goalie']} is confirmed in {c['team']}'s net tonight: make {move} now."
+    return f"✅ <b>Go</b>: {_esc(text)}" if html else text
 
 
-def make_it(p: Planned, today: dt.date) -> str:
+def make_it(p: Planned, today: dt.date, html: bool = False) -> str:
     """A card's first line: the day, and why not sooner."""
+    if html:
+        rest = make_it(p, today).removeprefix(f"Make it {day_label(p.when, today)}")
+        return f"📅 <b>Make it {day_label(p.when, today)}</b>{_esc(rest)}"
     if c := p.condition:
         return (f"Make it {day_label(p.when, today)}, once {c.team} confirms {c.goalie} in net tonight "
                 f"(DailyFaceoff, usually after the morning skate). If {c.other} starts: {instead_text(c)}.")
     return (f"Make it {day_label(p.when, today)}, before that evening's games"
             + (f": {p.note}" if p.note else "") + ".")
+
+
+def card_text(p: Planned, today: dt.date, body: str) -> str:
+    """A move's card in HTML: 📅 the day in bold, then the move as matchup.move_text words it."""
+    return make_it(p, today, html=True) + "\n" + _esc(body)
 
 
 def plan_items(plan: list[Planned], today: dt.date) -> list[dict]:
@@ -128,31 +138,79 @@ def plan_lines(plan: list[Planned], today: dt.date, adds_left_week: int) -> list
 def plan_text(week: int, opponent: str, me: matchup.TeamWeek, them: matchup.TeamWeek, plan: list[Planned],
               today: dt.date, adds_left_week: int, season_used: int, ahead: list[matchup.WeekAhead] = (),
               this_week_best: matchup.Move | None = None, price=None, odds=None,
-              yahoo: list | None = None, warnings: list[str] = (), activations: list = ()) -> str:
+              yahoo: list | None = None, warnings: list[str] = (), activations: list = (), html: bool = False) -> str:
     """The plan message: the matchup, what to do (players back from IR first),
-    the weeks ahead, the budget."""
+    the weeks ahead, the budget. `html`: for Telegram's HTML mode, the moves
+    grouped by day with bold, the score in fixed width and a marker a line."""
     yahoo_text = f" (Yahoo {yahoo[0]:.0f}-{yahoo[1]:.0f})" if yahoo else ""
-    head = (f"Week {week} vs {opponent}: " + (f"{me.so_far:.0f}-{them.so_far:.0f} so far, " if me.so_far or them.so_far
-                                               else "")
-            + f"expect {me.expected:.0f}-{them.expected:.0f}{yahoo_text}. Win {_pct(matchup.win_prob(me, them))}.")
-    lines = [head] + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week)
+    win = _pct(matchup.win_prob(me, them))
+    tail = []
     if best := this_week_line(this_week_best, plan, price, adds_left_week):
-        lines.append(best)
+        tail.append(("💡", best))
     if ahead:
-        lines.append("Ahead: " + ", ".join(
+        tail.append(("🔭", "Ahead: " + ", ".join(
             f"wk {w.week} vs {w.opponent} {_pct(matchup._phi(w.margin / w.sd))}" if w.margin is not None
-            else f"wk {w.week} (opponent not known)" for w in ahead) + ".")
+            else f"wk {w.week} (opponent not known)" for w in ahead) + "."))
     budget = f"Adds: {adds_left_week} this week, {MAX_ADDS_PER_SEASON - season_used} this season."
     if price and price.lam != float("inf"):
         budget += f" An add needs {100 * price.lam:.0f} win-pts ({pace_text(price.pace, week)})."
+    tail.append(("🎟️", budget))
     if odds:
-        budget += f" Playoffs {odds.playoffs:.0%}, title {odds.title:.0%}."
-    lines.append(budget)
+        tail.append(("🏆", f"Playoffs {odds.playoffs:.0%}, title {odds.title:.0%}."))
     if me.goalie_min_prob < GOALIE_WARN_BELOW:
         games = me.goalie_games_so_far + me.goalie_starts_left
-        lines.append(f"Goalie minimum at risk: ~{games:.1f} games of {MIN_GOALIE_GAMES_PER_WEEK}, "
-                     f"{_pct(me.goalie_min_prob)} to make it. Pick up a goalie who plays this week.")
-    return "\n".join(lines + [w for w in warnings if w])
+        tail.append(("⚠️", f"Goalie minimum at risk: ~{games:.1f} games of {MIN_GOALIE_GAMES_PER_WEEK}, "
+                           f"{_pct(me.goalie_min_prob)} to make it. Pick up a goalie who plays this week."))
+    tail += [("🔄" if w.startswith("Changed since") else "⚠️", w) for w in warnings if w]
+    if html:
+        so_far = f"<code>{me.so_far:.0f}-{them.so_far:.0f}</code> so far · " if me.so_far or them.so_far else ""
+        head = [f"<b>Week {week} vs {_esc(opponent)}</b>",
+                f"{so_far}expect <code>{me.expected:.0f}-{them.expected:.0f}</code>{yahoo_text}",
+                f"🎯 Win <b>{win}</b>"]
+        blocks = ["\n".join(head)] + activation_blocks(activations, today) + plan_blocks(plan, today, adds_left_week)
+        return "\n\n".join(blocks + ["\n".join(f"{mark} {_esc(line)}" for mark, line in tail)])
+    head = (f"Week {week} vs {opponent}: " + (f"{me.so_far:.0f}-{them.so_far:.0f} so far, " if me.so_far or them.so_far
+                                               else "")
+            + f"expect {me.expected:.0f}-{them.expected:.0f}{yahoo_text}. Win {win}.")
+    lines = [head] + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week)
+    for mark, line in tail:  # the playoff odds share the budget's line
+        if mark == "🏆":
+            lines[-1] += " " + line
+        else:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _esc(text: str) -> str:
+    """Text for Telegram's HTML mode (names like "D'Astous" or "A & B" stay as they are), with real arrows."""
+    return html_escape(str(text).replace(" -> ", " → "), quote=False)
+
+
+def swap_html(m: matchup.Move) -> str:
+    """➕ the add (bold), ➖ the drop; or where the add goes."""
+    add = f"➕ <b>{_esc(m.add.name)}</b>"
+    if m.ir_slot:
+        return f"{add} into your empty {m.ir_slot} slot"
+    return f"{add}  ➖ {_esc(m.drop.name)}" if m.drop else f"{add} into your open spot"
+
+
+def plan_blocks(plan: list[Planned], today: dt.date, adds_left_week: int) -> list[str]:
+    """The plan in HTML, one block a day: 📅 the day, then each move and why."""
+    if not plan:
+        return ["💤 " + _esc(empty_text(adds_left_week))]
+    blocks, days = [], sorted({max(p.when, today) for p in plan})
+    if days[0] > today and adds_left_week:
+        blocks.append("⏳ Nothing to add today.")
+    for day in days:
+        lines = [f"📅 <b>{day_label(day, today)}</b>"]
+        for p in (q for q in plan if max(q.when, today) == day):
+            lines += [swap_html(p.move), _esc(_detail(p))]
+        blocks.append("\n".join(lines))
+    return blocks
+
+
+def activation_blocks(activations: list, today: dt.date) -> list[str]:
+    return [f"🩹 <b>{i['day']}</b>\n{_esc(i['swap'])}\n{_esc(i['detail'])}." for i in activation_items(activations, today)]
 
 
 def pace_text(need: float, week: int) -> str:
@@ -190,30 +248,41 @@ def league_warning(league_through: dt.date | None, opponent_updated: str | None,
 
 
 def change_text(old: list[dict], plan: list[Planned], reason: str, today: dt.date, adds_left_week: int,
-                activations: list = ()) -> str:
+                activations: list = (), html: bool = False) -> str:
     """The plan changed: from what, to what, and why."""
     before = "; ".join(o["add"]["name"] + (f" for {o['drop']['name']}" if o.get("drop") else "") for o in old)
+    if html:
+        return "\n\n".join([f"🔄 <b>Plan changed</b> ({_esc(reason)}). Was: {_esc(before or 'nothing')}. Now:"]
+                           + activation_blocks(activations, today) + plan_blocks(plan, today, adds_left_week))
     return "\n".join([f"Plan changed ({reason}). Was: {before or 'nothing'}. Now:"]
                      + activation_lines(activations, today) + plan_lines(plan, today, adds_left_week))
 
 
-def _score(me: matchup.TeamWeek, them: matchup.TeamWeek) -> str:
+def _score(me: matchup.TeamWeek, them: matchup.TeamWeek, html: bool = False) -> str:
+    if html:
+        return (f"📊 <code>{me.so_far:.0f}-{them.so_far:.0f}</code>, expect "
+                f"<code>{me.expected:.0f}-{them.expected:.0f}</code>: win <b>{_pct(matchup.win_prob(me, them))}</b>.")
     return (f"{me.so_far:.0f}-{them.so_far:.0f}, expect {me.expected:.0f}-{them.expected:.0f}: "
             f"win {_pct(matchup.win_prob(me, them))}.")
 
 
-def score_text(me: matchup.TeamWeek, them: matchup.TeamWeek, plan: list[Planned], today: dt.date) -> str:
+def score_text(me: matchup.TeamWeek, them: matchup.TeamWeek, plan: list[Planned], today: dt.date,
+               html: bool = False) -> str:
     """The reply to a screenshot when the plan holds."""
     now = [p for p in plan if p.when <= today]
     what = ("; ".join(swap(p.move) for p in now) + f" today ({date_text(today)})" if now
             else f"{swap(plan[0].move)} on {date_text(plan[0].when)}" if plan else "no add")
-    return f"{_score(me, them)} Plan unchanged: {what}."
+    return (f"{_score(me, them, True)}\nPlan unchanged: {_esc(what)}." if html
+            else f"{_score(me, them)} Plan unchanged: {what}.")
 
 
 def new_plan_text(plan: list[Planned], today: dt.date, adds_left_week: int, me: matchup.TeamWeek | None = None,
-                  them: matchup.TeamWeek | None = None) -> str:
+                  them: matchup.TeamWeek | None = None, html: bool = False) -> str:
     """Moves where there were none (the first plan, or the last one's moves
     made): what to do; with the score first when it answers a screenshot."""
+    if html:
+        return "\n\n".join(([_score(me, them, True)] if me and them else []) + ["🆕 <b>New plan</b>"]
+                           + plan_blocks(plan, today, adds_left_week))
     return "\n".join(([_score(me, them)] if me and them else []) + ["New plan:"]
                      + plan_lines(plan, today, adds_left_week))
 

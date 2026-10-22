@@ -43,26 +43,36 @@ def _call(token: str, method: str, **payload) -> dict:
     return resp.json()["result"]
 
 
-def _keyboard(buttons: list[tuple[str, str]] | None) -> dict:
-    """The message's buttons (label, callback data) in a row, then the dashboard link."""
+def _keyboard(buttons: list[tuple[str, str]] | None, links: list[tuple[str, str]] | None = None) -> dict:
+    """The message's buttons (label, callback data) in a row, then its links
+    (label, URL) and the dashboard link in the last row."""
     rows = [[{"text": label, "callback_data": data} for label, data in buttons]] if buttons else []
-    return {"inline_keyboard": rows + [[{"text": DASHBOARD_BUTTON, "url": dashboard_link()}]]}
+    last = [{"text": label, "url": url} for label, url in links or []]
+    return {"inline_keyboard": rows + [last + [{"text": DASHBOARD_BUTTON, "url": dashboard_link()}]]}
 
 
-def send_message(token: str, chat_id: str, text: str, buttons: list[tuple[str, str]] | None = None) -> int:
-    """Send `text`; `buttons` are (label, callback data) pairs (the dashboard
-    link always comes too). Returns the message id."""
-    payload = {"chat_id": chat_id, "text": text, "reply_markup": _keyboard(buttons)}
+def send_message(token: str, chat_id: str, text: str, buttons: list[tuple[str, str]] | None = None,
+                 html: bool = False, links: list[tuple[str, str]] | None = None) -> int:
+    """Send `text` (`html`: in Telegram's HTML mode); `buttons` are (label, callback
+    data) pairs, `links` (label, URL) ones on their own row (the dashboard link
+    always comes too). Returns the message id."""
+    payload = {"chat_id": chat_id, "text": text, "reply_markup": _keyboard(buttons, links)}
+    if html:
+        payload["parse_mode"] = "HTML"
     return _call(token, "sendMessage", **payload)["message_id"]
 
 
 def send_photo(token: str, chat_id: str, png: bytes, caption: str | None = None,
-               buttons: list[tuple[str, str]] | None = None) -> int:
-    """Send a PNG, with an optional caption (max 1024 characters) and buttons
-    (the dashboard link always comes too). Returns the message id."""
-    data = {"chat_id": chat_id, "reply_markup": json.dumps(_keyboard(buttons))}
+               buttons: list[tuple[str, str]] | None = None, html: bool = False,
+               links: list[tuple[str, str]] | None = None) -> int:
+    """Send a PNG, with an optional caption (max 1024 characters; `html`: in
+    Telegram's HTML mode, which a cut tag would break, so it isn't cut) and
+    buttons as send_message's. Returns the message id."""
+    data = {"chat_id": chat_id, "reply_markup": json.dumps(_keyboard(buttons, links))}
     if caption:
-        data["caption"] = caption[:1024]
+        data["caption"] = caption if html else caption[:1024]
+        if html:
+            data["parse_mode"] = "HTML"
     resp = requests.post(API_URL.format(token=token, method="sendPhoto"), data=data,
                          files={"photo": ("chart.png", png, "image/png")}, timeout=60)
     if not resp.ok:

@@ -103,3 +103,24 @@ def test_a_player_back_from_ir_is_the_plans_first_step():
     item = messages.activation_items([(back, None)], FRIDAY)[0]
     assert item["swap"] == "Activate Macklin Celebrini" and item["key"] is None
 
+
+
+def test_the_html_plan_groups_moves_by_day_with_markers_and_escapes_names():
+    kelly = _move("Parker Kelly", SAMUELSSON, 0.16, long_term=34.2, next_weeks=11.1)
+    amp = _move("A & <B>", LINDELL, 0.16, long_term=34.2, next_weeks=11.1)
+    ahead = [matchup.WeekAhead(3, frozenset(), -12.0, 46.0, "Lallat")]
+    text = messages.plan_text(2, "Retrot Chicken Wings", ME, THEM,
+                              [plan.Planned(kelly, FRIDAY, "spare"), plan.Planned(amp, MONDAY, "monday")], FRIDAY, 1,
+                              3, ahead, None, PRICE, SeasonOdds(0.21, 0.01, 0.13, 0.12, 6.4), [229.96, 257.38],
+                              ["Changed since the last plan: Kelly was taken."], html=True)
+    blocks = text.split("\n\n")
+    assert blocks[0] == ("<b>Week 2 vs Retrot Chicken Wings</b>\n<code>137-163</code> so far · expect "
+                         "<code>223-250</code> (Yahoo 230-257)\n🎯 Win <b>16%</b>")
+    assert blocks[1].split("\n")[:2] == ["📅 <b>Fri 9 Oct (today)</b>", "➕ <b>Parker Kelly</b>  ➖ Mattias Samuelsson"]
+    assert blocks[2].split("\n")[:2] == ["📅 <b>Mon 12 Oct</b>", "➕ <b>A &amp; &lt;B&gt;</b>  ➖ Esa Lindell"]
+    tail = blocks[3].split("\n")
+    assert tail[0] == "🔭 Ahead: wk 3 vs Lallat 40%." and tail[1].startswith("🎟️ Adds: 1 this week, 33 this season.")
+    assert tail[2] == "🏆 Playoffs 21%, title 1%." and tail[3] == "🔄 Changed since the last plan: Kelly was taken."
+    later = messages.plan_text(2, "R", ME, THEM, [plan.Planned(kelly, MONDAY, "monday")], FRIDAY, 1, 3, html=True)
+    assert later.split("\n\n")[1] == "⏳ Nothing to add today."
+    assert "💤 No add is worth one of yours now." in messages.plan_text(2, "R", ME, THEM, [], FRIDAY, 1, 3, html=True)

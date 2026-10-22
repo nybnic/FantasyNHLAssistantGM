@@ -75,3 +75,18 @@ def test_a_photo_and_a_handled_card_keep_the_dashboard_link(monkeypatch):
 def test_each_message_links_the_dashboard_fresh_not_a_cached_copy(monkeypatch):
     monkeypatch.setattr(telegram.time, "time", lambda: 1760000123.0)
     assert telegram.dashboard_link() == "https://nybnic.github.io/FantasyNHLAssistantGM/?v=1760000123"
+
+
+def test_html_messages_and_link_buttons(monkeypatch):
+    import json
+    calls = _capture(monkeypatch)
+    telegram.send_message("123:SECRET", "42", "<b>Week 2</b>", html=True, links=[("Why?", "https://x/#move=1:2")])
+    assert calls[0]["json"]["parse_mode"] == "HTML"
+    assert calls[0]["json"]["reply_markup"]["inline_keyboard"] == [[{"text": "Why?", "url": "https://x/#move=1:2"}]
+                                                                   + DASHBOARD_ROW]
+    telegram.send_message("123:SECRET", "42", "plain")
+    assert "parse_mode" not in calls[1]["json"]
+    long = "<b>" + "x" * 1100 + "</b>"  # an HTML caption isn't cut (a cut tag would be refused)
+    telegram.send_photo("123:SECRET", "42", b"png", long, html=True)
+    assert calls[2]["data"]["caption"] == long and calls[2]["data"]["parse_mode"] == "HTML"
+    assert json.loads(calls[2]["data"]["reply_markup"])["inline_keyboard"] == [DASHBOARD_ROW]

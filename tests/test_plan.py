@@ -95,8 +95,9 @@ def test_a_card_goes_out_once_the_plan_holds_through_near_ties_and_a_change_says
     # 1. A screenshot, no plan yet: the score and the new plan, then Kelly's card.
     searches.append(([kelly, kantserov], [plan.Planned(kelly, FRIDAY, "spare")], pool))
     weekly.run_plan(state, players, {}, friday, outbox, None, "check")
-    assert sent[0].split("\n")[:2] == ["137-163, expect 223-250: win 15%.", "New plan:"]
-    assert sent[1].startswith("Make it Fri 9 Oct (today), before that evening's games.\nAdd Parker Kelly (NYR, LW")
+    assert sent[0].split("\n")[:3] == ["📊 <code>137-163</code>, expect <code>223-250</code>: win <b>15%</b>.", "",
+                                       "🆕 <b>New plan</b>"]
+    assert sent[1].startswith("📅 <b>Make it Fri 9 Oct (today)</b>, before that evening's games.\nAdd Parker Kelly (NYR, LW")
     # 2. Another: Kantserov now ranks 1 win-pt higher. The plan holds; no new card.
     searches.append(([kantserov, kelly], [plan.Planned(kantserov, FRIDAY, "now")], pool))
     weekly.run_plan(state, players, {}, friday, outbox, None, "check")
@@ -108,7 +109,7 @@ def test_a_card_goes_out_once_the_plan_holds_through_near_ties_and_a_change_says
     # 4. Someone takes Kelly: one change message with the reason, Kelly's card relabelled, a new card.
     searches.append(([kantserov], [plan.Planned(kantserov, FRIDAY, "now")], [kantserov.add]))
     weekly.run_plan(state, players, {}, friday, outbox, None, "quiet")
-    assert sent[3].startswith("Plan changed (Parker Kelly for Mattias Samuelsson: someone took him). "
+    assert sent[3].startswith("🔄 <b>Plan changed</b> (Parker Kelly for Mattias Samuelsson: someone took him). "
                               "Was: Parker Kelly for Mattias Samuelsson. Now:")
     assert sent[4].split("\n")[1].startswith("Add Roman Kantserov") and len(sent) == 5
     assert marked == [(2, "Replaced: Roman Kantserov for Mattias Samuelsson")]
@@ -127,8 +128,8 @@ def test_a_move_made_leaves_the_plan_without_a_change_message(monkeypatch, tmp_p
     searches.append(([other], [plan.Planned(other, FRIDAY, "now")], [other.add]))
     weekly.run_plan(state, players, {}, friday, outbox, None, "quiet")
     # A new plan is announced each time there was none open, then its card; no "changed", nothing relabelled.
-    assert [m.split("\n")[0 if m.startswith("New") else 1].split(" (")[0] for m in sent] == [
-        "New plan:", "Add Parker Kelly", "New plan:", "Add Other"]
+    assert [m.split("\n")[0 if m.startswith("🆕") else 1].split(" (")[0] for m in sent] == [
+        "🆕 <b>New plan</b>", "Add Parker Kelly", "🆕 <b>New plan</b>", "Add Other"]
     assert marked == []
 
 
@@ -205,7 +206,7 @@ def test_a_conditional_card_says_when_and_a_confirmation_the_other_way_changes_t
     pool = [kuemper.add, woll.add]
     searches.append(([kuemper, woll], [conditional], pool))
     weekly.run_plan(state, players, {}, morning, outbox, None, "quiet")
-    assert sent[1].startswith("Make it Fri 9 Oct (today), once LAK confirms Darcy Kuemper in net tonight")
+    assert sent[1].startswith("📅 <b>Make it Fri 9 Oct (today)</b>, once LAK confirms Darcy Kuemper in net tonight")
     assert state["plan"]["moves"][0]["if_starts"] == {"team": "LAK", "goalie": "Darcy Kuemper",
                                                       "other": "Anton Forsberg"}
     # The afternoon: Forsberg confirmed. Woll is worth less than Kuemper was, but Kuemper was only if he started.
@@ -213,8 +214,9 @@ def test_a_conditional_card_says_when_and_a_confirmation_the_other_way_changes_t
     kuemper_now = _goalie_move(30, "Darcy Kuemper", "LAK", 0.36, pinto)
     searches.append(([woll, kuemper_now], [plan.Planned(woll, FRIDAY, "now")], pool))
     weekly.run_plan(state, players, {}, morning + dt.timedelta(hours=9), outbox, None, "quiet")
-    assert sent[2].startswith("Plan changed (Darcy Kuemper for Shane Pinto: Anton Forsberg starts for LAK tonight). "
-                              "Was: Darcy Kuemper for Shane Pinto. Now:\nFri 9 Oct (today): Joseph Woll for Shane Pinto")
+    assert sent[2].startswith("🔄 <b>Plan changed</b> (Darcy Kuemper for Shane Pinto: Anton Forsberg starts for LAK "
+                              "tonight). Was: Darcy Kuemper for Shane Pinto. Now:\n\n📅 <b>Fri 9 Oct (today)</b>\n"
+                              "➕ <b>Joseph Woll</b>  ➖ Shane Pinto")
     assert [m["add"]["name"] for m in state["plan"]["moves"]] == ["Joseph Woll"]
 
 
@@ -239,7 +241,8 @@ def test_a_confirmation_his_way_says_go_once(monkeypatch, tmp_path):
     for hours in (8, 9):  # confirmed: the plan holds, now unconditional; said once
         searches.append(([kuemper, woll], [plan.Planned(kuemper, FRIDAY, "now")], pool))
         weekly.run_plan(state, players, {}, morning + dt.timedelta(hours=hours), outbox, None, "quiet")
-    assert sent[2:] == ["Darcy Kuemper is confirmed in LAK's net tonight: make Darcy Kuemper for Mattias Samuelsson now."]
+    assert sent[2:] == ["✅ <b>Go</b>: Darcy Kuemper is confirmed in LAK's net tonight: make Darcy Kuemper for "
+                        "Mattias Samuelsson now."]
     assert "if_starts" not in state["plan"]["moves"][0]
 
 
