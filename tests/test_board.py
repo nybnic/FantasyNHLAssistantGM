@@ -271,10 +271,13 @@ def test_the_race_is_each_finished_days_points_adding_up_to_the_banked_score(mon
     monkeypatch.setattr(matchup, "_so_far", lambda roster, ctx, ds, history: (by_day[roster][ds[0]], 0.0, 0))
     race = weekly.race_days(None, days, days[3], ("me", {}, 61.0), ("them", {}, 93.0))  # Thursday: Mon-Wed are done
     assert race["days"] == ["2026-10-19", "2026-10-20", "2026-10-21"]
-    assert race["me"] == [9.1, 46.8, 5.1] and round(sum(race["me"])) == 61  # scaled to the screenshot's 61
+    assert race["me"] == [9.2, 46.8, 5.1] and round(sum(race["me"])) == 61  # box scores scaled to the banked 61
     assert sum(race["them"]) == 93.0
-
-
+    # Yahoo's score from Tuesday's and Wednesday's screenshots (the days before each) anchors Monday and Tuesday.
+    live = [{"through": "2026-10-20", "yahoo": [9.25, 23.25]}, {"through": "2026-10-21", "yahoo": [55.0, 80.0]},
+            {"through": "2026-10-28", "yahoo": [1.0, 1.0]}]  # another week's: ignored
+    race = weekly.race_days(None, days, days[3], ("me", {}, 60.75), ("them", {}, 93.5), checkpoints=live)
+    assert race["me"] == [9.2, 45.8, 5.8] and race["them"] == [23.2, 56.8, 13.5]
 def test_every_dashboard_tab_draws_on_a_phone():
     """Each tab (site/index.html#today ... #watch) on the latest plan run's data: no card that
     couldn't be drawn, no script error, nothing wider than the phone, and a move's link opens its sheet."""

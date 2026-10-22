@@ -138,22 +138,34 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         max_moves=max_moves,
         weeks_after=weeks.LAST_WEEK - week,
         available_from=available_from,
-        banked=_safe(race_days, ctx, days, date, (roster_mod.active(players), my_days, sum(mine[:2])),
-                     (them_roster, their_days, sum(theirs[:2]))),
+        banked=_safe(lambda: race_days(ctx, days, date, (roster_mod.active(players), my_days, sum(mine[:2])),
+                                       (them_roster, their_days, sum(theirs[:2])),
+                                       checkpoints=state["results"].get(str(week), {}).get("live", []))),
     )
 
 
-def race_days(ctx, days: list[dt.date], date: dt.date, *sides) -> dict:
+def race_days(ctx, days: list[dt.date], date: dt.date, *sides, checkpoints: list[dict] = ()) -> dict:
     """Each finished day's points for each side ((roster, rosters by day, the
-    banked total)), from the box scores with that day's best lineup, as the
-    banked total does; scaled to that total (a matchup screenshot's when there
-    is one), so the race ends where the score is. For the dashboard only."""
+    banked total)), for the dashboard's race. Anchored on Yahoo's own score
+    wherever a matchup screenshot gave it (`checkpoints`, results[week]["live"]:
+    "through" D = the score of the days before D) and on the banked total; the
+    box scores (that day's best lineup, as the banked total) only split a gap
+    between two anchors across its days (evenly when they show nothing)."""
     done = [d for d in days if d < date]
     out = {"days": [d.isoformat() for d in done]}
-    for name, (roster, history, total) in zip(("me", "them"), sides):
-        pts = [sum(matchup._so_far(roster, ctx, [d], history)[:2]) for d in done]
-        scale = total / sum(pts) if sum(pts) > 0 else 1.0
-        out[name] = [round(x * scale, 1) for x in pts]
+    for k, (name, (roster, history, total)) in enumerate(zip(("me", "them"), sides)):
+        box = [sum(matchup._so_far(roster, ctx, [d], history)[:2]) for d in done]
+        anchors = {0: 0.0}
+        for c in checkpoints:
+            i = sum(d.isoformat() < c["through"] for d in done)  # days before its date
+            if 0 < i < len(done) and c.get("yahoo"):
+                anchors[i] = c["yahoo"][k]
+        anchors[len(done)] = total
+        marks, pts = sorted(anchors.items()), []
+        for (i0, c0), (i1, c1) in zip(marks, marks[1:]):
+            span = box[i0:i1]
+            pts += [(c1 - c0) * (x / sum(span) if sum(span) > 0 else 1 / len(span)) for x in span]
+        out[name] = [round(x, 1) for x in pts]
     return out
 
 
