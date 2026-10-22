@@ -119,6 +119,11 @@ def test_the_dashboard_data_is_the_board_plus_the_plan_in_the_messages_words():
     assert data["this_week_line"].startswith("For this week alone, the best is Mathieu Olivier for Esa Lindell")
     assert [w["week"] for w in data["weeks"]] == [2, 3] and data["weeks"][1]["opponent"] == "Lallat"
     assert data["weeks"][0]["margin"] == round(matchup.margin(p.wk.me, p.wk.them), 1)
+    # With the plan made, each week's odds move by what the planned move adds there (Kelly: this week's
+    # odds, and his gain in week 3); without one, they stay.
+    kelly_now = p.plan[0].move.win_after - p.plan[0].move.win_before
+    assert data["weeks"][0]["win_plan"] == round(data["weeks"][0]["win"] + kelly_now, 4)
+    assert data["weeks"][1]["win_plan"] == round(data["weeks"][1]["win"] + sum(p.plan[0].move.ahead_wins[:1]), 4)
     assert [r["key"] for r in data["moves"]] == ["3:1", "5:7"] and data["schedule"] == {"days": []}
     assert data["header"] is b["header"]
     json.dumps(data)

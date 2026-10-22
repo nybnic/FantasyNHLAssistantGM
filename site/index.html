@@ -645,8 +645,8 @@ function weekPicker() {
     if (!ix.length) return;
     const sum = arr => ix.reduce((a, i) => a + (arr[i] || 0), 0);
     const b = el("button", { type: "button", class: w.week === schedWeek ? "on" : "" });
-    const top = el("b", { class: "cond" }, `WK ${w.week} `);
-    top.append(el("span", {}, w.win == null ? "" : pct(w.win)));
+    const top = el("b", { class: "cond" }, `WK ${w.week} `), win = schedPlan && w.win_plan != null ? w.win_plan : w.win;
+    top.append(el("span", {}, win == null ? "" : pct(win)));  // with the plan made, or as my roster is
     b.append(top, el("span", {}, w.opponent ? `vs ${shortTeam(w.opponent)}` : "opponent not known"),
              el("span", { class: "num" }, `games ${sum(mine)} v ${sum(s.their_games)}`));
     b.onclick = () => { schedWeek = w.week; render(); };

@@ -627,6 +627,13 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
                     "margin": round(matchup.margin(wk.me, wk.them), 1)}]
     weeks_shown += [{"week": w["week"], "opponent": w["opponent"], "win": w["win"],
                      "margin": w["margin"]} for w in h["ahead"]]
+    # With the plan made: each week's odds plus what the planned moves add to them (each judged
+    # with the earlier ones made, as the plan weighs them), for the dashboard's "with the plan".
+    planned = [q.move for q in p.plan]
+    gains = [sum(m.win_after - m.win_before for m in planned)] + [
+        sum(m.ahead_wins[k] for m in planned if k < len(m.ahead_wins)) for k in range(len(weeks_shown) - 1)]
+    for w, g in zip(weeks_shown, gains):
+        w["win_plan"] = None if w["win"] is None else round(min(max(w["win"] + g, 0.0), 1.0), 4)
     return {
         "generated": b["at"], "date": b["date"], "week": b["week"], "opponent": b["opponent"], "days": b["days"],
         "header": h,
