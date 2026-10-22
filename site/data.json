@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-22T17:15+00:00",
+ "generated": "2026-10-22T17:31+00:00",
  "date": "2026-10-22",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -43,6 +43,10 @@
   "win": 0.4454,
   "margin": -4.67,
   "sd": 34.02,
+  "final": [
+   206.0,
+   210.67
+  ],
   "live": true,
   "yahoo_projected": [
    224.05,
@@ -54,11 +58,11 @@
   },
   "price": {
    "lam": 0.1307,
-   "later_weight": 0.00791,
+   "later_weight": 0.00799,
    "pace": 1.25
   },
-  "later_weight": 0.00791,
-  "tau": 21.51,
+  "later_weight": 0.00799,
+  "tau": 20.15,
   "ahead": [
    {
     "week": 5,
@@ -81,11 +85,11 @@
    "hold_days": 18
   },
   "season": {
-   "playoffs": 0.825,
-   "title": 0.1059,
-   "leverage": 0.1107,
-   "typical": 0.1239,
-   "seed": 4.7521,
+   "playoffs": 0.8178,
+   "title": 0.1043,
+   "leverage": 0.1083,
+   "typical": 0.1252,
+   "seed": 4.7778,
    "note": ""
   }
  },
@@ -178,8 +182,8 @@
    ],
    "held": false,
    "keep": 0.376,
-   "later_wins": 0.1538,
-   "value": 0.2703,
+   "later_wins": 0.1555,
+   "value": 0.272,
    "status": "plan",
    "why": "monday"
   },
@@ -222,8 +226,8 @@
    ],
    "held": false,
    "keep": 0.376,
-   "later_wins": 0.1002,
-   "value": 0.2465,
+   "later_wins": 0.1013,
+   "value": 0.2476,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -266,8 +270,8 @@
    ],
    "held": false,
    "keep": 0.436,
-   "later_wins": 0.0814,
-   "value": 0.2284,
+   "later_wins": 0.0823,
+   "value": 0.2293,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -310,8 +314,8 @@
    ],
    "held": false,
    "keep": 0.694,
-   "later_wins": 0.1317,
-   "value": 0.2013,
+   "later_wins": 0.1331,
+   "value": 0.2027,
    "status": "plan",
    "why": "monday"
   },
@@ -355,8 +359,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.014,
-   "value": 0.1942,
+   "later_wins": -0.0141,
+   "value": 0.194,
    "status": "plan",
    "why": "now"
   },
@@ -399,8 +403,8 @@
    ],
    "held": false,
    "keep": 0.436,
-   "later_wins": 0.1121,
-   "value": 0.177,
+   "later_wins": 0.1133,
+   "value": 0.1782,
    "status": "passes",
    "why": "worth an add, but the plan's Roman Kantserov uses the same player"
   },
@@ -444,10 +448,54 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.004,
+   "later_wins": 0.0041,
    "value": 0.1732,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same player"
+  },
+  {
+   "key": "8478499:8482447",
+   "add": {
+    "id": 8478499,
+    "name": "Adin Hill",
+    "team": "VGK",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 5.85,
+   "next_two_pts": 9.69,
+   "later_pts": 3.74,
+   "win": [
+    0.4454,
+    0.5138
+   ],
+   "now_wins": 0.0685,
+   "ahead_wins": [
+    0.0027,
+    0.0683
+   ],
+   "ahead_pts": 8.64,
+   "ahead_week_pts": [
+    0.32,
+    8.32
+   ],
+   "held": false,
+   "keep": 1.0,
+   "later_wins": 0.0299,
+   "value": 0.1694,
+   "status": "passes",
+   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8484390:8476457",
@@ -488,54 +536,10 @@
    ],
    "held": false,
    "keep": 0.436,
-   "later_wins": 0.061,
-   "value": 0.1686,
+   "later_wins": 0.0616,
+   "value": 0.1692,
    "status": "passes",
    "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
-  },
-  {
-   "key": "8478499:8482447",
-   "add": {
-    "id": 8478499,
-    "name": "Adin Hill",
-    "team": "VGK",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 5.77,
-   "next_two_pts": 9.69,
-   "later_pts": 3.74,
-   "win": [
-    0.4454,
-    0.5129
-   ],
-   "now_wins": 0.0675,
-   "ahead_wins": [
-    0.0027,
-    0.0683
-   ],
-   "ahead_pts": 8.64,
-   "ahead_week_pts": [
-    0.32,
-    8.32
-   ],
-   "held": false,
-   "keep": 1.0,
-   "later_wins": 0.0296,
-   "value": 0.1682,
-   "status": "passes",
-   "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
   {
    "key": "8483609:8482447",
@@ -576,8 +580,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0165,
-   "value": 0.1641,
+   "later_wins": -0.0167,
+   "value": 0.1639,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -620,8 +624,8 @@
    ],
    "held": false,
    "keep": 0.217,
-   "later_wins": 0.0795,
-   "value": 0.1571,
+   "later_wins": 0.0804,
+   "value": 0.158,
    "status": "passes",
    "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
@@ -708,8 +712,8 @@
    ],
    "held": false,
    "keep": 0.158,
-   "later_wins": 0.0619,
-   "value": 0.139,
+   "later_wins": 0.0626,
+   "value": 0.1397,
    "status": "passes",
    "why": "worth an add, but the plan's Darnell Nurse uses the same drop"
   },
@@ -752,8 +756,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0123,
-   "value": 0.1378,
+   "later_wins": 0.0124,
+   "value": 0.1379,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -796,8 +800,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.019,
-   "value": 0.1351,
+   "later_wins": -0.0192,
+   "value": 0.1349,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -841,8 +845,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0191,
-   "value": 0.1344,
+   "later_wins": -0.0193,
+   "value": 0.1342,
    "status": "passes",
    "why": "worth an add, but the plan's Martin Pospisil uses the same drop"
   },
@@ -885,8 +889,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0303,
-   "value": 0.1168,
+   "later_wins": 0.0306,
+   "value": 0.1171,
    "status": "fails",
    "why": "worth 11.7 win-pts, under the 13.1 an add costs"
   },
@@ -1063,8 +1067,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0327,
-   "value": 0.1052,
+   "later_wins": -0.033,
+   "value": 0.1048,
    "status": "fails",
    "why": "dropping Mattias Samuelsson costs about 4 pts later, more than this week's +6 win-pts make up for"
   },
@@ -1107,8 +1111,8 @@
    ],
    "held": false,
    "keep": 0.158,
-   "later_wins": -0.0127,
-   "value": 0.1033,
+   "later_wins": -0.0128,
+   "value": 0.1032,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +1 win-pts make up for"
   },
@@ -1151,8 +1155,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0262,
-   "value": 0.0926,
+   "later_wins": 0.0265,
+   "value": 0.0929,
    "status": "fails",
    "why": "worth 9.3 win-pts, under the 13.1 an add costs"
   },
@@ -1195,10 +1199,10 @@
    ],
    "held": false,
    "keep": 0.376,
-   "later_wins": 0.0529,
-   "value": 0.0902,
+   "later_wins": 0.0534,
+   "value": 0.0907,
    "status": "fails",
-   "why": "worth 9.0 win-pts, under the 13.1 an add costs"
+   "why": "worth 9.1 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8482146:8482447",
@@ -1240,8 +1244,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0148,
-   "value": 0.0891,
+   "later_wins": 0.0149,
+   "value": 0.0893,
    "status": "fails",
    "why": "worth 8.9 win-pts, under the 13.1 an add costs"
   },
@@ -1285,8 +1289,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0232,
-   "value": 0.0854,
+   "later_wins": -0.0235,
+   "value": 0.0851,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 3 pts later, more than this week's -1 win-pts make up for"
   },
@@ -1329,8 +1333,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.021,
-   "value": 0.0843,
+   "later_wins": -0.0213,
+   "value": 0.0841,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 3 pts later, more than this week's -0 win-pts make up for"
   },
@@ -1374,8 +1378,8 @@
    ],
    "held": false,
    "keep": 0.281,
-   "later_wins": -0.0158,
-   "value": 0.0754,
+   "later_wins": -0.016,
+   "value": 0.0752,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 2 pts later, more than this week's +3 win-pts make up for"
   },
@@ -1418,8 +1422,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0352,
-   "value": 0.075,
+   "later_wins": -0.0356,
+   "value": 0.0746,
    "status": "fails",
    "why": "dropping Mattias Samuelsson costs about 4 pts later, more than this week's +5 win-pts make up for"
   },
@@ -1551,8 +1555,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0328,
-   "value": 0.068,
+   "later_wins": 0.0331,
+   "value": 0.0683,
    "status": "fails",
    "why": "worth 6.8 win-pts, under the 13.1 an add costs"
   },
@@ -1596,10 +1600,10 @@
    ],
    "held": false,
    "keep": 0.281,
-   "later_wins": 0.0248,
-   "value": 0.0652,
+   "later_wins": 0.0251,
+   "value": 0.0655,
    "status": "fails",
-   "why": "worth 6.5 win-pts, under the 13.1 an add costs"
+   "why": "worth 6.6 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8481593:8482447",
@@ -1641,7 +1645,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0019,
-   "value": 0.0652,
+   "value": 0.0651,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 0 pts later, more than this week's +2 win-pts make up for"
   },
@@ -1685,8 +1689,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0126,
-   "value": 0.0641,
+   "later_wins": 0.0128,
+   "value": 0.0643,
    "status": "fails",
    "why": "worth 6.4 win-pts, under the 13.1 an add costs"
   },
@@ -1730,8 +1734,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0316,
-   "value": 0.0636,
+   "later_wins": -0.0319,
+   "value": 0.0633,
    "status": "fails",
    "why": "dropping Gabriel Landeskog costs about 4 pts later, more than this week's +1 win-pts make up for"
   },
@@ -1775,8 +1779,8 @@
    ],
    "held": false,
    "keep": 0.037,
-   "later_wins": 0.0203,
-   "value": 0.0602,
+   "later_wins": 0.0205,
+   "value": 0.0605,
    "status": "fails",
    "why": "worth 6.0 win-pts, under the 13.1 an add costs"
   },
@@ -1863,54 +1867,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.025,
-   "value": 0.0586,
+   "later_wins": 0.0252,
+   "value": 0.0589,
    "status": "fails",
    "why": "worth 5.9 win-pts, under the 13.1 an add costs"
-  },
-  {
-   "key": "8481668:8482447",
-   "add": {
-    "id": 8481668,
-    "name": "Arturs Silovs",
-    "team": "PIT",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8482447,
-    "name": "Leevi Meriläinen"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 7.12,
-   "next_two_pts": 4.85,
-   "later_pts": -7.9,
-   "win": [
-    0.4454,
-    0.5288
-   ],
-   "now_wins": 0.0834,
-   "ahead_wins": [
-    0.0023,
-    0.0334
-   ],
-   "ahead_pts": 4.34,
-   "ahead_week_pts": [
-    0.27,
-    4.06
-   ],
-   "held": false,
-   "keep": 1.0,
-   "later_wins": -0.0625,
-   "value": 0.0566,
-   "status": "fails",
-   "why": "dropping Leevi Meriläinen costs about 8 pts later, more than this week's +8 win-pts make up for"
   },
   {
    "key": "8478542:8482447",
@@ -1953,10 +1913,54 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0081,
-   "value": 0.0562,
+   "later_wins": 0.0082,
+   "value": 0.0563,
    "status": "fails",
    "why": "worth 5.6 win-pts, under the 13.1 an add costs"
+  },
+  {
+   "key": "8481668:8482447",
+   "add": {
+    "id": 8481668,
+    "name": "Arturs Silovs",
+    "team": "PIT",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8482447,
+    "name": "Leevi Meriläinen"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 7.12,
+   "next_two_pts": 4.85,
+   "later_pts": -7.9,
+   "win": [
+    0.4454,
+    0.5288
+   ],
+   "now_wins": 0.0834,
+   "ahead_wins": [
+    0.0023,
+    0.0334
+   ],
+   "ahead_pts": 4.34,
+   "ahead_week_pts": [
+    0.27,
+    4.06
+   ],
+   "held": false,
+   "keep": 1.0,
+   "later_wins": -0.0632,
+   "value": 0.0559,
+   "status": "fails",
+   "why": "dropping Leevi Meriläinen costs about 8 pts later, more than this week's +8 win-pts make up for"
   },
   {
    "key": "8476539:8482447",
@@ -1998,8 +2002,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0103,
-   "value": 0.0532,
+   "later_wins": 0.0104,
+   "value": 0.0533,
    "status": "fails",
    "why": "worth 5.3 win-pts, under the 13.1 an add costs"
   },
@@ -2042,8 +2046,8 @@
    ],
    "held": false,
    "keep": 0.217,
-   "later_wins": 0.0058,
-   "value": 0.0519,
+   "later_wins": 0.0059,
+   "value": 0.052,
    "status": "fails",
    "why": "worth 5.2 win-pts, under the 13.1 an add costs"
   },
@@ -2087,7 +2091,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0041,
-   "value": 0.0516,
+   "value": 0.0515,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +1 win-pts make up for"
   },
@@ -2130,54 +2134,10 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0217,
-   "value": 0.0509,
+   "later_wins": -0.0219,
+   "value": 0.0507,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 3 pts later, more than this week's -0 win-pts make up for"
-  },
-  {
-   "key": "8476473:8480807",
-   "add": {
-    "id": 8476473,
-    "name": "Connor Murphy",
-    "team": "EDM",
-    "positions": [
-     "D"
-    ]
-   },
-   "drop": {
-    "id": 8480807,
-    "name": "Mattias Samuelsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 3.55,
-   "next_two_pts": 1.54,
-   "later_pts": -0.81,
-   "win": [
-    0.4454,
-    0.4869
-   ],
-   "now_wins": 0.0415,
-   "ahead_wins": [
-    0.0223,
-    -0.0088
-   ],
-   "ahead_pts": 1.54,
-   "ahead_week_pts": [
-    2.61,
-    -1.07
-   ],
-   "held": true,
-   "keep": 0.0,
-   "later_wins": -0.0064,
-   "value": 0.0487,
-   "status": "fails",
-   "why": "dropping Mattias Samuelsson costs about 1 pts later, more than this week's +4 win-pts make up for"
   },
   {
    "key": "8476869:8476457",
@@ -2218,8 +2178,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0169,
-   "value": 0.0487,
+   "later_wins": 0.0171,
+   "value": 0.0489,
    "status": "fails",
    "why": "worth 4.9 win-pts, under the 13.1 an add costs"
   },
@@ -2262,10 +2222,54 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0169,
-   "value": 0.0487,
+   "later_wins": 0.0171,
+   "value": 0.0488,
    "status": "fails",
    "why": "worth 4.9 win-pts, under the 13.1 an add costs"
+  },
+  {
+   "key": "8476473:8480807",
+   "add": {
+    "id": 8476473,
+    "name": "Connor Murphy",
+    "team": "EDM",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8480807,
+    "name": "Mattias Samuelsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 3.55,
+   "next_two_pts": 1.54,
+   "later_pts": -0.81,
+   "win": [
+    0.4454,
+    0.4869
+   ],
+   "now_wins": 0.0415,
+   "ahead_wins": [
+    0.0223,
+    -0.0088
+   ],
+   "ahead_pts": 1.54,
+   "ahead_week_pts": [
+    2.61,
+    -1.07
+   ],
+   "held": true,
+   "keep": 0.0,
+   "later_wins": -0.0064,
+   "value": 0.0486,
+   "status": "fails",
+   "why": "dropping Mattias Samuelsson costs about 1 pts later, more than this week's +4 win-pts make up for"
   },
   {
    "key": "8482679:8480807",
@@ -2306,8 +2310,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0377,
-   "value": 0.046,
+   "later_wins": -0.0381,
+   "value": 0.0456,
    "status": "fails",
    "why": "dropping Mattias Samuelsson costs about 5 pts later, more than this week's +4 win-pts make up for"
   },
@@ -2351,7 +2355,7 @@
    "held": true,
    "keep": 0.0,
    "later_wins": -0.0051,
-   "value": 0.0455,
+   "value": 0.0454,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 1 pts later, more than this week's +1 win-pts make up for"
   },
@@ -2395,8 +2399,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": -0.0378,
-   "value": 0.0452,
+   "later_wins": -0.0382,
+   "value": 0.0448,
    "status": "fails",
    "why": "dropping Mattias Samuelsson costs about 5 pts later, more than this week's +4 win-pts make up for"
   },
@@ -2483,8 +2487,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0161,
-   "value": 0.0439,
+   "later_wins": 0.0163,
+   "value": 0.044,
    "status": "fails",
    "why": "worth 4.4 win-pts, under the 13.1 an add costs"
   },
@@ -2528,8 +2532,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0306,
-   "value": 0.0427,
+   "later_wins": 0.031,
+   "value": 0.043,
    "status": "fails",
    "why": "worth 4.3 win-pts, under the 13.1 an add costs"
   },
@@ -2572,8 +2576,8 @@
    ],
    "held": false,
    "keep": 1.0,
-   "later_wins": -0.0706,
-   "value": 0.0423,
+   "later_wins": -0.0713,
+   "value": 0.0415,
    "status": "fails",
    "why": "dropping Leevi Meriläinen costs about 9 pts later, more than this week's +6 win-pts make up for"
   },
@@ -2617,10 +2621,55 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0102,
-   "value": 0.0385,
+   "later_wins": 0.0103,
+   "value": 0.0386,
    "status": "fails",
    "why": "worth 3.9 win-pts, under the 13.1 an add costs"
+  },
+  {
+   "key": "8482089:8476457",
+   "add": {
+    "id": 8482089,
+    "name": "Jake Neighbours",
+    "team": "STL",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 1.09,
+   "next_two_pts": -1.79,
+   "later_pts": 4.43,
+   "win": [
+    0.4454,
+    0.4581
+   ],
+   "now_wins": 0.0127,
+   "ahead_wins": [
+    0.0088,
+    -0.0209
+   ],
+   "ahead_pts": -1.52,
+   "ahead_week_pts": [
+    1.03,
+    -2.56
+   ],
+   "held": false,
+   "keep": 0.037,
+   "later_wins": 0.0354,
+   "value": 0.0361,
+   "status": "fails",
+   "why": "worth 3.6 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478042:8480855",
@@ -2663,54 +2712,9 @@
    "held": false,
    "keep": 0.281,
    "later_wins": -0.009,
-   "value": 0.0361,
+   "value": 0.036,
    "status": "fails",
    "why": "dropping Jack McBain costs about 1 pts later, more than this week's +0 win-pts make up for"
-  },
-  {
-   "key": "8482089:8476457",
-   "add": {
-    "id": 8482089,
-    "name": "Jake Neighbours",
-    "team": "STL",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476457,
-    "name": "Adam Larsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 1.09,
-   "next_two_pts": -1.79,
-   "later_pts": 4.43,
-   "win": [
-    0.4454,
-    0.4581
-   ],
-   "now_wins": 0.0127,
-   "ahead_wins": [
-    0.0088,
-    -0.0209
-   ],
-   "ahead_pts": -1.52,
-   "ahead_week_pts": [
-    1.03,
-    -2.56
-   ],
-   "held": false,
-   "keep": 0.037,
-   "later_wins": 0.0351,
-   "value": 0.0357,
-   "status": "fails",
-   "why": "worth 3.6 win-pts, under the 13.1 an add costs"
   },
   {
    "key": "8478542:8476457",
@@ -2753,8 +2757,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0262,
-   "value": 0.0351,
+   "later_wins": 0.0264,
+   "value": 0.0354,
    "status": "fails",
    "why": "worth 3.5 win-pts, under the 13.1 an add costs"
   },
@@ -2798,8 +2802,8 @@
    ],
    "held": true,
    "keep": 0.0,
-   "later_wins": 0.0064,
-   "value": 0.0349,
+   "later_wins": 0.0065,
+   "value": 0.035,
    "status": "fails",
    "why": "worth 3.5 win-pts, under the 13.1 an add costs"
   }
@@ -7455,7 +7459,7 @@
     {
      "date": "2026-10-22",
      "opp": "@STL",
-     "prob": 0.792,
+     "prob": 0.8,
      "xfp": 8.51
     },
     {
@@ -9825,112 +9829,6 @@
    "kept": 1.0,
    "replacement": 4.468
   },
-  "8481668": {
-   "id": 8481668,
-   "name": "Arturs Silovs",
-   "team": "PIT",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 6,
-    "pts": 49.6,
-    "proj": 49.5,
-    "pts_projected": 49.6,
-    "stats": {
-     "Wins": [
-      3.0,
-      2.8
-     ],
-     "Saves": [
-      136.0,
-      138.5
-     ],
-     "Goals against": [
-      21.0,
-      17.4
-     ],
-     "Shutouts": [
-      1.0,
-      0.3
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-19",
-      "opp": "@UTA",
-      "pts": 4.4,
-      "proj": 8.4
-     },
-     {
-      "date": "2026-10-16",
-      "opp": "@COL",
-      "pts": 5.4,
-      "proj": 8.5
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "DAL",
-      "pts": 12.4,
-      "proj": 7.7
-     },
-     {
-      "date": "2026-10-07",
-      "opp": "@WSH",
-      "pts": 3.7,
-      "proj": 8.3
-     },
-     {
-      "date": "2026-10-03",
-      "opp": "MTL",
-      "pts": 7.0,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-09-30",
-      "opp": "@PHI",
-      "pts": 16.6,
-      "proj": 8.0
-     }
-    ],
-    "starts": 6,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 2.0,
-    "Saves": 8.2,
-    "Goals against": -3.0,
-    "Shutout": 0.19
-   },
-   "stats": {
-    "Wins": 0.5,
-    "Saves": 23.44,
-    "Goals against": 3.0,
-    "Shutouts": 0.04
-   },
-   "xfp": 8.39,
-   "share": 0.589,
-   "starts": [
-    {
-     "date": "2026-10-22",
-     "opp": "FLA",
-     "prob": 0.97,
-     "xfp": 8.39
-    },
-    {
-     "date": "2026-10-24",
-     "opp": "NSH",
-     "prob": 0.543,
-     "xfp": 8.21
-    }
-   ],
-   "next": {
-    "date": "2026-10-22",
-    "opp": "FLA"
-   },
-   "gp": 6
-  },
   "8478542": {
    "id": 8478542,
    "name": "Evan Rodrigues",
@@ -10078,6 +9976,112 @@
    "durability": 0.984,
    "kept": 1.0,
    "replacement": 5.431
+  },
+  "8481668": {
+   "id": 8481668,
+   "name": "Arturs Silovs",
+   "team": "PIT",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 6,
+    "pts": 49.6,
+    "proj": 49.5,
+    "pts_projected": 49.6,
+    "stats": {
+     "Wins": [
+      3.0,
+      2.8
+     ],
+     "Saves": [
+      136.0,
+      138.5
+     ],
+     "Goals against": [
+      21.0,
+      17.4
+     ],
+     "Shutouts": [
+      1.0,
+      0.3
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-19",
+      "opp": "@UTA",
+      "pts": 4.4,
+      "proj": 8.4
+     },
+     {
+      "date": "2026-10-16",
+      "opp": "@COL",
+      "pts": 5.4,
+      "proj": 8.5
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "DAL",
+      "pts": 12.4,
+      "proj": 7.7
+     },
+     {
+      "date": "2026-10-07",
+      "opp": "@WSH",
+      "pts": 3.7,
+      "proj": 8.3
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "MTL",
+      "pts": 7.0,
+      "proj": 8.7
+     },
+     {
+      "date": "2026-09-30",
+      "opp": "@PHI",
+      "pts": 16.6,
+      "proj": 8.0
+     }
+    ],
+    "starts": 6,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 2.0,
+    "Saves": 8.2,
+    "Goals against": -3.0,
+    "Shutout": 0.19
+   },
+   "stats": {
+    "Wins": 0.5,
+    "Saves": 23.44,
+    "Goals against": 3.0,
+    "Shutouts": 0.04
+   },
+   "xfp": 8.39,
+   "share": 0.589,
+   "starts": [
+    {
+     "date": "2026-10-22",
+     "opp": "FLA",
+     "prob": 0.97,
+     "xfp": 8.39
+    },
+    {
+     "date": "2026-10-24",
+     "opp": "NSH",
+     "prob": 0.543,
+     "xfp": 8.21
+    }
+   ],
+   "next": {
+    "date": "2026-10-22",
+    "opp": "FLA"
+   },
+   "gp": 6
   },
   "8476539": {
    "id": 8476539,
@@ -14266,6 +14270,51 @@
   "playoffs_from": 24
  },
  "watch": [
+  {
+   "date": "2026-10-22",
+   "id": 8484234,
+   "name": "Aydar Suniev",
+   "team": "CGY",
+   "positions": "LW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first line.",
+   "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+   "value": null,
+   "price": null,
+   "sent": false
+  },
+  {
+   "date": "2026-10-22",
+   "id": 8480028,
+   "name": "Morgan Frost",
+   "team": "CGY",
+   "positions": "C",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first line.",
+   "verdict": "+3 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": 0.0321,
+   "price": 0.1307,
+   "sent": false
+  },
+  {
+   "date": "2026-10-22",
+   "id": 8480797,
+   "name": "Joel Farabee",
+   "team": "CGY",
+   "positions": "LW/RW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the second line.",
+   "verdict": "+13 win-pts against the 13.1 an add costs: worth an add, but the plan's moves beat it.",
+   "value": 0.1342,
+   "price": 0.1307,
+   "sent": true
+  },
   {
    "date": "2026-10-22",
    "id": 8482775,
