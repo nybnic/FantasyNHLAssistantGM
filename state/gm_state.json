@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-22T14:01+00:00",
+    "at": "2026-10-22T15:05+00:00",
     "moves": [
       {
         "add": {
@@ -1177,6 +1177,7 @@
       "8482118:promoted": "2026-10-13",
       "8482124:promoted": "2026-10-15",
       "8482142:ice time": "2026-10-14",
+      "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-10-14",
       "8482175:promoted": "2026-10-19",
       "8482176:promoted": "2026-10-16",
@@ -1500,18 +1501,6 @@
           "pp2"
         ],
         "since": {}
-      },
-      "8475810": {
-        "groups": [
-          "f1",
-          "ir",
-          "pk2",
-          "pp1"
-        ],
-        "since": {
-          "f1": null,
-          "pp1": null
-        }
       },
       "8475848": {
         "groups": [
@@ -2141,11 +2130,11 @@
       },
       "8478438": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-19",
+          "f1": "2026-10-22",
           "pp1": "2026-10-19"
         }
       },
@@ -2840,7 +2829,7 @@
       },
       "8481481": {
         "groups": [
-          "f4",
+          "f3",
           "pk1"
         ],
         "since": {}
@@ -3011,6 +3000,12 @@
         "since": {
           "f1": "2026-10-13"
         }
+      },
+      "8481725": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8481726": {
         "groups": [
@@ -3214,10 +3209,12 @@
       },
       "8482148": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-22"
+        }
       },
       "8482159": {
         "groups": [
@@ -3301,12 +3298,10 @@
       },
       "8482475": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-10-20"
-        }
+        "since": {}
       },
       "8482476": {
         "groups": [
@@ -5521,6 +5516,21 @@
         "value": -0.083,
         "verdict": "-8 win-pts against the 13.1 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-22",
+        "id": 8482148,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Hendrix Lapierre",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "PIT",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
