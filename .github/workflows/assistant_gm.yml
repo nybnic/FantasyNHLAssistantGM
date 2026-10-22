@@ -11,13 +11,16 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: assistant-gm
-  cancel-in-progress: false
-
 jobs:
   run:
     runs-on: ubuntu-latest
+    # One bot run at a time (each commits the state the next one reads). Only this
+    # job, not the whole workflow: a run's dashboard publish (deploy-dashboard) can
+    # wait 10+ min in GitHub's Pages queue, and the next Telegram reply mustn't wait
+    # for it (2026-10-22: a /week took 11 min, 52 s of it the plan).
+    concurrency:
+      group: assistant-gm
+      cancel-in-progress: false
     # The job's clock can start while it still waits for a runner: on
     # 2026-10-05 GitHub took 5-10 min to start runs, and two never got one
     # within 15 and were cancelled. The job limit leaves room for that wait;
@@ -80,10 +83,16 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('requirements.txt') }}
+      # GitHub's runners already have Chromium's system libraries, so they're
+      # installed (apt, at times minutes: 4 min 12 s on 2026-10-22) only when the
+      # browser can't start without them.
       - name: Install the headless browser
         continue-on-error: true
         timeout-minutes: 4
-        run: python -m playwright install --with-deps --only-shell chromium
+        run: |
+          python -m playwright install --only-shell chromium
+          python -c "from playwright.sync_api import sync_playwright; p = sync_playwright().start(); p.chromium.launch().close(); p.stop()" \
+            || python -m playwright install-deps chromium
 
       # Past seasons' NHL stats never change: keep them between runs instead
       # of re-downloading ~140k rows every time.

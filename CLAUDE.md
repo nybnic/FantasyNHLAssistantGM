@@ -68,6 +68,7 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 | `docs/league-rules.md` | Full scoring and league rules, worked examples, where the points come from |
 | `docs/operations.md` | Runtime, secrets, state ownership, past incidents |
 | `docs/data.md` | What Nico sends, what's fetched, what's stored where, and what uses it |
+| `docs/design.md` | How the bot looks: the vocabulary, palette, type, components, Telegram cards, dashboard tabs, checks |
 | `docs/roadmap.md` | Prioritized backlog and the log of what was done. Start a session here |
 
 ## Commands
