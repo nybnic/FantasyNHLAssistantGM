@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-07": {
-      "recommended": {
-        "8474564": "RW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "BN",
-        "8476902": "BN",
-        "8477949": "LW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "C",
-        "8485406": "RW"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-08": {
       "recommended": {
         "8474564": "RW",
@@ -310,83 +290,6 @@
   "matchup_shots": null,
   "news_checked": "2026-10-20",
   "pending": {
-    "add-2026-10-07-0902-0": {
-      "add": {
-        "id": 8481596,
-        "name": "Shane Pinto",
-        "positions": [
-          "C"
-        ],
-        "slot": null,
-        "team": "OTT"
-      },
-      "add_slot": null,
-      "date": "2026-10-07",
-      "drop": null,
-      "drop_name": null,
-      "ir": {
-        "8484801": "IR"
-      },
-      "message_id": 259,
-      "type": "add"
-    },
-    "add-2026-10-07-0902-1": {
-      "add": {
-        "id": 8480448,
-        "name": "Parker Kelly",
-        "positions": [
-          "C",
-          "LW"
-        ],
-        "slot": null,
-        "team": "COL"
-      },
-      "add_slot": null,
-      "date": "2026-10-07",
-      "drop": 8476457,
-      "drop_name": "Adam Larsson",
-      "ir": {},
-      "message_id": 260,
-      "type": "add"
-    },
-    "add-2026-10-07-0904-0": {
-      "add": {
-        "id": 8480448,
-        "name": "Parker Kelly",
-        "positions": [
-          "C",
-          "LW"
-        ],
-        "slot": null,
-        "team": "COL"
-      },
-      "add_slot": null,
-      "date": "2026-10-07",
-      "drop": 8476457,
-      "drop_name": "Adam Larsson",
-      "ir": {},
-      "message_id": 267,
-      "type": "add"
-    },
-    "add-2026-10-07-0914-0": {
-      "add": {
-        "id": 8480448,
-        "name": "Parker Kelly",
-        "positions": [
-          "C",
-          "LW"
-        ],
-        "slot": null,
-        "team": "COL"
-      },
-      "add_slot": null,
-      "date": "2026-10-07",
-      "drop": 8476457,
-      "drop_name": "Adam Larsson",
-      "ir": {},
-      "message_id": 278,
-      "type": "add"
-    },
     "add-2026-10-09-0609-0": {
       "add": {
         "id": 8484390,
@@ -680,27 +583,6 @@
       "message_id": 592,
       "type": "add"
     },
-    "lineup-2026-10-07-1631": {
-      "assignment": {
-        "8474564": "RW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "BN",
-        "8476902": "BN",
-        "8477949": "LW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "C",
-        "8485406": "RW"
-      },
-      "date": "2026-10-07",
-      "message_id": 281,
-      "type": "lineup"
-    },
     "lineup-2026-10-08-1632": {
       "assignment": {
         "8474564": "RW",
@@ -956,49 +838,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-21T17:01+00:00",
+    "at": "2026-10-22T03:20+00:00",
     "moves": [
-      {
-        "add": {
-          "id": 8481028,
-          "name": "Martin Pospisil",
-          "positions": [
-            "C",
-            "RW"
-          ],
-          "team": "CGY"
-        },
-        "drop": {
-          "id": 8476457,
-          "name": "Adam Larsson"
-        },
-        "key": "8481028:8476457",
-        "message_id": 592,
-        "rec_id": "add-2026-10-21-1601-8481028",
-        "value": 0.2062,
-        "when": "2026-10-21",
-        "why": "now"
-      },
-      {
-        "add": {
-          "id": 8482087,
-          "name": "Kaiden Guhle",
-          "positions": [
-            "D"
-          ],
-          "team": "MTL"
-        },
-        "drop": {
-          "id": 8482447,
-          "name": "Leevi Meril\u00e4inen"
-        },
-        "key": "8482087:8482447",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.2801,
-        "when": "2026-10-26",
-        "why": "monday"
-      },
       {
         "add": {
           "id": 8484390,
@@ -1009,15 +850,15 @@
           "team": "CHI"
         },
         "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
+          "id": 8482447,
+          "name": "Leevi Meril\u00e4inen"
         },
-        "key": "8484390:8480855",
+        "key": "8484390:8482447",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1965,
-        "when": "2026-10-26",
-        "why": "monday"
+        "value": 0.2071,
+        "when": "2026-10-23",
+        "why": "now"
       }
     ],
     "week": 4
@@ -1181,7 +1022,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784725,
+  "telegram_offset": 929784727,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -2142,13 +1983,6 @@
         ],
         "since": {}
       },
-      "8478047": {
-        "groups": [
-          "f3",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8478133": {
         "groups": [
           "f4",
@@ -2903,13 +2737,6 @@
           "f2": "2026-10-17"
         }
       },
-      "8481122": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8481161": {
         "groups": [
           "d3",
@@ -3142,7 +2969,7 @@
       },
       "8481848": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3307,7 +3134,8 @@
       },
       "8482159": {
         "groups": [
-          "ir"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3863,8 +3691,15 @@
       },
       "8483731": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8483760": {
+        "groups": [
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
