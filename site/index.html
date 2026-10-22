@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Assistant GM</title>
 <meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* Tokens: the dataviz reference palette (slots 1-3: blue, orange, aqua; validated
      all-pairs for colour-blind separation in both modes). Dark values are their own steps. */
@@ -30,7 +33,8 @@
   body { margin: 0; background: var(--surface); color: var(--text);
          font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
-  body.card-mode main { max-width: 440px; padding: 14px 14px 16px; }
+  body.card-mode { background: #0B1422; }
+  body.card-mode main { max-width: 390px; padding: 0; }
   h1 { font-size: 20px; margin: 0 0 2px; }
   h2 { font-size: 16px; margin: 0 0 6px; }
   .sub, .note { color: var(--text-2); font-size: 13px; }
@@ -167,6 +171,54 @@
              padding: 3px 9px; cursor: pointer; margin: 6px 6px 0 0; }
   .tap { cursor: pointer; }
   .flags { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-2); }
+  /* the Telegram card (?card): night style, read at about 80% on a phone, so no text under 13px */
+  .nc { background: #0B1422; color: #fff; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px;
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .nc .cond { font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-weight: 700; }
+  .nc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .nc-week { font-size: 20px; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nc-week span { color: #B7C2D3; font-weight: 500; }
+  .nc-dim { color: #B7C2D3; font-size: 13px; white-space: nowrap; }
+  .nc-hero { display: flex; align-items: center; gap: 16px; }
+  .nc-ring { position: relative; width: 140px; height: 140px; flex: none; }
+  .nc-ring svg { width: 140px; }
+  .nc-ring div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .nc-big { font-size: 46px; line-height: 1; }
+  .nc-bars { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+  .nc-team { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 14px; font-weight: 600; }
+  .nc-score { font-size: 26px; line-height: 1; white-space: nowrap; }
+  .nc-score small { font-size: 16px; color: #B7C2D3; font-weight: 500; }
+  .nc-bar { display: flex; height: 10px; gap: 2px; margin-top: 5px; }
+  .nc-bar i { border-radius: 3px; }
+  .nc-tile { background: #13213A; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .nc-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .nc-today { font-size: 15px; letter-spacing: .08em; color: #2CC28B; }
+  .nc-val { font-size: 28px; line-height: 1; color: #2CC28B; }
+  .nc-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .nc-who b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nc-who span { font-size: 13px; color: #B7C2D3; }
+  .nc-who.drop { text-align: right; }
+  .nc-who.drop b { color: #B7C2D3; }
+  .nc-detail { font-size: 14px; color: #DCE3EE; }
+  .nc-next .nc-row { padding: 8px 2px; border-bottom: 1px solid #1E2E48; }
+  .nc-next .nc-row:last-child { border-bottom: 0; }
+  .nc-day { font-size: 15px; color: #7DB8FF; width: 58px; flex: none; }
+  .nc-swap { flex: 1; min-width: 0; font-size: 15px; }
+  .nc-next .nc-val { font-size: 20px; }
+  .nc .plus { color: #2CC28B; font-weight: 700; }
+  .nc .minus { color: #F07A45; font-weight: 700; }
+  .nc-weeks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .nc-wk { background: #13213A; border-radius: 10px; padding: 8px 10px; border: 1.5px solid transparent; min-width: 0; }
+  .nc-wk.now { border-color: #4D9BF0; }
+  .nc-wk span { display: block; font-size: 13px; color: #B7C2D3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nc-wk b { display: block; font-size: 24px; line-height: 1.1; }
+  .av { position: relative; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff;
+        font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif; font-weight: 700; flex: none; }
+  .av img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .av .bdg { position: absolute; right: -3px; bottom: -3px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #13213A;
+             box-sizing: border-box; font: 700 14px/16px Inter, system-ui, sans-serif; text-align: center; color: #fff; z-index: 1; }
+  .av .bdg.add { background: #1BAF7A; }
+  .av .bdg.drop { background: #D95926; }
 </style>
 </head>
 <body>
@@ -1313,6 +1365,137 @@ function moveSheet(moveKey) {
   return out;
 }
 
+// ---- the Telegram card (?card): the win odds, the score, the plan's move as a face-off -------
+// Team colours dark enough for white initials, behind a headshot or in its place.
+const TEAM_COLORS = { ANA: "#B9461A", BOS: "#5C4A00", BUF: "#003087", CAR: "#CE1126", CBJ: "#002654", CGY: "#C8102E",
+  CHI: "#CF0A2C", COL: "#6F263D", DAL: "#006847", DET: "#B3101F", EDM: "#D64000", FLA: "#C8102E", LAK: "#2B2B2B",
+  MIN: "#154734", MTL: "#AF1E2D", NJD: "#B3101F", NSH: "#8C6A00", NYI: "#00539B", NYR: "#0038A8", OTT: "#B3101F",
+  PHI: "#D84300", PIT: "#5C4A00", SEA: "#355464", SJS: "#006D75", STL: "#002F87", TBL: "#002868", TOR: "#00205B",
+  UTA: "#3B6E8F", VAN: "#00205B", VGK: "#6B5A2E", WPG: "#041E42", WSH: "#C8102E" };
+const shortTeam = n => n.length > 12 ? n.split(" ").at(-1) : n;  // "Jättiläisentie Giants" -> "Giants"
+const initials = n => { const w = n.split(" "); return (w[0][0] + (w.length > 1 ? w.at(-1)[0] : "")).toUpperCase(); };
+function nhlSeason() {
+  const d = new Date(data.date + "T12:00:00"), y = d.getFullYear() - (d.getMonth() < 8 ? 1 : 0);
+  return `${y}${y + 1}`;
+}
+// A player's face: his NHL headshot on his team's colour, his initials if it can't load.
+function avatar(id, size, sign) {
+  const p = person(id) || { name: "?" };
+  const box = el("div", { class: "av" }, initials(p.name));
+  box.style.cssText = `width:${size}px;height:${size}px;font-size:${Math.round(size * 0.4)}px;background:${TEAM_COLORS[p.team] || "#3A4A63"}`;
+  if (p.team) {
+    const img = el("img", { alt: "", src: `https://assets.nhle.com/mugs/nhl/${nhlSeason()}/${p.team}/${id}.png` });
+    img.addEventListener("error", () => img.remove());
+    box.append(img);
+  }
+  if (sign) box.append(el("span", { class: `bdg ${sign}` }, sign === "add" ? "+" : "−"));
+  return box;
+}
+const dayShort = day => day.replace(/,/g, "").split(" ").slice(0, 2).join(" ").toUpperCase();  // "Mon 26 Oct" -> "MON 26"
+function swapSpan(r, fallback) {
+  const s = el("span", { class: "nc-swap" });
+  if (!r) { s.textContent = fallback; return s; }
+  s.append(el("span", { class: "plus" }, "+ "), document.createTextNode(lastName(r.add.name)));
+  if (r.drop) s.append(el("span", { class: "minus" }, "  − "), document.createTextNode(lastName(r.drop.name)));
+  else s.append(document.createTextNode(r.ir_slot ? ` (${r.ir_slot})` : " (open spot)"));
+  return s;
+}
+function ring(win) {
+  const box = el("div", { class: "nc-ring" }), C = 2 * Math.PI * 58;
+  const svg = svgEl("svg", { viewBox: "0 0 140 140", role: "img", "aria-label": `${pct(win)} to win` });
+  svg.append(svgEl("circle", { cx: 70, cy: 70, r: 58, fill: "none", stroke: "#F07A45", "stroke-width": 14 }),
+             svgEl("circle", { cx: 70, cy: 70, r: 58, fill: "none", stroke: "#4D9BF0", "stroke-width": 14,
+                               "stroke-dasharray": `${(C * win).toFixed(1)} ${C.toFixed(1)}`, transform: "rotate(-90 70 70)" }),
+             svgEl("line", { x1: 70, y1: 132, x2: 70, y2: 116, stroke: "#FFFFFF", "stroke-width": 2.5 }));  // 50%
+  const mid = el("div");
+  mid.append(el("span", { class: "nc-big cond num" }, pct(win)), el("span", { class: "nc-dim" }, "to win"));
+  box.append(svg, mid);
+  return box;
+}
+function scoreBars(h) {
+  const box = el("div", { class: "nc-bars" }), hi = Math.max(h.me.expected, h.them.expected, 1);
+  [["You", h.me, "#4D9BF0", "#22508A", "#FFFFFF"], [shortTeam(data.opponent), h.them, "#F07A45", "#7A3A1E", "#FFB08C"]]
+    .forEach(([name, t, solid, dark, ink]) => {
+      const row = el("div"), head = el("div", { class: "nc-team" });
+      const score = el("span", { class: "nc-score cond num" });
+      score.style.color = ink;
+      if (t.so_far) { score.append(f0(t.so_far) + " "); score.append(el("small", {}, `→ ${f0(t.expected)}`)); }
+      else { score.append(f0(t.expected) + " "); score.append(el("small", {}, "proj")); }
+      head.append(el("span", {}, name), score);
+      const bar = el("div", { class: "nc-bar" });
+      [[t.so_far, solid], [t.expected - t.so_far, dark]].forEach(([v, c]) => {
+        if (v <= 0) return;
+        const i = el("i"); i.style.width = `${(100 * v / hi).toFixed(1)}%`; i.style.background = c; bar.append(i);
+      });
+      row.append(head, bar);
+      box.append(row);
+    });
+  box.append(el("span", { class: "nc-dim" }, "Solid: so far · dark: still to come"));
+  return box;
+}
+function todayTile(p) {
+  const r = p && p.key ? data.moves.find(m => m.key === p.key) : null;
+  const tile = el("div", { class: "nc-tile" }), head = el("div", { class: "nc-row" });
+  head.append(el("span", { class: "nc-today cond" }, `TODAY · ${dayShort(p ? p.day : fmtDay(data.date))}`));
+  if (r) head.append(el("span", { class: "nc-val cond num" }, wp(r.value)));
+  tile.append(head);
+  if (!p) { tile.append(el("div", { class: "nc-detail" }, data.plan.length ? "Nothing to add today." : data.plan_empty)); return tile; }
+  if (r) {
+    const face = el("div", { class: "nc-row" }), who = (pl, cls) => {
+      const w = el("div", { class: `nc-who ${cls}` });
+      w.append(el("b", {}, lastName(pl.name)), el("span", {}, `${pl.positions} · ${pl.team}`));
+      return w;
+    };
+    face.append(avatar(r.add.id, 48, "add"), who(person(r.add.id) || r.add, "add"));
+    if (r.drop) face.append(el("span", { class: "nc-dim" }, "→"), who(person(r.drop.id) || r.drop, "drop"), avatar(r.drop.id, 48, "drop"));
+    else face.append(el("span", { class: "nc-dim" }, r.ir_slot ? `into ${r.ir_slot}` : "open spot"));
+    tile.append(face);
+  } else {
+    tile.append(el("div", { class: "nc-swap" }, p.swap));
+  }
+  tile.append(el("div", { class: "nc-detail" }, p.detail));
+  return tile;
+}
+function nightCard() {
+  const h = data.header, card = el("div", { class: "nc" }), top = el("div", { class: "nc-top" });
+  const title = el("span", { class: "nc-week cond" }, `WEEK ${data.week} `);
+  title.append(el("span", {}, `vs ${data.opponent}`));
+  top.append(title, el("span", { class: "nc-dim" },
+    new Date(data.generated).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })));
+  const hero = el("div", { class: "nc-hero" });
+  hero.append(ring(h.win), scoreBars(h));
+  card.append(top, hero);
+  const today = data.plan.filter(p => p.today), later = data.plan.filter(p => !p.today);
+  card.append(todayTile(today[0]));
+  const rows = today.slice(1).concat(later);
+  if (rows.length) {
+    const next = el("div", { class: "nc-next" });
+    rows.forEach(p => {
+      const r = p.key ? data.moves.find(m => m.key === p.key) : null, row = el("div", { class: "nc-row" });
+      row.append(el("span", { class: "nc-day cond" }, p.today ? "TODAY" : dayShort(p.day)), swapSpan(r, p.swap));
+      if (r) row.append(el("span", { class: "nc-val cond num" }, wp(r.value)));
+      next.append(row);
+    });
+    card.append(next);
+  }
+  const weeks = el("div", { class: "nc-weeks" });
+  data.weeks.forEach((w, i) => {
+    const t = el("div", { class: "nc-wk" + (i === 0 ? " now" : "") });
+    t.append(el("span", {}, i === 0 ? `Wk ${w.week} · now` : `Wk ${w.week}`),
+             el("b", { class: "cond num" }, w.win == null ? "?" : pct(w.win)),
+             el("span", {}, w.opponent ? shortTeam(w.opponent) : "not known"));
+    weeks.append(t);
+  });
+  card.append(weeks);
+  return card;
+}
+// The screenshot waits for the fonts and the headshots (or their failure), at most a few seconds.
+function settled(ms = 5000) {
+  const imgs = [...app.querySelectorAll("img")].filter(i => !i.complete)
+    .map(i => new Promise(done => { i.addEventListener("load", done); i.addEventListener("error", done); }));
+  return Promise.race([Promise.all([document.fonts.ready, ...imgs]), new Promise(done => setTimeout(done, ms))]);
+}
+
 // One card that can't be drawn (data from another version of the page, a bug)
 // says so in its place; the rest of the page still shows.
 function safe(build) {
@@ -1333,7 +1516,9 @@ function render() {
   }
   if (CARD) {
     document.body.classList.add("card-mode");
-    app.replaceChildren(...[header, planCard, weeksCard, nightsCard].map(safe));
+    app.replaceChildren(safe(nightCard));
+    settled().then(() => { document.body.dataset.ready = "1"; });  // notify/snapshot.py waits for this
+    return;
   } else {
     app.replaceChildren(...[header, planCard, whyCard, playersCard, statsCard, weeksCard, nightsCard,
                             valueCard, grid, streamCard, watchCard, moveTable, budgetCard].map(safe).filter(Boolean));

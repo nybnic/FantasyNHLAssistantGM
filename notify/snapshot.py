@@ -14,7 +14,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 PAGE = Path("site/index.html")
-WIDTH = 440  # CSS pixels: a phone's width, so Telegram shows it at about 1:1
+WIDTH = 390  # CSS pixels: a phone's width, so Telegram shows it at about 80% (the card has no text under 13px)
 SCALE = 2  # device pixels per CSS pixel: sharp on a phone's screen
 TIMEOUT_MS = 20_000
 TIME_ZONE = "Europe/Helsinki"  # "updated" in Nico's time; CI runs in UTC
