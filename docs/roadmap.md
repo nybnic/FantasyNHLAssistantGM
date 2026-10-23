@@ -108,10 +108,19 @@ one recommendation land here and are tested in batches:
   the price). Guhle +3.3 / +0.4, Kantserov +1.6 / -0.4, Pospisil +0.5 / -3.1 (a forward for my 4th D
   leaves a D slot empty: D -12.6 a week, benched points 4.0 -> 7.7). Test: the long run from the whole
   remaining schedule (or each team's games left) against the 6-week rate.
-- The keep share is per player, not per lineup (same question): a forward under his position's waiver
+- (Answered by tenure, live 2026-10-23: a swap's later days now count its own gain, negative too.)
+  The keep share was per player, not per lineup (same question): a forward under his position's waiver
   level gets no season weight, whatever the swap does to my lineup's shape. For Pospisil for Larsson that
   hid a negative season (-3.1 a week, D slots left empty); a swap's season credit might follow the swap's
   own long-run gain when that is negative.
+- A deliberate two-week stream (Nico, 2026-10-23: "how come Pospisil for Larsson fails as Pospisil's
+  2-week schedule is so advantageous?"). Tenure discounts the weeks ahead by P(the add still stands): as my
+  lowest skater over waiver level, Pospisil's weeks 5-6 (+21.0 pts, CGY 4 + 4 games, SEA 2 + 2) count at
+  0.80 / 0.60, +16.3 -> +11.5 win-pts, and the move fails (9.7 vs 13.1). But such an add leaves early mostly
+  because a better move came up, which is then credited on its own, so the discount may undercount a stream
+  made for specific weeks. Test in the replay: survival only after the weeks ahead (1.0 in weeks +1/+2), or
+  only for adds whose gain falls off after them, against "tenure". The planned-exit test (2026-10-13: no gain
+  at equal adds) is related but decided Mondays only; mid-week streams aren't replayed.
 
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
@@ -327,3 +336,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-23 | The audit's first run (Check `replay-audit`, 16 leagues, 2.5 min): later points 0.76 of predicted on average, from offsetting errors; the 6-week rate's slope on the weeks after 0.15; keepers (mostly goalie adds) held 5.2 weeks, at 0.49 of their later points; values of 0.4+ wins realized 0.39. Written up in `engine/CLAUDE.md` "Replayed"; steps 1-2 of tenure go ahead. No rule changed | (this commit) |
 | 2026-10-23 | Tenure in the replay (steps 1-2 of item 8): `engine/tenure.py` (survival curves by where the add sits, fit Kaplan-Meier on the audit), replay variants "whole schedule" and "tenure"; `replay-audit` takes a seed. Step 1 alone -0.12 (0.11) wins a season; steps 1-2 +0.38 (0.11) on the fitting leagues, +0.23 (0.10) on new ones (seed 23), fewer adds. Not live yet | (this commit) |
 | 2026-10-23 | Tenure live (Nico: "Yes, go ahead"): `matchup.tenure_horizon` values every day left through the playoffs, each x P(the add still mine then) by `tenure_bin` (cut costs and IR stashes too); the keep share, the hold, the 6-week rate and `LONG_RUN_DISCOUNT` stay only for the replay. The Board shows each move's odds at 3, 6 and 12 weeks (`stays`, `bin`), the /why line and the move sheet say them. Side by side on Oct 23 (Check explain-week): Nurse for Larsson 26.0 -> 18.9, Pospisil for Larsson 17.2 -> 9.7, Kantserov for Landeskog new at 22.0: the plan became Kantserov for Landeskog now, Nurse for Larsson Monday. `BAR` stays 0.12 (replay: second-best values 0.95x / 0.80x the old, 28.0 adds vs 29.2 at the same bar). Plan run ~61 s on GitHub | (this commit) |
+| 2026-10-23 | Replay question: a deliberate two-week stream (Nico, after Pospisil for Larsson failed under tenure at 9.7: its weeks 5-6 counted at 0.80 / 0.60 survival). Not changed (engine freeze) | (this commit) |
