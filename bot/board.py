@@ -24,7 +24,7 @@ from pathlib import Path
 
 from config.league import MAX_ADDS_PER_SEASON
 from bot import messages
-from engine import matchup, report
+from engine import matchup, report, tenure
 
 BOARD_FILE = Path("state/board.json")
 
@@ -74,8 +74,11 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "ahead_wins": [_r(w, 4) for w in move.ahead_wins],
         "ahead_pts": _r(move.ahead_pts),
         "ahead_week_pts": [_r(x) for x in move.ahead_week_pts],
-        "held": move.held,
-        "keep": _r(move.keep, 3),  # the season's share of the later points (matchup.keep_share)
+        "held": move.held,  # a stream: under matchup.STREAM_BELOW likely still mine 6 weeks on
+        "keep": _r(move.keep, 3),  # P(the add still mine 6 weeks on), engine/tenure.py
+        "bin": move.bin or None,  # where he'd sit on my roster (tenure's bin)
+        # P(still mine) at matchup.STAYS_AT weeks: how his later days are counted.
+        "stays": [_r(tenure.survival(move.bin, k), 3) for k in matchup.STAYS_AT] if move.bin else None,
         "later_wins": _r(move.later_value, 4),
         "value": _r(move.value, 4),
         "status": state,
@@ -132,10 +135,10 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "later_weight": _r(wk.later_weight, 5),
             "tau": _r(wk.tau),
             "ahead": [_ahead(w) for w in getattr(wk, "ahead", [])],
-            # How a move's later points are counted (matchup.horizon): the 6-week rate x
-            # these weeks x the discount, or a streaming spot's hold days only.
+            # How a move's later points are counted (matchup.tenure_horizon): every day of these
+            # weeks x the odds the add is still mine then (a move's "stays", at these weeks).
             "long_run": {"weeks": max(getattr(wk, "weeks_after", 0) - len(getattr(wk, "ahead", [])), 0),
-                         "discount": matchup.LONG_RUN_DISCOUNT, "hold_days": getattr(wk, "hold_days", None)},
+                         "stays_at": list(matchup.STAYS_AT)},
             "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k != "by_week"}, "note": odds_note}
                        if odds else None),
         },

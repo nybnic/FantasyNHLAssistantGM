@@ -74,7 +74,6 @@ class WeekInputs:
     # Then Yahoo's score and the box scores' best-lineup score for the same days
     # (how far each manager's real lineups fall short: opponent profiles).
     live_check: dict | None = None
-    hold_days: int = 14  # days after this week a streamer is kept (matchup.hold_weeks)
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
     strengths: dict | None = None  # team -> (mean, sd) of a typical week's points (team_strengths)
@@ -87,9 +86,10 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     ctx = build_context(date)
     days = weeks.days(week)
     schedule = {d: nhl_client.games_on(d) for d in days}
-    future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, 7 * matchup.LONG_RUN_WEEKS + 1)]
-    # The fantasy playoffs' days too: a move's later points count them as scheduled (matchup.horizon).
-    future_days += [d for w in PLAYOFF_WEEKS if w > week for d in weeks.days(w) if d not in future_days]
+    # Every day left, through the fantasy playoffs: a move's later points count each one as
+    # scheduled, times the odds the add is still mine then (matchup.tenure_horizon, Nico 2026-10-23).
+    last = weeks.days(PLAYOFF_WEEKS[-1])[-1]
+    future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, (last - days[-1]).days + 1)]
     future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     starters = _safe(goalie_client.get_starters, date, default={})
@@ -131,8 +131,6 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
         so_far=mine, live=is_live, yahoo_projected=projected,
         live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box,
                     "yahoo_projected": list(live["projected"] or [])} if is_live else None,
-        hold_days=max(0, round(7 * matchup.hold_weeks(MAX_ADDS_PER_SEASON - season_used, week))
-                      - sum(d >= date for d in days)),
         pool=pool,
         season_used=season_used, week_used=week_used,
         max_moves=max_moves,
@@ -864,14 +862,14 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
 
     def costs(roster: list) -> dict[int, float]:
         return matchup.cut_costs(roster, wk.them, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
-                                 wk.weeks_after, candidates, wk.so_far, wk.hold_days, wk.later_weight,
+                                 wk.weeks_after, candidates, wk.so_far, wk.later_weight,
                                  weeks_ahead(state, league, week, roster, wk))
 
     # A player back from IR takes an active spot first: Yahoo allows no other move until he has one.
     planned, activations = activate_returns(planned, ir.returning(players, wk.lines), costs)
     wk.ahead = weeks_ahead(state, league, week, planned, wk)
     ranked = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters,
-                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                     wk.future, wk.weeks_after, wk.available_from, wk.so_far,
                                      wk.later_weight, wk.ahead)
     wk.price = add_price(week, wk)
     held = matchup.holds_keepers(date, week, matchup.win_prob(wk.me, wk.them))
@@ -879,7 +877,7 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
     monday_slots = min(MAX_ADDS_PER_WEEK, max(season_left, 0)) if week < weeks.LAST_WEEK else 0
     composed = plan_mod.search(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.future,
                                wk.weeks_after, wk.price, wk.max_moves, date, wk.days[-1] + dt.timedelta(days=1),
-                               weeks.midweek(week), held, wk.available_from, wk.so_far, wk.hold_days, wk.ahead,
+                               weeks.midweek(week), held, wk.available_from, wk.so_far, wk.ahead,
                                monday_slots, exclude, ranked)
     composed = plan_mod.time_moves(composed, planned, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters,
                                    wk.so_far, wk.days[-1] + dt.timedelta(days=1))
@@ -888,7 +886,7 @@ def plan_moves(state: dict, players: list, league: dict, date: dt.date, week: in
         """The move's value with `starter` confirmed in his team's net tonight."""
         confirmed = {**wk.starters, move.add.team: {"goalie_name": starter, "confirmed": True}}
         again = matchup.candidate_moves(planned, wk.them, candidates, wk.ctx, wk.schedule, wk.lines, confirmed,
-                                        wk.future, wk.weeks_after, wk.available_from, wk.so_far, wk.hold_days,
+                                        wk.future, wk.weeks_after, wk.available_from, wk.so_far,
                                         wk.later_weight, wk.ahead, only={move.add.id})
         return next((m.value for m in again if plan_mod.key(m) == plan_mod.key(move)), None)
 

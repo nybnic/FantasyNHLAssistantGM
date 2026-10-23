@@ -17,11 +17,10 @@ what they do to P(win):
   its later points times what a point is worth in a typical week. It is made
   when that beats the add's price (engine/addprice.py), which paces the 36
   adds, some kept back for the playoffs. Later points are the same
-  whole-lineup projection run over the next LONG_RUN_WEEKS (so an empty D
-  slot or thin goalie depth counts), per week, times the weeks left,
-  discounted; a swap into one of my streaming spots is credited only its
-  scheduled gain while the streamer would be held (hold_weeks), and swaps
-  near the streaming spots a blend of the two (keep_share).
+  whole-lineup projection run over every day left in the season (so an empty
+  D slot or thin goalie depth counts), each day's gain times the odds the
+  add is still mine then (engine/tenure.py: by where he'd sit on my roster)
+  and the share of a gap that far ahead that shows up (tenure_horizon).
 - A move that costs points this week, or a keeper that gains little this
   week, waits for next week's adds. Two goalies or three is judged by
   value too: each week's goalie minimum is priced, never less than two kept.
@@ -39,7 +38,7 @@ from clients.nhl_client import ScheduledGame
 from config.league import (PLAYOFF_WEEKS, BENCH_SLOTS, GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, MAX_ADDS_PER_WEEK,
                            MIN_GOALIE_GAMES_PER_WEEK, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
                            fantasy_points)
-from engine import availability, ir, lineup
+from engine import availability, ir, lineup, tenure
 from engine.addprice import PLAYOFF_RESERVE, AddPrice
 from league import weeks
 from league.roster import BENCH, IR_SLOTS, RosterPlayer, active
@@ -72,6 +71,9 @@ GAP_REALIZES = {0: 1.0, 1: 0.95, 2: 0.89}
 # The weeks after this one played out against their real opponents (Nico,
 # 2026-10-09): a move's points there count by what they do to that week's P(win).
 AHEAD_WEEKS = 2
+# The rule to 2026-10-23 (the 6-week rate x the weeks left, the keep share, the
+# streaming hold), kept for scripts/replay.py's reference variants and the
+# simulations; the live plan uses tenure_horizon since (roadmap item 8).
 # Injuries, role changes and later adds make a long-run edge worth less
 # than it projects to. Calibration alone takes ~0.75-0.84 of it out to 20
 # weeks (check_gaps); the rest of the 0.5 is for swaps that end the hold early
@@ -188,7 +190,7 @@ class Move:
     add: RosterPlayer
     drop: RosterPlayer | None  # None when there's an open roster spot
     week_gain: float
-    long_term: float  # later points: while held (a streaming spot) or the discounted long run
+    long_term: float  # later points: each day's gain x P(still mine) x how gaps realize (tenure_horizon)
     next_weeks: float  # gain over the two weeks after this one, undiscounted
     games: int  # the added player's games left this week
     win_before: float
@@ -202,8 +204,9 @@ class Move:
     ahead_wins: tuple[float, ...] = ()
     ahead_pts: float = 0.0
     ahead_week_pts: tuple[float, ...] = ()  # ahead_pts week by week
-    held: bool = False  # into one of my streaming spots: later points only while he'd be held
-    keep: float = 1.0  # the season's share of the later points (keep_share): 0 = a streaming swap
+    held: bool = False  # a stream: under STREAM_BELOW likely still mine 6 weeks on
+    keep: float = 1.0  # P(the add still mine 6 weeks on), engine/tenure.py (1: a player cut, or no curve)
+    bin: str = ""  # where the add would sit on my roster (tenure's bin)
     # An add into a spot an injured player's IR move opened: who takes it back
     # (his later points count until then, see ir_crunch).
     until_back: str = ""
@@ -339,6 +342,18 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
     return prob * x, prob * (SKATER_VARIANCE_PER_XFP * x + x * x) - (prob * x) ** 2, 1.0
 
 
+def _player_day_cached(p, ctx, date, game, played_yesterday, lines, starters, long_run, next_game):
+    """_player_day, kept per context for the long run's days (every trial roster
+    asks for the same players' same days; the whole season's are ~150 a plan run)."""
+    if not long_run:
+        return _player_day(p, ctx, date, game, played_yesterday, lines, starters, long_run, next_game)
+    cache = ctx.__dict__.setdefault("_long_run_days", {})
+    key = (p.id, p.team, tuple(p.positions), date, played_yesterday, next_game, id(lines))
+    if key not in cache:
+        cache[key] = _player_day(p, ctx, date, game, played_yesterday, lines, starters, long_run, next_game)
+    return cache[key]
+
+
 def durability(ctx, p: RosterPlayer, x: float) -> float:
     """The share of his long-run points a team keeps given the games he's
     projected to miss (ctx.durability: DFO's projected games played). A missed
@@ -471,8 +486,8 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         for p in roster:
             game = game_of.get(p.team)
             if game and joins.get(p.id, date) <= date < leaves.get(p.id, date + dt.timedelta(days=1)):
-                values[p.id] = _player_day(p, ctx, date, game, p.team in yesterday, lines, starters, long_run,
-                                           first_game.get(p.team) == date)
+                values[p.id] = _player_day_cached(p, ctx, date, game, p.team in yesterday, lines, starters,
+                                                  long_run, first_game.get(p.team) == date)
         # Only goalies fill G slots, so skaters and goalies are set apart.
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
                       for p in roster if p.id in values and not p.is_goalie]
@@ -629,6 +644,50 @@ def waiver_gap(p: RosterPlayer, levels: dict[str, float], ctx, lines: dict[str, 
     return season_value(p, ctx, lines) - levels.get(p.positions[0], 0.0)
 
 
+# A move whose add is less likely than this to still be mine 6 weeks on is called
+# a stream, else a keeper from half (wording only: the value counts the odds).
+STREAM_BELOW = 0.25
+STAYS_WEEKS = 6
+STAYS_AT = (3, 6, 12)  # the weeks the Board shows a move's odds of the add still being mine
+
+
+def tenure_bin(add: RosterPlayer | None, drop: RosterPlayer | None, mine: list[RosterPlayer],
+               levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> str:
+    """Where a player would sit on my roster after the swap (engine/tenure.py's bins):
+    a skater by how many of my other skaters are closer to waiver level at their
+    position (waiver_gap), a goalie by whether he'd be the weakest of three or more
+    (season_value). `add` None: the player cut (`drop`), where he sits now."""
+    p = add or drop
+    others = [q for q in mine if q.id not in {p.id, drop.id if drop else None}]
+    if p.is_goalie:
+        goalies = [q for q in others if q.is_goalie] + [p]
+        weakest = min(goalies, key=lambda q: season_value(q, ctx, lines))
+        return tenure.GOALIE_BINS[0] if len(goalies) > MIN_GOALIES and weakest.id == p.id else tenure.GOALIE_BINS[1]
+    gap = waiver_gap(p, levels, ctx, lines)
+    return tenure.skater_bin(sum(1 for q in others if not q.is_goalie and waiver_gap(q, levels, ctx, lines) < gap))
+
+
+def tenure_horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], later_weight: float,
+                   bin_: str) -> tuple[tuple[float, ...], tuple[float, ...], float]:
+    """A move's gain by day after this week, valued (Nico, 2026-10-23, roadmap item 8): each
+    day's gain x P(the add still stands that week) (tenure.survival, by `bin_`; k = 1 the
+    week after this one); in the weeks ahead counted by their P(win) at GAP_REALIZES
+    (ahead_value), later days at the share a gap that far ahead realizes (tenure.realizes),
+    through the fantasy playoffs (the same weight as any later week, Nico 2026-10-17).
+    Replaces the 6-week rate x the weeks left, the keep share, the hold and
+    LONG_RUN_DISCOUNT: replayed +0.23 (0.10) wins a season on new leagues, fewer adds.
+    Returns (P(win) change in each week ahead, the points counted in each, later points)."""
+    if not future:
+        return (), (), 0.0
+    start = min(future)
+    k = lambda d: (d - start).days // 7 + 1
+    scaled = {d: g * tenure.survival(bin_, k(d)) for d, g in gain.items()}
+    ahead_wins, ahead_pts = ahead_value(scaled, ahead, later_weight)
+    near = set().union(*(w.days for w in ahead)) if ahead else set()
+    later = sum(v * tenure.realizes(k(d)) for d, v in scaled.items() if d in future and d not in near)
+    return ahead_wins, ahead_pts, later
+
+
 def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], ctx,
                     lines: dict[str, dict[str, LineInfo]]) -> set[int]:
     """Ids of my STREAMING_SPOTS skaters with the least long-run value above
@@ -644,7 +703,8 @@ def streaming_spots(mine: list[RosterPlayer], free_agents: list[RosterPlayer], c
 
 def keep_share(add: RosterPlayer | None, drop: RosterPlayer | None, spots: set[int], line: float,
                levels: dict[str, float], ctx, lines: dict[str, dict[str, LineInfo]]) -> float:
-    """How much of the season a swap's later gain is credited (KEEP_RAMP): 0 =
+    """The rule to 2026-10-23 (the replay's reference variants; live: tenure).
+    How much of the season a swap's later gain is credited (KEEP_RAMP): 0 =
     only while a streamer is held, 1 = the discounted long run. Judged on the
     add (Nico, 2026-10-20): a keeper added onto a streaming spot stays, so his
     swap counts the season; a goalie add is a keeper. `line`: the waiver gap of
@@ -676,13 +736,12 @@ def streaming_line(mine: list[RosterPlayer], spots: set[int], levels: dict[str, 
 def cut_costs(roster: list[RosterPlayer], opponent: TeamWeek, ctx, schedule: dict[dt.date, list[ScheduledGame]],
               lines: dict[str, dict[str, LineInfo]], starters: dict, future: dict, weeks_after: int,
               free_agents: list[RosterPlayer], so_far: tuple[float, float, int] | None = None,
-              hold_days: int = 7 * STREAM_WEEKS, later_weight: float = 0.0,
-              ahead: list[WeekAhead] | None = None) -> dict[int, float]:
+              later_weight: float = 0.0, ahead: list[WeekAhead] | None = None) -> dict[int, float]:
     """Active player id -> what losing him costs, valued as a move is (win
     probability, so a positive cost is a loss): this week's P(win) and each
     week ahead's against its opponent, from the nights he'd be in my best
     lineup (a game on a night his slot is full costs nothing), plus his later
-    points (keep_share: a streaming spot's only while he'd be held). Ranks the
+    points (tenure_horizon, by where he sits: one I'd stream soon costs little). Ranks the
     drops tried (drop_candidates) and picks the cut for a player back from IR
     (Nico, 2026-10-11: Lindell, cheapest by points a game, plays on full nights)."""
     ahead = ahead or []
@@ -690,10 +749,7 @@ def cut_costs(roster: list[RosterPlayer], opponent: TeamWeek, ctx, schedule: dic
     so_far = so_far or _so_far(mine, ctx, sorted(schedule))
     current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
     current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
-    spots = streaming_spots(mine, free_agents, ctx, lines)
     levels = waiver_levels(free_agents, ctx, lines)
-    line = streaming_line(mine, spots, levels, ctx, lines)
-    held = set(sorted(future)[:hold_days])
     before = win_prob(current, opponent)
     costs = {}
     for p in mine:
@@ -703,8 +759,8 @@ def cut_costs(roster: list[RosterPlayer], opponent: TeamWeek, ctx, schedule: dic
         if current_future:
             rest_future = project("me", rest, ctx, future, lines, starters, True)
             gain = {d: rest_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
-        keep = keep_share(None, p, spots, line, levels, ctx, lines)
-        ahead_wins, _, long_term = horizon(gain, future, ahead, weeks_after, later_weight, held, keep)
+        bin_ = tenure_bin(None, p, mine, levels, ctx, lines)
+        ahead_wins, _, long_term = tenure_horizon(gain, future, ahead, later_weight, bin_)
         costs[p.id] = before - win_after(current, week, opponent) - sum(ahead_wins) - later_weight * long_term
     return costs
 
@@ -851,7 +907,6 @@ def candidate_moves(
     weeks_after: int,
     available_from: dict[int, dt.date] | None = None,
     so_far: tuple[float, float, int] | None = None,
-    hold_days: int = 7 * STREAM_WEEKS,
     later_weight: float = 0.0,
     ahead: list[WeekAhead] | None = None,
     only: set[int] | None = None,
@@ -859,27 +914,23 @@ def candidate_moves(
     """Every add/drop worth considering, best first. Left out: dropping below
     MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
     `only`: score just these adds (the rest of `candidates` still set the
-    waiver levels and streaming spots, so their values match a full run's).
-    `future` is the schedule of the days after this week used to judge the
-    long run (LONG_RUN_WEEKS); `weeks_after` is how many weeks are left.
+    waiver levels, so their values match a full run's).
+    `future` is the schedule of every day after this week to the end of the
+    playoffs (the long run, tenure_horizon); `weeks_after` is how many weeks are left.
     `available_from`: player id -> the first day he can play for me (waivers).
-    `hold_days`: days after this week a streamer is kept (hold_weeks).
     `ahead`: the next weeks against their opponents (week_ahead); the long
     run then covers the weeks after them."""
     ahead = ahead or []
     soon = set(sorted(future)[:7 * STREAM_WEEKS])
-    held = set(sorted(future)[:hold_days])
     team_games = _team_games(schedule, ctx.today)
     mine = active(roster)
     so_far = so_far or _so_far(mine, ctx, sorted(schedule))
     current = project("me", roster, ctx, schedule, lines, starters, so_far=so_far)
     current_future = project("me", roster, ctx, future, lines, starters, True) if future else None
-    spots = streaming_spots(mine, candidates, ctx, lines)
     levels = waiver_levels(candidates, ctx, lines)
-    line = streaming_line(mine, spots, levels, ctx, lines)
     before = win_prob(current, opponent)
     costs = cut_costs(roster, opponent, ctx, schedule, lines, starters, future, weeks_after, candidates, so_far,
-                      hold_days, later_weight, ahead)
+                      later_weight, ahead)
     # An open roster spot comes first: on a tie, keep everyone.
     drops: list[RosterPlayer | None] = [None] if len(mine) < ACTIVE_SPOTS else []
     drops += drop_candidates(mine, ctx, lines, costs, bench_shares(current_future) if current_future else None)
@@ -903,10 +954,11 @@ def candidate_moves(
         for drop, week, gain in tried:
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
-            # A streaming spot is swapped again after the hold: its scheduled gain, no
-            # season; nearer the keepers, a blend (keep_share).
-            keep = keep_share(add, drop, spots, line, levels, ctx, lines)
-            ahead_wins, week_pts, long_term = horizon(gain, future, ahead, weeks_after, later_weight, held, keep)
+            # Each later day counts by the odds he's still mine then: one I'd stream
+            # again soon counts a few weeks, a keeper most of the season.
+            bin_ = tenure_bin(add, drop, mine, levels, ctx, lines)
+            keep = tenure.survival(bin_, STAYS_WEEKS)
+            ahead_wins, week_pts, long_term = tenure_horizon(gain, future, ahead, later_weight, bin_)
             moves.append(Move(
                 add=add, drop=drop,
                 week_gain=week.expected - current.expected,
@@ -916,14 +968,14 @@ def candidate_moves(
                 win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
                 plays_from=plays_from,
-                ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=keep == 0.0,
-                keep=keep,
+                ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
+                held=keep < STREAM_BELOW, keep=keep, bin=bin_,
             ))
-            gains[id(moves[-1])] = (gain, held)
-    moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, weeks_after, later_weight)
+            gains[id(moves[-1])] = gain
+    moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, later_weight)
     stashes = [p for p in candidates if _ir_status(p, lines) and (only is None or p.id in only)]
     if stashes and current_future and ir.free_slots(roster):
-        keeps = {p.id: (held, keep_share(p, None, spots, line, levels, ctx, lines)) for p in stashes}
+        keeps = {p.id: tenure_bin(p, None, mine, levels, ctx, lines) for p in stashes}
         moves += _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, future, weeks_after,
                               available_from, so_far, current, current_future, later_weight, team_games, ahead,
                               keeps, costs)
@@ -970,14 +1022,14 @@ def with_returns(roster: list[RosterPlayer], ctx, future: dict, lines: dict, sta
 
 
 def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, future: dict, lines: dict,
-               starters: dict, ahead: list[WeekAhead], weeks_after: int, later_weight: float) -> list[Move]:
+               starters: dict, ahead: list[WeekAhead], later_weight: float) -> list[Move]:
     """The best moves' later gains with the players in IR slots coming back:
     each day, (1 - P(back)) x the gain as it is + P(back) x the gain with them
     back and the cheapest players cut (with_returns), for this roster and the
     move's. So an add that would be the one cut when they're back (Kelly when
     Celebrini returns) counts only until then, and one that takes an open
-    spot holds it only that long. `gains`: id(move) -> (gain by day, the
-    streaming hold's days); the move keeps its keep_share."""
+    spot holds it only that long. `gains`: id(move) -> gain by day; the
+    move keeps its tenure bin."""
     hurt = [p for p in roster if p.slot in IR_SLOTS]
     if not hurt or not future:
         return moves
@@ -986,11 +1038,11 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
     names = " and ".join(p.name for p in hurt)
     out = []
     for m in sorted(moves, key=lambda m: m.value, reverse=True)[:IR_RETURN_MOVES]:
-        gain, held = gains[id(m)]
+        gain = gains[id(m)]
         trial = with_returns(_swap(roster, m.add, m.drop), ctx, future, lines, starters)
         after = {d: trial.by_day.get(d, 0.0) - base.by_day.get(d, 0.0) for d in future}
         mixed = {d: (1 - odds[d]) * gain.get(d, 0.0) + odds[d] * after[d] for d in future}
-        ahead_wins, week_pts, long_term = horizon(mixed, future, ahead, weeks_after, later_weight, held, m.keep)
+        ahead_wins, week_pts, long_term = tenure_horizon(mixed, future, ahead, later_weight, m.bin)
         changed = abs(sum(after.values()) - sum(gain.values())) > 0.5
         out.append(dataclasses.replace(m, ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
                                        long_term=long_term,
@@ -1003,7 +1055,8 @@ def ir_returns(moves: list[Move], gains: dict, roster: list[RosterPlayer], ctx, 
 def horizon(gain: dict[dt.date, float], future: dict, ahead: list[WeekAhead], weeks_after: int,
             later_weight: float, held: set | None = None, keep: float = 0.0
             ) -> tuple[tuple[float, ...], tuple[float, ...], float]:
-    """A move's gain by day after this week, valued: (P(win) change in each week
+    """The rule to 2026-10-23 (the replay's reference variants; live: tenure_horizon).
+    A move's gain by day after this week, valued: (P(win) change in each week
     ahead, the points counted in each, long-run points after them). The long
     run: the gain per week over `future`'s regular-season days (LONG_RUN_WEEKS:
     fewer weeks let one team's schedule swing it, 2026-10-01; the weeks ahead
@@ -1046,9 +1099,8 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
     player whose games follow the return curves, less that drop's points on
     each day times the odds the stash is back by then. Slightly conservative:
     the drop's points are counted as they are without the stash competing for
-    his slot. `keeps`: id -> (the streaming hold's days, his keep_share): a
-    stash near waiver level is streamed out again too. `costs`: cut_costs, to
-    pick the drops tried."""
+    his slot. `keeps`: id -> his tenure bin (tenure_bin): a stash near waiver
+    level is streamed out again too. `costs`: cut_costs, to pick the drops tried."""
     free = ir.free_slots(roster)
     mine = active(roster)
     goalies = sum(p.is_goalie for p in mine)
@@ -1086,14 +1138,16 @@ def _stash_moves(roster, opponent, stashes, ctx, schedule, lines, starters, futu
         week = dataclasses.replace(week, expected=week.expected - cost(current, week_without, current.by_day))
         gain = {d: later.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0)
                 - back(d) * (current_future.by_day.get(d, 0.0) - future_without.by_day.get(d, 0.0)) for d in future}
-        held, keep = (keeps or {}).get(add.id, (None, 1.0))
-        ahead_wins, week_pts, long_term = horizon(gain, future, ahead or [], weeks_after, later_weight, held, keep)
+        bin_ = (keeps or {}).get(add.id, "")
+        keep = tenure.survival(bin_, STAYS_WEEKS)
+        ahead_wins, week_pts, long_term = tenure_horizon(gain, future, ahead or [], later_weight, bin_)
         moves.append(Move(
             add=add, drop=None, week_gain=week.expected - current.expected,
             long_term=long_term, next_weeks=sum(gain[d] for d in soon),
             games=team_games.get(add.team, 0), win_before=before, win_after=win_after(current, week, opponent),
             later_weight=later_weight, plays_from=plays_from, ir_slot=slot, later_drop=drop,
-            ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts, held=keep == 0.0, keep=keep,
+            ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
+            held=keep < STREAM_BELOW, keep=keep, bin=bin_,
         ))
     return moves
 

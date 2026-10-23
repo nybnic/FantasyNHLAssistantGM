@@ -37,7 +37,7 @@ def optimize(candidates: list[Candidate], slots: dict[str, int] = STARTERS) -> d
 # The weekly plan's move search re-solves the same days over and over: a trial
 # roster differs from mine only on the days the added or dropped player plays
 # (profiled 2026-10-01: 18 of 34 s in this solver before caching).
-@lru_cache(maxsize=50_000)
+@lru_cache(maxsize=300_000)  # the whole season's nights for every trial roster
 def _optimize(candidates: tuple[Candidate, ...], slot_items: tuple[tuple[str, int], ...]) -> tuple:
     slots = dict(slot_items)
     slot_types = tuple(slots)

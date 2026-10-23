@@ -43,7 +43,7 @@ def _detail(p: Planned) -> str:
         if m.later_value + sum(m.ahead_wins) >= 0.01:
             head += f", +{100 * m.value:.0f} win-pts in all"
     else:
-        # A streaming swap pays in the weeks ahead, not the season (matchup.keep_share).
+        # A stream pays in the weeks ahead, a keeper over the season (m.keep: P(still mine in 6 weeks)).
         head = f"+{100 * m.value:.0f} win-pts, " + ("a keeper" if m.keep >= 0.5 else "for the weeks ahead")
     when = WHEN_TEXT.get(p.why)
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
@@ -401,9 +401,9 @@ def move_why(r: dict, b: dict) -> list[str]:
         parts = [f"{pts[k]:+.1f} pts vs {w['opponent'] or 'a typical week'}" for k, w in enumerate(ahead) if k < len(pts)]
         weeks_ = f"Week {ahead[0]['week']}" if len(ahead) == 1 else f"Weeks {ahead[0]['week']}-{ahead[-1]['week']}"
         lines.append(f"{weeks_} {_wins(sum(r['ahead_wins']))}: " + ", ".join(parts) + ".")
-    hold = b["header"].get("long_run", {}).get("hold_days")
-    counted = (f"only while he'd be held, ~{hold} days" if r["held"] and hold else "only while he'd be held"
-               if r["held"] else f"{r['keep']:.0%} of the season counted" if r["keep"] < 1 else "the season")
+    stays, at = r.get("stays"), b["header"].get("long_run", {}).get("stays_at") or []
+    counted = (f"each day while he'd likely stay: {stays[1]:.0%} still yours in {at[1]} weeks, "
+               f"{stays[2]:.0%} in {at[2]}" if stays and len(at) == 3 else "the season")
     lines.append(f"Later {_wins(r['later_wins'])}: {r['later_pts']:+.1f} pts ({counted}).")
     return lines
 

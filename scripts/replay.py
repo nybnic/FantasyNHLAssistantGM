@@ -929,9 +929,9 @@ def main() -> None:
     # The move values a Monday offers (the first price-rule variant's, its roster as it went), by
     # the season's stage, to set a replayed bar on the live bot's scale (its Boards' values).
     rule_names = [nm for nm in names if isinstance(VARIANTS[nm][3], tuple)]
-    if rule_names:
-        tops = [x for k, t in teams for x in results[(k, t, rule_names[0])][6]]
-        print(f"  move values on Mondays ({rule_names[0]}): best / second best with no player shared,"
+    for rule_name in rule_names:  # each valuation's own scale (tenure's runs smaller: a bar is set on it)
+        tops = [x for k, t in teams for x in results[(k, t, rule_name)][6]]
+        print(f"  move values on Mondays ({rule_name}): best / second best with no player shared,"
               " median and 75th percentile; share of Mondays whose second clears 0.08 / 0.12")
         for lo, hi in ((0, 2), (2, 5), (5, 12), (12, 30)):
             rows = [(b, s2) for w, b, s2 in tops if lo <= w < hi and b is not None]

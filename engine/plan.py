@@ -120,7 +120,7 @@ def compose(ranked: list[matchup.Move], rerank: Callable[[list[matchup.Move]], l
 def search(roster, opponent: matchup.TeamWeek, candidates: list, ctx, schedule: dict, lines: dict, starters: dict,
            future: dict, weeks_after: int, price: AddPrice | None, now_slots: int, today: dt.date,
            monday: dt.date, midweek: dt.date, hold_keepers: bool = False, available_from: dict | None = None,
-           so_far: tuple | None = None, hold_days: int = 7 * matchup.STREAM_WEEKS, ahead: list | None = None,
+           so_far: tuple | None = None, ahead: list | None = None,
            monday_slots: int = 2, exclude: set[str] = frozenset(), ranked: list | None = None) -> list[Planned]:
     """compose() over matchup.candidate_moves: each move judged on the roster
     with the plan's earlier moves made. `ranked` (today's moves) saves a search."""
@@ -133,7 +133,7 @@ def search(roster, opponent: matchup.TeamWeek, candidates: list, ctx, schedule: 
             trial = matchup._swap(trial, m.add, m.drop, m.ir_slot or matchup.BENCH)
         taken = {m.add.id for m in chosen}
         return matchup.candidate_moves(trial, opponent, [c for c in candidates if c.id not in taken], ctx, schedule,
-                                       lines, starters, future, weeks_after, available_from, so_far, hold_days,
+                                       lines, starters, future, weeks_after, available_from, so_far,
                                        later_weight, ahead)
 
     return compose(ranked if ranked is not None else rank([]), rank, price, now_slots, today, monday, midweek,

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pytest
 
 from clients.nhl_client import ScheduledGame
-from engine import availability, matchup, plan
+from engine import availability, matchup, plan, tenure
 from engine.addprice import AddPrice
 from league.roster import RosterPlayer
 
@@ -322,26 +322,45 @@ def test_streaming_spots_are_the_skaters_closest_to_waiver_level_at_their_positi
         matchup.STREAMING_SPOTS = matchup_spots
 
 
-def test_dropping_a_streaming_spot_costs_only_the_next_two_weeks(monkeypatch):
-    # The free agent plays the next 2 weeks, then his team is idle for 4: a
-    # streamer. Dropped for a streaming spot, the idle weeks don't count.
+def test_a_moves_later_days_count_by_the_odds_the_add_is_still_mine_then(monkeypatch):
+    # The free agent plays every day for 6 weeks; he'd be my lowest skater over
+    # waiver level (Star is 1 a game above it), so he's likely streamed out soon.
     roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "SEA", ["C"], "C")]
-    days = [WED + dt.timedelta(days=i) for i in range(42)]
-    future = {d: [_game(d, "NYR" if i < 14 else "BOS", "SEA")] for i, d in enumerate(days)}
+    start = MON + dt.timedelta(days=7)
+    future = {start + dt.timedelta(days=i): [_game(start + dt.timedelta(days=i), "NYR", "SEA")] for i in range(42)}
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
     fa = [RosterPlayer(9, "Streamer", "NYR", ["C"])]
-    # Both mine are streaming spots, so the streamer is no better than the best of
-    # them: judged on the add (keep_share), he'd be streamed again.
-    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 2)
     ctx = FakeContext()
     ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
-    move = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
-                if m.drop and m.drop.id == 2)
-    assert move.next_weeks > 0 and move.long_term == pytest.approx(move.next_weeks)
-    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 0)  # Depth is core now: the season view
-    core = next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future, weeks_after=20)
-                if m.drop and m.drop.id == 2)
-    assert core.long_term < 0
+    monkeypatch.setattr(tenure, "SURVIVAL", {"skater, lowest": (0.5, 0.0), "skater, 2nd lowest": (1.0,)})
+
+    def move():
+        return next(m for m in matchup.candidate_moves(roster, opponent, fa, ctx, {MON: []}, {}, {}, future,
+                                                       weeks_after=20) if m.drop and m.drop.id == 2)
+
+    lowest = move()
+    # Week +1 at half (0.84 realized: no weeks ahead given), nothing after: he's gone.
+    assert lowest.bin == "skater, lowest" and lowest.keep == 0.0 and lowest.held
+    first_week = sum(v for d, v in matchup.project("me", matchup._swap(roster, fa[0], roster[1]), ctx, future, {},
+                                                   {}, True).by_day.items() if d < start + dt.timedelta(days=7))
+    base = sum(v for d, v in matchup.project("me", roster, ctx, future, {}, {}, True).by_day.items()
+               if d < start + dt.timedelta(days=7))
+    assert lowest.long_term == pytest.approx(0.5 * 0.84 * (first_week - base)) and lowest.long_term > 0
+    ctx.xfp[1] = 2.5  # Star below him now: the add sits 2nd lowest and stays
+    kept = move()
+    assert kept.bin == "skater, 2nd lowest" and kept.keep == 1.0 and kept.long_term > 4 * lowest.long_term
+
+
+def test_tenure_bins_rank_the_add_among_my_others_and_a_cut_where_he_sits():
+    ctx = FakeContext()
+    ctx.xfp = {1: 6.0, 2: 3.0, 3: 2.0, 9: 4.0, 4: 1.0}
+    mine = [RosterPlayer(1, "A", "BOS", ["C"], "C"), RosterPlayer(2, "B", "BOS", ["C"], "C"),
+            RosterPlayer(3, "D", "BOS", ["D"], "D")]
+    levels = {"C": 3.0, "D": 1.5}  # gaps: A 3.0, B 0.0, D 0.5; the add 1.0
+    add = RosterPlayer(9, "X", "NYR", ["C"])
+    assert matchup.tenure_bin(add, mine[1], mine, levels, ctx, {}) == "skater, 2nd lowest"  # above D only
+    assert matchup.tenure_bin(add, mine[0], mine, levels, ctx, {}) == "skater, 3rd lowest"  # above B and D
+    assert matchup.tenure_bin(None, mine[1], mine, levels, ctx, {}) == "skater, lowest"  # B, cut: my lowest
 
 
 def _compose(ranked, price, now_slots=1, hold=False, monday_slots=2):
@@ -427,21 +446,19 @@ def test_a_streamer_is_held_as_long_as_the_add_pace_takes_to_cycle_the_spots():
     assert matchup.hold_weeks(7, 20) == pytest.approx(4 / 0.5)  # nearly out: floor of 0.5 adds a week
 
 
-def test_a_streaming_spot_swap_is_credited_only_while_he_would_be_held(monkeypatch):
-    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "SEA", ["C"], "C")]
-    days = [WED + dt.timedelta(days=i) for i in range(42)]
-    future = {d: [_game(d, "NYR", "SEA")] for d in days}  # the streamer plays every day
-    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
-    monkeypatch.setattr(matchup, "STREAMING_SPOTS", 2)  # the streamer no better than my best streaming spot
-    ctx = FakeContext()
-    ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0}
-
-    def credit(hold_days):
-        moves = matchup.candidate_moves(roster, opponent, [RosterPlayer(9, "Streamer", "NYR", ["C"])], ctx,
-                                        {MON: []}, {}, {}, future, weeks_after=20, hold_days=hold_days)
-        return next(m for m in moves if m.drop and m.drop.id == 2).long_term
-
-    assert credit(7) == pytest.approx(credit(14) / 2) and credit(7) > 0
+def test_tenure_horizon_weighs_each_day_by_survival_and_how_far_off_gaps_realize(monkeypatch):
+    start = MON + dt.timedelta(days=7)
+    future = {start + dt.timedelta(days=i): [] for i in range(5 * 7)}
+    gain = {d: 1.0 for d in future}
+    ahead = [matchup.WeekAhead(k, frozenset(sorted(future)[7 * (k - 1):7 * k]), None, 30.0) for k in (1, 2)]
+    monkeypatch.setattr(tenure, "SURVIVAL", {"b": (0.8, 0.6, 0.5, 0.4, 0.3)})
+    wins, pts, later = matchup.tenure_horizon(gain, future, ahead, 0.01, "b")
+    assert pts == pytest.approx((7 * 0.8 * matchup.GAP_REALIZES[1], 7 * 0.6 * matchup.GAP_REALIZES[2]))
+    assert wins == pytest.approx(tuple(0.01 * x for x in pts))  # no opponent known: a typical week's worth
+    assert later == pytest.approx(7 * (0.5 + 0.4 + 0.3) * 0.84)
+    assert matchup.tenure_horizon(gain, future, [], 0.01, "no curve")[2] == pytest.approx(
+        7 * 0.84 * 5)  # no curve for the bin: every day, as before a fit
+    assert matchup.tenure_horizon({}, {}, ahead, 0.01, "b") == ((), (), 0.0)
 
 
 def test_a_player_out_tonight_counts_later_in_the_week():
@@ -770,12 +787,12 @@ def test_a_moves_later_gain_mixes_now_and_once_ir_players_are_back(monkeypatch):
     week = lambda by_day: matchup.TeamWeek("me", 0, sum(by_day.values()), 1.0, 0, 0, 0, 1.0, by_day=by_day)
     # Once he's back, Kelly is the one cut: the move then gains nothing.
     monkeypatch.setattr(matchup, "with_returns", lambda roster, ctx, future, lines, starters: week({d: 0.0 for d in future}))
-    gains = {id(move): ({d: 2.0 for d in future}, None)}
-    refined = matchup.ir_returns([move], gains, [hurt], FakeContext(), future, {}, {}, [], 20, 0.01)[0]
-    expected = matchup.horizon({d: 0.75 * 2.0 for d in future}, future, [], 20, 0.01)[2]
+    gains = {id(move): {d: 2.0 for d in future}}
+    refined = matchup.ir_returns([move], gains, [hurt], FakeContext(), future, {}, {}, [], 0.01)[0]
+    expected = matchup.tenure_horizon({d: 0.75 * 2.0 for d in future}, future, [], 0.01, move.bin)[2]
     assert refined.long_term == pytest.approx(expected) and refined.until_back == "Macklin Celebrini"
     # Nobody in an IR slot: unchanged.
-    assert matchup.ir_returns([move], gains, [], FakeContext(), future, {}, {}, [], 20, 0.01) == [move]
+    assert matchup.ir_returns([move], gains, [], FakeContext(), future, {}, {}, [], 0.01) == [move]
 
 
 def test_projected_missed_games_cost_only_a_players_edge_over_a_streamer():
