@@ -222,6 +222,21 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   carries over is the shape: a pacing bar no worse than the live price, and spending early when moves are
   rich didn't cost. A live bar of ~0.12-0.13 would have made ~1.3 adds a week on the live plans so far.
 
+- The audit (2026-10-23, step 0 of tenure, `scripts/replay.py --audit`, 16 leagues at "pace 0.08 k2", 7,474
+  moves): each move's predicted parts on its Monday against what it brought while it stood (the real score
+  against the roster with that swap undone, until the add left). Points per move, predicted / realized
+  (SE): this week 6.15 / 5.63 (0.15), week +1 4.56 / 3.29, week +2 3.88 / 3.30, later 23.4 / 17.7 (0.6).
+  By keep share (n; later predicted / realized; weeks held; still held at 6 and 12 weeks): 0, 1,811, 5.1 /
+  5.7, 4.4 wks, 45% / 17%; 0-0.5, 1,778, 9.0 / 18.0, 8.4, 73% / 45%; 0.5-1, 757, 25.9 / 34.3, 11.3,
+  83% / 60%; 1 (a goalie add is a keeper), 3,128, 41.7 / 20.5, 5.2, 29% / 17%. Goalie moves (3,832):
+  34.4 / 17.8, 5.4 weeks. Swaps that change position realized 1.7-2.9x their (small) later points. By
+  the 6-week rate's quartile, predicted / realized a week from week 3: 0.6 / 1.2, 2.5 / 2.3, 4.5 / 3.9,
+  9.1 / 4.6; slope 0.15 (0.04). In wins, value / realized: under 0.1 0.07 / 0.08, 0.1-0.2 0.15 / 0.15,
+  0.2-0.4 0.28 / 0.24, 0.4+ 0.89 / 0.39 (0.02). So the average hides offsetting errors: the season
+  credit goes to the moves that leave soonest (goalies), the schedule window is mostly noise for the
+  weeks after, and the top values run ~2x high (partly the best of many candidates, which any estimate
+  would show). The replay's caveats stand (its values run 2-3x the live ones early). No rule changed.
+
 ## Judgment calls (untested)
 `addprice.BAR` 0.12 (set on two weeks of live plans; re-check mid-December), `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
 `PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
