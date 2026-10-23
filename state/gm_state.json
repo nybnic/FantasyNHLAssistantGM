@@ -875,7 +875,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-23T05:20+00:00",
+    "at": "2026-10-23T09:01+00:00",
     "moves": [
       {
         "add": {
@@ -893,7 +893,7 @@
         "key": "8477498:8476457",
         "message_id": 629,
         "rec_id": "add-2026-10-23-0520-8477498",
-        "value": 0.2595,
+        "value": 0.2686,
         "when": "2026-10-23",
         "why": "spare"
       }
@@ -919,7 +919,8 @@
     "2026-10-21 scoreboard since the draft",
     "2026-10-21 points for by week",
     "2026-10-21 move forecasts",
-    "2026-10-22 hc bulju team page"
+    "2026-10-22 hc bulju team page",
+    "2026-10-23 week 4 forecast by day"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -1118,6 +1119,7 @@
       "8478911:promoted": "2026-10-19",
       "8479351:promoted": "2026-10-14",
       "8479365:promoted": "2026-10-15",
+      "8479369:ice time": "2026-10-23",
       "8479385:promoted": "2026-10-15",
       "8479442:ice time": "2026-10-21",
       "8479525:promoted": "2026-10-19",
@@ -5692,6 +5694,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8479369,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Andrew Peeke",
+        "positions": "D",
+        "price": 0.1307,
+        "sent": true,
+        "team": "UTA",
+        "value": 0.0321,
+        "verdict": "+3 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "Ice time 18:35 a game in his last 3, up from 15:06. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
