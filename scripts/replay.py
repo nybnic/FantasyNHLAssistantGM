@@ -125,11 +125,20 @@ VARIANTS = {
     # gain a week there beats his gain a week after them ("stream ahead"). Later weeks as tenure.
     "tenure full ahead": ("tenure full ahead", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure stream ahead": ("tenure stream ahead", 3, 0.5, ("pace", 0.08, 2.0)),
+    # The same with a Thursday decision too (Nico, 2026-10-23: a streamer replaced early is replaced
+    # by a new one with a good schedule; the live bot streams mid-week): the week's adds left
+    # (2 a week) may go to the weekend, valued on the days left with the week's points banked.
+    "tenure midweek": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure full ahead midweek": ("tenure full ahead", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure stream ahead midweek": ("tenure stream ahead", 3, 0.5, ("pace", 0.08, 2.0)),
 }
+# Variants that also decide on Thursdays (MIDWEEK_DAY days after each Monday).
+MIDWEEK = {"tenure midweek", "tenure full ahead midweek", "tenure stream ahead midweek"}
+MIDWEEK_DAY = 3
 # Keep rules valued by tenure_after, and how each weighs the weeks ahead (TENURE_AHEAD).
 TENURE_RULES = {"tenure": "survival", "tenure full ahead": "full", "tenure stream ahead": "stream"}
 # Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
-WHOLE_SCHEDULE = {"whole schedule", "tenure", "tenure full ahead", "tenure stream ahead"}
+WHOLE_SCHEDULE = {"whole schedule", "tenure", "tenure full ahead", "tenure stream ahead"} | MIDWEEK
 # The price rules, by the variants' price: a number is a fixed price (with the
 # even-pace cap, as the harness always had); ("live",) is addprice.solve over the
 # Monday pools logged so far (the newest POOL_WEEKS), at the pace the budget
@@ -291,8 +300,11 @@ class Week:
     Goalies count by the week: the two best expected starts each day, all of the
     week's goalie points times P(reaching the goalie minimum), as matchup does."""
 
-    def __init__(self, s: Season, roster: list[int], m: dt.date, days: list[dt.date]):
-        self.s, self.m = s, m
+    def __init__(self, s: Season, roster: list[int], m: dt.date, days: list[dt.date],
+                 monday: dt.date | None = None):
+        # `m`: the day projected from (a Monday, or a mid-week decision's day); `monday`: the
+        # fantasy week's, whose weeks the goalie minimum counts by.
+        self.s, self.m, self.monday = s, m, monday or m
         xfp, self.gx = s.proj(m)
         self.vals: dict[dt.date, dict[str, list[float]]] = {}
         self.goalies = [pid for pid in roster if pid in s.goalie_ids]
@@ -313,7 +325,7 @@ class Week:
             s, m = self.s, self.m
             weeks: dict[int, list[dt.date]] = defaultdict(list)
             for d in days:
-                weeks[(d - m).days // 7].append(d)
+                weeks[(d - self.monday).days // 7].append(d)
             out = {}
             for k, ds in weeks.items():
                 starts = []
@@ -371,13 +383,18 @@ class Week:
         return out
 
 
-def actual(s: Season, roster: list[int], m: dt.date) -> float:
-    """The week's real score: each day the best projected lineup among those who played."""
+def actual(s: Season, roster: list[int], m: dt.date, later: tuple | None = None, days: int = 7,
+           minimum: bool = True) -> float:
+    """The week's real score: each day the best projected lineup among those who played.
+    `later`: (day, roster) from a mid-week move on; `days`: only the week's first ones (the
+    points banked by a mid-week day), `minimum`: the goalie minimum applied."""
     xfp, gx = s.proj(m)
     sk = gp = 0.0
     starts = 0
-    for i in range(7):
+    base = roster
+    for i in range(days):
         d = m + dt.timedelta(days=i)
+        roster = later[1] if later and d >= later[0] else base
         for pos, k in SLOTS.items():
             played = sorted(((xfp.get(pid, 0.0), pid) for pid in roster if pid not in s.goalie_ids
                              and s.position[pid] == pos and (pid, d) in s.points), reverse=True)[:k]
@@ -385,7 +402,7 @@ def actual(s: Season, roster: list[int], m: dt.date) -> float:
         started = sorted(((gx.get(pid, 0.0), pid) for pid in roster if (pid, d) in s.g_points), reverse=True)[:2]
         gp += sum(s.g_points[(pid, d)] for _, pid in started)
         starts += len(started)
-    return sk + (gp if starts >= MIN_GOALIE_GAMES_PER_WEEK else 0.0)
+    return sk + (gp if starts >= MIN_GOALIE_GAMES_PER_WEEK or not minimum else 0.0)
 
 
 def lazy(s: Season, roster: list[int], m: dt.date, taken: set[int]) -> list[int]:
@@ -463,6 +480,7 @@ def run_league(args: tuple) -> dict:
                                 used += 1
                 cap = math.ceil(REGULAR_ADDS * (w + 1) / n_weeks) if fixed else REGULAR_ADDS
                 price = rule if fixed else None
+                week_adds = 0
                 for _ in range(2):
                     if used >= cap or price == math.inf:
                         break
@@ -482,6 +500,7 @@ def run_league(args: tuple) -> dict:
                     roster[roster.index(drop)] = add
                     mine_taken.add(add)
                     used += 1
+                    week_adds += 1
                     if audit:
                         made.append((w, add, drop, parts))
                     done += drop in leaving
@@ -489,10 +508,34 @@ def run_league(args: tuple) -> dict:
                     if due:
                         exits[add] = due
                         planned += 1
-                score = actual(s, roster, m)
+                first, later = list(roster), None
+                if name in MIDWEEK and week_adds < 2 and used < cap:
+                    day = m + dt.timedelta(days=MIDWEEK_DAY)
+                    opp_roster = lazy_by_week[w][pairs[w][t]]
+                    banked = (actual(s, first, m, days=MIDWEEK_DAY, minimum=False),
+                              actual(s, opp_roster, m, days=MIDWEEK_DAY, minimum=False))
+                    for _ in range(2 - week_adds):
+                        if used >= cap:
+                            break
+                        price = rule if fixed else monday_price(rule, used, w, n_weeks, picks, None)
+                        parts = {} if audit else None
+                        move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | set(first), keep_rule,
+                                         spots, discount, n_weeks, used, None, price, (), name not in SKATERS_ONLY,
+                                         None, parts, True, day=day, banked=banked)
+                        if move is None or move[0] < price:
+                            break
+                        _, add, drop, _ = move
+                        roster[roster.index(drop)] = add
+                        mine_taken.add(add)
+                        used += 1
+                        if audit:
+                            made.append((w, add, drop, parts))
+                    if roster != first:
+                        later = (day, list(roster))
+                score = actual(s, first, m, later)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
-                by_week.append(list(roster))
+                by_week.append((first, later))
                 scores.append(score)
             moves = realized(s, made, by_week, mondays, scores, [lazy_score[w][pairs[w][t]] for w in range(n_weeks)]) \
                 if audit else None
@@ -658,11 +701,17 @@ def realized(s: Season, made: list, rosters: list[list[int]], mondays: list[dt.d
     for w, add, drop, parts in made:
         by_week, wins = [], 0
         for j in range(w, len(mondays)):
-            if add not in rosters[j] or drop in rosters[j]:
+            # A week's rosters: (Monday's, (day, after a mid-week move) or None), or one roster.
+            first, later = rosters[j] if isinstance(rosters[j], tuple) else (rosters[j], None)
+            final = later[1] if later else first
+            if (add not in first and add not in final) or drop in final:
                 break
-            alt = actual(s, [drop if p == add else p for p in rosters[j]], mondays[j])
+            undo = lambda r: [drop if p == add else p for p in r]
+            alt = actual(s, undo(first), mondays[j], (later[0], undo(final)) if later else None)
             by_week.append(scores[j] - alt)
             wins += (scores[j] > opponents[j]) - (alt > opponents[j])
+            if add not in final:  # gone mid-week
+                break
         out.append({**parts, "week": w, "weeks_left": len(mondays) - w, "held": len(by_week),
                     "real": by_week, "real_wins": wins})
     return out
@@ -773,7 +822,7 @@ GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's p
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
               exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None,
-              whole=False, table=None):
+              whole=False, table=None, day=None, banked=(0.0, 0.0)):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
@@ -782,23 +831,25 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     moves' values with no player shared ("top"), to compare with the live bot's. `parts`: a dict
     given the best move's predicted parts (predicted_parts), for the audit. `whole`: the long run
     over the whole season left (WHOLE_SCHEDULE); `table`: the tenure curves for keep rule
-    "tenure" (default engine.tenure.SURVIVAL)."""
-    xfp = s.proj(m)[0]
-    this = [m + dt.timedelta(days=i) for i in range(7)]
+    "tenure" (default engine.tenure.SURVIVAL). `day`: a mid-week decision (MIDWEEK): projected
+    from that day over the week's days left, with `banked` (mine, the opponent's) points so far."""
+    at = day or m
+    xfp = s.proj(at)[0]
+    this = [at + dt.timedelta(days=i) for i in range((m + dt.timedelta(days=7) - at).days)]
     last = s.mondays[-1] + dt.timedelta(days=6)
     future = [m + dt.timedelta(days=7 + i)
               for i in range(max((last - m).days - 6, 0) if whole else 7 * matchup.LONG_RUN_WEEKS)]
-    mine = Week(s, roster, m, this + future)
+    mine = Week(s, roster, at, this + future, m)
     def opp(k):
-        key = (w, pairs[min(w + k, n_weeks - 1)][t])
+        key = (w, pairs[min(w + k, n_weeks - 1)][t], at)
         if key not in OPP_WEEKS:
-            OPP_WEEKS[key] = Week(s, lazy_by_week[w][key[1]], m, this + future)
+            OPP_WEEKS[key] = Week(s, lazy_by_week[w][key[1]], at, this + future, m)
         return OPP_WEEKS[key]
 
     me_now, var_now = mine.total(this)
     them_now, them_var = opp(0).total(this)
     sd_now = math.sqrt(var_now + them_var) or 1.0  # a week with no games (the Olympic break)
-    margin_now = matchup.MARGIN_REALIZES * (me_now - them_now)
+    margin_now = banked[0] - banked[1] + matchup.MARGIN_REALIZES * (me_now - them_now)
     ahead = []
     for k in range(1, matchup.AHEAD_WEEKS + 1):
         days = future[7 * (k - 1):7 * k]
@@ -810,20 +861,23 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                                        math.sqrt(v_k + tv_k) or 1.0))
     # A point later: a typical week's sigma (mine and the opponent's) and the league's tau.
     tau = 18.5  # the league's, Oct 2026 (bot/weekly.league_tau); replay leagues are drafted alike
-    later_weight = addprice.later_weight(math.sqrt(var_now + them_var), tau)
+    week_var = var_now + them_var
+    if day and len(future) >= 7:  # a typical week's spread, not the days left's
+        week_var = mine.total(future[:7])[1] + opp(1).total(future[:7])[1]
+    later_weight = addprice.later_weight(math.sqrt(week_var), tau)
     spare = REGULAR_ADDS - used
     rate = min(max(spare / max(n_weeks - w, 1), 0.5), 2.0)
     hold_days = max(0, round(7 * (spots + 1) / rate) - 7)
     weeks_after = n_weeks - w - 1
 
     skaters = [pid for pid in roster if pid not in s.goalie_ids]
-    mine_rp = [RosterPlayer(pid, str(pid), s.team(pid, m), [s.position[pid]]) for pid in skaters]
-    by_week, by_xfp = s.eligible(m)
+    mine_rp = [RosterPlayer(pid, str(pid), s.team(pid, at), [s.position[pid]]) for pid in skaters]
+    by_week, by_xfp = s.eligible(at)
     shortlist = set()
     for pos in SLOTS:
         shortlist |= set([q for q in by_week[pos] if q not in taken and q not in roster][:5])
         shortlist |= set([q for q in by_xfp[pos] if q not in taken and q not in roster][:3])
-    fa_rp = [RosterPlayer(q, str(q), s.team(q, m), [s.position[q]]) for q in shortlist]
+    fa_rp = [RosterPlayer(q, str(q), s.team(q, at), [s.position[q]]) for q in shortlist]
     ctx = Ctx(xfp)
     saved = matchup.STREAMING_SPOTS, matchup.KEEP_RAMP
     matchup.STREAMING_SPOTS = spots
@@ -836,22 +890,22 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
         pairs_tried = [(a, d) for a in fa_rp for d in drops]
         goalies = [pid for pid in roster if pid in s.goalie_ids]
         if goalie_moves and goalies:
-            gx = s.proj(m)[1]
-            weakest = min(goalies, key=lambda g: s.share(g, m) * gx.get(g, 0.0))
-            g_rp = RosterPlayer(weakest, str(weakest), s.team(weakest, m), ["G"])
+            gx = s.proj(at)[1]
+            weakest = min(goalies, key=lambda g: s.share(g, at) * gx.get(g, 0.0))
+            g_rp = RosterPlayer(weakest, str(weakest), s.team(weakest, at), ["G"])
             if len(goalies) > matchup.MIN_GOALIES:
                 spot_ids = spot_ids | {weakest}  # the spare goalie streams (GOALIE_STREAMING_SPOTS)
                 pairs_tried += [(a, g_rp) for a in fa_rp]
-            free = [q for q in s.goalie_ids if q not in taken and q not in roster and s.share(q, m) > 0]
-            week = {q: s.share(q, m) * gx.get(q, 0.0) * len([d for d in this if d in s.team_days[s.team(q, m)]])
+            free = [q for q in s.goalie_ids if q not in taken and q not in roster and s.share(q, at) > 0]
+            week = {q: s.share(q, at) * gx.get(q, 0.0) * len([d for d in this if d in s.team_days[s.team(q, at)]])
                     for q in free}
             picked = set(sorted(free, key=lambda q: week[q], reverse=True)[:GOALIE_SHORTLIST[0]])
-            picked |= set(sorted(free, key=lambda q: s.share(q, m) * gx.get(q, 0.0), reverse=True)[:GOALIE_SHORTLIST[1]])
+            picked |= set(sorted(free, key=lambda q: s.share(q, at) * gx.get(q, 0.0), reverse=True)[:GOALIE_SHORTLIST[1]])
             for q in picked:
                 a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
                 pairs_tried += [(a, d) for d in drops + [g_rp]]
         best, pool, detail = None, [], None
-        bins = TenureBins(s, m, roster, mine_rp, levels, ctx)
+        bins = TenureBins(s, at, roster, mine_rp, levels, ctx)
         for a, d in pairs_tried:
             week_gain = sum(mine.gain(a.id, d.id, this).values())
             if week_gain < -matchup.MAX_WEEK_COST:

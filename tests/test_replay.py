@@ -216,3 +216,30 @@ def test_a_two_week_stream_can_count_the_weeks_ahead_in_full():
     assert replay.tenure_after(keeper, MON, future, ahead, 0.01, "b", table, "stream")[1] == pytest.approx((0.8 * g1, 0.5 * g2))
     # Later days are tenure's in every mode.
     assert replay.tenure_after(stream, MON, future, ahead, 0.01, "b", table, "full")[2] == pytest.approx(1.0 * 0.3 * 0.84)
+
+
+def test_a_midweek_move_scores_each_night_with_that_nights_roster():
+    days = [MON + dt.timedelta(days=i) for i in range(7)]
+    points = {(1, days[0]): 6.0, (2, days[0]): 2.0, (9, days[4]): 5.0, (2, days[4]): 3.0}
+    s = _season({1: 5.0, 2: 3.0, 9: 4.0}, {1: "C", 2: "C", 9: "C"}, {}, points)
+    # 2 for 9 on Thursday: Monday counts 1 and 2; Friday 9 instead of 2.
+    assert replay.actual(s, [1, 2], MON, (days[3], [1, 9])) == 6.0 + 2.0 + 5.0
+    assert replay.actual(s, [1, 2], MON) == 6.0 + 2.0 + 3.0
+    assert replay.actual(s, [1, 2], MON, days=3, minimum=False) == 8.0  # banked by Thursday
+    # The audit: 9 added Thursday counts from Friday, with the swap undone that night only.
+    mondays = [MON, MON + dt.timedelta(days=7)]
+    week = ([1, 2], (days[3], [1, 9]))
+    scores = [replay.actual(s, [1, 2], MON, (days[3], [1, 9])), 0.0]
+    rec, = replay.realized(s, [(0, 9, 2, {})], [week, [1, 2]], mondays, scores, [0.0, 0.0])
+    assert rec["real"] == [5.0 - 3.0] and rec["held"] == 1  # gone the next week
+
+
+def test_goalie_weeks_stay_fantasy_weeks_when_projected_from_midweek():
+    days = [MON + dt.timedelta(days=i) for i in range(14)]
+    s = _season({}, {}, {"C": set(days)}, goalies=(10, 11))
+    s.team = lambda pid, m: "C"
+    thursday = days[3]
+    s._proj[thursday] = s._proj[MON]
+    week = replay.Week(s, [10, 11], thursday, days[3:], MON)
+    weeks = week.goalie_weeks([10, 11], days[3:])
+    assert sorted(weeks) == [0, 1] and len(weeks[0][0]) == 4 and len(weeks[1][0]) == 7
