@@ -702,11 +702,14 @@ def audit_report(name: str, records: list[dict]) -> str:
             out.append(f"  {g:24}{len(rs):6}{p:+11.2f}{x:+8.2f}{_ratio(x, p):>7}{mean(r['rate'] for r in rs):+7.2f}"
                        f"{per_week:+8.2f}{mean(r['held'] for r in rs):9.1f}" + "".join(stay))
 
-    keep_bucket = lambda r: ("keep 0 (streamer)" if r["keep"] <= 0 else "keep 1 (keeper)" if r["keep"] >= 1
-                             else "keep 0-0.5" if r["keep"] < 0.5 else "keep 0.5-1")
-    table("By keep share (rate: the predicted 6-week rate, pts a week; real/wk: realized a week in weeks 3+, "
-          "adds held past week 3; 3+/6+/12+: share still held, of those with the weeks left)", keep_bucket,
-          ["keep 0 (streamer)", "keep 0-0.5", "keep 0.5-1", "keep 1 (keeper)"])
+    note = ("(rate: the predicted rate a week over the long run, pts; real/wk: realized a week in weeks 3+, "
+            "adds held past week 3; 3+/6+/12+: share still held, of those with the weeks left)")
+    if all(r["keep"] is not None for r in records):
+        keep_bucket = lambda r: ("keep 0 (streamer)" if r["keep"] <= 0 else "keep 1 (keeper)" if r["keep"] >= 1
+                                 else "keep 0-0.5" if r["keep"] < 0.5 else "keep 0.5-1")
+        table("By keep share " + note, keep_bucket, ["keep 0 (streamer)", "keep 0-0.5", "keep 0.5-1", "keep 1 (keeper)"])
+    table("By where the add sits " + note, lambda r: r.get("bin") or "-",
+          [b for b in tenure.SKATER_BINS + tenure.GOALIE_BINS])
     table("By the swap's kind", lambda r: r["kind"])
     rates = sorted(r["rate"] for r in records)
     cuts = [rates[len(rates) * i // 4] for i in range(1, 4)]

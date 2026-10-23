@@ -193,3 +193,11 @@ def test_the_seasons_last_week_has_no_rate_and_no_later_points():
     add, drop = RosterPlayer(1, "1", "A", ["C"]), RosterPlayer(3, "3", "B", ["D"])
     rec = replay.predicted_parts(s, MON, add, drop, 1.0, {}, 2.0, 0.02, [], [], 0, 0.01, 0, 0.1)
     assert rec["rate"] == 0.0 and rec["edge"] == 0.0 and rec["later_pts"] == 0.0
+
+
+def test_the_audit_reports_a_tenure_variant_without_keep_shares():
+    rec = {"value": 0.15, "week_pts": 3.0, "ahead_pts": [1.0, 1.0], "later_pts": 2.0, "rate": 1.0, "weeks_later": 10,
+           "keep": None, "later_weight": 0.01, "kind": "same position", "bin": "skater, lowest", "week": 0,
+           "weeks_left": 5, "held": 2, "real": [4.0, -3.0], "real_wins": 1}
+    report = replay.audit_report("tenure", [rec, {**rec, "bin": "goalie", "held": 5, "real": [1.0] * 5}])
+    assert "By keep share" not in report and "skater, lowest" in report and "goalie" in report
