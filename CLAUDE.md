@@ -21,8 +21,10 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 2. **Every move valued** (`engine/matchup.candidate_moves`) in **win-pts** (1 = 0.01
    expected weekly wins): change in P(win) this week + in weeks +1 and +2 against
    their real opponents (`week_ahead`) + later points x a typical week's worth of a
-   point. Each night is re-solved with the best lineup (C2 LW2 RW2 D4 G2), so a game
-   on a night the slot is full counts zero. Players in IR slots coming back are mixed
+   point: every day left in the season, each x the odds the add is still mine then
+   (`engine/tenure.py`, by where he'd sit on my roster; Nico, 2026-10-23). Each night
+   is re-solved with the best lineup (C2 LW2 RW2 D4 G2), so a game on a night the slot
+   is full counts zero. Players in IR slots coming back are mixed
    in (`ir_returns`), and projected missed games cost only the edge over a streamer
    (`matchup.durability`).
 3. **The add price** (`engine/addprice.pacing_price`): the win-pts an add must buy, 12 at an

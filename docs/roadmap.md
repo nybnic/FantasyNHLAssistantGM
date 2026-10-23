@@ -59,9 +59,10 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
      1.3-2.0x, and values of 0.4+ wins came to 0.39 (predicted 0.89). Steps 1 and 2 go ahead.
    - Steps 1-2 in the replay: done 2026-10-23 (`engine/CLAUDE.md` "Replayed"). Step 1 alone no gain (-0.12
      +/- 0.11); steps 1-2 together +0.38 (0.11) wins a season on the leagues the curves were fit on, +0.23
-     (0.10) on new ones, with fewer adds. Next: the live engine in shadow (both values on the Board, the plan
-     on the old one), the far nights' speed (below), then a later weight above 1 (its later points realize
-     1.44x).
+     (0.10) on new ones, with fewer adds. **Live since 2026-10-23** (Nico: "why shouldn't we already use the
+     new model as the replay confirmed it?"; no shadow weeks, a side-by-side on that day's Board instead:
+     decision log). A plan run stays ~1 min (the long run's per-player days cached; no shortcut needed).
+     Next: a later weight above 1 (its later points realize 1.44x in its audit), replayed.
    - Step 1: the long run from the whole remaining schedule (not the 6-week rate x the weeks left), a
      per-night marginal-slot shortcut for the far nights, checked against the exact solver.
    - Step 2: P(still mine on day d) from the replay's tenures (gap over the free agents who'd take the
@@ -325,3 +326,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-23 | The replay's audit, step 0 of tenure (Nico: "bot's policy, step 0 first, ahead of visuals"; after Nurse vs Pospisil for Larsson): `scripts/replay.py --audit` records each move a variant makes with its predicted parts on its Monday and what it brought week by week while it stood (the real score against the roster with that swap undone, until the add leaves), and reports predicted vs realized by part, tenure by keep share and by the swap's kind, the 6-week rate against the weeks after, and values against wins; the Check workflow's `replay-audit` runs it (default "pace 0.08 k2", 8 leagues). No engine change | (this commit) |
 | 2026-10-23 | The audit's first run (Check `replay-audit`, 16 leagues, 2.5 min): later points 0.76 of predicted on average, from offsetting errors; the 6-week rate's slope on the weeks after 0.15; keepers (mostly goalie adds) held 5.2 weeks, at 0.49 of their later points; values of 0.4+ wins realized 0.39. Written up in `engine/CLAUDE.md` "Replayed"; steps 1-2 of tenure go ahead. No rule changed | (this commit) |
 | 2026-10-23 | Tenure in the replay (steps 1-2 of item 8): `engine/tenure.py` (survival curves by where the add sits, fit Kaplan-Meier on the audit), replay variants "whole schedule" and "tenure"; `replay-audit` takes a seed. Step 1 alone -0.12 (0.11) wins a season; steps 1-2 +0.38 (0.11) on the fitting leagues, +0.23 (0.10) on new ones (seed 23), fewer adds. Not live yet | (this commit) |
+| 2026-10-23 | Tenure live (Nico: "Yes, go ahead"): `matchup.tenure_horizon` values every day left through the playoffs, each x P(the add still mine then) by `tenure_bin` (cut costs and IR stashes too); the keep share, the hold, the 6-week rate and `LONG_RUN_DISCOUNT` stay only for the replay. The Board shows each move's odds at 3, 6 and 12 weeks (`stays`, `bin`), the /why line and the move sheet say them. Side by side on Oct 23 (Check explain-week): Nurse for Larsson 26.0 -> 18.9, Pospisil for Larsson 17.2 -> 9.7, Kantserov for Landeskog new at 22.0: the plan became Kantserov for Landeskog now, Nurse for Larsson Monday. `BAR` stays 0.12 (replay: second-best values 0.95x / 0.80x the old, 28.0 adds vs 29.2 at the same bar). Plan run ~61 s on GitHub | (this commit) |

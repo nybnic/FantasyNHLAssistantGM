@@ -2,13 +2,14 @@
 add sits on my roster (Nico, 2026-10-23: "not an arbitrary value deciding whether
 value should count only short term or the full season"; the bot's own policy).
 
-Replaces, once it ships, the keep share and the streaming hold (matchup.keep_share,
-hold_weeks): a move's gain on each later day counts times the odds the add is
-still mine then and the size a gap that far ahead realizes at (check_gaps), not
-the 6-week rate x the weeks left x LONG_RUN_DISCOUNT. Fit on the replay
-(scripts/replay.py --audit): the tenures of the moves its policy made, by bin,
-Kaplan-Meier with the season's end as censoring. Not used live yet (engine freeze:
-it ships on a replay gain, then two weeks in shadow).
+Live since 2026-10-23 (Nico; matchup.tenure_horizon), in place of the keep share and the
+streaming hold (matchup.keep_share, hold_weeks, kept for the replay's reference
+variants): a move's gain on each later day counts times the odds the add is still
+mine then and the size a gap that far ahead realizes at (check_gaps), not the 6-week
+rate x the weeks left x LONG_RUN_DISCOUNT. Fit on the replay (scripts/replay.py
+--audit): the tenures of the moves its policy made, by bin, Kaplan-Meier with the
+season's end as censoring. Replayed: +0.38 (0.11) wins a season on the fitting
+leagues, +0.23 (0.10) on new ones (engine/CLAUDE.md, "Replayed").
 """
 from __future__ import annotations
 
