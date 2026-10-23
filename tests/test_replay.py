@@ -201,3 +201,18 @@ def test_the_audit_reports_a_tenure_variant_without_keep_shares():
            "weeks_left": 5, "held": 2, "real": [4.0, -3.0], "real_wins": 1}
     report = replay.audit_report("tenure", [rec, {**rec, "bin": "goalie", "held": 5, "real": [1.0] * 5}])
     assert "By keep share" not in report and "skater, lowest" in report and "goalie" in report
+
+
+def test_a_two_week_stream_can_count_the_weeks_ahead_in_full():
+    future = [MON + dt.timedelta(days=7 + i) for i in range(35)]
+    ahead = [replay.matchup.WeekAhead(k, frozenset(future[7 * (k - 1):7 * k]), None, 40.0) for k in (1, 2)]
+    table = {"b": (0.8, 0.5, 0.4, 0.3, 0.2)}
+    g1, g2 = replay.matchup.GAP_REALIZES[1], replay.matchup.GAP_REALIZES[2]
+    stream = {future[0]: 10.0, future[7]: 10.0, future[21]: 1.0}  # big in the weeks ahead, little after
+    keeper = {future[0]: 1.0, future[7]: 1.0, future[21]: 10.0}  # the other way round
+    assert replay.tenure_after(stream, MON, future, ahead, 0.01, "b", table)[1] == pytest.approx((8 * g1, 5 * g2))
+    assert replay.tenure_after(stream, MON, future, ahead, 0.01, "b", table, "full")[1] == pytest.approx((10 * g1, 10 * g2))
+    assert replay.tenure_after(stream, MON, future, ahead, 0.01, "b", table, "stream")[1] == pytest.approx((10 * g1, 10 * g2))
+    assert replay.tenure_after(keeper, MON, future, ahead, 0.01, "b", table, "stream")[1] == pytest.approx((0.8 * g1, 0.5 * g2))
+    # Later days are tenure's in every mode.
+    assert replay.tenure_after(stream, MON, future, ahead, 0.01, "b", table, "full")[2] == pytest.approx(1.0 * 0.3 * 0.84)

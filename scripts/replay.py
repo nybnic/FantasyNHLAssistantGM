@@ -119,9 +119,17 @@ VARIANTS = {
     # no keep share, no hold, no LONG_RUN_DISCOUNT.
     "whole schedule": ("add", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    # A deliberate two-week stream (Nico, 2026-10-23, Pospisil for Larsson: his weeks 5-6 at 0.80 /
+    # 0.60 survival). An add leaves early mostly for a better move, credited on its own, so the
+    # weeks ahead may deserve full weight: for every add ("full ahead"), or only for an add whose
+    # gain a week there beats his gain a week after them ("stream ahead"). Later weeks as tenure.
+    "tenure full ahead": ("tenure full ahead", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure stream ahead": ("tenure stream ahead", 3, 0.5, ("pace", 0.08, 2.0)),
 }
+# Keep rules valued by tenure_after, and how each weighs the weeks ahead (TENURE_AHEAD).
+TENURE_RULES = {"tenure": "survival", "tenure full ahead": "full", "tenure stream ahead": "stream"}
 # Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
-WHOLE_SCHEDULE = {"whole schedule", "tenure"}
+WHOLE_SCHEDULE = {"whole schedule", "tenure", "tenure full ahead", "tenure stream ahead"}
 # The price rules, by the variants' price: a number is a fixed price (with the
 # even-pace cap, as the harness always had); ("live",) is addprice.solve over the
 # Monday pools logged so far (the newest POOL_WEEKS), at the pace the budget
@@ -583,14 +591,23 @@ class TenureBins:
 
 
 def tenure_after(gain: dict, m: dt.date, future: list[dt.date], ahead: list, later_weight: float, bin_: str,
-                 table: dict | None = None) -> tuple[tuple[float, ...], tuple[float, ...], float]:
+                 table: dict | None = None, mode: str = "survival"
+                 ) -> tuple[tuple[float, ...], tuple[float, ...], float]:
     """Keep rule "tenure": the weeks ahead and later points with each day's gain x P(the add still
     stands that week) (engine.tenure.survival); the weeks ahead at GAP_REALIZES (matchup.ahead_value),
-    later days at how far-off gaps realize (tenure.realizes). No keep share, hold or discount."""
+    later days at how far-off gaps realize (tenure.realizes). No keep share, hold or discount.
+    `mode` (TENURE_RULES), the weeks ahead: "survival" as any day; "full" at 1; "stream" at 1 when
+    the gain a week there beats the gain a week after them, else survival."""
     k = lambda d: (d - m).days // 7  # 1: next week
-    scaled = {d: g * tenure.survival(bin_, k(d), table) for d, g in gain.items()}
-    ahead_wins, ahead_pts = matchup.ahead_value(scaled, ahead, later_weight)
     near = set().union(*(w.days for w in ahead)) if ahead else set()
+    full = mode == "full"
+    if mode == "stream" and near:
+        after = [d for d in future if d not in near]
+        rate_near = sum(gain.get(d, 0.0) for d in near) / (len(near) / 7)
+        rate_after = sum(gain.get(d, 0.0) for d in after) / (len(after) / 7) if after else 0.0
+        full = rate_near > rate_after
+    scaled = {d: g * (1.0 if full and d in near else tenure.survival(bin_, k(d), table)) for d, g in gain.items()}
+    ahead_wins, ahead_pts = matchup.ahead_value(scaled, ahead, later_weight)
     later = sum(v * tenure.realizes(k(d)) for d, v in scaled.items() if d not in near)
     return ahead_wins, ahead_pts, later
 
@@ -609,14 +626,15 @@ def swap_kind(s: Season, add: int, drop: int) -> str:
 
 def predicted_parts(s: Season, m: dt.date, add, drop, keep: float | None, gain: dict, week_gain: float,
                     now: float, future: list[dt.date], ahead: list, weeks_after: int, later_weight: float,
-                    hold_days: int, value: float, bin_: str = "", table: dict | None = None) -> dict:
+                    hold_days: int, value: float, bin_: str = "", table: dict | None = None,
+                    mode: str = "survival") -> dict:
     """The audit's record of a move as the valuation saw it on its Monday (the full hold:
     planned exits aside): points this week, in each week ahead as counted, and later
     (keep share, hold and LONG_RUN_DISCOUNT applied), the 6-week rate behind them, the
     weeks the rate is multiplied over, and the value in wins; where the add sits (tenure's bin).
     With a tenure `table`, the parts as keep rule "tenure" values them."""
     if table is not None:
-        ahead_wins, ahead_pts, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table)
+        ahead_wins, ahead_pts, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table, mode)
     else:
         ahead_wins, ahead_pts, later = matchup.horizon(gain, {d: None for d in future}, ahead, weeks_after,
                                                        later_weight, set(future[:hold_days]), keep)
@@ -840,9 +858,10 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 continue
             gain = mine.gain(a.id, d.id, future)
             bin_ = bins.of(a, d)
-            if keep_rule == "tenure":
+            if keep_rule in TENURE_RULES:
                 keep, exit_k = None, None
-                ahead_wins, _, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table)
+                ahead_wins, _, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table,
+                                                    TENURE_RULES[keep_rule])
                 after = sum(ahead_wins) + later_weight * later
             else:
                 keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
@@ -866,7 +885,8 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 parts.update(predicted_parts(s, m, *detail[:6], future, ahead, weeks_after, later_weight,
                                              hold_days, best[0], bin_=detail[6],
                                              table=(table if table is not None else tenure.SURVIVAL)
-                                             if keep_rule == "tenure" else None))
+                                             if keep_rule in TENURE_RULES else None,
+                                             mode=TENURE_RULES.get(keep_rule, "survival")))
             finally:
                 matchup.LONG_RUN_DISCOUNT = saved_discount
     finally:
