@@ -72,6 +72,18 @@ one recommendation land here and are tested in batches:
 - The forecast level: every team beats our forecast by ~22 pts a week (weeks 1-3). It cancels in a
   matchup, so nothing decides on it; check whether it is early-season scoring (it should shrink) before
   touching the model.
+- The long run's schedule (`LONG_RUN_WEEKS` 6, Nico 2026-10-23: "why Nurse over Pospisil for Larsson?").
+  The 6-week rate is multiplied over the season left, so one team's light 6 weeks counts all season,
+  though its schedule evens out later. Nurse for Larsson (Oct 23, `scripts/depth.py --try`, real schedule,
+  best lineup each night): +4.8 pts a week in weeks 5-10 (SEA plays 2+2 in weeks 5-6), +0.9 in weeks 7-26.
+  The Board credits him 18 later points (14 of his 26 win-pts); at the season rate ~3 (~14 win-pts, at
+  the price). Guhle +3.3 / +0.4, Kantserov +1.6 / -0.4, Pospisil +0.5 / -3.1 (a forward for my 4th D
+  leaves a D slot empty: D -12.6 a week, benched points 4.0 -> 7.7). Test: the long run from the whole
+  remaining schedule (or each team's games left) against the 6-week rate.
+- The keep share is per player, not per lineup (same question): a forward under his position's waiver
+  level gets no season weight, whatever the swap does to my lineup's shape. For Pospisil for Larsson that
+  hid a negative season (-3.1 a week, D slots left empty); a swap's season credit might follow the swap's
+  own long-run gain when that is negative.
 
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
