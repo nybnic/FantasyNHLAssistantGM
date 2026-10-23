@@ -184,3 +184,12 @@ def test_tenure_counts_each_later_day_by_the_odds_the_add_still_stands_and_how_g
     assert pts == pytest.approx((10 * 0.8 * g1, 10 * 0.5 * g2))
     assert wins == pytest.approx((0.01 * 10 * 0.8 * g1, 0.01 * 10 * 0.5 * g2))  # no margin: at later_weight
     assert later == pytest.approx(10 * 0.4 * 0.84 + 10 * 0.2 * 0.84)
+
+
+def test_the_seasons_last_week_has_no_rate_and_no_later_points():
+    from league.roster import RosterPlayer
+    s = _season({}, {1: "C", 3: "D"}, {"A": set(), "B": set()})
+    s.team = lambda pid, m: {1: "A", 3: "B"}[pid]
+    add, drop = RosterPlayer(1, "1", "A", ["C"]), RosterPlayer(3, "3", "B", ["D"])
+    rec = replay.predicted_parts(s, MON, add, drop, 1.0, {}, 2.0, 0.02, [], [], 0, 0.01, 0, 0.1)
+    assert rec["rate"] == 0.0 and rec["edge"] == 0.0 and rec["later_pts"] == 0.0

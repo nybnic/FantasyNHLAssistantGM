@@ -623,11 +623,11 @@ def predicted_parts(s: Season, m: dt.date, add, drop, keep: float | None, gain: 
     games = lambda pid: sum(1 for d in future if d in s.team_days[s.team(pid, m)])
     return {"value": value, "now": now, "week_pts": week_gain, "ahead_wins": list(ahead_wins),
             "ahead_pts": list(ahead_pts), "later_pts": later, "later_weight": later_weight,
-            "rate": sum(gain.get(d, 0.0) for d in future) / (len(future) / 7),
+            "rate": sum(gain.get(d, 0.0) for d in future) / (len(future) / 7) if future else 0.0,
             "weeks_later": max(weeks_after - len(ahead), 0), "keep": keep, "hold_weeks": hold_days / 7,
             "bin": bin_,
             "kind": swap_kind(s, add.id, drop.id),
-            "edge": (games(add.id) - games(drop.id)) / (len(future) / 7)}
+            "edge": (games(add.id) - games(drop.id)) / (len(future) / 7) if future else 0.0}
 
 
 def realized(s: Season, made: list, rosters: list[list[int]], mondays: list[dt.date], scores: list[float],
