@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-08": {
-      "recommended": {
-        "8474564": "RW",
-        "8476457": "BN",
-        "8476460": "C",
-        "8476887": "LW",
-        "8476902": "D",
-        "8477949": "BN",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "C",
-        "8485406": "RW"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-09": {
       "recommended": {
         "8474564": "RW",
@@ -622,26 +602,23 @@
       "message_id": 607,
       "type": "add"
     },
-    "lineup-2026-10-08-1632": {
-      "assignment": {
-        "8474564": "RW",
-        "8476457": "BN",
-        "8476460": "C",
-        "8476887": "LW",
-        "8476902": "D",
-        "8477949": "BN",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "C",
-        "8485406": "RW"
+    "add-2026-10-23-0520-8477498": {
+      "add": {
+        "id": 8477498,
+        "name": "Darnell Nurse",
+        "positions": [
+          "D"
+        ],
+        "slot": null,
+        "team": "SJS"
       },
-      "date": "2026-10-08",
-      "message_id": 282,
-      "type": "lineup"
+      "add_slot": null,
+      "date": "2026-10-23",
+      "drop": 8476457,
+      "drop_name": "Adam Larsson",
+      "ir": {},
+      "message_id": 629,
+      "type": "add"
     },
     "lineup-2026-10-09-1632": {
       "assignment": {
@@ -898,29 +875,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-22T18:41+00:00",
+    "at": "2026-10-23T05:20+00:00",
     "moves": [
-      {
-        "add": {
-          "id": 8481028,
-          "name": "Martin Pospisil",
-          "positions": [
-            "C",
-            "RW"
-          ],
-          "team": "CGY"
-        },
-        "drop": {
-          "id": 8482447,
-          "name": "Leevi Meril\u00e4inen"
-        },
-        "key": "8481028:8482447",
-        "message_id": 607,
-        "rec_id": "add-2026-10-22-1028-8481028",
-        "value": 0.1939,
-        "when": "2026-10-22",
-        "why": "now"
-      },
       {
         "add": {
           "id": 8477498,
@@ -935,31 +891,11 @@
           "name": "Adam Larsson"
         },
         "key": "8477498:8476457",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.2719,
-        "when": "2026-10-26",
-        "why": "monday"
-      },
-      {
-        "add": {
-          "id": 8484390,
-          "name": "Roman Kantserov",
-          "positions": [
-            "RW"
-          ],
-          "team": "CHI"
-        },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8484390:8480855",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.2026,
-        "when": "2026-10-26",
-        "why": "monday"
+        "message_id": 629,
+        "rec_id": "add-2026-10-23-0520-8477498",
+        "value": 0.2595,
+        "when": "2026-10-23",
+        "why": "spare"
       }
     ],
     "week": 4
@@ -1124,7 +1060,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784736,
+  "telegram_offset": 929784738,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1147,6 +1083,7 @@
       "8475768:promoted": "2026-10-16",
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
+      "8476441:ice time": "2026-10-23",
       "8476461:promoted": "2026-10-22",
       "8476463:promoted": "2026-10-14",
       "8476467:promoted": "2026-10-21",
@@ -1165,6 +1102,7 @@
       "8477505:promoted": "2026-10-14",
       "8477955:promoted": "2026-10-18",
       "8477989:promoted": "2026-10-14",
+      "8477992:goalie": "2026-10-23",
       "8477998:promoted": "2026-10-19",
       "8478010:promoted": "2026-10-15",
       "8478042:promoted": "2026-10-21",
@@ -1195,6 +1133,7 @@
       "8480188:promoted": "2026-10-21",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-13",
+      "8480259:promoted": "2026-10-23",
       "8480426:promoted": "2026-10-19",
       "8480797:promoted": "2026-10-22",
       "8480802:promoted": "2026-10-16",
@@ -1205,6 +1144,7 @@
       "8481056:promoted": "2026-10-20",
       "8481068:promoted": "2026-10-17",
       "8481527:ice time": "2026-10-18",
+      "8481534:promoted": "2026-10-23",
       "8481535:promoted": "2026-10-21",
       "8481538:ice time": "2026-10-20",
       "8481553:promoted": "2026-10-16",
@@ -1255,6 +1195,7 @@
       "8484142:promoted": "2026-10-13",
       "8484152:promoted": "2026-10-17",
       "8484158:promoted": "2026-10-17",
+      "8484160:ice time": "2026-10-23",
       "8484210:ice time": "2026-10-14",
       "8484234:promoted": "2026-10-22",
       "8484241:promoted": "2026-10-21",
@@ -1612,13 +1553,11 @@
       },
       "8476448": {
         "groups": [
-          "f2",
+          "f3",
           "pk1",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8476458": {
         "groups": [
@@ -1898,7 +1837,7 @@
       },
       "8477456": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -2050,13 +1989,6 @@
         ],
         "since": {}
       },
-      "8477971": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8477987": {
         "groups": [
           "f3",
@@ -2097,11 +2029,11 @@
       },
       "8478042": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-21",
+          "f1": "2026-10-23",
           "pp1": "2026-10-21"
         }
       },
@@ -2151,16 +2083,6 @@
           "pk1"
         ],
         "since": {}
-      },
-      "8478401": {
-        "groups": [
-          "f1",
-          "pp1"
-        ],
-        "since": {
-          "f1": "2026-10-20",
-          "pp1": "2026-10-20"
-        }
       },
       "8478413": {
         "groups": [
@@ -2547,11 +2469,11 @@
       },
       "8480028": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": "2026-10-22",
+          "f2": "2026-10-23",
           "pp1": null
         }
       },
@@ -2640,13 +2562,19 @@
       },
       "8480259": {
         "groups": [
-          "f2"
+          "f1"
         ],
         "since": {
-          "f2": null
+          "f1": "2026-10-23"
         }
       },
       "8480289": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
+      "8480291": {
         "groups": [
           "f4"
         ],
@@ -2704,12 +2632,12 @@
       },
       "8480797": {
         "groups": [
-          "f2",
+          "f1",
           "pk1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-22",
+          "f1": "2026-10-23",
           "pp1": null
         }
       },
@@ -2851,12 +2779,12 @@
       },
       "8481068": {
         "groups": [
-          "f1",
+          "f2",
           "pk1",
           "pp2"
         ],
         "since": {
-          "f1": "2026-10-22"
+          "f2": "2026-10-23"
         }
       },
       "8481122": {
@@ -2910,6 +2838,12 @@
         ],
         "since": {}
       },
+      "8481524": {
+        "groups": [
+          "ir"
+        ],
+        "since": {}
+      },
       "8481527": {
         "groups": [
           "d2",
@@ -2919,9 +2853,11 @@
       },
       "8481534": {
         "groups": [
-          "f3"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-23"
+        }
       },
       "8481535": {
         "groups": [
@@ -2940,10 +2876,11 @@
       "8481553": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": "2026-10-15"
+          "f2": "2026-10-15",
+          "pp1": "2026-10-23"
         }
       },
       "8481554": {
@@ -3013,7 +2950,8 @@
       },
       "8481607": {
         "groups": [
-          "d2"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -3258,7 +3196,6 @@
       "8482145": {
         "groups": [
           "f3",
-          "ir",
           "pp2"
         ],
         "since": {}
@@ -3296,6 +3233,12 @@
         "groups": [
           "d3",
           "pk2"
+        ],
+        "since": {}
+      },
+      "8482171": {
+        "groups": [
+          "d2"
         ],
         "since": {}
       },
@@ -3439,11 +3382,11 @@
       },
       "8482679": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-22",
+          "f1": "2026-10-23",
           "pp1": null
         }
       },
@@ -3538,7 +3481,7 @@
       },
       "8482802": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3666,6 +3609,12 @@
           "pp1": "2026-10-13"
         }
       },
+      "8483478": {
+        "groups": [
+          "f3"
+        ],
+        "since": {}
+      },
       "8483485": {
         "groups": [
           "d2",
@@ -3770,16 +3719,15 @@
         ],
         "since": {}
       },
-      "8483546": {
-        "groups": [
-          "d3",
-          "ir"
-        ],
-        "since": {}
-      },
       "8483553": {
         "groups": [
           "f4"
+        ],
+        "since": {}
+      },
+      "8483565": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -3919,6 +3867,12 @@
           "f1": "2026-10-19"
         }
       },
+      "8484160": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8484164": {
         "groups": [
           "f3"
@@ -3938,12 +3892,6 @@
         ],
         "since": {}
       },
-      "8484223": {
-        "groups": [
-          "d4"
-        ],
-        "since": {}
-      },
       "8484230": {
         "groups": [
           "f4"
@@ -3952,11 +3900,11 @@
       },
       "8484234": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": "2026-10-22"
+          "f2": "2026-10-23"
         }
       },
       "8484240": {
@@ -4022,12 +3970,6 @@
           "pp1": null
         }
       },
-      "8484392": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8484471": {
         "groups": [
           "f1",
@@ -4089,10 +4031,11 @@
       },
       "8484803": {
         "groups": [
-          "f3",
+          "f2",
           "pp1"
         ],
         "since": {
+          "f2": "2026-10-23",
           "pp1": null
         }
       },
@@ -4131,15 +4074,6 @@
           "pk1"
         ],
         "since": {}
-      },
-      "8484994": {
-        "groups": [
-          "f1",
-          "pp2"
-        ],
-        "since": {
-          "f1": null
-        }
       },
       "8484999": {
         "groups": [
@@ -4191,12 +4125,9 @@
       },
       "8485702": {
         "groups": [
-          "f3",
-          "pp1"
+          "ir"
         ],
-        "since": {
-          "pp1": null
-        }
+        "since": {}
       },
       "8485957": {
         "groups": [
@@ -5683,6 +5614,81 @@
         "price": null,
         "sent": false,
         "team": "LAK",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8477992,
+        "kinds": [
+          "goalie"
+        ],
+        "name": "Jonas Johansson",
+        "positions": "G",
+        "price": null,
+        "sent": true,
+        "team": "OTT",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "His starter Linus Ullmark out until about Thu 29 Oct. Expected to start 17% of the games ahead, against 35% projected before the season."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8484160,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Nate Danielson",
+        "positions": "C",
+        "price": null,
+        "sent": true,
+        "team": "DET",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 12:28 a game in his last 3, up from 9:09. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8476441,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Joel Edmundson",
+        "positions": "D",
+        "price": null,
+        "sent": true,
+        "team": "LAK",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 18:58 a game in his last 3, up from 14:22. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8480259,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ben Jones",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "CGY",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-23",
+        "id": 8481534,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Raphael Lavoie",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "VGK",
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the second line."
