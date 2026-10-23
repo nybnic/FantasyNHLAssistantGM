@@ -70,6 +70,7 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 | `docs/data.md` | What Nico sends, what's fetched, what's stored where, and what uses it |
 | `docs/design.md` | How the bot looks: the vocabulary, palette, type, components, Telegram cards, dashboard tabs, checks |
 | `docs/roadmap.md` | Prioritized backlog and the log of what was done. Start a session here |
+| `docs/video/` | The explainer video for someone new to fantasy hockey (`assistant-gm.mp4`, 2 min, vertical, made-up team names), from `video.html` (a GSAP timeline) by `render.py` |
 
 ## Commands
 ```bash
@@ -93,6 +94,7 @@ python -m scripts.third_goalie                    # a third goalie for a skater,
 python -m scripts.fit_goalie_starts               # who starts next: last result, back-to-backs
 python -m scripts.depth                           # every team's depth by slot, needs, spares, 1-for-1s both sides gain (offline)
 python -m scripts.render_slides --png data/charts/slides   # docs/model-overview.pdf from its HTML
+python docs/video/render.py                     # the explainer video -> data/charts/video.mp4 (~17 min; --stills 12,70 to check a change)
 python -m scripts.snapshots                     # every card and dashboard tab at a phone's width -> data/charts/snapshots/
 python -m scripts.make_icons                    # the dashboard's home-screen icons (site/icon-*.png)
 ```

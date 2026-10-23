@@ -1,0 +1,518 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Assistant GM in two minutes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=block">
+<style>
+:root{--surface:#0B1422;--card:#13213A;--tile:#182A47;--grid:#1E2E48;--text:#fff;--text2:#B7C2D3;--muted:#6B7A90;
+  --blue:#4D9BF0;--blueInk:#7DB8FF;--orange:#F07A45;--orangeInk:#FFA57D;--aqua:#2CC28B;--blueSoft:#22508A;--kept:#5A3A2A}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--surface);width:540px;height:960px;overflow:hidden}
+body{font-family:Inter,system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+#stage{position:absolute;inset:0;overflow:hidden;background:var(--surface)}
+#cam{position:absolute;inset:0;transform-origin:50% 50%}
+.abs{position:absolute}
+.num{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.38}
+.head{position:absolute;left:36px;right:36px;font-family:'Inter Display',Inter,sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.08}
+.head .w{display:inline-block;margin-right:.24em;will-change:transform}
+.head .a{color:var(--aqua)}
+.head .o{color:var(--orangeInk)}
+.head .b{color:var(--blueInk)}
+.tag{position:absolute;left:36px;top:62px;padding:7px 14px;border:2px solid var(--aqua);border-radius:30px;color:var(--aqua);
+  font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:.14em;transform-origin:0 50%}
+.scene{position:absolute;inset:0}
+.phone{position:absolute;width:290px;height:580px;left:125px;top:330px;border-radius:44px;background:#0E1A2E;
+  border:3px solid #2A3E62;box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 0 0 6px #0B1422;overflow:hidden}
+.phone .notch{position:absolute;left:50%;top:10px;width:90px;height:22px;margin-left:-45px;border-radius:12px;background:#05090F}
+.tghead{position:absolute;left:0;right:0;top:0;height:78px;background:#13213A;display:flex;align-items:flex-end;padding:0 16px 10px;gap:10px;border-bottom:1px solid var(--grid)}
+.ava{width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a3b57,#05090F);border:2px solid var(--aqua);
+  display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:15px;color:var(--aqua)}
+.tgname{font-weight:700;font-size:15px}.tgname small{display:block;font-weight:500;font-size:12px;color:var(--text2)}
+.tgcard{position:absolute;left:12px;right:12px;background:var(--tile);border-radius:16px;padding:14px 14px 12px;border:1px solid #24395E}
+.day{font-family:'Barlow Condensed';font-weight:700;font-size:17px;letter-spacing:.06em;color:var(--aqua)}
+.mv{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;margin-top:6px}
+.badge{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;line-height:1;flex:none}
+.badge.add{background:var(--aqua);color:#06281c}.badge.drop{background:#3A4A63;color:#fff}
+.btns{display:flex;gap:6px;margin-top:12px}
+.btn{flex:1;text-align:center;padding:8px 0;border-radius:10px;background:#22365A;font-weight:700;font-size:13px;color:var(--text2)}
+.chip{position:absolute;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid #2A3E62;font-weight:700;font-size:18px;white-space:nowrap}
+.chip b{font-family:'Barlow Condensed';font-size:22px;color:var(--aqua);margin-left:6px}
+.pl{position:absolute;width:62px;height:62px;border-radius:50%;background:linear-gradient(160deg,#5AA8FF,#2F6FC0);display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed';font-weight:800;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 0 0 3px rgba(255,255,255,.18)}
+.pl.g{background:linear-gradient(160deg,#5ee0b0,#1f9a6c)}
+.float{position:absolute;font-family:'Barlow Condensed';font-weight:800;font-size:28px;color:var(--aqua);text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.dot{position:absolute;border-radius:50%}
+.tok{position:absolute;width:44px;height:44px;border-radius:50%;background:var(--aqua);display:flex;align-items:center;justify-content:center;color:#06281c;font-weight:900;font-size:20px}
+.wk{position:absolute;left:36px;right:36px;height:140px;border-radius:20px;background:var(--card);border:1px solid #24395E;padding:16px 20px}
+.wk .t{font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:.1em;color:var(--text2)}
+.wk .v{font-weight:600;font-size:17px;color:var(--orangeInk);margin-top:2px}
+.wk .p{position:absolute;right:22px;top:24px;font-size:64px;line-height:1}
+.wk .tr{position:absolute;left:20px;right:20px;bottom:18px;height:12px;border-radius:6px;background:#0B1422;overflow:hidden}
+.wk .fi{height:100%;width:0;background:var(--blue);border-radius:6px}
+.tile{position:absolute;width:26px;height:26px;border-radius:6px;background:#22365A}
+.bar{position:absolute;bottom:0;border-radius:12px 12px 4px 4px}
+.lab{position:absolute;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em;color:var(--text2);text-align:center}
+.bubble{position:absolute;border-radius:16px;padding:10px 12px;font-size:14px;font-weight:600}
+.conf{position:absolute;width:10px;height:14px;border-radius:2px}
+.ray{position:absolute;border-radius:50%;background:conic-gradient(from 0deg,rgba(44,194,139,.0),rgba(44,194,139,.35),rgba(44,194,139,0) 12%,rgba(77,155,240,.3) 25%,rgba(44,194,139,0) 37%,rgba(44,194,139,.3) 50%,rgba(44,194,139,0) 62%,rgba(77,155,240,.3) 75%,rgba(44,194,139,0) 87%,rgba(44,194,139,.35));filter:blur(4px)}
+.logo{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a3b57,#05090F 70%);border:6px solid var(--aqua);
+  display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#fff;box-shadow:0 0 60px rgba(44,194,139,.45)}
+.slam{position:absolute;left:0;right:0;text-align:center;font-family:'Barlow Condensed';font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:1}
+#prog{position:absolute;left:0;bottom:0;height:5px;width:540px;background:linear-gradient(90deg,var(--blue),var(--aqua));transform-origin:0 50%}
+</style></head>
+<body>
+<div id="stage"><div id="cam">
+  <div class="blob" id="blob1" style="width:420px;height:420px;left:-140px;top:-80px;background:#22508A"></div>
+  <div class="blob" id="blob2" style="width:380px;height:380px;right:-160px;bottom:40px;background:#1a6f55"></div>
+  <svg class="abs" id="rink" width="540" height="960" style="left:0;top:0;opacity:.13">
+    <circle cx="270" cy="560" r="150" fill="none" stroke="#7DB8FF" stroke-width="3"/>
+    <circle cx="270" cy="560" r="6" fill="#7DB8FF"/>
+    <line x1="0" y1="560" x2="540" y2="560" stroke="#F07A45" stroke-width="4"/>
+    <line x1="0" y1="330" x2="540" y2="330" stroke="#4D9BF0" stroke-width="6"/>
+    <line x1="0" y1="790" x2="540" y2="790" stroke="#4D9BF0" stroke-width="6"/>
+  </svg>
+  <div id="layer"></div>
+</div>
+<div id="prog"></div>
+</div>
+<!-- GSAP: a local copy (gsap.min.js, gitignored) when the network blocks the CDN, else cdnjs -->
+<script src="gsap.min.js"></script>
+<script>window.gsap || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"><\/script>')</script>
+<script>
+const T = 120;
+const tl = gsap.timeline({paused: true, defaults: {ease: 'power3.out'}});
+const L = document.getElementById('layer');
+const cam = document.getElementById('cam');
+
+// --- helpers ---------------------------------------------------------------
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function el(cls, parent = L, html = '', style = {}) {
+  const e = document.createElement('div'); e.className = cls; e.innerHTML = html;
+  Object.assign(e.style, style); parent.appendChild(e); return e;
+}
+function scene() { const s = el('scene'); gsap.set(s, {autoAlpha: 0}); return s; }
+function show(s, a, b) { tl.set(s, {autoAlpha: 1}, a); tl.set(s, {autoAlpha: 0}, b); }
+// Headline: *word* = aqua, _word_ = orange, ~word~ = blue, | = line break.
+function head(text, tIn, tOut, o = {}) {
+  const h = el('head', o.parent || L, '', {top: (o.top ?? 118) + 'px', fontSize: (o.size ?? 40) + 'px', textAlign: o.align || 'left'});
+  let cls = '';
+  const words = [];
+  for (let tok of text.split(' ')) {
+    if (tok === '|') { h.appendChild(document.createElement('br')); continue; }
+    let c = cls;
+    for (const [m, k] of [['*', 'a'], ['_', 'o'], ['~', 'b']]) {
+      if (tok.startsWith(m)) { tok = tok.slice(1); cls = k; c = k; }
+      if (tok.endsWith(m) || tok.endsWith(m + '.') || tok.endsWith(m + ',') || tok.endsWith(m + ':') || tok.endsWith(m + '?')) {
+        tok = tok.replace(m, ''); c = cls || k; cls = '';
+      }
+    }
+    const w = el('w' + (c ? ' ' + c : ''), h, tok); words.push(w);
+  }
+  tl.fromTo(words, {y: 40, opacity: 0, rotation: 4, scale: .92}, {y: 0, opacity: 1, rotation: 0, scale: 1, duration: .7, stagger: .07, ease: 'back.out(1.7)'}, tIn);
+  const acc = words.filter(w => w.classList.length > 1);
+  if (acc.length) tl.fromTo(acc, {y: 0}, {y: -7, duration: .18, yoyo: true, repeat: 1, stagger: .05, ease: 'sine.inOut'}, tIn + .35 + words.length * .07);
+  if (tOut != null) tl.to(words, {y: -34, opacity: 0, duration: .3, stagger: .02, ease: 'power2.in'}, tOut - .35);
+  return h;
+}
+function tag(text, tIn, tOut) {
+  const t = el('tag', L, text); gsap.set(t, {autoAlpha: 0});
+  tl.fromTo(t, {autoAlpha: 0, scaleX: 0}, {autoAlpha: 1, scaleX: 1, duration: .45, ease: 'expo.out'}, tIn);
+  tl.to(t, {autoAlpha: 0, x: -30, duration: .3, ease: 'power2.in'}, tOut - .3);
+}
+function count(e, a, b, t, d, o = {}) {
+  const p = {v: a}, dec = o.dec ?? 0, suf = o.suf ?? '', pre = o.pre ?? '';
+  e.textContent = pre + a.toFixed(dec) + suf;
+  tl.fromTo(p, {v: a}, {v: b, duration: d, ease: o.ease || 'power2.out', onUpdate: () => e.textContent = pre + p.v.toFixed(dec) + suf}, t);
+}
+function shake(t, amp = 8, n = 6) {
+  tl.fromTo(cam, {x: 0, y: 0}, {keyframes: Array.from({length: n}, (_, i) => ({x: (i % 2 ? -1 : 1) * amp * (1 - i / n), y: (i % 3 - 1) * amp * .5 * (1 - i / n), duration: .04})).concat([{x: 0, y: 0, duration: .04}]), ease: 'none'}, t);
+}
+function confetti(parent, x, y, t, n = 22, seed = 1) {
+  const r = rng(seed), cols = ['#2CC28B', '#4D9BF0', '#FFFFFF', '#7DB8FF', '#FFA57D'];
+  for (let i = 0; i < n; i++) {
+    const c = el('conf', parent, '', {left: x + 'px', top: y + 'px', background: cols[i % cols.length]});
+    gsap.set(c, {autoAlpha: 0});
+    const ang = r() * Math.PI * 2, dist = 70 + r() * 150;
+    tl.fromTo(c, {autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1},
+      {x: Math.cos(ang) * dist, y: Math.sin(ang) * dist + 60, rotation: r() * 720 - 360, duration: 1.1 + r() * .5, ease: 'power3.out', immediateRender: false}, t);
+    tl.to(c, {autoAlpha: 0, duration: .3}, t + 1.0 + r() * .4);
+  }
+}
+function puck(t, y = 520) {
+  const p = el('abs', L, '', {left: '-80px', top: y + 'px', width: '46px', height: '18px', borderRadius: '50%', background: '#05090F',
+    boxShadow: '-60px 0 30px 6px rgba(44,194,139,.55), -150px 0 40px 4px rgba(77,155,240,.3)'});
+  gsap.set(p, {autoAlpha: 0});
+  tl.fromTo(p, {autoAlpha: 1, x: 0}, {x: 720, duration: .45, ease: 'power1.in', immediateRender: false}, t);
+  tl.set(p, {autoAlpha: 0}, t + .46);
+}
+function phone(parent, title = 'Assistant GM', sub = 'bot') {
+  const ph = el('phone', parent);
+  el('tghead', ph, `<div class="ava">GM</div><div class="tgname">${title}<small>${sub}</small></div>`);
+  el('notch', ph);
+  return ph;
+}
+
+// --- background drift, progress -------------------------------------------
+tl.fromTo('#blob1', {x: 0, y: 0}, {x: 260, y: 520, duration: T, ease: 'sine.inOut'}, 0);
+tl.fromTo('#blob2', {x: 0, y: 0}, {x: -240, y: -560, duration: T, ease: 'sine.inOut'}, 0);
+tl.fromTo('#rink', {rotation: 0, transformOrigin: '50% 58%'}, {rotation: 8, duration: T, ease: 'none'}, 0);
+tl.fromTo('#prog', {scaleX: 0}, {scaleX: 1, duration: T, ease: 'none'}, 0);
+
+// === S1 Hook (0-10) =========================================================
+{
+  const s = scene(); show(s, 0, 10.1);
+  const ph = phone(s);
+  const card = el('tgcard', ph, `<div class="day">THU 22 OCT · TODAY</div>
+    <div class="mv"><span class="badge add">+</span>Martin Pospisil</div>
+    <div class="mv" style="color:var(--text2)"><span class="badge drop">−</span>Leevi Meriläinen</div>
+    <div style="margin-top:12px;font-size:14px;color:var(--text2)">Chance to win this week</div>
+    <div class="num" style="font-size:44px;line-height:1"><span style="color:var(--text2)">45%</span> <span style="color:var(--muted)">→</span> <span id="s1p" style="color:var(--aqua)">45%</span></div>
+    <div class="btns"><div class="btn">Done</div><div class="btn">Taken</div><div class="btn">Skip</div></div>`, {top: '96px'});
+  tl.fromTo(ph, {y: 700}, {y: 0, duration: 1.2, ease: 'back.out(1.2)'}, .2);
+  tl.fromTo(card, {y: -140, opacity: 0}, {y: 0, opacity: 1, duration: 1.0, ease: 'bounce.out'}, 1.6);
+  tl.fromTo(ph, {rotation: 0}, {rotation: 2, duration: .06, yoyo: true, repeat: 7, ease: 'none'}, 1.6);
+  count(document.getElementById('s1p'), 45, 47, 3.0, 1.2, {suf: '%'});
+  tl.fromTo('#s1p', {scale: 1}, {scale: 1.2, duration: .25, yoyo: true, repeat: 1}, 4.2);
+  head('Every week, your phone gets *one message.*', .6, 5.2);
+  head('It names the *one move* that best raises your chance to win.', 5.4, 10.0);
+  tl.to(ph, {y: 900, duration: .7, ease: 'power3.in'}, 9.4);
+  puck(9.7, 560);
+}
+
+// === S2 Fantasy hockey 101 (10-28) ==========================================
+{
+  const s = scene(); show(s, 10.1, 28.2);
+  tag('FANTASY HOCKEY 101', 10.3, 27.8);
+  head('You manage a team of *real NHL players.*', 10.5, 15.0);
+  const pos = [['LW', 105, 340], ['C', 239, 330], ['RW', 373, 340], ['LW', 105, 430], ['C', 239, 420], ['RW', 373, 430],
+               ['D', 60, 525], ['D', 172, 535], ['D', 306, 535], ['D', 418, 525], ['G', 172, 625], ['G', 306, 625]];
+  const pls = pos.map(([p, x, y]) => el('pl' + (p === 'G' ? ' g' : ''), s, p, {left: x + 'px', top: y + 'px'}));
+  tl.fromTo(pls, {scale: 0}, {scale: 1, duration: .6, stagger: .12, ease: 'back.out(2.2)'}, 11.0);
+  head('When they play, you score *points:* goals, shots, hits, blocks…', 15.2, 20.6);
+  const chips = [['Goal', '+4', 60, 740], ['Shot', '+0.5', 290, 740], ['Hit', '+0.6', 60, 810], ['Block', '+0.8', 290, 810]];
+  const ch = chips.map(([n, v, x, y]) => el('chip', s, `${n}<b>${v}</b>`, {left: x + 'px', top: y + 'px', fontSize: '22px'}));
+  tl.fromTo(ch, {scale: 0, opacity: 0}, {scale: 1, opacity: 1, duration: .5, stagger: .35, ease: 'back.out(2)'}, 16.2);
+  const r = rng(7), vals = ['+4', '+0.5', '+0.6', '+0.8'];
+  for (let i = 0; i < 12; i++) {
+    const k = Math.floor(r() * 12), [p, x, y] = pos[k];
+    const f = el('float', s, vals[i % 4], {left: (x + 14) + 'px', top: (y - 6) + 'px'});
+    gsap.set(f, {autoAlpha: 0});
+    const t = 16.4 + i * .32;
+    tl.fromTo(f, {autoAlpha: 1, y: 0, scale: .7}, {y: -60, scale: 1, duration: 1.0, ease: 'power2.out', immediateRender: false}, t);
+    tl.to(f, {autoAlpha: 0, duration: .3}, t + .8);
+    tl.fromTo(pls[k], {scale: 1}, {scale: 1.15, duration: .15, yoyo: true, repeat: 1}, t);
+  }
+  tl.to(ch, {scale: 0, opacity: 0, duration: .35, stagger: .05, ease: 'back.in(2)'}, 20.3);
+  tl.to(pls, {scale: 0, duration: .35, stagger: .02, ease: 'back.in(2)'}, 20.3);
+  head('Each week you face *one* *rival*. More points wins the week.', 20.9, 27.9);
+  const mk = (x, blue, name) => {
+    const wrap = el('abs', s, '', {left: x + 'px', top: '330px', width: '200px', height: '540px'});
+    el('lab', wrap, name, {left: 0, right: 0, top: '0px', fontSize: '24px', color: blue ? 'var(--blueInk)' : 'var(--orangeInk)'});
+    const n = el('num', wrap, '0', {position: 'absolute', left: 0, right: 0, top: '30px', textAlign: 'center', fontSize: '80px', lineHeight: 1});
+    const tr = el('abs', wrap, '', {left: '40px', width: '120px', top: '130px', height: '400px'});
+    const b = el('bar', tr, '', {left: 0, right: 0, height: '400px', transformOrigin: '50% 100%',
+      background: blue ? 'linear-gradient(0deg,#22508A,#4D9BF0)' : 'linear-gradient(0deg,#7A3A1E,#F07A45)'});
+    return {wrap, b, n};
+  };
+  const you = mk(40, true, 'YOU'), them = mk(300, false, 'PUCK BANDITS');
+  tl.fromTo([you.wrap, them.wrap], {opacity: 0, y: 50}, {opacity: 1, y: 0, duration: .6, stagger: .15}, 21.6);
+  tl.fromTo(you.b, {scaleY: 0}, {scaleY: .97, duration: 4, ease: 'power2.in'}, 22.4);
+  tl.fromTo(them.b, {scaleY: 0}, {scaleY: .9, duration: 4, ease: 'power2.out'}, 22.4);
+  count(you.n, 0, 212, 22.4, 4, {ease: 'power2.in'});
+  count(them.n, 0, 197, 22.4, 4, {ease: 'power2.out'});
+  const vs = el('abs', s, 'VS', {left: '230px', top: '540px', width: '80px', height: '80px', borderRadius: '50%', background: '#fff', color: '#0B1422',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: '36px'});
+  tl.fromTo(vs, {scale: 3, opacity: 0}, {scale: 1, opacity: 1, duration: .5, ease: 'expo.out'}, 21.9);
+  const win = el('abs', s, 'WIN', {left: '62px', top: '590px', padding: '6px 18px', border: '5px solid var(--aqua)', borderRadius: '12px', color: 'var(--aqua)',
+    fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: '64px', lineHeight: 1, background: 'rgba(11,20,34,.75)'});
+  tl.fromTo(win, {scale: 3, opacity: 0, rotation: 10}, {scale: 1, opacity: 1, rotation: -10, duration: .4, ease: 'expo.out'}, 26.6);
+  shake(26.8, 7, 5);
+  confetti(s, 140, 590, 26.7, 18, 3);
+  tl.to([you.wrap, them.wrap, vs, win], {opacity: 0, duration: .4}, 27.7);
+}
+
+// === S3 The hard part (28-42) ===============================================
+{
+  const s = scene(); show(s, 28.1, 42.1);
+  tag('THE HARD PART', 28.3, 41.8);
+  head('You can swap in *free agents:* hundreds are out there…', 28.5, 33.6);
+  const r = rng(11), N = 140, dots = [];
+  for (let i = 0; i < N; i++) {
+    const sz = 8 + r() * 9;
+    const d = el('dot', s, '', {left: '270px', top: '600px', width: sz + 'px', height: sz + 'px',
+      background: ['#7DB8FF', '#B7C2D3', '#4D9BF0', '#6B7A90', '#2CC28B'][Math.floor(r() * 5)]});
+    gsap.set(d, {autoAlpha: 0});
+    dots.push({d, x: (r() - .5) * 470, y: (r() - .5) * 500, dx: (r() - .5) * 50, dy: (r() - .5) * 50});
+  }
+  dots.forEach((o, i) => {
+    tl.fromTo(o.d, {autoAlpha: 0, x: 0, y: 0, scale: 0}, {autoAlpha: 1, x: o.x, y: o.y, scale: 1, duration: 1.6, ease: 'expo.out'}, 29.0 + (i % 40) * .03);
+    tl.to(o.d, {x: o.x + o.dx, y: o.y + o.dy, duration: 3.5, ease: 'sine.inOut'}, 30.6);
+  });
+  head('…but only *36 swaps* for the whole season.', 33.8, 38.6);
+  for (let i = 0; i < 36; i++) {
+    const gx = (i % 6) * 62 - 155, gy = Math.floor(i / 6) * 62 - 190;
+    tl.to(dots[i].d, {x: gx + 5, y: gy + 20, width: 44, height: 44, background: '#2CC28B', duration: 1.1, ease: 'back.out(1.4)'}, 34.2 + i * .015);
+  }
+  tl.to(dots.slice(36).map(o => o.d), {scale: 0, opacity: 0, duration: .6, stagger: .003, ease: 'power2.in'}, 34.1);
+  const lbl = el('lab', s, '36 SWAPS · OCTOBER → APRIL', {left: 0, right: 0, top: '820px', fontSize: '26px', color: 'var(--aqua)'});
+  tl.fromTo(lbl, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: .5}, 35.4);
+  head('So every swap counts. *Which* *one?* *And* *when?*', 38.8, 41.9);
+  tl.to(lbl, {opacity: 0, duration: .4}, 38.6);
+  tl.fromTo(dots.slice(0, 36).map(o => o.d), {scale: 1}, {scale: 1.15, duration: .3, yoyo: true, repeat: 1, stagger: {each: .02, from: 'center'}}, 39.2);
+  tl.to(dots.slice(0, 36).map(o => o.d), {scale: 0, duration: .4, stagger: .008, ease: 'back.in(2)'}, 41.3);
+}
+
+// === S4 The Assistant GM (42-64) ============================================
+{
+  const s = scene(); show(s, 42.0, 64.1);
+  const ray = el('ray', s, '', {left: '70px', top: '280px', width: '400px', height: '400px'});
+  const logo = el('logo', s, 'GM', {left: '190px', top: '400px', width: '160px', height: '160px', fontSize: '74px'});
+  tl.fromTo(logo, {scale: 0, rotation: -180}, {scale: 1, rotation: 0, duration: 1.2, ease: 'elastic.out(1,.55)'}, 42.2);
+  tl.fromTo(ray, {scale: 0, rotation: 0, opacity: 0}, {scale: 1, rotation: 160, opacity: 1, duration: 4, ease: 'power2.out'}, 42.2);
+  head('Meet your *Assistant GM.*', 42.7, 46.3, {top: 640, size: 48, align: 'center'});
+  tl.to([logo, ray], {scale: 0, opacity: 0, duration: .45, ease: 'back.in(2)'}, 45.9);
+  // every night, simulated
+  head('It plays out *every* *night* of your week…', 46.5, 52.6);
+  const gauge = el('abs', s, `<svg width="300" height="170" viewBox="0 0 300 170">
+      <path d="M20 160 A130 130 0 0 1 280 160" fill="none" stroke="#1E2E48" stroke-width="24" stroke-linecap="round"/>
+      <path id="garc" d="M20 160 A130 130 0 0 1 280 160" fill="none" stroke="#2CC28B" stroke-width="24" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/></svg>
+      <div class="num" id="gnum" style="position:absolute;left:0;right:0;top:78px;text-align:center;font-size:76px;line-height:1">45%</div>
+      <div style="position:absolute;left:0;right:0;top:162px;text-align:center;color:var(--text2);font-size:15px;font-weight:600">chance to win this week</div>`,
+    {left: '120px', top: '270px', width: '300px', height: '190px'});
+  tl.fromTo(gauge, {opacity: 0, scale: .7}, {opacity: 1, scale: 1, duration: .6, ease: 'back.out(1.8)'}, 46.8);
+  const gp = {p: 0}, gnum = document.getElementById('gnum'), garc = document.getElementById('garc');
+  const gset = p => { const v = 45 + (1 - p) * (Math.sin(p * 31) * 18 + Math.sin(p * 71) * 6);
+    gnum.textContent = Math.round(v) + '%'; garc.setAttribute('stroke-dasharray', v + ' 100'); };
+  gset(0);
+  tl.fromTo(gp, {p: 0}, {p: 1, duration: 4.2, ease: 'power1.in', onUpdate: () => gset(gp.p)}, 47.2);
+  tl.fromTo(gnum, {scale: 1}, {scale: 1.2, duration: .25, yoyo: true, repeat: 1}, 51.4);
+  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'], games = [7, 6, 5, 8, 3, 8, 7];
+  const cal = el('abs', s, '', {left: '30px', top: '500px', width: '480px', height: '380px'});
+  const scan = el('abs', cal, '', {left: 0, top: 0, width: '6px', height: '360px', background: 'var(--aqua)', boxShadow: '0 0 24px 6px rgba(44,194,139,.6)', borderRadius: '3px'});
+  const cols = [];
+  days.forEach((d, i) => {
+    const x = i * 68 + 8;
+    el('lab', cal, d, {left: x + 'px', width: '56px', top: '0px', fontSize: '19px'});
+    cols.push(Array.from({length: 8}, (_, j) => el('dot', cal, '', {left: (x + 16) + 'px', top: (36 + j * 38) + 'px', width: '24px', height: '24px', border: '2px solid #2A3E62'})));
+  });
+  tl.fromTo(cal, {opacity: 0, y: 40}, {opacity: 1, y: 0, duration: .6}, 47.0);
+  tl.fromTo(scan, {x: 0, opacity: 0}, {x: 470, opacity: 1, duration: 4.0, ease: 'none'}, 47.3);
+  tl.to(scan, {opacity: 0, duration: .2}, 51.3);
+  cols.forEach((ds, i) => {
+    const t = 47.3 + i * 4.0 / 7 + .2;
+    ds.forEach((dd, j) => {
+      if (j < games[i]) tl.to(dd, {background: j % 4 === 3 ? '#2CC28B' : '#4D9BF0', borderColor: 'transparent', duration: .25, ease: 'back.out(3)'}, t + j * .04);
+    });
+  });
+  const ahead = el('lab', s, '+ THE NEXT TWO WEEKS, VS THE REAL OPPONENTS', {left: 0, right: 0, top: '880px', fontSize: '20px', color: 'var(--aqua)'});
+  tl.fromTo(ahead, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: .5}, 51.0);
+  tl.to([gauge, cal, ahead], {opacity: 0, y: -40, duration: .45, ease: 'power2.in'}, 52.3);
+  // every swap, tested
+  head('…then tests *every* *swap* you could make.', 52.8, 60.0);
+  const wall = el('abs', s, '', {left: '45px', top: '320px', width: '450px', height: '430px'});
+  const r2 = rng(21), status = Array.from({length: 201}, (_, i) => i < 3 ? 'plan' : i < 16 ? 'pass' : 'fail');
+  for (let i = status.length - 1; i > 0; i--) { const j = Math.floor(r2() * (i + 1)); [status[i], status[j]] = [status[j], status[i]]; }
+  const mid = 7 * 15 + 7; const pi = status.indexOf('plan'); [status[pi], status[mid]] = [status[mid], status[pi]];
+  const tiles = status.map((st, i) => el('tile', wall, '', {left: (i % 15) * 30 + 'px', top: Math.floor(i / 15) * 30 + 'px'}));
+  tl.fromTo(tiles, {scale: 0, opacity: 0}, {scale: 1, opacity: 1, duration: .5, ease: 'back.out(2.5)', stagger: {each: .005, grid: [14, 15], from: 'center'}}, 53.3);
+  tiles.forEach((tile, i) => {
+    const st = status[i], t = 54.6 + (i / 201) * 2.8;
+    tl.to(tile, {rotationY: 180, background: st === 'plan' ? '#2CC28B' : st === 'pass' ? '#4D9BF0' : '#2A3448', duration: .3, ease: 'none'}, t);
+    if (st === 'plan') tl.to(tile, {boxShadow: '0 0 18px 4px rgba(44,194,139,.8)', scale: 1.25, duration: .25}, t + .3);
+  });
+  const ctr = el('abs', s, `<div class="num" style="font-size:66px;line-height:1"><span id="tct">0</span> <span style="font-size:30px;color:var(--text2)">SWAPS TESTED</span></div>
+     <div style="display:flex;gap:16px;margin-top:10px;font-size:15px;font-weight:600;color:var(--text2)">
+     <span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2A3448;margin-right:6px"></i>not worth it</span>
+     <span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#4D9BF0;margin-right:6px"></i>close</span>
+     <span><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2CC28B;margin-right:6px"></i>the plan</span></div>`,
+    {left: '45px', top: '760px'});
+  tl.fromTo(ctr, {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .5}, 54.0);
+  count(document.getElementById('tct'), 0, 201, 54.6, 2.9, {ease: 'none'});
+  tl.to(tiles.filter((_, i) => i !== mid), {opacity: 0, scale: 0, duration: .6, stagger: {each: .002, from: mid}, ease: 'power2.in'}, 59.6);
+  tl.to(ctr, {opacity: 0, duration: .4}, 59.6);
+  tl.to(tiles[mid], {scale: 14, opacity: 0, duration: .7, ease: 'power2.in'}, 60.3);
+  head('The best one becomes *the* *plan.*', 60.3, 64.0);
+  const mc = el('tgcard', s, `<div class="day" style="font-size:22px">THU 22 OCT · TODAY</div>
+     <div class="mv" style="font-size:28px;margin-top:12px"><span class="badge add" style="width:32px;height:32px;font-size:24px">+</span>Martin Pospisil</div>
+     <div class="mv" style="font-size:28px;color:var(--text2);margin-top:10px"><span class="badge drop" style="width:32px;height:32px;font-size:24px">−</span>Leevi Meriläinen</div>`,
+    {left: '36px', right: '36px', top: '330px', padding: '22px'});
+  tl.fromTo(mc, {scale: .2, opacity: 0}, {scale: 1, opacity: 1, duration: .8, ease: 'back.out(1.6)'}, 60.8);
+  tl.to(mc, {opacity: 0, y: -30, duration: .4}, 63.7);
+}
+
+// === S5 Inside one move (64-94) =============================================
+{
+  const s = scene(); show(s, 64.0, 94.1);
+  tag('INSIDE ONE MOVE', 64.2, 93.8);
+  head('Let’s open that move.', 64.4, 68.6);
+  // two player profiles
+  const prof = (top, add, name, sub, big, bigLab) => el('tgcard', s, `
+      <div class="mv" style="font-size:26px;margin:0"><span class="badge ${add ? 'add' : 'drop'}" style="width:30px;height:30px;font-size:22px">${add ? '+' : '−'}</span>${name}</div>
+      <div style="color:var(--text2);font-size:16px;font-weight:600;margin:6px 0 0 38px">${sub}</div>
+      <div style="position:absolute;right:20px;top:16px;text-align:right"><div class="num" style="font-size:46px;line-height:1;color:${add ? 'var(--aqua)' : 'var(--text)'}">${big}</div>
+      <div style="font-size:13px;color:var(--text2);font-weight:600">${bigLab}</div></div>`,
+    {left: '36px', right: '36px', top: top + 'px', padding: '18px 20px', height: '96px'});
+  const pin = prof(300, true, 'Martin Pospisil', 'Forward · Calgary · hits a lot', '4.7', 'points a game');
+  const pout = prof(410, false, 'Leevi Meriläinen', 'Goalie · Vancouver · the backup', '46%', 'of games he starts');
+  tl.fromTo(pin, {x: 560}, {x: 0, duration: .8, ease: 'back.out(1.3)'}, 64.9);
+  tl.fromTo(pout, {x: -560}, {x: 0, duration: .8, ease: 'back.out(1.3)'}, 65.4);
+  // night by night, three weeks: Thu 22 Oct - Sun 8 Nov
+  head('Night by night, over three weeks: *Pospisil* *plays* *10* *games*, Meriläinen *maybe* *3* *or* *4*.', 68.8, 77.6, {size: 34});
+  const grid = el('abs', s, '', {left: '36px', top: '560px', width: '468px', height: '260px'});
+  const cw = 26;
+  [['THIS WK', 0, 4], ['NEXT WEEK', 4, 7], ['WEEK AFTER', 11, 7]].forEach(([n, a, len]) => {
+    el('lab', grid, n, {left: (a * cw) + 'px', width: (len * cw - 6) + 'px', top: '0px', fontSize: '15px', borderBottom: '2px solid #2A3E62', paddingBottom: '4px'});
+  });
+  const inDays = [0, 2, 4, 6, 8, 9, 11, 13, 15, 17];
+  const outP = {0: .31, 3: .42, 5: .42, 7: .46, 9: .46, 12: .46, 14: .46, 16: .49};
+  const rowIn = el('abs', grid, '', {left: 0, top: '40px', width: '468px', height: '30px'});
+  const rowOut = el('abs', grid, '', {left: 0, top: '110px', width: '468px', height: '30px'});
+  el('abs', grid, '<span class="badge add">+</span>', {left: '-2px', top: '76px'}).style.display = 'none';
+  const inDots = inDays.map(i => el('dot', rowIn, '', {left: (i * cw + 2) + 'px', top: 0, width: '22px', height: '22px', background: 'var(--aqua)'}));
+  const outDots = Object.entries(outP).map(([i, p]) => el('dot', rowOut, '', {left: (i * cw + 2) + 'px', top: 0, width: '22px', height: '22px',
+    background: `conic-gradient(#B7C2D3 0 ${p * 100}%, #2A3448 ${p * 100}% 100%)`}));
+  const gl1 = el('abs', grid, '<b class="num" id="gin" style="font-size:40px;color:var(--aqua)">0</b> <span style="color:var(--text2);font-weight:600">games for Pospisil</span>', {left: 0, top: '160px'});
+  const gl2 = el('abs', grid, '<b class="num" style="font-size:40px">3–4</b> <span style="color:var(--text2);font-weight:600">starts for Meriläinen (pie = chance he starts)</span>', {left: 0, top: '210px'});
+  tl.fromTo(grid, {opacity: 0}, {opacity: 1, duration: .4}, 69.4);
+  tl.fromTo(inDots, {scale: 0}, {scale: 1, duration: .4, stagger: .28, ease: 'back.out(3)'}, 70.0);
+  count(document.getElementById('gin'), 0, 10, 70.0, 2.8, {ease: 'none'});
+  tl.fromTo(gl1, {opacity: 0}, {opacity: 1, duration: .3}, 70.0);
+  tl.fromTo(outDots, {scale: 0, rotation: -90}, {scale: 1, rotation: 0, duration: .4, stagger: .3, ease: 'back.out(3)'}, 73.2);
+  tl.fromTo(gl2, {opacity: 0}, {opacity: 1, duration: .3}, 73.4);
+  tl.to([pin, pout, grid], {opacity: 0, y: -40, duration: .45, stagger: .05}, 77.3);
+  // what it's worth, week by week (win-points: 1 = +1% chance to win that week)
+  head('What it adds to your *chance* *to* *win*, week by week:', 77.8, 93.8, {size: 36});
+  const W = 468, sc = W / 22;
+  const fall = el('abs', s, '', {left: '36px', top: '270px', width: W + 'px', height: '560px'});
+  const rows = [['This week', 'vs Puck Bandits', '45% → 47%', 0, 1.9, 'var(--aqua)'],
+                ['Next week', 'vs North Stars', '47% → 58%', 1.9, 12.5, 'var(--aqua)'],
+                ['The week after', 'vs Slapshot City', '47% → 55%', 12.5, 20.8, 'var(--aqua)'],
+                ['Later this season', 'the rest of the season', '−1', 20.8, 19.4, 'var(--orange)']];
+  rows.forEach(([n, sub, v, a, b, col], i) => {
+    const y = i * 92;
+    const lab = el('abs', fall, `<span style="font-weight:700;font-size:18px">${n}</span> <span style="color:var(--text2);font-size:14px;font-weight:600">${sub}</span>`, {left: 0, top: y + 'px'});
+    const val = el('num', fall, v, {position: 'absolute', right: 0, top: (y - 6) + 'px', fontSize: '28px', color: col});
+    const bar = el('abs', fall, '', {left: Math.min(a, b) * sc + 'px', top: (y + 30) + 'px', width: Math.abs(b - a) * sc + 'px', height: '34px', borderRadius: '8px',
+      background: col, transformOrigin: (b >= a ? '0' : '100%') + ' 50%'});
+    const t = 79.0 + i * 1.8;
+    tl.fromTo([lab, val], {opacity: 0, x: 30}, {opacity: 1, x: 0, duration: .5, stagger: .1}, t);
+    tl.fromTo(bar, {scaleX: 0}, {scaleX: 1, duration: .8, ease: 'power3.out'}, t + .3);
+    if (i < 3) {
+      const link = el('abs', fall, '', {left: b * sc + 'px', top: (y + 64) + 'px', width: 0, height: '58px', borderLeft: '2px dotted #4A5D7E'});
+      tl.fromTo(link, {opacity: 0}, {opacity: 1, duration: .4}, t + 1.0);
+    }
+  });
+  // total, against the bar
+  const tot = el('abs', fall, `<span style="font-weight:800;font-size:20px">In all</span>`, {left: 0, top: '372px'});
+  const totN = el('num', fall, '+0', {position: 'absolute', right: 0, top: '362px', fontSize: '40px', color: 'var(--aqua)'});
+  const totBar = el('abs', fall, '', {left: 0, top: '408px', width: 19.4 * sc + 'px', height: '44px', borderRadius: '10px', background: 'linear-gradient(90deg,#22508A,#2CC28B)', transformOrigin: '0 50%'});
+  tl.fromTo([tot, totN], {opacity: 0}, {opacity: 1, duration: .4}, 86.4);
+  tl.fromTo(totBar, {scaleX: 0}, {scaleX: 1, duration: 1.0, ease: 'power2.inOut'}, 86.6);
+  count(totN, 0, 19, 86.6, 1.0, {pre: '+', ease: 'power2.inOut'});
+  const unit = el('abs', fall, '<span style="color:var(--text2);font-size:14px;font-weight:600">win-points: 1 = +1% chance to win a week</span>', {left: 0, top: '500px'});
+  tl.fromTo(unit, {opacity: 0}, {opacity: 1, duration: .4}, 87.0);
+  const line = el('abs', fall, '', {left: 13 * sc + 'px', top: '396px', width: 0, height: '68px', borderLeft: '3px dashed #fff'});
+  const ll = el('abs', fall, '<span class="num" style="font-size:22px;white-space:nowrap;background:#0B1422;padding:2px 6px">THE BAR: 13</span>', {left: (13 * sc - 50) + 'px', top: '464px'});
+  tl.fromTo([line, ll], {opacity: 0}, {opacity: 1, duration: .5}, 88.0);
+  tl.fromTo(line, {scaleY: 0, transformOrigin: '50% 0'}, {scaleY: 1, duration: .6}, 88.0);
+  const verdict = el('tgcard', s, `<div style="display:flex;align-items:center;gap:14px"><div style="width:52px;height:52px;border-radius:50%;background:var(--aqua);color:#06281c;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900">✓</div>
+      <div><div class="day" style="font-size:20px">DO IT TODAY · THU 22 OCT</div><div style="color:var(--text2);font-size:15px;font-weight:600">19 clears the bar of 13. Wait, and a rival may grab him.</div></div></div>`,
+    {left: '36px', right: '36px', top: '808px'});
+  tl.fromTo(verdict, {y: 80, opacity: 0}, {y: 0, opacity: 1, duration: .6, ease: 'back.out(1.6)'}, 89.4);
+  confetti(s, 70, 838, 89.8, 14, 41);
+  tl.to([fall, verdict], {opacity: 0, y: -30, duration: .4}, 93.6);
+}
+
+// === S6 Spending swaps (94-102) =============================================
+{
+  const s = scene(); show(s, 94.0, 102.1);
+  tag('SPENDING SWAPS WISELY', 94.2, 101.8);
+  head('The bar rises if you spend too fast. *6* *swaps* *stay* *saved* *for* *the* *playoffs.*', 94.4, 101.9, {size: 36});
+  const grid = el('abs', s, '', {left: '84px', top: '360px', width: '372px', height: '372px'});
+  const tk = Array.from({length: 36}, (_, i) => el('tok', grid, '', {left: (i % 6) * 62 + 'px', top: Math.floor(i / 6) * 62 + 'px'}));
+  tl.fromTo(tk, {scale: 0}, {scale: 1, duration: .5, stagger: {each: .015, from: 'random'}, ease: 'back.out(2.5)'}, 94.8);
+  tk.slice(0, 5).forEach((u, i) => tl.to(u, {scale: 0, opacity: 0, duration: .3, ease: 'back.in(3)'}, 96.0 + i * .25));
+  const left = el('abs', s, `<span class="num" id="lft" style="font-size:64px;color:var(--aqua)">36</span> <span class="num" style="font-size:30px;color:var(--text2)">LEFT</span>`, {left: '84px', top: '750px'});
+  tl.fromTo(left, {opacity: 0}, {opacity: 1, duration: .4}, 95.4);
+  count(document.getElementById('lft'), 36, 31, 96.0, 1.3, {ease: 'none'});
+  tl.to(tk.slice(30), {background: '#5A3A2A', duration: .4, stagger: .08}, 97.8);
+  const kl = el('abs', s, `<span class="num" style="font-size:28px;color:var(--orangeInk)">6 FOR THE PLAYOFFS</span>`, {right: '84px', top: '772px'});
+  tl.fromTo(kl, {opacity: 0, x: 30}, {opacity: 1, x: 0, duration: .5}, 98.1);
+  tl.to([grid, left, kl], {opacity: 0, y: -30, duration: .4}, 101.6);
+}
+
+// === S7 Your day (102-113) ==================================================
+{
+  const s = scene(); show(s, 102.0, 113.1);
+  tag('YOUR DAY', 102.2, 112.8);
+  head('You make the move in Yahoo, then *tap* *Done.*', 102.4, 107.6);
+  const ph = phone(s);
+  tl.fromTo(ph, {y: 700}, {y: 0, duration: .9, ease: 'back.out(1.2)'}, 102.5);
+  const card = el('tgcard', ph, `<div class="day">THU 22 OCT · TODAY</div>
+    <div class="mv"><span class="badge add">+</span>Martin Pospisil</div>
+    <div class="mv" style="color:var(--text2)"><span class="badge drop">−</span>Leevi Meriläinen</div>
+    <div class="btns"><div class="btn" id="bdone">Done</div><div class="btn">Taken</div><div class="btn">Skip</div></div>`, {top: '96px'});
+  tl.fromTo(card, {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .5}, 103.2);
+  const finger = el('abs', s, '', {left: '300px', top: '820px', width: '54px', height: '54px', borderRadius: '50%', background: 'rgba(255,255,255,.85)', boxShadow: '0 6px 20px rgba(0,0,0,.5)'});
+  gsap.set(finger, {autoAlpha: 0});
+  tl.fromTo(finger, {autoAlpha: 0, x: 0, y: 0}, {autoAlpha: 1, x: -128, y: -300, duration: 1.0, ease: 'power2.inOut'}, 104.2);
+  tl.to(finger, {scale: .75, duration: .12, yoyo: true, repeat: 1}, 105.3);
+  const ripple = el('abs', s, '', {left: '170px', top: '521px', width: '54px', height: '54px', borderRadius: '50%', border: '3px solid var(--aqua)'});
+  gsap.set(ripple, {autoAlpha: 0});
+  tl.fromTo(ripple, {autoAlpha: 1, scale: .5}, {autoAlpha: 0, scale: 3, duration: .7, immediateRender: false}, 105.35);
+  tl.to('#bdone', {background: '#2CC28B', color: '#06281c', duration: .15}, 105.4);
+  tl.set('#bdone', {textContent: '✓ Done'}, 105.45);
+  confetti(s, 197, 548, 105.4, 16, 51);
+  tl.to(finger, {autoAlpha: 0, y: -240, x: -60, duration: .5}, 106.2);
+  head('Send a screenshot of Yahoo: *it* *reads* *the* *live* *score.*', 107.8, 112.9);
+  const shot = el('abs', ph, `<div style="height:10px;width:60%;background:#3A4A63;border-radius:4px"></div>
+     <div style="display:flex;justify-content:space-between;margin-top:10px"><b class="num" style="font-size:28px;color:var(--blueInk)">61</b><b class="num" style="font-size:28px;color:var(--orangeInk)">94</b></div>
+     <div style="height:8px;width:80%;background:#2A3448;border-radius:4px;margin-top:8px"></div><div style="height:8px;width:70%;background:#2A3448;border-radius:4px;margin-top:6px"></div>`,
+    {right: '14px', top: '296px', width: '130px', height: '110px', borderRadius: '12px', background: '#E9EEF5', padding: '10px', border: '3px solid #fff'});
+  tl.fromTo(shot, {x: 260, y: 300, rotation: 20, scale: 1.3}, {x: 0, y: 0, rotation: 0, scale: 1, duration: .9, ease: 'back.out(1.3)'}, 108.4);
+  const typing = el('bubble', ph, '• • •', {left: '12px', top: '420px', background: 'var(--card)', color: 'var(--text2)'});
+  gsap.set(typing, {autoAlpha: 0});
+  tl.to(typing, {autoAlpha: 1, duration: .2}, 109.5);
+  tl.fromTo(typing, {opacity: .4}, {opacity: 1, duration: .25, yoyo: true, repeat: 3}, 109.6);
+  tl.set(typing, {autoAlpha: 0}, 110.6);
+  const rep = el('bubble', ph, `<div class="day" style="font-size:15px">LIVE · 4 NIGHTS LEFT</div>
+     <div class="num" style="font-size:36px;line-height:1.1"><span style="color:var(--blueInk)">61</span> – <span style="color:var(--orangeInk)">94</span></div>
+     <div style="color:var(--text2)">You have more games left: <b style="color:var(--aqua)">45% to win</b></div>`,
+    {left: '12px', right: '40px', top: '420px', background: 'var(--card)', border: '1px solid #24395E'});
+  tl.fromTo(rep, {scale: 0, opacity: 0, transformOrigin: '0 0'}, {scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)'}, 110.6);
+  tl.to(ph, {y: 760, duration: .6, ease: 'power3.in'}, 112.5);
+}
+
+// === S8 Close (113-120) =====================================================
+{
+  const s = scene(); show(s, 113.0, 120.1);
+  [['One plan.', '#fff'], ['The right day.', '#fff'], ['Better odds.', 'var(--aqua)']].forEach(([w, c], i) => {
+    const e = el('slam', s, w, {top: (150 + i * 82) + 'px', fontSize: '80px', color: c});
+    gsap.set(e, {autoAlpha: 0});
+    tl.fromTo(e, {autoAlpha: 0, scale: 2.4}, {autoAlpha: 1, scale: 1, duration: .5, ease: 'expo.out'}, 113.3 + i * .8);
+    shake(113.55 + i * .8, 5, 4);
+  });
+  const ray = el('ray', s, '', {left: '120px', top: '460px', width: '300px', height: '300px'});
+  const logo = el('logo', s, 'GM', {left: '200px', top: '540px', width: '140px', height: '140px', fontSize: '64px'});
+  tl.fromTo(logo, {scale: 0, rotation: -180}, {scale: 1, rotation: 0, duration: 1.0, ease: 'elastic.out(1,.55)'}, 115.8);
+  tl.fromTo(ray, {scale: 0, opacity: 0, rotation: 0}, {scale: 1, opacity: 1, rotation: 140, duration: 4, ease: 'power2.out'}, 115.8);
+  const wm = el('slam', s, '', {top: '720px', fontSize: '40px', letterSpacing: '.06em'});
+  const letters = [...'FANTASY NHL ASSISTANT GM'].map(c => el('', wm, c === ' ' ? '&nbsp;' : c, {display: 'inline-block'}));
+  tl.fromTo(letters, {y: 40, opacity: 0}, {y: 0, opacity: 1, duration: .4, stagger: .035, ease: 'back.out(2.5)'}, 116.4);
+  const sub = el('abs', s, 'An assistant coach for head-to-head fantasy hockey', {left: '40px', right: '40px', top: '780px', textAlign: 'center', fontSize: '19px', fontWeight: 600, color: 'var(--text2)'});
+  tl.fromTo(sub, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: .6}, 117.4);
+  const black = el('abs', L, '', {left: 0, top: 0, width: '540px', height: '960px', background: '#05090F'});
+  gsap.set(black, {autoAlpha: 0});
+  tl.to(black, {autoAlpha: 1, duration: .9, ease: 'power1.in'}, 119.1);
+}
+
+tl.seek(0);
+window.seek = t => { tl.seek(t, false); };
+window.DURATION = T;
+window.ready = document.fonts.ready.then(() => true);
+const q = new URLSearchParams(location.search);
+if (q.has('t')) tl.seek(+q.get('t'), false);
+if (q.has('play')) tl.play(+q.get('play') || 0);
+</script>
+</body></html>
