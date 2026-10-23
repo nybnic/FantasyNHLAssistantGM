@@ -36,6 +36,14 @@ a streamer's hold may end at a week boundary, so a bad week after it doesn't
 count against him, and that Monday he is offered as a drop). One variant is the
 reference; the others are reported as wins a season vs it (+/- SE, paired).
 
+The audit (--audit; step 0 of replacing the keep share with tenure, Nico 2026-10-23):
+each move a variant makes, with its predicted parts on its Monday (points this week,
+in each week ahead, later; the keep share, the 6-week rate), against what it
+brought week by week while it stood (the real score against the same roster with
+that one swap undone, until the add leaves), and how long the adds stayed: by
+keep share, by the swap's kind (a forward for a D...), by the 6-week rate, and the
+values against the wins they added.
+
 Simplifications, labeled: single NHL positions (Yahoo gives many two); goalie
 starts at each goalie's share of his team's last 10 (no form, no confirmed
 starters); decisions on Mondays only; each team manages alone (the free-agent pool
@@ -45,6 +53,7 @@ ignores the other teams' pickups); no IR slots; lineups set knowing who plays.
     python -m scripts.replay --leagues 8 --workers 4
     python -m scripts.replay --variants "ramp 1.0" "switch" "spots 2"
     python -m scripts.replay --variants "live price" "pace 0.08" --reference "live price"
+    python -m scripts.replay --variants "pace 0.08 k2" --reference "pace 0.08 k2" --audit
 """
 from __future__ import annotations
 
@@ -387,9 +396,11 @@ def best_goalie(s: Season, m: dt.date, taken: set[int]) -> int | None:
                 if q not in taken and s.share(q, m) >= 0.3), default=(0, None))[1]
 
 
-def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
-    """One league: every team managed under every variant. Returns wins, points and adds per (team, variant)."""
-    league_no, seed, names, managed, price_all = args
+def run_league(args: tuple) -> dict:
+    """One league: every team managed under every variant. Returns wins, points and adds per (team,
+    variant), and with `audit` each move's predicted parts and what it brought (realized)."""
+    league_no, seed, names, managed, price_all, *rest = args
+    audit = bool(rest and rest[0])
     s = Season()
     OPP_WEEKS.clear()
     rng = random.Random(seed * 1000 + league_no)
@@ -424,6 +435,7 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
             picks, prices, tops = [], [], []  # the live price's simulated Monday pools; each Monday's price; best two
             exits = {}  # add -> the Monday his planned exit is due
             mine_taken = set(drafted)
+            made, by_week, scores = [], [], []  # the audit's moves, rosters and scores by week
             for w, m in enumerate(mondays):
                 if w:  # forced like the lazy managers: a goalie who lost his role
                     for i, pid in enumerate(list(roster)):
@@ -439,9 +451,10 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                         break
                     leaving = {pid for pid, due in exits.items() if due <= m}
                     collect = {} if price is None else None
+                    parts = {} if audit else None
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
                                      discount, n_weeks, used, EXITS.get(name), price if price is not None else PRICE,
-                                     leaving, name not in SKATERS_ONLY, collect)
+                                     leaving, name not in SKATERS_ONLY, collect, parts)
                     if price is None:  # the Monday's price, before its first move
                         tops.append((w, *collect.get("top", (None, None))))
                         price = monday_price(rule, used, w, n_weeks, picks, collect if rule[0] == "live" else None)
@@ -452,6 +465,8 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                     roster[roster.index(drop)] = add
                     mine_taken.add(add)
                     used += 1
+                    if audit:
+                        made.append((w, add, drop, parts))
                     done += drop in leaving
                     exits.pop(drop, None)
                     if due:
@@ -460,7 +475,11 @@ def run_league(args: tuple[int, int, list[str], int, float | None]) -> dict:
                 score = actual(s, roster, m)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
-            out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices, tops)
+                by_week.append(list(roster))
+                scores.append(score)
+            moves = realized(s, made, by_week, mondays, scores, [lazy_score[w][pairs[w][t]] for w in range(n_weeks)]) \
+                if audit else None
+            out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices, tops, moves)
         print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
     return out
 
@@ -532,17 +551,153 @@ def keep_of(keep_rule, add, drop, spot_ids: set[int], line: float, levels: dict,
     return min(max((gap - line) / keep_rule, 0.0), 1.0)
 
 
+def swap_kind(s: Season, add: int, drop: int) -> str:
+    """What a swap does to the roster's shape: a goalie in it, the same position, or another."""
+    if add in s.goalie_ids or drop in s.goalie_ids:
+        return "goalie"
+    pa, pd = s.position[add], s.position[drop]
+    if pa == pd:
+        return "same position"
+    if "D" in (pa, pd):
+        return "D for a forward" if pa == "D" else "forward for a D"
+    return "forward, other position"
+
+
+def predicted_parts(s: Season, m: dt.date, add, drop, keep: float, gain: dict, week_gain: float, now: float,
+                    future: list[dt.date], ahead: list, weeks_after: int, later_weight: float, hold_days: int,
+                    value: float) -> dict:
+    """The audit's record of a move as the valuation saw it on its Monday (the full hold:
+    planned exits aside): points this week, in each week ahead as counted, and later
+    (keep share, hold and LONG_RUN_DISCOUNT applied), the 6-week rate behind them, the
+    weeks the rate is multiplied over, and the value in wins."""
+    ahead_wins, ahead_pts, later = matchup.horizon(gain, {d: None for d in future}, ahead, weeks_after,
+                                                   later_weight, set(future[:hold_days]), keep)
+    games = lambda pid: sum(1 for d in future if d in s.team_days[s.team(pid, m)])
+    return {"value": value, "now": now, "week_pts": week_gain, "ahead_wins": list(ahead_wins),
+            "ahead_pts": list(ahead_pts), "later_pts": later, "later_weight": later_weight,
+            "rate": sum(gain.get(d, 0.0) for d in future) / (len(future) / 7),
+            "weeks_later": max(weeks_after - len(ahead), 0), "keep": keep, "hold_weeks": hold_days / 7,
+            "kind": swap_kind(s, add.id, drop.id),
+            "edge": (games(add.id) - games(drop.id)) / (len(future) / 7)}
+
+
+def realized(s: Season, made: list, rosters: list[list[int]], mondays: list[dt.date], scores: list[float],
+             opponents: list[float]) -> list[dict]:
+    """What each move brought, week by week from its Monday for as long as it stood (the
+    add still on the roster, the drop not back): the week's real score against the same
+    roster with that one swap undone, in points and in wins against the week's opponent
+    (as the scoreboard judges the live moves: each against the team just before it)."""
+    out = []
+    for w, add, drop, parts in made:
+        by_week, wins = [], 0
+        for j in range(w, len(mondays)):
+            if add not in rosters[j] or drop in rosters[j]:
+                break
+            alt = actual(s, [drop if p == add else p for p in rosters[j]], mondays[j])
+            by_week.append(scores[j] - alt)
+            wins += (scores[j] > opponents[j]) - (alt > opponents[j])
+        out.append({**parts, "week": w, "weeks_left": len(mondays) - w, "held": len(by_week),
+                    "real": by_week, "real_wins": wins})
+    return out
+
+
+def _mean_se(xs: list[float]) -> tuple[float, float]:
+    if not xs:
+        return 0.0, 0.0
+    mu = mean(xs)
+    return mu, ((sum((x - mu) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5 / math.sqrt(len(xs)) if len(xs) > 1 else 0.0)
+
+
+def _ratio(real: float, pred: float) -> str:
+    return f"{real / pred:5.2f}" if abs(pred) > 1e-9 else "    -"
+
+
+def audit_report(name: str, records: list[dict]) -> str:
+    """Step 0 of the tenure plan (Nico, 2026-10-23: "not an arbitrary value deciding whether
+    value counts short term or the full season"): the moves the policy made, what the
+    valuation predicted for each part (this week, the weeks ahead, later) against what
+    they brought while they stood, how long the adds stayed by keep share and by the
+    swap's kind, whether the 6-week rate carries over to the weeks after, and whether the
+    values come true in wins. Points per move; later = weeks 3 on."""
+    if not records:
+        return f"\n## Audit: {name}\n(no moves)"
+    out = [f"\n## Audit: {name}, {len(records)} moves", "",
+           "Points per move, predicted (as valued) vs realized (+/- SE) while the swap stood"]
+    parts = (("this week", lambda r: r["week_pts"], lambda r: r["real"][0] if r["real"] else 0.0),
+             ("week +1", lambda r: (r["ahead_pts"] + [0, 0])[0], lambda r: (r["real"] + [0] * 3)[1]),
+             ("week +2", lambda r: (r["ahead_pts"] + [0, 0])[1], lambda r: (r["real"] + [0] * 3)[2]),
+             ("later", lambda r: r["later_pts"], lambda r: sum(r["real"][3:])))
+    for label, pred, real in parts:
+        p, (x, se) = mean(pred(r) for r in records), _mean_se([real(r) for r in records])
+        out.append(f"  {label:10} predicted {p:+7.2f}   realized {x:+7.2f} ({se:.2f})   ratio {_ratio(x, p)}")
+    full = mean(r["rate"] * r["weeks_later"] for r in records)
+    out.append(f"  later, the 6-week rate x the weeks after the two ahead (no keep share, no discount): {full:+.2f}")
+
+    def table(title: str, key, order=None) -> None:
+        groups = defaultdict(list)
+        for r in records:
+            groups[key(r)].append(r)
+        out.extend(["", title, f"  {'':24}{'n':>6}{'later pred':>11}{'real':>8}{'ratio':>7}{'rate':>7}"
+                               f"{'real/wk':>8}{'held wks':>9}{'3+':>6}{'6+':>6}{'12+':>6}"])
+        for g in order or sorted(groups):
+            rs = groups.get(g)
+            if not rs:
+                continue
+            p, x = mean(r["later_pts"] for r in rs), mean(sum(r["real"][3:]) for r in rs)
+            long = [r for r in rs if r["held"] > 3]
+            per_week = mean(sum(r["real"][3:]) / (r["held"] - 3) for r in long) if long else 0.0
+            stay = []
+            for k in (3, 6, 12):
+                could = [r for r in rs if r["weeks_left"] >= k]
+                stay.append(f"{sum(r['held'] >= k for r in could) / len(could):6.0%}" if could else "     -")
+            out.append(f"  {g:24}{len(rs):6}{p:+11.2f}{x:+8.2f}{_ratio(x, p):>7}{mean(r['rate'] for r in rs):+7.2f}"
+                       f"{per_week:+8.2f}{mean(r['held'] for r in rs):9.1f}" + "".join(stay))
+
+    keep_bucket = lambda r: ("keep 0 (streamer)" if r["keep"] <= 0 else "keep 1 (keeper)" if r["keep"] >= 1
+                             else "keep 0-0.5" if r["keep"] < 0.5 else "keep 0.5-1")
+    table("By keep share (rate: the predicted 6-week rate, pts a week; real/wk: realized a week in weeks 3+, "
+          "adds held past week 3; 3+/6+/12+: share still held, of those with the weeks left)", keep_bucket,
+          ["keep 0 (streamer)", "keep 0-0.5", "keep 0.5-1", "keep 1 (keeper)"])
+    table("By the swap's kind", lambda r: r["kind"])
+    rates = sorted(r["rate"] for r in records)
+    cuts = [rates[len(rates) * i // 4] for i in range(1, 4)]
+    table("By the predicted 6-week rate (quartiles)",
+          lambda r: f"rate q{1 + sum(r['rate'] >= c for c in cuts)}", [f"rate q{i}" for i in range(1, 5)])
+    long = [r for r in records if r["held"] > 3]
+    if len(long) > 2:
+        xs = [r["rate"] for r in long]
+        ys = [sum(r["real"][3:]) / (r["held"] - 3) for r in long]
+        slope, _ = np.polyfit(xs, ys, 1)
+        resid = np.array(ys) - np.polyval(np.polyfit(xs, ys, 1), xs)
+        se = math.sqrt(resid.var(ddof=2) / (np.var(xs) * len(xs)))
+        out.append(f"  realized a week in weeks 3+ on the predicted 6-week rate: slope {slope:.2f} ({se:.2f}), "
+                   f"{len(long)} adds held past week 3")
+
+    out.extend(["", "In wins (value: predicted; real: wins added while it stood, +/- SE; at typical: realized "
+                    "points x later_weight, less noisy)", f"  {'':16}{'n':>6}{'value':>8}{'real':>8}{'SE':>7}{'at typical':>11}"])
+    for lo, hi in ((-9, 0.1), (0.1, 0.2), (0.2, 0.4), (0.4, 9)):
+        rs = [r for r in records if lo <= r["value"] < hi]
+        if not rs:
+            continue
+        x, se = _mean_se([r["real_wins"] for r in rs])
+        typical = mean(sum(r["real"]) * r["later_weight"] for r in rs)
+        label = f"value {max(lo, 0):.1f}-{hi:.1f}" if hi < 9 else f"value {lo:.1f}+"
+        out.append(f"  {label:16}{len(rs):6}{mean(r['value'] for r in rs):8.3f}{x:+8.3f}{se:7.3f}{typical:+11.3f}")
+    return "\n".join(out)
+
+
 GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's points, by points a start x share
 
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
-              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None):
+              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
     `collect`: a dict given the week's candidates as the bot logs them (addprice.pool_entry:
     "pool") and the week's later_weight ("weight"), for the live price, and the best two
-    moves' values with no player shared ("top"), to compare with the live bot's."""
+    moves' values with no player shared ("top"), to compare with the live bot's. `parts`: a dict
+    given the best move's predicted parts (predicted_parts), for the audit."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
     future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
@@ -608,7 +763,7 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
             for q in picked:
                 a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
                 pairs_tried += [(a, d) for d in drops + [g_rp]]
-        best, pool = None, []
+        best, pool, detail = None, [], None
         for a, d in pairs_tried:
             week_gain = sum(mine.gain(a.id, d.id, this).values())
             if week_gain < -matchup.MAX_WEEK_COST:
@@ -627,6 +782,15 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
             pool.append([round(week_gain, 2), round(after / later_weight, 2), a.id, d.id, value])
             if best is None or value > best[0]:
                 best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
+                detail = (a, d, keep, gain, week_gain, now)
+        if parts is not None and detail:
+            saved_discount = matchup.LONG_RUN_DISCOUNT
+            matchup.LONG_RUN_DISCOUNT = discount
+            try:
+                parts.update(predicted_parts(s, m, *detail, future, ahead, weeks_after, later_weight, hold_days,
+                                             best[0]))
+            finally:
+                matchup.LONG_RUN_DISCOUNT = saved_discount
     finally:
         matchup.STREAMING_SPOTS, matchup.KEEP_RAMP = saved
     if collect is not None:
@@ -648,10 +812,12 @@ def main() -> None:
     parser.add_argument("--teams", type=int, default=16, help="teams managed per league (all 16 by default)")
     parser.add_argument("--price", type=float, help="every fixed-price variant's add price (0: the budget's pace decides)")
     parser.add_argument("--reference", default=REFERENCE, help="the variant the others are compared with")
+    parser.add_argument("--audit", action="store_true",
+                        help="each variant's moves: predicted parts vs what they brought, tenure (audit_report)")
     args = parser.parse_args()
     reference = args.reference
     names = [reference] + [v for v in args.variants if v != reference]
-    jobs = [(k, args.seed, names, args.teams, args.price) for k in range(args.leagues)]
+    jobs = [(k, args.seed, names, args.teams, args.price, args.audit) for k in range(args.leagues)]
     results = {}
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         for k, out in enumerate(pool.map(run_league, jobs)):
@@ -699,6 +865,9 @@ def main() -> None:
             print(f"    weeks {lo + 1}-{hi}: best {q(best, .5):.3f} / {q(best, .75):.3f}, second {q(sec, .5):.3f} /"
                   f" {q(sec, .75):.3f}; second over 0.08 {sum(x >= 0.08 for x in sec) / len(sec):.0%},"
                   f" over 0.12 {sum(x >= 0.12 for x in sec) / len(sec):.0%}")
+    if args.audit:
+        for name in names:
+            print(audit_report(name, [x for k, t in teams for x in results[(k, t, name)][7] or []]))
 
 
 if __name__ == "__main__":

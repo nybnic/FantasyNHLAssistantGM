@@ -128,3 +128,47 @@ def test_the_live_price_logs_each_mondays_pool_once_and_solves_over_them():
     for _ in range(replay.POOL_WEEKS + 3):
         replay.monday_price(("live",), 0, 0, 25, picks, {"pool": pool, "weight": 0.008})
     assert len(picks) == replay.POOL_WEEKS  # the newest weeks only
+
+
+def test_the_audit_credits_a_move_while_it_stands_and_reports_by_keep_share():
+    # Weeks from MON: 9 replaced 3 in week 0 and stayed two weeks, then left (week 2's roster has 2).
+    mondays = [MON + dt.timedelta(days=7 * k) for k in range(3)]
+    points = {(9, mondays[0]): 6.0, (3, mondays[0]): 2.0, (9, mondays[1]): 1.0, (3, mondays[1]): 4.0,
+              (1, mondays[0]): 5.0}
+    s = _season({1: 5.0, 2: 3.0, 3: 2.0, 9: 4.0}, {1: "C", 2: "C", 3: "C", 9: "C"}, {}, points)
+    s._proj.update({m: s._proj[MON] for m in mondays})
+    rosters = [[1, 9], [1, 9], [1, 2]]
+    scores = [replay.actual(s, r, m) for r, m in zip(rosters, mondays)]
+    parts = {"value": 0.15, "week_pts": 3.0, "ahead_pts": [1.0, 1.0], "later_pts": 2.0, "rate": 1.0,
+             "weeks_later": 10, "keep": 0.0, "later_weight": 0.01, "kind": "same position"}
+    rec, = replay.realized(s, [(0, 9, 3, parts)], rosters, mondays, scores, [8.0, 4.5, 0.0])
+    assert rec["held"] == 2 and rec["real"] == [4.0, -3.0]  # 6 for 2, then 1 for 4; gone in week 2
+    # Week 0: 11 vs 7 against 8, a win the swap made; week 1: 1 vs 4 against 4.5, lost either way.
+    assert rec["real_wins"] == 1 and rec["weeks_left"] == 3
+    report = replay.audit_report("test", [rec, {**rec, "keep": 1.0, "held": 1, "real": [5.0]}])
+    assert "2 moves" in report and "keep 0 (streamer)" in report and "keep 1 (keeper)" in report
+
+
+def test_a_swaps_kind_says_what_it_does_to_the_rosters_shape():
+    s = _season({}, {1: "C", 2: "D", 3: "LW", 4: "C"}, {}, goalies=(10,))
+    assert replay.swap_kind(s, 1, 2) == "forward for a D" and replay.swap_kind(s, 2, 1) == "D for a forward"
+    assert replay.swap_kind(s, 1, 4) == "same position" and replay.swap_kind(s, 3, 1) == "forward, other position"
+    assert replay.swap_kind(s, 10, 1) == "goalie"
+
+
+def test_the_audit_records_a_moves_parts_as_valued_and_its_six_week_rate():
+    from league.roster import RosterPlayer
+    s = _season({}, {1: "C", 3: "D"}, {"A": set(), "B": set()})
+    s.team = lambda pid, m: {1: "A", 3: "B"}[pid]
+    future = [MON + dt.timedelta(days=7 + i) for i in range(42)]
+    s.team_days["A"] = set(future[::2])  # 21 games in the 6 weeks
+    s.team_days["B"] = set(future[::3])  # 14
+    gain = {future[0]: 6.0, future[7]: 3.0, future[20]: 3.0}  # week +1, week +2, week +3
+    ahead = [replay.matchup.WeekAhead(k, frozenset(future[7 * (k - 1):7 * k]), None, 40.0) for k in (1, 2)]
+    add, drop = RosterPlayer(1, "1", "A", ["C"]), RosterPlayer(3, "3", "B", ["D"])
+    rec = replay.predicted_parts(s, MON, add, drop, 0.0, gain, 2.0, 0.02, future, ahead, 20, 0.01, 21, 0.2)
+    g1, g2 = replay.matchup.GAP_REALIZES[1], replay.matchup.GAP_REALIZES[2]
+    assert rec["ahead_pts"] == pytest.approx([6.0 * g1, 3.0 * g2])
+    assert rec["later_pts"] == pytest.approx(3.0)  # a streamer: the held week +3 only
+    assert rec["rate"] == pytest.approx(12.0 / 6) and rec["weeks_later"] == 18
+    assert rec["kind"] == "forward for a D" and rec["edge"] == pytest.approx((21 - 14) / 6)

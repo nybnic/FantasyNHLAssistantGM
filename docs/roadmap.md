@@ -43,7 +43,24 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
    drafted roster. Done when: the first live Monday (Oct 26) reports McBain, Lindell and Pinto, and the
    numbers are sanity-checked. Next: a fairer season baseline (a typical streamer in each move's place),
    and the forecast-vs-actual table once ~10 moves with forecasts are checked (mid-December).
-8. **Visuals, night style** (Nico, 2026-10-22: "super visual and beautiful, easy to read"). Mockups on real
+8. **Tenure, not a keep share** (Nico, 2026-10-23: "not an arbitrary value deciding whether value counts
+   only short term or the full season"; ahead of visuals). A move's value as the two futures night by
+   night: with it, the add holds the spot until he'd be my cheapest to lose, then a streamer; without it,
+   the drop holds it until he'd be cut. Tenure is the bot's own policy's (Nico), fit on the replay.
+   - Step 0, measure first: done when the audit has run (`python -m scripts.replay --audit`, the Check
+     workflow's `replay-audit`, 16 leagues at the live-like pacing price "pace 0.08 k2"): each move's
+     predicted parts (this week, the weeks ahead, later) against what it brought while it stood, how long
+     adds stay by keep share and by the swap's kind, whether the 6-week rate carries over, and values
+     against wins. If later points are about right on average, the rest waits.
+   - Step 1: the long run from the whole remaining schedule (not the 6-week rate x the weeks left), a
+     per-night marginal-slot shortcut for the far nights, checked against the exact solver.
+   - Step 2: P(still mine on day d) from the replay's tenures (gap over the free agents who'd take the
+     spot that week, rank on my roster, horizon), replacing the keep share and the hold; the drop's own.
+   - Step 3 (only if 1-2 show it matters): which future adds each branch spends.
+   - Ships on a replay gain over 2 SE, after 2 weeks in shadow (both values on the Board); then
+     `KEEP_RAMP`, `STREAMING_SPOTS`, `STREAM_WEEKS`, `LONG_RUN_WEEKS` and `LONG_RUN_DISCOUNT` go. The
+     Board and the move card then say each move's expected tenure ("a 2-week stream", "a keeper").
+9. **Visuals, night style** (Nico, 2026-10-22: "super visual and beautiful, easy to read"). Mockups on real
    data: https://claude.ai/artifact/J7qnYDAATTuCVNvaZaEL8v (card B chosen; NHL headshots OK; dashboard as tabs;
    bold + emoji in Telegram). Phases 1-3 (the Telegram card; the text, the move and result cards; the dashboard): done
    (see the log). Was next:
@@ -295,3 +312,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-22 | The expected final score agrees with the win odds (Nico: "expect 210-207" but win 45%). P(win) counts banked points in full and the part still to come at 0.80 (how projected margins come true): 61-94 down with +36 projected to come reads as -4.7, so 45%. The message, the card's and dashboard's "→" and the race chart's ends now show that score, 206-211 (`matchup.final_scores`: the rest of the week moved toward the two sides' average, total unchanged); the "Why 45%" card explains the gap to the players' projections (210-207). Display only (engine freeze: wording/views) | (this commit) |
 | 2026-10-23 | An explainer video for someone new to fantasy hockey (Nico: vertical, captions only, made-up team names, very animated; then slower, 120 s, with a deep dive into one move): `docs/video/assistant-gm.mp4`. Fantasy hockey in 18 s, the hard part (36 swaps), how the GM thinks (every night, every swap: 201 tested), inside one move (Pospisil for Meriläinen on the 22 Oct plan: 10 games vs 3-4 starts; +2, +11, +8, -1 = +19 win-pts against the bar of 13), saving swaps, the day (Done, a screenshot), the close. All numbers from that run's Board. `video.html` is a GSAP timeline that `docs/video/render.py` steps frame by frame in Chromium into ffmpeg | (this commit) |
 | 2026-10-23 | The race chart shows the forecast through the days already played (Nico: "show also projections historically, not only future"): the week's first plan now keeps each night's projection, mine and theirs, and its final score as the odds read it (`results[week].first.by_day`, `final`; `weekly.record_plan`), passed to the dashboard as `forecast`; drawn faint from the first night it covers, with a line under the chart: "Monday's forecast: 214-198 at the end, 114-114 by now (banked 89-137); now expected 188-213." Week 4's filled in from the board of its first plan (git ad3cbf8, repair `2026-10-23 week 4 forecast by day`) | (this commit) |
+| 2026-10-23 | The replay's audit, step 0 of tenure (Nico: "bot's policy, step 0 first, ahead of visuals"; after Nurse vs Pospisil for Larsson): `scripts/replay.py --audit` records each move a variant makes with its predicted parts on its Monday and what it brought week by week while it stood (the real score against the roster with that swap undone, until the add leaves), and reports predicted vs realized by part, tenure by keep share and by the swap's kind, the 6-week rate against the weeks after, and values against wins; the Check workflow's `replay-audit` runs it (default "pace 0.08 k2", 8 leagues). No engine change | (this commit) |
