@@ -172,3 +172,15 @@ def test_the_audit_records_a_moves_parts_as_valued_and_its_six_week_rate():
     assert rec["later_pts"] == pytest.approx(3.0)  # a streamer: the held week +3 only
     assert rec["rate"] == pytest.approx(12.0 / 6) and rec["weeks_later"] == 18
     assert rec["kind"] == "forward for a D" and rec["edge"] == pytest.approx((21 - 14) / 6)
+
+
+def test_tenure_counts_each_later_day_by_the_odds_the_add_still_stands_and_how_gaps_realize():
+    future = [MON + dt.timedelta(days=7 + i) for i in range(35)]
+    gain = {future[0]: 10.0, future[7]: 10.0, future[14]: 10.0, future[28]: 10.0}  # weeks +1, +2, +3, +5
+    ahead = [replay.matchup.WeekAhead(k, frozenset(future[7 * (k - 1):7 * k]), None, 40.0) for k in (1, 2)]
+    table = {"b": (0.8, 0.5, 0.4, 0.3, 0.2)}
+    wins, pts, later = replay.tenure_after(gain, MON, future, ahead, 0.01, "b", table)
+    g1, g2 = replay.matchup.GAP_REALIZES[1], replay.matchup.GAP_REALIZES[2]
+    assert pts == pytest.approx((10 * 0.8 * g1, 10 * 0.5 * g2))
+    assert wins == pytest.approx((0.01 * 10 * 0.8 * g1, 0.01 * 10 * 0.5 * g2))  # no margin: at later_weight
+    assert later == pytest.approx(10 * 0.4 * 0.84 + 10 * 0.2 * 0.84)
