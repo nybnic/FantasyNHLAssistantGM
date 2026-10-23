@@ -30,7 +30,7 @@
 - **Candidate moves:** free agents shortlisted per position (and by schedule fit),
   times drops (the open spot first, then my 2 cheapest to lose per group: forwards,
   D, goalies; `cut_costs`: losing him valued as a move, from the nights he'd be in my
-  best lineup this week and the next two, plus later points with `keep_share`), plus my
+  best lineup this week and the next two, plus later points by his own tenure), plus my
   most-benched skater (`bench_shares`: 25%+ of his long-run points on the bench,
   `BENCHED_SHARE`), so a good player stuck behind better ones at his position is
   tried against adds at other positions. An add who can't play yet (waivers, or this week's adds
@@ -60,20 +60,22 @@
 - **Durability** (`matchup.durability`): a player's projected missed games (DFO projected GP) cost
   only his edge over a replacement-level free agent (`ctx.replacement_xfp`, best 3 by group), since
   a missed game is streamed. Untested (DFO projections aren't archived).
-- **Later points** = the long run after the weeks ahead (`horizon`): the
-  whole-lineup projection over the next 6 weeks (`LONG_RUN_WEEKS`, with
-  durability), per week, times the regular-season weeks left after the ones
-  ahead, plus the fantasy playoffs (weeks 24-26) as scheduled: the move's gain
-  on those exact days (`bot/weekly.week_inputs` adds them to `future`), all x
-  `LONG_RUN_DISCOUNT` 0.5. Same weight as any later week (Nico, 2026-10-17). How much
-  of that season counts is judged on the add (`keep_share`, Nico 2026-10-20):
-  0 at the streaming line (the best gap over waiver level of my 3 streaming
-  spots, the skaters closest to waiver level at their position, plus my
-  weakest goalie beyond two), 1 at `KEEP_RAMP` (1.0) points a game above it. A
-  keeper added onto a streaming spot stays, so his swap counts the season; a
-  streamer counts only his scheduled gain while held (spots / the affordable
-  adds a week, `hold_weeks`, ~3 weeks, the weeks ahead only those days too); a
-  goalie add is a keeper. A player cut (`cut_costs`) is judged on himself.
+- **Later points** (`tenure_horizon`, since 2026-10-23, Nico; roadmap item 8): the
+  whole-lineup projection (with durability) on every day left through the fantasy playoffs
+  (`bot/weekly.week_inputs`' `future`), each day's gain x P(the add is still mine that week)
+  x the share of a gap that far ahead that shows up (`tenure.realizes`: 0.84 weeks 3-6, 0.76
+  to 12, 0.74 after, `check_gaps`); the weeks ahead take the same survival before their
+  P(win). P(still mine) is `engine/tenure.py`'s curve for where the add would sit
+  (`tenure_bin`): a skater by how many of my other skaters are closer to waiver level at
+  their position, a goalie by whether he'd be my weakest of three or more; fit Kaplan-Meier
+  on the replay's tenures under the bot's own policy (the lowest skater 42% still there at 3
+  weeks, 7% at 12; 7th+ 94% / 66%; goalies 36-51% / 11-16%). The playoffs count as
+  scheduled, at the same weight (Nico, 2026-10-17). A player cut (`cut_costs`) is judged by
+  where he sits now; an IR stash by where he'd sit; IR returns mix in as before. The Board
+  shows each move's odds at 3, 6 and 12 weeks (`stays`); under 25% at 6 weeks it's called a
+  stream, from half a keeper (`STREAM_BELOW`, wording only). Replaced the 6-week rate x
+  the weeks left x `LONG_RUN_DISCOUNT` 0.5, the keep share and the streaming hold (kept in
+  `matchup.py` for the replay's reference variants).
 - **Value** (in win-pts, percentage points of a weekly win) = this week's change
   in P(win) + each week ahead's + later points x `later_weight` (what a point
   does in a typical week: 1 / sqrt(2 pi (sigma^2 + tau^2)), sigma = a typical full
@@ -249,7 +251,7 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   (0.10), +2.2 pts a week, 27.9 vs 29.2. Its own audit (seed 23): values of 0.4+ realized 0.44 for 0.67
   predicted (the live rule 0.39 for 0.90), 0.2-0.4 0.20 for 0.29; later points now under-predicted (14.1 /
   20.4), so a later weight above 1 is the next thing to try. The curves refit on its own moves stay close
-  (lowest 0.37 at 3 weeks, 4th-6th 0.82, goalies 0.42 / 0.51). Not live: shadow first (roadmap item 8).
+  (lowest 0.37 at 3 weeks, 4th-6th 0.82, goalies 0.42 / 0.51). Live since 2026-10-23 (Nico, decision log).
 
 ## Judgment calls (untested)
 `addprice.BAR` 0.12 (set on two weeks of live plans; re-check mid-December), `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
