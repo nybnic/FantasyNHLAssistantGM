@@ -237,6 +237,20 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   weeks after, and the top values run ~2x high (partly the best of many candidates, which any estimate
   would show). The replay's caveats stand (its values run 2-3x the live ones early). No rule changed.
 
+- Tenure (2026-10-23, roadmap item 8 steps 1-2; `scripts/replay.py` variants "whole schedule" and "tenure",
+  against "pace 0.08 k2", the live valuation at the live-like price; 16 leagues each). Step 1 alone, the long
+  run from the whole season left (keep share and hold as live): -0.12 (0.11) wins a season, so no gain, though
+  its later points come truer (0.91 of predicted, slope on the weeks after 0.23). Steps 1-2, each later day's
+  gain x P(the add still stands) by where he'd sit on my roster (`engine/tenure.py`, Kaplan-Meier on the
+  reference's 7,474 moves: a skater who'd be my lowest by waiver gap 42% still there at 3 weeks, 7% at 12;
+  4th-6th lowest 85% / 45%; 7th+ 94% / 66%; my weakest of 3+ goalies 36% / 11%, another goalie 51% / 16%) x
+  how far-off gaps realize (0.84 / 0.76 / 0.74), no keep share, hold or discount: on the leagues the curves
+  were fit on (seed 11) +0.38 (0.11), +3.1 pts a week, 28.0 adds vs 29.2; on new leagues (seed 23) +0.23
+  (0.10), +2.2 pts a week, 27.9 vs 29.2. Its own audit (seed 23): values of 0.4+ realized 0.44 for 0.67
+  predicted (the live rule 0.39 for 0.90), 0.2-0.4 0.20 for 0.29; later points now under-predicted (14.1 /
+  20.4), so a later weight above 1 is the next thing to try. The curves refit on its own moves stay close
+  (lowest 0.37 at 3 weeks, 4th-6th 0.82, goalies 0.42 / 0.51). Not live: shadow first (roadmap item 8).
+
 ## Judgment calls (untested)
 `addprice.BAR` 0.12 (set on two weeks of live plans; re-check mid-December), `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
 `PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6, `GOALIE_STREAMING_SPOTS` 1, `STREAM_WEEKS` 2, `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.

@@ -69,7 +69,7 @@ import numpy as np
 
 from clients import nhl_stats
 from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
-from engine import addprice, availability, matchup
+from engine import addprice, availability, matchup, tenure
 from league.roster import RosterPlayer
 from model.projections import aged, project_goalie, project_skater
 from scripts.backtest import history_of
@@ -112,7 +112,16 @@ VARIANTS = {
     "live price": ("add", 3, 0.5, ("live",)),
     **{f"pace {b:.2f}": ("add", 3, 0.5, ("pace", b, 1.0)) for b in (0.04, 0.06, 0.08, 0.10, 0.12)},
     **{f"pace {b:.2f} k2": ("add", 3, 0.5, ("pace", b, 2.0)) for b in (0.06, 0.08, 0.10)},
+    # Tenure (Nico, 2026-10-23, roadmap item 8), at the live-like pacing price: step 1, the long
+    # run from the whole season left instead of the 6-week rate x the weeks left (keep share and
+    # hold as live); steps 1-2, each later day's gain x P(the add still stands then) by where he
+    # sits on my roster (engine/tenure.py, fit on this harness's audit) x how far-off gaps realize,
+    # no keep share, no hold, no LONG_RUN_DISCOUNT.
+    "whole schedule": ("add", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
 }
+# Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
+WHOLE_SCHEDULE = {"whole schedule", "tenure"}
 # The price rules, by the variants' price: a number is a fixed price (with the
 # even-pace cap, as the harness always had); ("live",) is addprice.solve over the
 # Monday pools logged so far (the newest POOL_WEEKS), at the pace the budget
@@ -454,7 +463,7 @@ def run_league(args: tuple) -> dict:
                     parts = {} if audit else None
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
                                      discount, n_weeks, used, EXITS.get(name), price if price is not None else PRICE,
-                                     leaving, name not in SKATERS_ONLY, collect, parts)
+                                     leaving, name not in SKATERS_ONLY, collect, parts, name in WHOLE_SCHEDULE)
                     if price is None:  # the Monday's price, before its first move
                         tops.append((w, *collect.get("top", (None, None))))
                         price = monday_price(rule, used, w, n_weeks, picks, collect if rule[0] == "live" else None)
@@ -551,6 +560,41 @@ def keep_of(keep_rule, add, drop, spot_ids: set[int], line: float, levels: dict,
     return min(max((gap - line) / keep_rule, 0.0), 1.0)
 
 
+class TenureBins:
+    """Where an add would sit on my roster after the swap (engine.tenure's bins): a skater by
+    how many of my skaters are closer to waiver level at their position, a goalie by whether
+    he'd be the weakest of three or more."""
+
+    def __init__(self, s: Season, m: dt.date, roster: list[int], mine_rp: list, levels: dict, ctx):
+        self.s, self.m, self.levels, self.ctx = s, m, levels, ctx
+        self.gaps = {p.id: matchup.waiver_gap(p, levels, ctx, {}) for p in mine_rp}
+        self.goalies = [pid for pid in roster if pid in s.goalie_ids]
+        self.gx = s.proj(m)[1]
+
+    def of(self, add, drop) -> str:
+        s, m = self.s, self.m
+        if add.is_goalie:
+            after = [g for g in self.goalies if g != drop.id] + [add.id]
+            weakest = min(after, key=lambda g: s.share(g, m) * self.gx.get(g, 0.0))
+            return tenure.GOALIE_BINS[0] if len(after) > matchup.MIN_GOALIES and weakest == add.id \
+                else tenure.GOALIE_BINS[1]
+        mine = matchup.waiver_gap(add, self.levels, self.ctx, {})
+        return tenure.skater_bin(sum(1 for pid, g in self.gaps.items() if pid != drop.id and g < mine))
+
+
+def tenure_after(gain: dict, m: dt.date, future: list[dt.date], ahead: list, later_weight: float, bin_: str,
+                 table: dict | None = None) -> tuple[tuple[float, ...], tuple[float, ...], float]:
+    """Keep rule "tenure": the weeks ahead and later points with each day's gain x P(the add still
+    stands that week) (engine.tenure.survival); the weeks ahead at GAP_REALIZES (matchup.ahead_value),
+    later days at how far-off gaps realize (tenure.realizes). No keep share, hold or discount."""
+    k = lambda d: (d - m).days // 7  # 1: next week
+    scaled = {d: g * tenure.survival(bin_, k(d), table) for d, g in gain.items()}
+    ahead_wins, ahead_pts = matchup.ahead_value(scaled, ahead, later_weight)
+    near = set().union(*(w.days for w in ahead)) if ahead else set()
+    later = sum(v * tenure.realizes(k(d)) for d, v in scaled.items() if d not in near)
+    return ahead_wins, ahead_pts, later
+
+
 def swap_kind(s: Season, add: int, drop: int) -> str:
     """What a swap does to the roster's shape: a goalie in it, the same position, or another."""
     if add in s.goalie_ids or drop in s.goalie_ids:
@@ -563,22 +607,27 @@ def swap_kind(s: Season, add: int, drop: int) -> str:
     return "forward, other position"
 
 
-def predicted_parts(s: Season, m: dt.date, add, drop, keep: float, gain: dict, week_gain: float, now: float,
-                    future: list[dt.date], ahead: list, weeks_after: int, later_weight: float, hold_days: int,
-                    value: float) -> dict:
+def predicted_parts(s: Season, m: dt.date, add, drop, keep: float | None, gain: dict, week_gain: float,
+                    now: float, future: list[dt.date], ahead: list, weeks_after: int, later_weight: float,
+                    hold_days: int, value: float, bin_: str = "", table: dict | None = None) -> dict:
     """The audit's record of a move as the valuation saw it on its Monday (the full hold:
     planned exits aside): points this week, in each week ahead as counted, and later
     (keep share, hold and LONG_RUN_DISCOUNT applied), the 6-week rate behind them, the
-    weeks the rate is multiplied over, and the value in wins."""
-    ahead_wins, ahead_pts, later = matchup.horizon(gain, {d: None for d in future}, ahead, weeks_after,
-                                                   later_weight, set(future[:hold_days]), keep)
+    weeks the rate is multiplied over, and the value in wins; where the add sits (tenure's bin).
+    With a tenure `table`, the parts as keep rule "tenure" values them."""
+    if table is not None:
+        ahead_wins, ahead_pts, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table)
+    else:
+        ahead_wins, ahead_pts, later = matchup.horizon(gain, {d: None for d in future}, ahead, weeks_after,
+                                                       later_weight, set(future[:hold_days]), keep)
     games = lambda pid: sum(1 for d in future if d in s.team_days[s.team(pid, m)])
     return {"value": value, "now": now, "week_pts": week_gain, "ahead_wins": list(ahead_wins),
             "ahead_pts": list(ahead_pts), "later_pts": later, "later_weight": later_weight,
-            "rate": sum(gain.get(d, 0.0) for d in future) / (len(future) / 7),
+            "rate": sum(gain.get(d, 0.0) for d in future) / (len(future) / 7) if future else 0.0,
             "weeks_later": max(weeks_after - len(ahead), 0), "keep": keep, "hold_weeks": hold_days / 7,
+            "bin": bin_,
             "kind": swap_kind(s, add.id, drop.id),
-            "edge": (games(add.id) - games(drop.id)) / (len(future) / 7)}
+            "edge": (games(add.id) - games(drop.id)) / (len(future) / 7) if future else 0.0}
 
 
 def realized(s: Season, made: list, rosters: list[list[int]], mondays: list[dt.date], scores: list[float],
@@ -653,11 +702,14 @@ def audit_report(name: str, records: list[dict]) -> str:
             out.append(f"  {g:24}{len(rs):6}{p:+11.2f}{x:+8.2f}{_ratio(x, p):>7}{mean(r['rate'] for r in rs):+7.2f}"
                        f"{per_week:+8.2f}{mean(r['held'] for r in rs):9.1f}" + "".join(stay))
 
-    keep_bucket = lambda r: ("keep 0 (streamer)" if r["keep"] <= 0 else "keep 1 (keeper)" if r["keep"] >= 1
-                             else "keep 0-0.5" if r["keep"] < 0.5 else "keep 0.5-1")
-    table("By keep share (rate: the predicted 6-week rate, pts a week; real/wk: realized a week in weeks 3+, "
-          "adds held past week 3; 3+/6+/12+: share still held, of those with the weeks left)", keep_bucket,
-          ["keep 0 (streamer)", "keep 0-0.5", "keep 0.5-1", "keep 1 (keeper)"])
+    note = ("(rate: the predicted rate a week over the long run, pts; real/wk: realized a week in weeks 3+, "
+            "adds held past week 3; 3+/6+/12+: share still held, of those with the weeks left)")
+    if all(r["keep"] is not None for r in records):
+        keep_bucket = lambda r: ("keep 0 (streamer)" if r["keep"] <= 0 else "keep 1 (keeper)" if r["keep"] >= 1
+                                 else "keep 0-0.5" if r["keep"] < 0.5 else "keep 0.5-1")
+        table("By keep share " + note, keep_bucket, ["keep 0 (streamer)", "keep 0-0.5", "keep 0.5-1", "keep 1 (keeper)"])
+    table("By where the add sits " + note, lambda r: r.get("bin") or "-",
+          [b for b in tenure.SKATER_BINS + tenure.GOALIE_BINS])
     table("By the swap's kind", lambda r: r["kind"])
     rates = sorted(r["rate"] for r in records)
     cuts = [rates[len(rates) * i // 4] for i in range(1, 4)]
@@ -673,6 +725,18 @@ def audit_report(name: str, records: list[dict]) -> str:
         out.append(f"  realized a week in weeks 3+ on the predicted 6-week rate: slope {slope:.2f} ({se:.2f}), "
                    f"{len(long)} adds held past week 3")
 
+    curves = tenure.fit([(r["bin"], r["held"], r["weeks_left"]) for r in records if r.get("bin")])
+    if curves:
+        out.extend(["", "Tenure by where the add sits (Kaplan-Meier, censored at the season's end): "
+                        "P(still standing k weeks after)", f"  {'':28}{'n':>6}" + "".join(f"{f'k={k}':>7}" for k in (1, 2, 3, 6, 12, 20))])
+        order = [b for b in tenure.SKATER_BINS + tenure.GOALIE_BINS if b in curves]
+        n = defaultdict(int)
+        for r in records:
+            n[r.get("bin")] += 1
+        for b in order:
+            out.append(f"  {b:28}{n[b]:6}" + "".join(f"{tenure.survival(b, k, curves):7.2f}" for k in (1, 2, 3, 6, 12, 20)))
+        out.append("  as engine.tenure.SURVIVAL:")
+        out.append("  {" + ",\n   ".join(f"{b!r}: {curves[b]!r}" for b in order) + "}")
     out.extend(["", "In wins (value: predicted; real: wins added while it stood, +/- SE; at typical: realized "
                     "points x later_weight, less noisy)", f"  {'':16}{'n':>6}{'value':>8}{'real':>8}{'SE':>7}{'at typical':>11}"])
     for lo, hi in ((-9, 0.1), (0.1, 0.2), (0.2, 0.4), (0.4, 9)):
@@ -690,17 +754,22 @@ GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's p
 
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
-              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None):
+              exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None,
+              whole=False, table=None):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
     `collect`: a dict given the week's candidates as the bot logs them (addprice.pool_entry:
     "pool") and the week's later_weight ("weight"), for the live price, and the best two
     moves' values with no player shared ("top"), to compare with the live bot's. `parts`: a dict
-    given the best move's predicted parts (predicted_parts), for the audit."""
+    given the best move's predicted parts (predicted_parts), for the audit. `whole`: the long run
+    over the whole season left (WHOLE_SCHEDULE); `table`: the tenure curves for keep rule
+    "tenure" (default engine.tenure.SURVIVAL)."""
     xfp = s.proj(m)[0]
     this = [m + dt.timedelta(days=i) for i in range(7)]
-    future = [m + dt.timedelta(days=7 + i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
+    last = s.mondays[-1] + dt.timedelta(days=6)
+    future = [m + dt.timedelta(days=7 + i)
+              for i in range(max((last - m).days - 6, 0) if whole else 7 * matchup.LONG_RUN_WEEKS)]
     mine = Week(s, roster, m, this + future)
     def opp(k):
         key = (w, pairs[min(w + k, n_weeks - 1)][t])
@@ -764,31 +833,40 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
                 a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
                 pairs_tried += [(a, d) for d in drops + [g_rp]]
         best, pool, detail = None, [], None
+        bins = TenureBins(s, m, roster, mine_rp, levels, ctx)
         for a, d in pairs_tried:
             week_gain = sum(mine.gain(a.id, d.id, this).values())
             if week_gain < -matchup.MAX_WEEK_COST:
                 continue
-            keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
             gain = mine.gain(a.id, d.id, future)
-            saved_discount = matchup.LONG_RUN_DISCOUNT
-            matchup.LONG_RUN_DISCOUNT = discount
-            try:
-                after, exit_k = best_exit(gain, future, ahead, weeks_after, later_weight, hold_days, keep,
-                                          exit_rule, price)
-            finally:
-                matchup.LONG_RUN_DISCOUNT = saved_discount
+            bin_ = bins.of(a, d)
+            if keep_rule == "tenure":
+                keep, exit_k = None, None
+                ahead_wins, _, later = tenure_after(gain, m, future, ahead, later_weight, bin_, table)
+                after = sum(ahead_wins) + later_weight * later
+            else:
+                keep = keep_of(keep_rule, a, d, spot_ids, line, levels, ctx)
+                saved_discount = matchup.LONG_RUN_DISCOUNT
+                matchup.LONG_RUN_DISCOUNT = discount
+                try:
+                    after, exit_k = best_exit(gain, future, ahead, weeks_after, later_weight, hold_days, keep,
+                                              exit_rule, price)
+                finally:
+                    matchup.LONG_RUN_DISCOUNT = saved_discount
             now = matchup._phi((margin_now + week_gain) / sd_now) - matchup._phi(margin_now / sd_now)
             value = now + after
             pool.append([round(week_gain, 2), round(after / later_weight, 2), a.id, d.id, value])
             if best is None or value > best[0]:
                 best = (value, a.id, d.id, None if exit_k is None else m + dt.timedelta(days=7 * (exit_k + 1)))
-                detail = (a, d, keep, gain, week_gain, now)
+                detail = (a, d, keep, gain, week_gain, now, bin_)
         if parts is not None and detail:
             saved_discount = matchup.LONG_RUN_DISCOUNT
             matchup.LONG_RUN_DISCOUNT = discount
             try:
-                parts.update(predicted_parts(s, m, *detail, future, ahead, weeks_after, later_weight, hold_days,
-                                             best[0]))
+                parts.update(predicted_parts(s, m, *detail[:6], future, ahead, weeks_after, later_weight,
+                                             hold_days, best[0], bin_=detail[6],
+                                             table=(table if table is not None else tenure.SURVIVAL)
+                                             if keep_rule == "tenure" else None))
             finally:
                 matchup.LONG_RUN_DISCOUNT = saved_discount
     finally:

@@ -172,3 +172,32 @@ def test_the_audit_records_a_moves_parts_as_valued_and_its_six_week_rate():
     assert rec["later_pts"] == pytest.approx(3.0)  # a streamer: the held week +3 only
     assert rec["rate"] == pytest.approx(12.0 / 6) and rec["weeks_later"] == 18
     assert rec["kind"] == "forward for a D" and rec["edge"] == pytest.approx((21 - 14) / 6)
+
+
+def test_tenure_counts_each_later_day_by_the_odds_the_add_still_stands_and_how_gaps_realize():
+    future = [MON + dt.timedelta(days=7 + i) for i in range(35)]
+    gain = {future[0]: 10.0, future[7]: 10.0, future[14]: 10.0, future[28]: 10.0}  # weeks +1, +2, +3, +5
+    ahead = [replay.matchup.WeekAhead(k, frozenset(future[7 * (k - 1):7 * k]), None, 40.0) for k in (1, 2)]
+    table = {"b": (0.8, 0.5, 0.4, 0.3, 0.2)}
+    wins, pts, later = replay.tenure_after(gain, MON, future, ahead, 0.01, "b", table)
+    g1, g2 = replay.matchup.GAP_REALIZES[1], replay.matchup.GAP_REALIZES[2]
+    assert pts == pytest.approx((10 * 0.8 * g1, 10 * 0.5 * g2))
+    assert wins == pytest.approx((0.01 * 10 * 0.8 * g1, 0.01 * 10 * 0.5 * g2))  # no margin: at later_weight
+    assert later == pytest.approx(10 * 0.4 * 0.84 + 10 * 0.2 * 0.84)
+
+
+def test_the_seasons_last_week_has_no_rate_and_no_later_points():
+    from league.roster import RosterPlayer
+    s = _season({}, {1: "C", 3: "D"}, {"A": set(), "B": set()})
+    s.team = lambda pid, m: {1: "A", 3: "B"}[pid]
+    add, drop = RosterPlayer(1, "1", "A", ["C"]), RosterPlayer(3, "3", "B", ["D"])
+    rec = replay.predicted_parts(s, MON, add, drop, 1.0, {}, 2.0, 0.02, [], [], 0, 0.01, 0, 0.1)
+    assert rec["rate"] == 0.0 and rec["edge"] == 0.0 and rec["later_pts"] == 0.0
+
+
+def test_the_audit_reports_a_tenure_variant_without_keep_shares():
+    rec = {"value": 0.15, "week_pts": 3.0, "ahead_pts": [1.0, 1.0], "later_pts": 2.0, "rate": 1.0, "weeks_later": 10,
+           "keep": None, "later_weight": 0.01, "kind": "same position", "bin": "skater, lowest", "week": 0,
+           "weeks_left": 5, "held": 2, "real": [4.0, -3.0], "real_wins": 1}
+    report = replay.audit_report("tenure", [rec, {**rec, "bin": "goalie", "held": 5, "real": [1.0] * 5}])
+    assert "By keep share" not in report and "skater, lowest" in report and "goalie" in report
