@@ -11,7 +11,7 @@ from engine import addprice, matchup, report
 from league import parse, teams, weeks
 from league.roster import RosterPlayer
 from notify import charts, snapshot, telegram
-from state import gm_state
+from state import gm_state, repairs
 
 NOW = dt.datetime(2026, 10, 1, 12, tzinfo=dt.timezone.utc)
 
@@ -794,6 +794,23 @@ def test_a_weeks_plans_are_logged_first_and_latest(tmp_path):
     week = state["results"]["2"]
     assert week["first"]["expected"] == [150, 140] and week["last"]["expected"] == [160, 140]
     assert week["first"]["sd"] == [20.0, pytest.approx(22.36)] and week["opponent"] == "Retrot Chicken Wings"
+
+def test_the_weeks_first_plan_keeps_each_nights_forecast_for_the_race(tmp_path):
+    state = gm_state.load(tmp_path / "none.json")
+    mon, tue = dt.date(2026, 10, 19), dt.date(2026, 10, 20)
+    me = matchup.TeamWeek("me", 0, 30, 400, 20, 1, 3, 1.0, by_day={mon: 10.0, tue: 20.0})
+    them = matchup.TeamWeek("t", 0, 20, 400, 20, 1, 3, 1.0, by_day={mon: 5.0, tue: 15.0})
+    weekly.record_plan(state, 4, "Giants", me, them, NOW)
+    weekly.record_plan(state, 4, "Giants", me, them, NOW + dt.timedelta(days=2))
+    week = state["results"]["4"]
+    assert week["first"]["by_day"] == [{"2026-10-19": 10.0, "2026-10-20": 20.0}, {"2026-10-19": 5.0, "2026-10-20": 15.0}]
+    assert week["first"]["final"] == [29.0, 21.0] and "by_day" not in week["last"]
+    # Week 4's, logged before: filled in from the board of its first plan.
+    state["results"]["4"] = {"first": {"at": "2026-10-19T05:26+00:00", "so_far": [0.0, 0.0],
+                                       "expected": [215.62, 196.28]}}
+    repairs._week_4_forecast_by_day(state, [], {})
+    first = state["results"]["4"]["first"]
+    assert sum(first["by_day"][0].values()) == pytest.approx(215.64) and first["final"] == [213.69, 198.21]
 
 
 def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):

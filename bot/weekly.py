@@ -617,10 +617,12 @@ def plan_weeks(players: list, plan: list, wk: WeekInputs, nxt: NextWeek) -> tupl
 DASHBOARD_MOVES = 60  # the move table's rows (the Board keeps every one)
 
 
-def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, changed: str) -> dict:
+def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, changed: str,
+                   forecast: dict | None = None) -> dict:
     """site/data.json: the Board's numbers plus the plan in the message's own
     words (bot/messages.py), so the dashboard, its Telegram card and the plan
-    message can't disagree."""
+    message can't disagree. `forecast`: the week's first plan (record_plan), for
+    the race's line through the days already played."""
     wk = p.wk
     h = b["header"]
     weeks_shown = [{"week": b["week"], "opponent": b["opponent"], "win": h["win"],
@@ -646,6 +648,8 @@ def dashboard_data(b: dict, p: PlanMoves, views: dict | None, date: dt.date, cha
         "moves": sorted(b["moves"], key=lambda r: -r["value"])[:DASHBOARD_MOVES],
         "teams": b.get("teams"), "players": b.get("players"), "games": b.get("games"),
         "race": getattr(wk, "banked", None),
+        "forecast": ({k: forecast[k] for k in ("at", "so_far", "expected", "final", "by_day")}
+                     if forecast and "by_day" in forecast else None),
         **(views or {}),
     }
 
@@ -716,14 +720,18 @@ def plan_due(record: dict | None, date: dt.date, week: int) -> bool:
 def record_plan(state: dict, week: int, opponent: str, me: matchup.TeamWeek, them: matchup.TeamWeek,
                 now: dt.datetime) -> None:
     """Log the plan's numbers for the week's result to be checked against:
-    the first plan of the week, and the latest."""
+    the first plan of the week, and the latest. The first keeps each night's
+    projection too, and the final score as the odds read it: the dashboard's race
+    draws it through the days already played."""
     plan = {"at": now.isoformat(timespec="minutes"),
             "expected": [round(me.expected, 2), round(them.expected, 2)],
             "so_far": [round(me.so_far, 2), round(them.so_far, 2)],
             "sd": [round(math.sqrt(me.variance), 2), round(math.sqrt(them.variance), 2)],
             "win": round(matchup.win_prob(me, them), 4)}
     entry = state["results"].setdefault(str(week), {"opponent": opponent})
-    entry.setdefault("first", plan)
+    entry.setdefault("first", {**plan, "final": [round(x, 2) for x in matchup.final_scores(me, them)],
+                               "by_day": [{d.isoformat(): round(v, 2) for d, v in sorted(t.by_day.items())}
+                                          for t in (me, them)]})
     entry["last"] = plan
 
 
@@ -992,7 +1000,8 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
     if b:
         _safe(log_forecasts, state, b)
     views = _safe(week_views, state, p.planned, league, week, wk, p.nxt, p.ranked, p.moves, p.plan)
-    data = _safe(dashboard_data, b, p, views, date, changed) if b else None
+    data = _safe(dashboard_data, b, p, views, date, changed,
+                 state["results"].get(str(week), {}).get("first")) if b else None
     if data:
         _safe(write_dashboard, data, outbox.settings.dry_run)
 

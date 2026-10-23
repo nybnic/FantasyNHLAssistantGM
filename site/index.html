@@ -494,7 +494,22 @@ function raceCard() {
     });
     return out;
   };
-  const A = series("me"), B = series("them"), hi = Math.max(...A, ...B, 1);
+  // The week's first forecast (data.forecast: the first plan's nights, read as the odds read
+  // them, like the line ahead), through the days already played: banked against what was expected.
+  const F = data.forecast;
+  const forecast = side => {
+    if (!F) return null;
+    const k = side === "me" ? 0 : 1, by = F.by_day[k], first = days.findIndex(d => d in by);
+    if (first < 0) return null;
+    const rest = Object.values(by).reduce((a, b) => a + b, 0);
+    const scale = rest > 0 && F.final ? (F.final[k] - F.so_far[k]) / rest : 1;
+    const out = Array(8).fill(null);
+    out[first] = F.so_far[k];
+    days.forEach((d, i) => { if (i >= first) out[i + 1] = out[i] + scale * (by[d] || 0); });
+    return out;
+  };
+  const A = series("me"), B = series("them"), FA = forecast("me"), FB = forecast("them");
+  const hi = Math.max(...A, ...B, ...(FA || []), ...(FB || []), 1);
   const card = el("section", { class: "card" });
   card.append(el("h2", {}, "The race so far, and where it's heading"));
   const W = width(), H = 170, m = { l: 10, r: 36, t: 12, b: 24 };
@@ -504,6 +519,12 @@ function raceCard() {
   svg.append(svgEl("rect", { x: X(done), y: m.t, width: X(7) - X(done), height: H - m.t - m.b, fill: "#182A47" }));
   [0.5, 1].forEach(f => svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(hi * f), y2: Y(hi * f), stroke: css("--grid") })));
   svg.append(svgEl("line", { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), stroke: "#2A3A55" }));
+  [[FB, "--orange"], [FA, "--blue"]].forEach(([s, token]) => {
+    if (!s) return;
+    const pts = s.map((v, i) => v == null ? null : `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).filter(Boolean);
+    svg.append(svgEl("polyline", { points: pts.join(" "), fill: "none", stroke: css(token), "stroke-width": 1.5,
+                                   opacity: 0.45, "stroke-linejoin": "round", class: "forecast" }));
+  });
   [[B, "--orange"], [A, "--blue"]].forEach(([s, token]) => {
     const pts = i => `${X(i).toFixed(1)},${Y(s[i]).toFixed(1)}`;
     svg.append(svgEl("polyline", { points: s.slice(0, done + 1).map((_, i) => pts(i)).join(" "), fill: "none",
@@ -519,8 +540,17 @@ function raceCard() {
     "font-weight": d === data.date ? 700 : 400 }, fmtDay(d, { weekday: "short" }))));
   card.append(svg);
   const legend = el("div", { class: "legend" });
-  legend.append(key("--blue", "You"), key("--orange", data.opponent), el("span", {}, "Solid: banked · dashed: expected"));
+  const when = F && fmtDay(new Date(F.at).toLocaleDateString("sv-SE"), { weekday: "long" });
+  legend.append(key("--blue", "You"), key("--orange", data.opponent),
+                el("span", {}, "Solid: banked · dashed: expected" + (FA ? ` · faint: ${when}'s forecast` : "")));
   card.append(legend);
+  if (FA && FB) {
+    const now = [A[done], B[done]], then = [FA[done], FB[done]];
+    card.append(el("div", { class: "note" },
+      `${when}'s forecast: ${f0(FA[7])}-${f0(FB[7])} at the end` +
+      (done && then[0] != null ? `, ${f0(then[0])}-${f0(then[1])} by now (banked ${f0(now[0])}-${f0(now[1])})` : "") +
+      `; now expected ${f0(A[7])}-${f0(B[7])}.`));
+  }
   return card;
 }
 

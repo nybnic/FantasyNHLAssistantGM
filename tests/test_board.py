@@ -292,6 +292,11 @@ def test_every_dashboard_tab_draws_on_a_phone():
     from notify import snapshot
     sync_api = pytest.importorskip("playwright.sync_api")
     data = json.loads(Path("site/data.json").read_text(encoding="utf-8"))
+    # The week's first forecast, drawn through the days already played (faint, one line a team).
+    start = dt.date.fromisoformat(data["days"][0])
+    nights = [(start + dt.timedelta(days=i)).isoformat() for i in range(7)]
+    data["forecast"] = {"at": f"{nights[0]}T05:26+00:00", "so_far": [0.0, 0.0], "expected": [210.0, 196.0],
+                        "final": [208.6, 197.4], "by_day": [{d: 30.0 for d in nights}, {d: 28.0 for d in nights}]}
     with sync_api.sync_playwright() as pw:
         try:
             browser = pw.chromium.launch(executable_path=os.environ.get("CHROMIUM_EXECUTABLE"))
@@ -311,6 +316,9 @@ def test_every_dashboard_tab_draws_on_a_phone():
                 if tab.startswith("move="):  # its sheet opens with the move's card: the add and the drop face to face
                     add = next(r for r in data["moves"] if r["key"] == tab[5:])["add"]["name"]
                     assert page.locator(".sheet .in-sheet .nc-who b").first.inner_text() == add
+                if tab == "today":
+                    assert page.locator("polyline.forecast").count() == 2
+                    assert "forecast: 209-197 at the end" in page.locator("main").inner_text()
                 if tab == "today":  # a phone has no hover: a tap on a mark pins its number, a tap elsewhere hides it
                     page.locator("section.card svg rect[rx]").first.click()
                     assert page.locator("#tip").is_visible() and page.locator("#tip b").inner_text()

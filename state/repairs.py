@@ -373,6 +373,28 @@ def _hc_bulju_team_page(state: dict, players: list[RosterPlayer], league: dict) 
         positions.save(known)
 
 
+# Week 4's first plan (2026-10-19 05:26 UTC) as state/board.json had it (git ad3cbf8): each
+# night's projection, mine and the Giants', before record_plan kept them.
+WEEK_4_FIRST_BY_DAY = [
+    {"2026-10-19": 21.31, "2026-10-20": 37.99, "2026-10-21": 9.83, "2026-10-22": 45.44, "2026-10-23": 13.73,
+     "2026-10-24": 50.26, "2026-10-25": 37.08},
+    {"2026-10-19": 14.85, "2026-10-20": 52.03, "2026-10-21": 8.49, "2026-10-22": 37.85, "2026-10-23": 16.93,
+     "2026-10-24": 49.52, "2026-10-25": 16.61},
+]
+
+
+def _week_4_forecast_by_day(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-23 (Nico): the dashboard's race draws the week's first forecast through the days
+    # already played; week 4's was logged before record_plan kept each night's projection.
+    from engine import matchup  # the final score as the odds read it (the race's line ends there)
+    first = state.get("results", {}).get("4", {}).get("first")
+    if not first or first["at"] != "2026-10-19T05:26+00:00" or "by_day" in first:
+        return
+    me, them = (matchup.TeamWeek("", s, e, 0, 0, 0, 0, 1.0) for s, e in zip(first["so_far"], first["expected"]))
+    first["by_day"] = WEEK_4_FIRST_BY_DAY
+    first["final"] = [round(x, 2) for x in matchup.final_scores(me, them)]
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -388,4 +410,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-21 scoreboard since the draft", _scoreboard_since_draft),
            ("2026-10-21 points for by week", _points_for_by_week),
            ("2026-10-21 move forecasts", _move_forecasts),
-           ("2026-10-22 hc bulju team page", _hc_bulju_team_page)]
+           ("2026-10-22 hc bulju team page", _hc_bulju_team_page),
+           ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day)]

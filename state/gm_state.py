@@ -49,7 +49,9 @@ plan's numbers are in board.json (bot/board.py). The keys:
 - ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
   "id:back"), so each is said once while it holds
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
-  so_far, sd per team, win}) and, once the week is over, the result ("final":
+  so_far, sd per team, win; the first also each night's projection per team,
+  "by_day", and the final score as the odds read it, "final": the dashboard's
+  race draws it through the days played) and, once the week is over, the result ("final":
   {score, goalie_min, at, source}) and, for plans built on a matchup screenshot,
   Yahoo's score next to the box scores' best-lineup one ("live": [{through,
   yahoo, box, yahoo_projected}]), and Yahoo's first forecast of the week from a
