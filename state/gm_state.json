@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-24T04:10+00:00",
+    "at": "2026-10-24T06:38+00:00",
     "moves": [
       {
         "add": {
@@ -875,7 +875,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2072,
+        "value": 0.2186,
         "when": "2026-10-24",
         "why": "spare"
       },
@@ -895,7 +895,7 @@
         "key": "8477498:8476457",
         "message_id": 629,
         "rec_id": "add-2026-10-23-0520-8477498",
-        "value": 0.1904,
+        "value": 0.1896,
         "when": "2026-10-26",
         "why": "monday"
       }
@@ -1063,7 +1063,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784743,
+  "telegram_offset": 929784744,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1096,6 +1096,7 @@
       "8476882:promoted": "2026-10-15",
       "8476905:promoted": "2026-10-18",
       "8476979:promoted": "2026-10-15",
+      "8477035:goalie": "2026-10-24",
       "8477402:promoted": "2026-10-18",
       "8477426:promoted": "2026-10-15",
       "8477429:promoted": "2026-10-19",
@@ -1171,6 +1172,7 @@
       "8482118:promoted": "2026-10-13",
       "8482124:promoted": "2026-10-15",
       "8482142:ice time": "2026-10-14",
+      "8482145:promoted": "2026-10-24",
       "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-10-14",
       "8482175:promoted": "2026-10-19",
@@ -2532,6 +2534,14 @@
         "since": {
           "f2": "2026-10-19"
         }
+      },
+      "8480185": {
+        "groups": [
+          "f3",
+          "pk1",
+          "pp2"
+        ],
+        "since": {}
       },
       "8480188": {
         "groups": [
@@ -5810,6 +5820,36 @@
         "value": -0.1072,
         "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8477035,
+        "kinds": [
+          "goalie"
+        ],
+        "name": "Matt Tomkins",
+        "positions": "G",
+        "price": null,
+        "sent": true,
+        "team": "EDM",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "His starter Devon Levi out (ir). Expected to start 14% of the games ahead, against 35% projected before the season."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8482145,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mavrik Bourque",
+        "positions": "C/RW",
+        "price": 0.1307,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.0332,
+        "verdict": "-3 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
