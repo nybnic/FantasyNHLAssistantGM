@@ -303,7 +303,7 @@
       "updates": 0
     }
   },
-  "dfo_archived": "2026-10-23",
+  "dfo_archived": "2026-10-24",
   "health_alerts": {},
   "ir_noted": [],
   "last_error": null,
@@ -898,7 +898,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-24T15:30+00:00",
+    "at": "2026-10-24T16:30+00:00",
     "moves": [
       {
         "add": {
@@ -916,7 +916,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2179,
+        "value": 0.2176,
         "when": "2026-10-24",
         "why": "spare"
       },
@@ -936,7 +936,7 @@
         "key": "8477498:8476457",
         "message_id": 629,
         "rec_id": "add-2026-10-23-0520-8477498",
-        "value": 0.1893,
+        "value": 0.1891,
         "when": "2026-10-26",
         "why": "monday"
       }
@@ -1201,6 +1201,7 @@
       "8481568:promoted": "2026-10-19",
       "8481593:promoted": "2026-10-16",
       "8481601:promoted": "2026-10-17",
+      "8481641:promoted": "2026-10-24",
       "8481656:promoted": "2026-10-23",
       "8481711:promoted": "2026-10-15",
       "8481721:promoted": "2026-10-14",
@@ -1259,6 +1260,7 @@
       "8484797:promoted": "2026-10-23",
       "8484803:ice time": "2026-10-14",
       "8484829:promoted": "2026-10-14",
+      "8484911:promoted": "2026-10-24",
       "8484999:promoted": "2026-10-13",
       "8485395:promoted": "2026-10-18",
       "8485402:promoted": "2026-10-19",
@@ -1320,6 +1322,12 @@
         "since": {
           "d1": "2026-10-19"
         }
+      },
+      "8474102": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8474141": {
         "groups": [
@@ -2319,6 +2327,12 @@
         ],
         "since": {}
       },
+      "8478874": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8478911": {
         "groups": [
           "d1",
@@ -2345,12 +2359,9 @@
       },
       "8479351": {
         "groups": [
-          "f1",
-          "pk1"
+          "ir"
         ],
-        "since": {
-          "f1": "2026-10-19"
-        }
+        "since": {}
       },
       "8479359": {
         "groups": [
@@ -2743,7 +2754,7 @@
       },
       "8480848": {
         "groups": [
-          "f4",
+          "f3",
           "pk2"
         ],
         "since": {}
@@ -3040,10 +3051,12 @@
       },
       "8481641": {
         "groups": [
-          "f4",
+          "f1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-24"
+        }
       },
       "8481655": {
         "groups": [
@@ -3178,8 +3191,7 @@
       },
       "8482088": {
         "groups": [
-          "f4",
-          "ir"
+          "f4"
         ],
         "since": {}
       },
@@ -4139,10 +4151,13 @@
       },
       "8484911": {
         "groups": [
-          "f3",
-          "pk2"
+          "f1",
+          "pk2",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-24"
+        }
       },
       "8484938": {
         "groups": [
@@ -5925,6 +5940,36 @@
         "value": 0.0112,
         "verdict": "+1 win-pts against the 13.1 an add costs: not yet worth one.",
         "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8481641,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Joel Kiviranta",
+        "positions": "LW/RW",
+        "price": null,
+        "sent": false,
+        "team": "DAL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8484911,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Collin Graf",
+        "positions": "LW/RW",
+        "price": 0.1307,
+        "sent": false,
+        "team": "SJS",
+        "value": -0.052,
+        "verdict": "-5 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
