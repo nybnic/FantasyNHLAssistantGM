@@ -898,7 +898,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-24T17:43+00:00",
+    "at": "2026-10-24T19:00+00:00",
     "moves": [
       {
         "add": {
@@ -916,7 +916,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2183,
+        "value": 0.219,
         "when": "2026-10-24",
         "why": "spare"
       },
@@ -936,7 +936,7 @@
         "key": "8477498:8476457",
         "message_id": 629,
         "rec_id": "add-2026-10-23-0520-8477498",
-        "value": 0.1894,
+        "value": 0.1897,
         "when": "2026-10-26",
         "why": "monday"
       }
@@ -1128,6 +1128,7 @@
       "8475768:promoted": "2026-10-16",
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
+      "8475848:promoted": "2026-10-24",
       "8476441:ice time": "2026-10-23",
       "8476461:promoted": "2026-10-22",
       "8476463:promoted": "2026-10-14",
@@ -1161,6 +1162,7 @@
       "8478438:promoted": "2026-10-19",
       "8478444:promoted": "2026-10-18",
       "8478474:promoted": "2026-10-23",
+      "8478498:promoted": "2026-10-24",
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
       "8478851:ice time": "2026-10-18",
@@ -1571,9 +1573,11 @@
       },
       "8475848": {
         "groups": [
-          "f4"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-24"
+        }
       },
       "8476278": {
         "groups": [
@@ -1646,13 +1650,6 @@
         "since": {
           "f1": "2026-10-22"
         }
-      },
-      "8476467": {
-        "groups": [
-          "d3",
-          "pk1"
-        ],
-        "since": {}
       },
       "8476469": {
         "groups": [
@@ -2229,17 +2226,24 @@
       },
       "8478444": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-17",
+          "f1": "2026-10-24",
           "pp1": null
         }
       },
       "8478463": {
         "groups": [
           "f3"
+        ],
+        "since": {}
+      },
+      "8478465": {
+        "groups": [
+          "d3",
+          "pk1"
         ],
         "since": {}
       },
@@ -2266,10 +2270,11 @@
       },
       "8478498": {
         "groups": [
-          "f3",
+          "f2",
           "pp1"
         ],
         "since": {
+          "f2": "2026-10-24",
           "pp1": null
         }
       },
@@ -2832,12 +2837,10 @@
       },
       "8481024": {
         "groups": [
-          "f1",
+          "f4",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-10-20"
-        }
+        "since": {}
       },
       "8481028": {
         "groups": [
@@ -2848,13 +2851,11 @@
       },
       "8481032": {
         "groups": [
-          "f2",
+          "f4",
           "pk2",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-17"
-        }
+        "since": {}
       },
       "8481056": {
         "groups": [
@@ -3633,12 +3634,6 @@
         ],
         "since": {}
       },
-      "8483395": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8483398": {
         "groups": [
           "d2",
@@ -3765,6 +3760,12 @@
         "since": {
           "d1": null
         }
+      },
+      "8483499": {
+        "groups": [
+          "f3"
+        ],
+        "since": {}
       },
       "8483500": {
         "groups": [
@@ -6037,6 +6038,36 @@
         "value": -0.1242,
         "verdict": "-12 win-pts against the 13.1 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8478498,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jake DeBrusk",
+        "positions": "LW/RW",
+        "price": 0.1307,
+        "sent": false,
+        "team": "VAN",
+        "value": -0.0192,
+        "verdict": "-2 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-24",
+        "id": 8475848,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Brendan Gallagher",
+        "positions": "RW",
+        "price": null,
+        "sent": false,
+        "team": "VAN",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
