@@ -26,8 +26,9 @@ lineup actually got. Skaters who didn't play in the week before count as out
 
 `--from-day N`: projected the morning of the week's day N (0 = Monday, 6 = Sunday),
 the days from N on only, on what was known then, as the plan reads a week in
-progress (the days before are banked; a team-week whose goalie minimum isn't
-met by then is left out). The tails table says whether a team behind by k
+progress (the days before are banked; while the goalie minimum is open, the
+banked goalie points are at stake too: the days left are scored as the week's
+final score less what was banked). The tails table says whether a team behind by k
 sigma catches up as often as the normal says: P(win) and every win-pt of a
 week nearly decided come from there.
 
@@ -90,9 +91,14 @@ def draft(pool: dict[str, list[tuple[float, int]]], teams: int, rng: random.Rand
     return rosters
 
 
-def banked_starts(start_days: list[set[dt.date]], days: list[dt.date]) -> int:
-    """Goalie games already in by `days`' end: a roster's goalies' starts, at most 2 a day (the G slots)."""
-    return sum(min(2, sum(d in s for s in start_days)) for d in days)
+def banked_starts(start_days: list[dict[dt.date, float]], days: list[dt.date]) -> tuple[int, float]:
+    """(goalie games, their points) already in by `days`' end: a roster's goalies' starts
+    ({date: points} each), at most 2 a day (the G slots, the better two)."""
+    games, points = 0, 0.0
+    for d in days:
+        best = sorted((s[d] for s in start_days if d in s), reverse=True)[:2]
+        games, points = games + len(best), points + sum(best)
+    return games, points
 
 
 def tails(zs: list[float], cuts=TAILS) -> list[tuple[float, float, float]]:
@@ -132,11 +138,11 @@ def main_() -> None:
     for g in skaters:
         team_dates[g.team].add(g.date)
     starts_by_team = defaultdict(list)  # (date, goalie id) of each start
-    start_days = defaultdict(set)
+    start_days = defaultdict(dict)  # goalie -> {date: fantasy points} of his starts
     for g in goalies:
         if g.started:
             starts_by_team[g.team].append((g.date, g.player_id))
-            start_days[g.player_id].add(g.date)
+            start_days[g.player_id][g.date] = fantasy_points(g.stats, GOALIE_WEIGHTS)
     position = {pid: POS[gs[0].position] for pid, gs in by_skater.items()}
     team_of = {pid: gs[-1].team for pid, gs in {**by_skater, **by_goalie}.items()}
 
@@ -170,11 +176,8 @@ def main_() -> None:
                 asof = monday + dt.timedelta(days=from_day - 7 * args.ahead)
                 results = []
                 for roster in rosters:
-                    banked = banked_starts([start_days[pid] for pid in roster["G"]],
-                                           [monday + dt.timedelta(days=i) for i in range(from_day)])
-                    if from_day and banked < MIN_GOALIE_GAMES_PER_WEEK:
-                        results.append(None)  # the minimum still open: banked goalie points at stake too
-                        continue
+                    banked, banked_g = banked_starts([start_days[pid] for pid in roster["G"]],
+                                                     [monday + dt.timedelta(days=i) for i in range(from_day)])
                     proj, actual = {}, {}
                     for pos in ("C", "LW", "RW", "D"):
                         for pid in roster[pos]:
@@ -233,11 +236,15 @@ def main_() -> None:
                             else:
                                 mean_sk, var_sk = mean_sk + m, var_sk + v
                                 act_sk += actual[(d, pid)]
+                    # The goalies' part of the days left: all the week's goalie points if the minimum
+                    # is met, less those banked (lost too if it isn't).
                     min_prob = _at_least(probs, banked, MIN_GOALIE_GAMES_PER_WEEK)
-                    expected = mean_sk + min_prob * mean_g
-                    g_var = min_prob * (var_g + mean_g ** 2) - (min_prob * mean_g) ** 2
+                    g_all = mean_g + banked_g
+                    expected = mean_sk + min_prob * g_all - banked_g
+                    g_var = min_prob * (var_g + g_all ** 2) - (min_prob * g_all) ** 2
                     variance = var_sk + g_var + (MODEL_SD_SHARE * (mean_sk + mean_g)) ** 2
-                    got = act_sk + (act_g if banked + g_started >= MIN_GOALIE_GAMES_PER_WEEK else 0.0)
+                    got = act_sk + (act_g + banked_g if banked + g_started >= MIN_GOALIE_GAMES_PER_WEEK
+                                    else 0.0) - banked_g
                     results.append((expected, variance, got))
                     if variance > 0:
                         team_weeks.append((got - expected) / math.sqrt(variance))
@@ -257,6 +264,9 @@ def main_() -> None:
 def report(team_weeks: list[float], matchups: list[tuple], leagues: int, weeks: int, from_day: int) -> None:
     print(f"\n== from {('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')[from_day]} on "
           f"({7 - from_day} day{'s' if from_day < 6 else ''} still to play) ==")
+    if not team_weeks or not matchups:
+        print("no matchups")
+        return
     sd_z = math.sqrt(mean(z * z for z in team_weeks) - mean(team_weeks) ** 2)
     print(f"{len(team_weeks)} team-weeks, {len(matchups)} matchups ({leagues} leagues x {weeks} weeks)")
     print(f"team week: mean error {mean(team_weeks):+.2f} sigma, SD of the error {sd_z:.2f} sigma (1.00 = right)")

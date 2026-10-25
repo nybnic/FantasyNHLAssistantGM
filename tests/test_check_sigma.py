@@ -14,9 +14,10 @@ D = dt.date(2025, 10, 6)  # a Monday
 
 def test_banked_starts_counts_two_goalie_slots_a_day():
     mon, tue, wed = D, D + dt.timedelta(days=1), D + dt.timedelta(days=2)
-    starts = [{mon, tue}, {mon}, {mon, wed}]
-    assert check_sigma.banked_starts(starts, [mon, tue]) == 3  # Monday's three starts fill two slots
-    assert check_sigma.banked_starts(starts, []) == 0
+    starts = [{mon: 5.0, tue: 4.0}, {mon: 9.0}, {mon: 1.0, wed: 3.0}]
+    # Monday's three starts fill two slots, the better two.
+    assert check_sigma.banked_starts(starts, [mon, tue]) == (3, 5.0 + 9.0 + 4.0)
+    assert check_sigma.banked_starts(starts, []) == (0, 0.0)
 
 
 def test_tails_pool_both_sides_against_one_normal_tail():
@@ -57,12 +58,13 @@ def test_from_day_runs_on_a_made_up_season(monkeypatch, capsys):
     monkeypatch.setattr(check_sigma.nhl_stats, "skater_games", lambda s: seasons[s][0])
     monkeypatch.setattr(check_sigma.nhl_stats, "goalie_games", lambda s: seasons[s][1])
     monkeypatch.setattr(check_sigma.nhl_stats, "skater_birth_dates", lambda s: {})
-    monkeypatch.setattr(sys, "argv", ["check_sigma", "--leagues", "1", "--from-day", "6", "0"])
+    monkeypatch.setattr(sys, "argv", ["check_sigma", "--leagues", "1", "--from-day", "6", "1", "0"])
     check_sigma.main_()
     out = capsys.readouterr().out
     assert "== from Sun on (1 day still to play) ==" in out
     assert "== from Mon on (7 days still to play) ==" in out
-    assert out.count("k 1.44:") == 2
+    assert "== from Tue on (6 days still to play) ==" in out
+    assert out.count("k 1.44:") == 3
 
 
 def test_from_day_and_ahead_dont_mix(monkeypatch):
