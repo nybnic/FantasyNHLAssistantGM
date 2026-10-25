@@ -272,6 +272,16 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   Thursdays too is itself worth +0.23 (0.08) wins a season on both seeds (tenure Monday-only vs midweek),
   28.7 adds vs 27.9: the live bot plans every day already, so this backs what it does; replays from here
   should use "tenure midweek" as the reference, being nearer the live bot.
+- The margin's shrink by the days left (2026-10-25, Nico: "test the Sunday margin shrink in the replay,
+  and other days than Monday", after Guhle's 5.8 win-pts on a Sunday at 7.5%). `check_sigma --from-day`
+  (16 leagues, 2025-26 / 2024-25): the spread of the days left is right every day (Sunday x1.07 / x1.02,
+  tails normal); the margin of the days left realizes at 0.81-0.88 by the day over all weeks, but at
+  0.90-0.98 from Friday on once both goalie minimums are met (Sunday 0.93 / 0.95) and 0.71-0.83 while
+  one is open. Replayed, 32 leagues against "tenure daily" (a decision every day, as the live bot plans):
+  the margin by days left +0.01 (0.02), 0.94 once both minimums are met -0.04 (0.02), Mondays and
+  Thursdays only -0.13 (0.06). `MARGIN_REALIZES` 0.80 stays every day: reading a decided week's margin
+  more exactly changes few moves and wins nothing. Deciding every day beats Mon + Thu by ~2 SE, as the
+  live bot does; replays from here use "tenure daily" as the reference.
 
 ## Judgment calls (untested)
 `addprice.BAR` 0.12 (set on two weeks of live plans; re-check mid-December), `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
