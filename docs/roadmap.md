@@ -124,6 +124,17 @@ one recommendation land here and are tested in batches:
   only for adds whose gain falls off after them, against "tenure". The planned-exit test (2026-10-13: no gain
   at equal adds) is related but decided Mondays only; mid-week streams aren't replayed.
 
+- The margin's shrink late in the week (Nico, 2026-10-25: "why does Guhle get so many win-pts this
+  week, as the matchup is already almost decided?"). `check_sigma --from-day` (Check: check-sigma-nights,
+  16 leagues, 2025-26 / 2024-25): the spread of the days left is right, a one-night sigma of ~13 pts
+  realizes at x0.99 / x0.97 (two nights x0.95 / x0.93, three x0.93 / x0.91), and the tails are normal
+  (a team 1.44 sigma behind on Sunday caught up 7.4% / 7.0% of the time, normal 7.5%; 1.15-1.44: 4.9% /
+  4.8%, normal 5.0%). But the margin of the days left realizes at 0.93 / 0.95 from Sunday (0.98 / 0.90
+  from Saturday, 0.98 / 0.90 from Friday), while P(win) reads it at `MARGIN_REALIZES` 0.80 every day (fit
+  from Mondays: 0.88 / 0.78 here). Week 4's Sunday at 0.94: margin -17.7, not -22.0; win 12.2%, not 7.5%;
+  Guhle +7.6 win-pts, not +5.8. Test: `MARGIN_REALIZES` by days left (0.80 from Monday, ~0.94 for the
+  last night) in the replay (Thursday decisions only see it partly), or as a calibration on logged
+  weeks' last nights.
 Parked: /trade improvements, stash candidates (old item 8). Old items 4 (points for), 5 (opponent
 streaming, into step 2 once data exists) and 6 (add-price calibration, mid-November) stand.
 
@@ -341,3 +352,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-10-23 | Replay question: a deliberate two-week stream (Nico, after Pospisil for Larsson failed under tenure at 9.7: its weeks 5-6 counted at 0.80 / 0.60 survival). Not changed (engine freeze) | (this commit) |
 | 2026-10-23 | The two-week stream replayed (Nico: "Test it now"): replay variants "tenure full ahead" and "tenure stream ahead" (the weeks ahead at full weight, for every add or for streams only), 16 + 16 leagues: -0.11 (0.08) / -0.03 (0.07) and -0.09 (0.07) / -0.13 (0.07) against tenure; at full weight the weeks ahead come true at 0.72-0.88 of predicted. Tenure stays | (this commit) |
 | 2026-10-23 | The replay decides mid-week too (Nico: "Test it", whether a replaced streamer's successor is counted): variants "... midweek" add a Thursday decision with the week's adds left, each night scored with that night's roster, the goalie minimum by fantasy week. Full weight on the weeks ahead still loses (~-0.13 / ~-0.11 wins a season, +/- 0.05); deciding on Thursdays is itself +0.23 (0.08) on both seeds. No engine change | (this commit) |
+| 2026-10-25 | `check_sigma --from-day` (Check: check-sigma-nights): the spread of a week's last nights is right, tails normal; the margin of the days left realizes at ~0.94 from Sunday against 0.80 read (Nico: "test the spread", after Guhle's 5.8 win-pts at 7.5%). Into the replay questions, not changed (engine freeze) | e3ce714 |
