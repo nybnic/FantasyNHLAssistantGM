@@ -138,18 +138,23 @@ VARIANTS = {
     # day of the week, as the live bot plans; "shrink": this week's margin read at REALIZES_BY_DAYS_LEFT.
     "tenure daily": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure daily shrink": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    # The split (check_sigma, both goalie minimums met by then or not): met, Friday to Sunday 0.98 / 0.90,
+    # 0.98 / 0.90, 0.93 / 0.95; not, 0.71-0.83. "met": REALIZES_MET once both teams have their minimum.
+    "tenure daily met": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
 }
 # The days after each Monday a variant also decides on, with the week's adds left (Thursday: MIDWEEK).
 MIDWEEK_DAY = 3
 DECISION_DAYS = {**{name: (MIDWEEK_DAY,) for name in ("tenure midweek", "tenure full ahead midweek",
                                                        "tenure stream ahead midweek")},
-                 "tenure daily": (1, 2, 3, 4, 5, 6), "tenure daily shrink": (1, 2, 3, 4, 5, 6)}
+                 **{name: (1, 2, 3, 4, 5, 6) for name in ("tenure daily", "tenure daily shrink", "tenure daily met")}}
 MIDWEEK = set(DECISION_DAYS)
 # This week's margin as it realizes, by the days left to play (check_sigma --from-day, 16 leagues,
 # 2025-26 / 2024-25: 0.91 / 0.81, 0.91 / 0.76, 0.91 / 0.79, 0.87 / 0.81, 0.85 / 0.76, 0.87 / 0.88 from
 # Tuesday on, averaged), for the "shrink" variants; a whole week stays at MARGIN_REALIZES (0.88 / 0.78).
 REALIZES_BY_DAYS_LEFT = {7: matchup.MARGIN_REALIZES, 6: 0.86, 5: 0.835, 4: 0.85, 3: 0.84, 2: 0.805, 1: 0.875}
 SHRINK = {"tenure daily shrink"}
+REALIZES_MET = 0.94
+SHRINK_MET = {"tenure daily met"}
 # Keep rules valued by tenure_after, and how each weighs the weeks ahead (TENURE_AHEAD).
 TENURE_RULES = {"tenure": "survival", "tenure full ahead": "full", "tenure stream ahead": "stream"}
 # Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
@@ -421,6 +426,16 @@ def actual(s: Season, roster: list[int], m: dt.date, later: tuple | None = None,
     return sk + (gp if starts >= MIN_GOALIE_GAMES_PER_WEEK or not minimum else 0.0)
 
 
+def goalie_games(s: Season, roster: list[int], m: dt.date, later=None, days: int = 7) -> int:
+    """Goalie games in the week's first `days` days, as actual() counts them (2 a day at most)."""
+    changes, games = changes_of(later), 0
+    for i in range(days):
+        d = m + dt.timedelta(days=i)
+        r = next((r for day, r in reversed(changes) if d >= day), roster)
+        games += min(2, sum((pid, d) in s.g_points for pid in r))
+    return games
+
+
 def changes_of(later) -> list[tuple[dt.date, list[int]]]:
     """A week's mid-week rosters as a list: None, one (day, roster), or a list of them."""
     return [] if not later else [later] if isinstance(later, tuple) else list(later)
@@ -539,13 +554,17 @@ def run_league(args: tuple) -> dict:
                     banked = (actual(s, first, m, later, days=offset, minimum=False),
                               actual(s, opp_roster, m, days=offset, minimum=False))
                     before = list(roster)
+                    realizes = REALIZES_BY_DAYS_LEFT[7 - offset] if name in SHRINK else None
+                    if name in SHRINK_MET and min(goalie_games(s, first, m, later, offset),
+                                                  goalie_games(s, opp_roster, m, days=offset)) >= MIN_GOALIE_GAMES_PER_WEEK:
+                        realizes = REALIZES_MET
                     while week_adds < 2 and used < cap:
                         price = rule if fixed else monday_price(rule, used, w, n_weeks, picks, None)
                         parts = {} if audit else None
                         move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | this_week, keep_rule,
                                          spots, discount, n_weeks, used, None, price, (), name not in SKATERS_ONLY,
                                          None, parts, True, day=day, banked=banked,
-                                         realizes=REALIZES_BY_DAYS_LEFT[7 - offset] if name in SHRINK else None)
+                                         realizes=realizes)
                         if move is None or move[0] < price:
                             break
                         _, add, drop, _ = move

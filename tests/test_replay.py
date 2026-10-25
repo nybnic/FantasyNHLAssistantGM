@@ -266,3 +266,12 @@ def test_shrink_variants_read_the_margin_by_the_days_left():
     assert all(0.0 < replay.REALIZES_BY_DAYS_LEFT[7 - d] <= 1.0 for d in replay.DECISION_DAYS["tenure daily shrink"])
     assert replay.DECISION_DAYS["tenure daily"] == replay.DECISION_DAYS["tenure daily shrink"] == (1, 2, 3, 4, 5, 6)
     assert replay.SHRINK <= set(replay.VARIANTS) and replay.MIDWEEK <= replay.WHOLE_SCHEDULE
+
+
+def test_goalie_games_count_the_starts_banked_two_a_day():
+    days = [MON + dt.timedelta(days=i) for i in range(7)]
+    g_points = {(10, days[0]): 5.0, (11, days[0]): 4.0, (12, days[0]): 3.0, (10, days[2]): 6.0, (12, days[5]): 2.0}
+    s = _season({}, {}, {}, g_points=g_points, goalies=(10, 11, 12))
+    assert replay.goalie_games(s, [10, 11, 12], MON, days=3) == 3  # Monday's three starts: two slots
+    assert replay.goalie_games(s, [10, 11], MON, [(days[4], [10, 12])], days=6) == 4  # 12 from Friday
+    assert "tenure daily met" in replay.SHRINK_MET and replay.DECISION_DAYS["tenure daily met"] == (1, 2, 3, 4, 5, 6)
