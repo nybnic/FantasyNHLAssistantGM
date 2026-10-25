@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-25T05:34+00:00",
+ "generated": "2026-10-25T08:19+00:00",
  "date": "2026-10-25",
  "week": 4,
  "opponent": "Jättiläisentie Giants",
@@ -107,7 +107,7 @@
   }
  ],
  "plan_empty": "No add is worth one of yours now.",
- "changed": "the new plan is better by 10 win-pts",
+ "changed": "",
  "this_week_line": "For this week alone, the best is Roman Kantserov for Jack McBain: win 7% -> 14%. Worth an add too, but it clashes with the plan's.",
  "weeks": [
   {
@@ -1839,6 +1839,56 @@
    "why": "dropping Adam Larsson costs about 5 pts later, more than this week's +5 win-pts make up for"
   },
   {
+   "key": "8478854:8476457",
+   "add": {
+    "id": 8478854,
+    "name": "Ryan Shea",
+    "team": "EDM",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 0,
+   "week_pts": 0.0,
+   "next_two_pts": 5.11,
+   "later_pts": -2.55,
+   "win": [
+    0.0748,
+    0.0748
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.0266,
+    0.0047
+   ],
+   "ahead_pts": 3.63,
+   "ahead_week_pts": [
+    3.07,
+    0.57
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0197,
+   "value": 0.0116,
+   "status": "fails",
+   "why": "dropping Adam Larsson costs about 3 pts later, more than this week's +0 win-pts make up for"
+  },
+  {
    "key": "8478498:8480855",
    "add": {
     "id": 8478498,
@@ -2697,6 +2747,56 @@
    "why": "worth -0.5 win-pts, under the 13.1 an add costs"
   },
   {
+   "key": "8479998:8476457",
+   "add": {
+    "id": 8479998,
+    "name": "Mikey Anderson",
+    "team": "LAK",
+    "positions": [
+     "D"
+    ]
+   },
+   "drop": {
+    "id": 8476457,
+    "name": "Adam Larsson"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 0,
+   "week_pts": 0.0,
+   "next_two_pts": 2.67,
+   "later_pts": -3.46,
+   "win": [
+    0.0748,
+    0.0748
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.029,
+    -0.0078
+   ],
+   "ahead_pts": 2.41,
+   "ahead_week_pts": [
+    3.34,
+    -0.94
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0268,
+   "value": -0.0056,
+   "status": "fails",
+   "why": "dropping Adam Larsson costs about 3 pts later, more than this week's +0 win-pts make up for"
+  },
+  {
    "key": "8481032:8480855",
    "add": {
     "id": 8481032,
@@ -3049,106 +3149,6 @@
    "value": -0.0118,
    "status": "fails",
    "why": "dropping Adam Larsson costs about 9 pts later, more than this week's +6 win-pts make up for"
-  },
-  {
-   "key": "8482679:8480855",
-   "add": {
-    "id": 8482679,
-    "name": "Matt Coronato",
-    "team": "CGY",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 0,
-   "week_pts": 0.0,
-   "next_two_pts": 4.0,
-   "later_pts": -4.63,
-   "win": [
-    0.0748,
-    0.0748
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    0.0131,
-    0.0089
-   ],
-   "ahead_pts": 2.58,
-   "ahead_week_pts": [
-    1.51,
-    1.07
-   ],
-   "held": true,
-   "keep": 0.208,
-   "bin": "skater, lowest",
-   "stays": [
-    0.423,
-    0.208,
-    0.074
-   ],
-   "later_wins": -0.0359,
-   "value": -0.0138,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 5 pts later, more than this week's +0 win-pts make up for"
-  },
-  {
-   "key": "8484390:8480807",
-   "add": {
-    "id": 8484390,
-    "name": "Roman Kantserov",
-    "team": "CHI",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480807,
-    "name": "Mattias Samuelsson"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 1,
-   "week_pts": 5.15,
-   "next_two_pts": 0.95,
-   "later_pts": -11.17,
-   "win": [
-    0.0748,
-    0.1434
-   ],
-   "now_wins": 0.0686,
-   "ahead_wins": [
-    -0.0187,
-    0.0226
-   ],
-   "ahead_pts": 0.58,
-   "ahead_week_pts": [
-    -2.14,
-    2.72
-   ],
-   "held": false,
-   "keep": 0.698,
-   "bin": "skater, 4th-6th",
-   "stays": [
-    0.855,
-    0.698,
-    0.446
-   ],
-   "later_wins": -0.0866,
-   "value": -0.014,
-   "status": "fails",
-   "why": "dropping Mattias Samuelsson costs about 11 pts later, more than this week's +7 win-pts make up for"
   }
  ],
  "teams": {
@@ -10720,6 +10720,160 @@
    "kept": 1.0,
    "replacement": 5.43
   },
+  "8478854": {
+   "id": 8478854,
+   "name": "Ryan Shea",
+   "team": "EDM",
+   "positions": "D",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 11,
+    "pts": 30.7,
+    "proj": 32.4,
+    "pts_projected": 30.7,
+    "stats": {
+     "Goals": [
+      1.0,
+      0.8
+     ],
+     "Assists": [
+      2.0,
+      2.8
+     ],
+     "PP points": [
+      0.0,
+      0.2
+     ],
+     "SH points": [
+      0.0,
+      0.0
+     ],
+     "GWG": [
+      0.0,
+      0.0
+     ],
+     "Shots": [
+      10.0,
+      9.0
+     ],
+     "Hits": [
+      7.0,
+      7.7
+     ],
+     "Blocks": [
+      15.0,
+      12.9
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.0
+     ],
+     "+/-": [
+      0.0,
+      1.9
+     ],
+     "PIM": [
+      0.0,
+      3.5
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-24",
+      "opp": "TOR",
+      "pts": 1.6,
+      "proj": 3.1
+     },
+     {
+      "date": "2026-10-22",
+      "opp": "CAR",
+      "pts": 2.1,
+      "proj": 3.0
+     },
+     {
+      "date": "2026-10-20",
+      "opp": "MIN",
+      "pts": 4.0,
+      "proj": 2.9
+     },
+     {
+      "date": "2026-10-17",
+      "opp": "UTA",
+      "pts": 0.3,
+      "proj": 3.0
+     },
+     {
+      "date": "2026-10-15",
+      "opp": "UTA",
+      "pts": 2.4,
+      "proj": 3.0
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "LAK",
+      "pts": 2.7,
+      "proj": 3.0
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "SJS",
+      "pts": 0.8,
+      "proj": 3.0
+     },
+     {
+      "date": "2026-10-07",
+      "opp": "ANA",
+      "pts": 3.0,
+      "proj": 2.9
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "SEA",
+      "pts": 4.3,
+      "proj": 2.9
+     },
+     {
+      "date": "2026-10-01",
+      "opp": "VAN",
+      "pts": 6.6,
+      "proj": 2.8
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.285,
+    "Assists": 0.682,
+    "PP, SH, GWG": 0.009,
+    "Shots": 0.463,
+    "Hits": 0.402,
+    "Blocks": 1.084,
+    "Faceoffs": 0.0,
+    "+/- and PIM": 0.163
+   },
+   "xfp": 3.086,
+   "stats": {
+    "Goals": 0.071,
+    "Assists": 0.248,
+    "PP points": 0.009,
+    "SH points": 0.001,
+    "GWG": 0.002,
+    "Shots": 0.925,
+    "Hits": 0.67,
+    "Blocks": 1.355,
+    "Faceoff wins": 0.0,
+    "+/-": 0.145,
+    "PIM": 0.301
+   },
+   "toi": 23.64,
+   "pp_toi": 1.31,
+   "gp": 11,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.94,
+   "kept": 1.0,
+   "replacement": 4.497
+  },
   "8478498": {
    "id": 8478498,
    "name": "Jake DeBrusk",
@@ -12590,6 +12744,154 @@
    "durability": 0.899,
    "kept": 1.0,
    "replacement": 5.43
+  },
+  "8479998": {
+   "id": 8479998,
+   "name": "Mikey Anderson",
+   "team": "LAK",
+   "positions": "D",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 9,
+    "pts": 25.1,
+    "proj": 30.2,
+    "pts_projected": 25.1,
+    "stats": {
+     "Goals": [
+      0.0,
+      0.4
+     ],
+     "Assists": [
+      1.0,
+      1.8
+     ],
+     "PP points": [
+      0.0,
+      0.0
+     ],
+     "SH points": [
+      1.0,
+      0.1
+     ],
+     "GWG": [
+      0.0,
+      0.1
+     ],
+     "Shots": [
+      4.0,
+      7.7
+     ],
+     "Hits": [
+      9.0,
+      11.3
+     ],
+     "Blocks": [
+      16.0,
+      14.3
+     ],
+     "Faceoff wins": [
+      0.0,
+      0.0
+     ],
+     "+/-": [
+      0.0,
+      0.7
+     ],
+     "PIM": [
+      2.0,
+      2.9
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-24",
+      "opp": "NJD",
+      "pts": 2.8,
+      "proj": 3.2
+     },
+     {
+      "date": "2026-10-22",
+      "opp": "NYI",
+      "pts": 0.3,
+      "proj": 3.2
+     },
+     {
+      "date": "2026-10-20",
+      "opp": "WSH",
+      "pts": 3.2,
+      "proj": 3.1
+     },
+     {
+      "date": "2026-10-17",
+      "opp": "BOS",
+      "pts": 0.6,
+      "proj": 3.3
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "EDM",
+      "pts": 2.5,
+      "proj": 3.5
+     },
+     {
+      "date": "2026-10-10",
+      "opp": "VGK",
+      "pts": 1.6,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "FLA",
+      "pts": 5.2,
+      "proj": 3.4
+     },
+     {
+      "date": "2026-10-03",
+      "opp": "SJS",
+      "pts": 0.9,
+      "proj": 3.6
+     },
+     {
+      "date": "2026-09-30",
+      "opp": "COL",
+      "pts": 8.0,
+      "proj": 3.5
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.18,
+    "Assists": 0.507,
+    "PP, SH, GWG": 0.022,
+    "Shots": 0.366,
+    "Hits": 0.719,
+    "Blocks": 1.26,
+    "Faceoffs": 0.0,
+    "+/- and PIM": 0.127
+   },
+   "xfp": 3.181,
+   "stats": {
+    "Goals": 0.045,
+    "Assists": 0.184,
+    "PP points": 0.0,
+    "SH points": 0.007,
+    "GWG": 0.006,
+    "Shots": 0.732,
+    "Hits": 1.199,
+    "Blocks": 1.575,
+    "Faceoff wins": 0.0,
+    "+/-": 0.072,
+    "PIM": 0.303
+   },
+   "toi": 17.65,
+   "pp_toi": 0.05,
+   "gp": 9,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.968,
+   "kept": 1.0,
+   "replacement": 4.497
   },
   "8481032": {
    "id": 8481032,
@@ -16220,6 +16522,112 @@
   "playoffs_from": 24
  },
  "watch": [
+  {
+   "date": "2026-10-25",
+   "id": 8482201,
+   "name": "Gage Goncalves",
+   "team": "TBL",
+   "positions": "C/LW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first line.",
+   "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": -0.1064,
+   "price": 0.1307,
+   "sent": false
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8485702,
+   "name": "Maxim Shabanov",
+   "team": "MIN",
+   "positions": "RW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first power play.",
+   "verdict": "-7 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": -0.0668,
+   "price": 0.1307,
+   "sent": false
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8477446,
+   "name": "Michael McCarron",
+   "team": "MIN",
+   "positions": "C",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the second line.",
+   "verdict": "-5 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": -0.0507,
+   "price": 0.1307,
+   "sent": false
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8480064,
+   "name": "Josh Norris",
+   "team": "BUF",
+   "positions": "C",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the first line.",
+   "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": -0.1084,
+   "price": 0.1307,
+   "sent": false
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8479998,
+   "name": "Mikey Anderson",
+   "team": "LAK",
+   "positions": "D",
+   "kinds": [
+    "ice time"
+   ],
+   "why": "Ice time 20:07 a game in his last 3, up from 16:24. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.",
+   "verdict": "-1 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": -0.0056,
+   "price": 0.1307,
+   "sent": true
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8478854,
+   "name": "Ryan Shea",
+   "team": "EDM",
+   "positions": "D",
+   "kinds": [
+    "promoted",
+    "ice time"
+   ],
+   "why": "DFO moved up to the top D pair. Ice time 26:02 a game in his last 3, up from 22:44. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.",
+   "verdict": "+1 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": 0.0116,
+   "price": 0.1307,
+   "sent": true
+  },
+  {
+   "date": "2026-10-25",
+   "id": 8481726,
+   "name": "Adam Edstrom",
+   "team": "NSH",
+   "positions": "C/LW",
+   "kinds": [
+    "ice time"
+   ],
+   "why": "Ice time 16:16 a game in his last 3, up from 13:10. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.",
+   "verdict": "+4 win-pts against the 13.1 an add costs: not yet worth one.",
+   "value": 0.0359,
+   "price": 0.1307,
+   "sent": true
+  },
   {
    "date": "2026-10-24",
    "id": 8475848,

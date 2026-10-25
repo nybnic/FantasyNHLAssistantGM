@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-25T05:34+00:00",
+    "at": "2026-10-25T08:19+00:00",
     "moves": [
       {
         "add": {
@@ -1063,7 +1063,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784755,
+  "telegram_offset": 929784756,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1102,6 +1102,7 @@
       "8477402:promoted": "2026-10-18",
       "8477426:promoted": "2026-10-15",
       "8477429:promoted": "2026-10-19",
+      "8477446:promoted": "2026-10-25",
       "8477451:promoted": "2026-10-16",
       "8477484:goalie": "2026-10-13",
       "8477496:promoted": "2026-10-18",
@@ -1125,6 +1126,8 @@
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
       "8478851:ice time": "2026-10-18",
+      "8478854:ice time": "2026-10-25",
+      "8478854:promoted": "2026-10-25",
       "8478856:promoted": "2026-10-21",
       "8478911:promoted": "2026-10-19",
       "8479351:promoted": "2026-10-14",
@@ -1137,9 +1140,11 @@
       "8479675:promoted": "2026-10-15",
       "8479980:promoted": "2026-10-14",
       "8479983:promoted": "2026-10-15",
+      "8479998:ice time": "2026-10-25",
       "8479999:promoted": "2026-10-18",
       "8480028:promoted": "2026-10-22",
       "8480049:promoted": "2026-10-16",
+      "8480064:promoted": "2026-10-25",
       "8480078:promoted": "2026-10-18",
       "8480113:promoted": "2026-10-19",
       "8480188:promoted": "2026-10-21",
@@ -1168,6 +1173,7 @@
       "8481656:promoted": "2026-10-23",
       "8481711:promoted": "2026-10-15",
       "8481721:promoted": "2026-10-14",
+      "8481726:ice time": "2026-10-25",
       "8481732:promoted": "2026-10-22",
       "8481754:promoted": "2026-10-22",
       "8482055:promoted": "2026-10-22",
@@ -1184,6 +1190,7 @@
       "8482175:promoted": "2026-10-19",
       "8482176:promoted": "2026-10-16",
       "8482177:promoted": "2026-10-19",
+      "8482201:promoted": "2026-10-25",
       "8482408:promoted": "2026-10-21",
       "8482475:promoted": "2026-10-19",
       "8482476:promoted": "2026-10-19",
@@ -1229,7 +1236,8 @@
       "8484999:promoted": "2026-10-13",
       "8485395:promoted": "2026-10-18",
       "8485402:promoted": "2026-10-19",
-      "8485406:promoted": "2026-10-16"
+      "8485406:promoted": "2026-10-16",
+      "8485702:promoted": "2026-10-25"
     },
     "groups": {
       "8470613": {
@@ -6055,6 +6063,112 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8481726,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Adam Edstrom",
+        "positions": "C/LW",
+        "price": 0.1307,
+        "sent": true,
+        "team": "NSH",
+        "value": 0.0359,
+        "verdict": "+4 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "Ice time 16:16 a game in his last 3, up from 13:10. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8478854,
+        "kinds": [
+          "promoted",
+          "ice time"
+        ],
+        "name": "Ryan Shea",
+        "positions": "D",
+        "price": 0.1307,
+        "sent": true,
+        "team": "EDM",
+        "value": 0.0116,
+        "verdict": "+1 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair. Ice time 26:02 a game in his last 3, up from 22:44. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8479998,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Mikey Anderson",
+        "positions": "D",
+        "price": 0.1307,
+        "sent": true,
+        "team": "LAK",
+        "value": -0.0056,
+        "verdict": "-1 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "Ice time 20:07 a game in his last 3, up from 16:24. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8480064,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Josh Norris",
+        "positions": "C",
+        "price": 0.1307,
+        "sent": false,
+        "team": "BUF",
+        "value": -0.1084,
+        "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8477446,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Michael McCarron",
+        "positions": "C",
+        "price": 0.1307,
+        "sent": false,
+        "team": "MIN",
+        "value": -0.0507,
+        "verdict": "-5 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8485702,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Maxim Shabanov",
+        "positions": "RW",
+        "price": 0.1307,
+        "sent": false,
+        "team": "MIN",
+        "value": -0.0668,
+        "verdict": "-7 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8482201,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Gage Goncalves",
+        "positions": "C/LW",
+        "price": 0.1307,
+        "sent": false,
+        "team": "TBL",
+        "value": -0.1064,
+        "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
@@ -6075,7 +6189,7 @@
       "sent": "2026-10-12T07:21+00:00"
     },
     "4": {
-      "midweek": "2026-10-24T17:43+00:00",
+      "midweek": "2026-10-25T08:19+00:00",
       "sent": "2026-10-19T05:26+00:00"
     }
   },
