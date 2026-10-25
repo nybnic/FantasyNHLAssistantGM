@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-25T14:30+00:00",
+    "at": "2026-10-25T16:00+00:00",
     "moves": [
       {
         "add": {
@@ -1181,6 +1181,7 @@
       "8482482:promoted": "2026-10-14",
       "8482655:ice time": "2026-10-18",
       "8482660:promoted": "2026-10-24",
+      "8482665:promoted": "2026-10-25",
       "8482679:promoted": "2026-10-17",
       "8482705:promoted": "2026-10-21",
       "8482713:promoted": "2026-10-14",
@@ -2101,8 +2102,7 @@
       "8478013": {
         "groups": [
           "d2",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -2146,7 +2146,8 @@
       "8478396": {
         "groups": [
           "d3",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -2573,7 +2574,7 @@
       },
       "8480043": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -2774,7 +2775,8 @@
       },
       "8480842": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -2973,7 +2975,8 @@
       },
       "8481553": {
         "groups": [
-          "f2"
+          "f2",
+          "pp2"
         ],
         "since": {
           "f2": "2026-10-15"
@@ -3233,11 +3236,9 @@
       },
       "8482111": {
         "groups": [
-          "d1"
+          "d2"
         ],
-        "since": {
-          "d1": "2026-10-19"
-        }
+        "since": {}
       },
       "8482113": {
         "groups": [
@@ -3262,8 +3263,7 @@
       },
       "8482125": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3467,10 +3467,11 @@
         "groups": [
           "f1",
           "pk2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f1": null
+          "f1": null,
+          "pp1": "2026-10-25"
         }
       },
       "8482679": {
@@ -3619,8 +3620,7 @@
       },
       "8482993": {
         "groups": [
-          "f2",
-          "pp2"
+          "f2"
         ],
         "since": {
           "f2": null
@@ -4095,11 +4095,9 @@
       "8484800": {
         "groups": [
           "f3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-10-24"
-        }
+        "since": {}
       },
       "8484803": {
         "groups": [
@@ -6212,6 +6210,21 @@
         "value": -0.0993,
         "verdict": "-10 win-pts against the 14.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8482665,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Matty Beniers",
+        "positions": "C",
+        "price": 0.1418,
+        "sent": false,
+        "team": "SEA",
+        "value": -0.0845,
+        "verdict": "-8 win-pts against the 14.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
