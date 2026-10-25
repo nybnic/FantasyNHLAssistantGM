@@ -16,6 +16,7 @@ on:
           - trade-suggestions
           - backtest
           - check-sigma
+          - check-sigma-nights
           - venue-backtest
           - retro-forecast
           - schedule
@@ -157,6 +158,7 @@ jobs:
             trade-suggestions) time python main.py --dry-run --trade ;;
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
+            check-sigma-nights) for season in 20252026 20242025; do time python -m scripts.check_sigma --season "$season" --from-day 6 5 4 0 --leagues "${LEAGUES:-8}"; done ;;
             venue-backtest) python -m scripts.backtest_venue ;;
             retro-forecast) python -m scripts.retro_forecast ;;
             schedule) python -m scripts.schedule $WEEKS ;;
