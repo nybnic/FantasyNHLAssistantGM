@@ -857,7 +857,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-25T11:50+00:00",
+    "at": "2026-10-25T14:30+00:00",
     "moves": [
       {
         "add": {
@@ -1081,6 +1081,7 @@
       "8476979:promoted": "2026-10-15",
       "8477035:goalie": "2026-10-24",
       "8477402:promoted": "2026-10-18",
+      "8477416:promoted": "2026-10-25",
       "8477426:promoted": "2026-10-15",
       "8477429:promoted": "2026-10-19",
       "8477446:promoted": "2026-10-25",
@@ -1813,8 +1814,7 @@
       },
       "8477015": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -1854,10 +1854,12 @@
       },
       "8477416": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-25"
+        }
       },
       "8477426": {
         "groups": [
@@ -1878,7 +1880,8 @@
       },
       "8477444": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -1983,7 +1986,8 @@
       },
       "8477511": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -2545,7 +2549,7 @@
       },
       "8480009": {
         "groups": [
-          "f3",
+          "f4",
           "pp2"
         ],
         "since": {}
@@ -3133,7 +3137,8 @@
       },
       "8481754": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3148,12 +3153,6 @@
       "8481806": {
         "groups": [
           "d3"
-        ],
-        "since": {}
-      },
-      "8481848": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3214,8 +3213,7 @@
       "8482092": {
         "groups": [
           "f3",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
@@ -3421,7 +3419,8 @@
       },
       "8482511": {
         "groups": [
-          "d3"
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3520,7 +3519,7 @@
       },
       "8482731": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -3629,8 +3628,7 @@
       },
       "8483017": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -6199,6 +6197,21 @@
         "value": -0.1593,
         "verdict": "-16 win-pts against the 14.2 an add costs: not yet worth one.",
         "why": "Ice time 17:05 a game in his last 3, up from 11:56. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-25",
+        "id": 8477416,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Oliver Bjorkstrand",
+        "positions": "RW",
+        "price": 0.1418,
+        "sent": false,
+        "team": "NYR",
+        "value": -0.0993,
+        "verdict": "-10 win-pts against the 14.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
