@@ -101,6 +101,16 @@ def banked_starts(start_days: list[dict[dt.date, float]], days: list[dt.date]) -
     return games, points
 
 
+def slope(matchups: list[tuple]) -> float:
+    """How a projected point of margin shows up in results: the regression slope (nan if too few)."""
+    if len(matchups) < 3:
+        return math.nan
+    xs, ys = [m[2] for m in matchups], [m[3] for m in matchups]
+    mx, my = mean(xs), mean(ys)
+    sxx = sum((x - mx) ** 2 for x in xs)
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx if sxx else math.nan
+
+
 def tails(zs: list[float], cuts=TAILS) -> list[tuple[float, float, float]]:
     """(k, share of z beyond k on one side, the normal's): both tails pooled, as a
     matchup's sides are in random order."""
@@ -245,7 +255,7 @@ def main_() -> None:
                     variance = var_sk + g_var + (MODEL_SD_SHARE * (mean_sk + mean_g)) ** 2
                     got = act_sk + (act_g + banked_g if banked + g_started >= MIN_GOALIE_GAMES_PER_WEEK
                                     else 0.0) - banked_g
-                    results.append((expected, variance, got))
+                    results.append((expected, variance, got, banked >= MIN_GOALIE_GAMES_PER_WEEK))
                     if variance > 0:
                         team_weeks.append((got - expected) / math.sqrt(variance))
                 order = list(range(16))
@@ -253,10 +263,11 @@ def main_() -> None:
                 for a, b in zip(order[::2], order[1::2]):
                     if results[a] is None or results[b] is None:
                         continue
-                    (ea, va, ga), (eb, vb, gb) = results[a], results[b]
+                    (ea, va, ga, ma), (eb, vb, gb, mb) = results[a], results[b]
                     if va + vb <= 0:
                         continue  # no games (the Olympic break)
-                    matchups.append((_phi((ea - eb) / math.sqrt(va + vb)), ga > gb, ea - eb, ga - gb, va + vb))
+                    matchups.append((_phi((ea - eb) / math.sqrt(va + vb)), ga > gb, ea - eb, ga - gb, va + vb,
+                                     ma and mb))
 
         report(team_weeks, matchups, args.leagues, len(weeks), from_day)
 
@@ -282,10 +293,14 @@ def report(team_weeks: list[float], matchups: list[tuple], leagues: int, weeks: 
             print(f"  predicted {lo:.0%}-{min(hi, 1):.0%}: {mean(m[0] for m in rows):5.1%} predicted, "
                   f"{mean(m[1] for m in rows):5.1%} won ({len(rows)} matchups)")
     xs, ys = [m[2] for m in matchups], [m[3] for m in matchups]
-    mx, my = mean(xs), mean(ys)
-    slope = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sum((x - mx) ** 2 for x in xs)
-    print(f"margins: each projected point of margin shows up as {slope:.2f} points in results "
+    mx = mean(xs)
+    print(f"margins: each projected point of margin shows up as {slope(matchups):.2f} points in results "
           f"(1.00 = projections not overconfident); projected margins spread {math.sqrt(mean((x - mx) ** 2 for x in xs)):.1f} pts")
+    if from_day:
+        met = [m for m in matchups if m[5]]
+        rest = [m for m in matchups if not m[5]]
+        print(f"  both goalie minimums met by then: {slope(met):.2f} ({len(met)} matchups), "
+              f"not both: {slope(rest):.2f} ({len(rest)})")
     brier = mean((m[0] - m[1]) ** 2 for m in matchups)
     k = math.sqrt(real / mean(pred))
     brier_k = mean((_phi((m[2]) / (math.sqrt(m[4]) * k)) - m[1]) ** 2 for m in matchups)

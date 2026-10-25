@@ -65,6 +65,7 @@ def test_from_day_runs_on_a_made_up_season(monkeypatch, capsys):
     assert "== from Mon on (7 days still to play) ==" in out
     assert "== from Tue on (6 days still to play) ==" in out
     assert out.count("k 1.44:") == 3
+    assert out.count("both goalie minimums met by then") == 2  # not for Monday
 
 
 def test_from_day_and_ahead_dont_mix(monkeypatch):

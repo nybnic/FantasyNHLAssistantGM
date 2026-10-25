@@ -131,10 +131,25 @@ VARIANTS = {
     "tenure midweek": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure full ahead midweek": ("tenure full ahead", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure stream ahead midweek": ("tenure stream ahead", 3, 0.5, ("pace", 0.08, 2.0)),
+    # The margin's shrink by the days left (Nico, 2026-10-25, after Guhle's Sunday 5.8 win-pts at 7.5%:
+    # "test the Sunday margin shrink in the replay, and other days than Monday"). check_sigma --from-day:
+    # the margin of the days left realizes at 0.81-0.88 by the day (0.94 from Sunday once both goalie
+    # minimums are met), while P(win) reads MARGIN_REALIZES 0.80 every day. "daily": a decision every
+    # day of the week, as the live bot plans; "shrink": this week's margin read at REALIZES_BY_DAYS_LEFT.
+    "tenure daily": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure daily shrink": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
 }
-# Variants that also decide on Thursdays (MIDWEEK_DAY days after each Monday).
-MIDWEEK = {"tenure midweek", "tenure full ahead midweek", "tenure stream ahead midweek"}
+# The days after each Monday a variant also decides on, with the week's adds left (Thursday: MIDWEEK).
 MIDWEEK_DAY = 3
+DECISION_DAYS = {**{name: (MIDWEEK_DAY,) for name in ("tenure midweek", "tenure full ahead midweek",
+                                                       "tenure stream ahead midweek")},
+                 "tenure daily": (1, 2, 3, 4, 5, 6), "tenure daily shrink": (1, 2, 3, 4, 5, 6)}
+MIDWEEK = set(DECISION_DAYS)
+# This week's margin as it realizes, by the days left to play (check_sigma --from-day, 16 leagues,
+# 2025-26 / 2024-25: 0.91 / 0.81, 0.91 / 0.76, 0.91 / 0.79, 0.87 / 0.81, 0.85 / 0.76, 0.87 / 0.88 from
+# Tuesday on, averaged), for the "shrink" variants; a whole week stays at MARGIN_REALIZES (0.88 / 0.78).
+REALIZES_BY_DAYS_LEFT = {7: matchup.MARGIN_REALIZES, 6: 0.86, 5: 0.835, 4: 0.85, 3: 0.84, 2: 0.805, 1: 0.875}
+SHRINK = {"tenure daily shrink"}
 # Keep rules valued by tenure_after, and how each weighs the weeks ahead (TENURE_AHEAD).
 TENURE_RULES = {"tenure": "survival", "tenure full ahead": "full", "tenure stream ahead": "stream"}
 # Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
@@ -386,15 +401,16 @@ class Week:
 def actual(s: Season, roster: list[int], m: dt.date, later: tuple | None = None, days: int = 7,
            minimum: bool = True) -> float:
     """The week's real score: each day the best projected lineup among those who played.
-    `later`: (day, roster) from a mid-week move on; `days`: only the week's first ones (the
-    points banked by a mid-week day), `minimum`: the goalie minimum applied."""
+    `later`: (day, roster) from a mid-week move on, or a list of them in order; `days`: only the
+    week's first ones (the points banked by a mid-week day), `minimum`: the goalie minimum applied."""
     xfp, gx = s.proj(m)
     sk = gp = 0.0
     starts = 0
     base = roster
+    changes = changes_of(later)
     for i in range(days):
         d = m + dt.timedelta(days=i)
-        roster = later[1] if later and d >= later[0] else base
+        roster = next((r for day, r in reversed(changes) if d >= day), base)
         for pos, k in SLOTS.items():
             played = sorted(((xfp.get(pid, 0.0), pid) for pid in roster if pid not in s.goalie_ids
                              and s.position[pid] == pos and (pid, d) in s.points), reverse=True)[:k]
@@ -403,6 +419,11 @@ def actual(s: Season, roster: list[int], m: dt.date, later: tuple | None = None,
         gp += sum(s.g_points[(pid, d)] for _, pid in started)
         starts += len(started)
     return sk + (gp if starts >= MIN_GOALIE_GAMES_PER_WEEK or not minimum else 0.0)
+
+
+def changes_of(later) -> list[tuple[dt.date, list[int]]]:
+    """A week's mid-week rosters as a list: None, one (day, roster), or a list of them."""
+    return [] if not later else [later] if isinstance(later, tuple) else list(later)
 
 
 def lazy(s: Season, roster: list[int], m: dt.date, taken: set[int]) -> list[int]:
@@ -508,30 +529,36 @@ def run_league(args: tuple) -> dict:
                     if due:
                         exits[add] = due
                         planned += 1
-                first, later = list(roster), None
-                if name in MIDWEEK and week_adds < 2 and used < cap:
-                    day = m + dt.timedelta(days=MIDWEEK_DAY)
+                first, later = list(roster), []
+                this_week = set(first)  # dropped this week: not added back the same week
+                for offset in DECISION_DAYS.get(name, ()):
+                    if week_adds >= 2 or used >= cap:
+                        break
+                    day = m + dt.timedelta(days=offset)
                     opp_roster = lazy_by_week[w][pairs[w][t]]
-                    banked = (actual(s, first, m, days=MIDWEEK_DAY, minimum=False),
-                              actual(s, opp_roster, m, days=MIDWEEK_DAY, minimum=False))
-                    for _ in range(2 - week_adds):
-                        if used >= cap:
-                            break
+                    banked = (actual(s, first, m, later, days=offset, minimum=False),
+                              actual(s, opp_roster, m, days=offset, minimum=False))
+                    before = list(roster)
+                    while week_adds < 2 and used < cap:
                         price = rule if fixed else monday_price(rule, used, w, n_weeks, picks, None)
                         parts = {} if audit else None
-                        move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | set(first), keep_rule,
+                        move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | this_week, keep_rule,
                                          spots, discount, n_weeks, used, None, price, (), name not in SKATERS_ONLY,
-                                         None, parts, True, day=day, banked=banked)
+                                         None, parts, True, day=day, banked=banked,
+                                         realizes=REALIZES_BY_DAYS_LEFT[7 - offset] if name in SHRINK else None)
                         if move is None or move[0] < price:
                             break
                         _, add, drop, _ = move
                         roster[roster.index(drop)] = add
                         mine_taken.add(add)
+                        this_week.add(add)
                         used += 1
+                        week_adds += 1
                         if audit:
                             made.append((w, add, drop, parts))
-                    if roster != first:
-                        later = (day, list(roster))
+                    if roster != before:
+                        later.append((day, list(roster)))
+                later = later or None
                 score = actual(s, first, m, later)
                 wins += score > lazy_score[w][pairs[w][t]]
                 pts += score
@@ -701,13 +728,14 @@ def realized(s: Season, made: list, rosters: list[list[int]], mondays: list[dt.d
     for w, add, drop, parts in made:
         by_week, wins = [], 0
         for j in range(w, len(mondays)):
-            # A week's rosters: (Monday's, (day, after a mid-week move) or None), or one roster.
+            # A week's rosters: (Monday's, mid-week changes (changes_of) or None), or one roster.
             first, later = rosters[j] if isinstance(rosters[j], tuple) else (rosters[j], None)
-            final = later[1] if later else first
-            if (add not in first and add not in final) or drop in final:
+            changes = changes_of(later)
+            final = changes[-1][1] if changes else first
+            if all(add not in r for r in [first] + [r for _, r in changes]) or drop in final:
                 break
             undo = lambda r: [drop if p == add else p for p in r]
-            alt = actual(s, undo(first), mondays[j], (later[0], undo(final)) if later else None)
+            alt = actual(s, undo(first), mondays[j], [(d, undo(r)) for d, r in changes])
             by_week.append(scores[j] - alt)
             wins += (scores[j] > opponents[j]) - (alt > opponents[j])
             if add not in final:  # gone mid-week
@@ -822,7 +850,7 @@ GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's p
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
               exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None,
-              whole=False, table=None, day=None, banked=(0.0, 0.0)):
+              whole=False, table=None, day=None, banked=(0.0, 0.0), realizes=None):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
@@ -832,7 +860,8 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     given the best move's predicted parts (predicted_parts), for the audit. `whole`: the long run
     over the whole season left (WHOLE_SCHEDULE); `table`: the tenure curves for keep rule
     "tenure" (default engine.tenure.SURVIVAL). `day`: a mid-week decision (MIDWEEK): projected
-    from that day over the week's days left, with `banked` (mine, the opponent's) points so far."""
+    from that day over the week's days left, with `banked` (mine, the opponent's) points so far.
+    `realizes`: this week's margin of the days left read at this share (SHRINK; default MARGIN_REALIZES)."""
     at = day or m
     xfp = s.proj(at)[0]
     this = [at + dt.timedelta(days=i) for i in range((m + dt.timedelta(days=7) - at).days)]
@@ -849,7 +878,7 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     me_now, var_now = mine.total(this)
     them_now, them_var = opp(0).total(this)
     sd_now = math.sqrt(var_now + them_var) or 1.0  # a week with no games (the Olympic break)
-    margin_now = banked[0] - banked[1] + matchup.MARGIN_REALIZES * (me_now - them_now)
+    margin_now = banked[0] - banked[1] + (realizes or matchup.MARGIN_REALIZES) * (me_now - them_now)
     ahead = []
     for k in range(1, matchup.AHEAD_WEEKS + 1):
         days = future[7 * (k - 1):7 * k]

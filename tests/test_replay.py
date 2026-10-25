@@ -243,3 +243,26 @@ def test_goalie_weeks_stay_fantasy_weeks_when_projected_from_midweek():
     week = replay.Week(s, [10, 11], thursday, days[3:], MON)
     weeks = week.goalie_weeks([10, 11], days[3:])
     assert sorted(weeks) == [0, 1] and len(weeks[0][0]) == 4 and len(weeks[1][0]) == 7
+
+
+def test_moves_on_several_days_score_each_night_with_that_nights_roster():
+    days = [MON + dt.timedelta(days=i) for i in range(7)]
+    points = {(2, days[0]): 2.0, (2, days[4]): 3.0, (9, days[4]): 5.0, (8, days[6]): 7.0, (9, days[6]): 1.0}
+    s = _season({1: 5.0, 2: 3.0, 9: 4.0, 8: 4.5}, {1: "C", 2: "C", 9: "C", 8: "C"}, {}, points)
+    # 2 for 9 on Thursday, then 9 for 8 on Sunday: Monday 2, Friday 9, Sunday 8.
+    changes = [(days[3], [1, 9]), (days[6], [1, 8])]
+    assert replay.actual(s, [1, 2], MON, changes) == 2.0 + 5.0 + 7.0
+    assert replay.actual(s, [1, 2], MON, changes, days=6, minimum=False) == 2.0 + 5.0  # banked by Sunday
+    assert replay.changes_of(None) == [] and replay.changes_of(changes[0]) == [changes[0]]
+    # The audit: 9 stood from Thursday to Saturday; undone, 2 plays Friday instead.
+    mondays = [MON, MON + dt.timedelta(days=7)]
+    scores = [replay.actual(s, [1, 2], MON, changes), 0.0]
+    rec = replay.realized(s, [(0, 9, 2, {})], [([1, 2], changes), [1, 8]], mondays, scores, [0.0, 0.0])[0]
+    assert rec["real"] == [5.0 - 3.0] and rec["held"] == 1
+
+
+def test_shrink_variants_read_the_margin_by_the_days_left():
+    assert replay.REALIZES_BY_DAYS_LEFT[7] == replay.matchup.MARGIN_REALIZES
+    assert all(0.0 < replay.REALIZES_BY_DAYS_LEFT[7 - d] <= 1.0 for d in replay.DECISION_DAYS["tenure daily shrink"])
+    assert replay.DECISION_DAYS["tenure daily"] == replay.DECISION_DAYS["tenure daily shrink"] == (1, 2, 3, 4, 5, 6)
+    assert replay.SHRINK <= set(replay.VARIANTS) and replay.MIDWEEK <= replay.WHOLE_SCHEDULE
