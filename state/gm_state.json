@@ -821,7 +821,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-26T04:56+00:00",
+    "at": "2026-10-26T07:23+00:00",
     "moves": [
       {
         "add": {
@@ -839,7 +839,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.1729,
+        "value": 0.173,
         "when": "2026-10-26",
         "why": "now"
       }
@@ -1007,7 +1007,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784764,
+  "telegram_offset": 929784765,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1020,6 +1020,7 @@
       "8474013:promoted": "2026-10-19",
       "8474189:promoted": "2026-10-14",
       "8474563:promoted": "2026-10-14",
+      "8474574:ice time": "2026-10-26",
       "8475151:promoted": "2026-10-19",
       "8475208:promoted": "2026-10-14",
       "8475287:promoted": "2026-10-22",
@@ -1042,6 +1043,7 @@
       "8476905:promoted": "2026-10-18",
       "8476923:promoted": "2026-10-24",
       "8476927:ice time": "2026-10-25",
+      "8476967:ice time": "2026-10-26",
       "8476979:promoted": "2026-10-15",
       "8477035:goalie": "2026-10-24",
       "8477402:promoted": "2026-10-18",
@@ -3724,6 +3726,12 @@
         ],
         "since": {}
       },
+      "8483514": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8483521": {
         "groups": [
           "d1",
@@ -4169,6 +4177,12 @@
           "f2": null,
           "pp1": null
         }
+      },
+      "8486130": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8486161": {
         "groups": [
@@ -6168,6 +6182,36 @@
         "value": -0.0845,
         "verdict": "-8 win-pts against the 14.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-26",
+        "id": 8476967,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Brett Kulak",
+        "positions": "D",
+        "price": null,
+        "sent": true,
+        "team": "COL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 21:20 a game in his last 3, up from 18:02. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-10-26",
+        "id": 8474574,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Tyler Myers",
+        "positions": "D",
+        "price": null,
+        "sent": true,
+        "team": "DAL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 17:51 a game in his last 3, up from 14:27. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
