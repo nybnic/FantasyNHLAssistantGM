@@ -17,6 +17,7 @@ on:
           - backtest
           - check-sigma
           - check-sigma-nights
+          - check-form
           - venue-backtest
           - retro-forecast
           - schedule
@@ -159,6 +160,7 @@ jobs:
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
             check-sigma-nights) for season in 20252026 20242025; do time python -m scripts.check_sigma --season "$season" --from-day 6 5 4 3 2 1 0 --leagues "${LEAGUES:-8}"; done ;;
+            check-form) time python -m scripts.check_form ;;
             venue-backtest) python -m scripts.backtest_venue ;;
             retro-forecast) python -m scripts.retro_forecast ;;
             schedule) python -m scripts.schedule $WEEKS ;;

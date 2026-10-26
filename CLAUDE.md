@@ -88,6 +88,7 @@ python -m scripts.compare_yahoo paste.txt         # Yahoo projections vs ours, s
 python -m scripts.backtest                        # model accuracy (--season, --horizon)
 python -m scripts.check_sigma                     # do projected margins come true? (--ahead 1|2, --season 20242025)
 python -m scripts.check_gaps                      # do fringe players' projected gaps come true? by horizon
+python -m scripts.check_form                      # do early-season results count enough? (SKATER_K)
 python -m scripts.replay                          # 2025-26 replayed under rule variants, in wins (--leagues 8 --price 0)
 python -m scripts.sim_add_policy                  # the add price vs the old rule, simulated seasons
 python -m scripts.fit_absence                     # how fast absent players return (availability curves)

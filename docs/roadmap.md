@@ -92,6 +92,11 @@ A rule changes only with replay, backtest or calibration evidence (CLAUDE.md, Ru
 one recommendation land here and are tested in batches:
 - `plan.CHANGE_MARGIN` 0.02; keepers held for Wednesday; more weight on later points; the add price
   (item 5).
+- Early-season results' weight (Nico, 2026-10-26: Evangelista 5.5 pts a game in 8 games, projected 4.3;
+  Kantserov 3.4 in 11, projected 5.4, 76% of his move's value later points). `scripts/check_form.py`
+  (Check: check-form): does a player's gap to his preseason projection keep showing after the Monday
+  he's projected (slope of the miss ahead on form so far; 0 = weighed right), and `SKATER_K` x 0.5-1.5
+  on MAE and pairwise, weeks 3-10, both seasons. A change needs both seasons, MAE and pairwise.
 - The add price's bar (`addprice.BAR` 0.12, live since 2026-10-22): re-check mid-December with the
   per-move scoreboard (do moves near the bar pay?) and the pace (adds used vs even).
 - Opponent streaming: no effect in weeks 1-3 (decision log, 2026-10-21). Re-run
