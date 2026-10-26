@@ -334,6 +334,15 @@ def moves_value(state: dict, week: int, players: list, theirs: float, ctx, finis
                                 days, first, finished)
 
 
+def official_margin(value: dict | None, official: list[float] | None) -> dict | None:
+    """The scoreboard's week with Yahoo's final margin when a screenshot gave it:
+    whether the moves decided the week follows the real result (my points stay
+    the box scores', as the drafted roster's are)."""
+    if value and official:
+        value["margin"] = round(official[0] - official[1], 2)
+    return value
+
+
 def season_values(state: dict, players: list, week: int, ctx) -> list[dict]:
     """Every finished week's scoreboard up to `week`, computed once and kept in
     results[w]["value"] (a week before the daily record, or before its result,
@@ -343,7 +352,8 @@ def season_values(state: dict, players: list, week: int, ctx) -> list[dict]:
         entry = state["results"].get(str(w), {})
         if "value" not in entry and "final" in entry and all(
                 d.isoformat() in state.get("my_days", {}) for d in weeks.days(w)):
-            entry["value"] = moves_value(state, w, players, entry["final"]["score"][1], ctx)
+            entry["value"] = official_margin(moves_value(state, w, players, entry["final"]["score"][1], ctx),
+                                             (entry.get("yahoo_final") or {}).get("score"))
         if entry.get("value"):
             out.append(entry["value"])
     return out
@@ -442,8 +452,11 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
     adds = [a for a in state["adds"] if first <= a["date"] <= last]
     skipped = sum(1 for d in state["decisions"]
                   if d["type"] == "add" and d["decision"] == "skip" and first <= d["date"] <= last)
-    plan = state["results"].get(str(week), {}).get("first")
-    value = _safe(moves_value, state, week, players, sum(theirs), ctx, finished)
+    entry = state["results"].get(str(week), {})
+    plan = entry.get("first")
+    official = (entry.get("yahoo_final") or {}).get("score") if finished else None
+    value = official_margin(_safe(moves_value, state, week, players, official[1] if official else sum(theirs),
+                                  ctx, finished), official)
     text = None
     if finished:
         season = (_safe(season_values, state, players, week - 1, ctx) or []) + ([value] if value else [])
@@ -454,7 +467,8 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
         text = "\n".join(x for x in lines if x) or None
     return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
                               report.budget_view(state["adds"], week), finished,
-                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)), value, text)
+                              scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)), value, text,
+                              official)
 
 
 def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -482,7 +496,7 @@ def report_step(state: dict, players: list, league: dict, now: dt.datetime, outb
         return  # a dry run's look at a week still in progress
     entry = state["results"].setdefault(str(week), {"opponent": view["opponent"]})
     entry["final"] = {"score": [round(x, 2) for x in view["final"]], "goalie_min": view["goalie_min"],
-                      "at": now.isoformat(timespec="minutes"), "source": "box scores"}
+                      "at": now.isoformat(timespec="minutes"), "source": view["source"]}
     if view.get("value"):
         entry["value"] = view["value"]
 

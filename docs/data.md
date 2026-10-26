@@ -24,6 +24,8 @@ Duplicates and extras are safe; each kind is checked before it changes anything:
 - **Matchup**: rows are read once per player. The week picker's label decides the week; scrolled screenshots
   without it take the label of the one sent with them. Another week's matchup changes no roster or score:
   a past week's score is kept as Yahoo's final (`results[w].yahoo_final`), and the rows are archived.
+  Yahoo's final decides the week's result (Monday's report, `results[w].final`, the scoreboard's margin);
+  box scores only when there's none, as they guess the opponent's lineup.
   Before any games, the top card's numbers are read as Yahoo's projection with the score 0 - 0
   ("Games Played 0/43" for both).
 - **All Matchups**: each team's latest score replaces the previous one, and the first one seen is kept

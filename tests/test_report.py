@@ -82,6 +82,16 @@ def test_a_result_says_who_missed_the_goalie_minimum_and_a_week_in_progress_is_s
     assert text.startswith("Week 7 vs Gwp: so far 10 - 20") and "The plan" not in text
 
 
+def test_yahoos_final_decides_the_result_and_the_race_ends_there():
+    plan = {"at": "2026-11-09T10:00+00:00", "expected": [150.0, 140.0], "sd": [25.0, 25.0], "win": 0.61}
+    days = [dt.date(2026, 11, 9), dt.date(2026, 11, 10)]
+    view = report.result_view(7, "Gwp", days, [100.0, 121.45], [100.0, 122.65], [True, True], plan, [], 0,
+                              report.budget_view([], 7), official=[221.6, 209.65])
+    assert view["final"] == [221.6, 209.65] and view["source"] == "yahoo"
+    assert sum(view["theirs"]) == pytest.approx(209.65) and view["vs_plan"][1] == pytest.approx(69.65)
+    assert report.result_text(view).startswith("Week 7 vs Gwp: you won 222 - 210 (Yahoo's final).")
+
+
 def test_the_result_chart_draws():
     assert charts.result_chart(_result([20.0, 30.0], [40.0, 40.0])).startswith(b"\x89PNG")
 

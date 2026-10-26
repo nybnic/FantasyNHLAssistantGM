@@ -707,6 +707,23 @@ def archive_matchup(draft: dict, week: int, opponent: str | None, root: Path | N
     return path
 
 
+def official_final(entry: dict) -> str:
+    """A week's result once Yahoo's final is known: the result reported from box
+    scores (results[w]["final"]) takes Yahoo's score, and the scoreboard its
+    margin. Returns the words for a result that flipped ("" if none did)."""
+    old, score = entry.get("final"), entry["yahoo_final"]["score"]
+    if not old or old.get("source") == "yahoo":
+        return ""
+    entry["final"] = {**old, "score": score, "source": "yahoo"}
+    if entry.get("value"):
+        entry["value"]["margin"] = round(score[0] - score[1], 2)
+    side = lambda s: (s[0] > s[1]) - (s[0] < s[1])
+    if side(old["score"]) == side(score):
+        return ""
+    return (f": you {('lost', 'tied', 'won')[side(score) + 1]}. Monday's report had "
+            f"{old['score'][0]:.0f} - {old['score'][1]:.0f} from box scores; corrected")
+
+
 def other_week(state: dict, draft: dict, opponent: str | None, current: int, outbox: Outbox) -> None:
     """Matchup screenshots of a week other than this one (the week picker):
     their rows are archived, a past week's score is kept as Yahoo's final, and
@@ -717,10 +734,12 @@ def other_week(state: dict, draft: dict, opponent: str | None, current: int, out
     opponent = next((names[n] for n in map(normalize_name, draft["labels"]) if n in names), opponent)
     _safe(archive_matchup, draft, week, opponent)
     if week < current and draft.get("score"):
-        state["results"].setdefault(str(week), {"opponent": opponent})["yahoo_final"] = {
-            "score": list(draft["score"]), "at": draft["at"]}
-        outbox.send(f"Week {week} (a past week): {draft['score'][0]:.2f} - {draft['score'][1]:.2f} saved as "
-                    "Yahoo's final. Rosters unchanged: that view shows that week's.")
+        entry = state["results"].setdefault(str(week), {"opponent": opponent})
+        score = list(draft["score"])
+        entry["yahoo_final"] = {"score": score, "at": draft["at"]}
+        note = official_final(entry)
+        outbox.send(f"Week {week} (a past week): {score[0]:.2f} - {score[1]:.2f} saved as Yahoo's final"
+                    f"{note}. Rosters unchanged: that view shows that week's.")
     else:
         outbox.send(f"Those screenshots show week {week}, not this week ({current}): rosters and score unchanged.")
 

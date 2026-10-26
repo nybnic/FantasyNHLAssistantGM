@@ -395,6 +395,17 @@ def _week_4_forecast_by_day(state: dict, players: list[RosterPlayer], league: di
     first["final"] = [round(x, 2) for x in matchup.final_scores(me, them)]
 
 
+def _yahoo_finals(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-26 (Nico: "it says that I lost last week even if I actually won"): Monday's result
+    # was scored from box scores though Yahoo's final (a past week's matchup screenshot, 04:49
+    # UTC) was saved: week 4 read 221.45 - 222.65, Yahoo's 221.60 - 209.65 (the opponent's
+    # lineup guessed 13 pts high). Every week with Yahoo's final takes it, the scoreboard its margin.
+    from bot.ingest import official_final
+    for entry in state.get("results", {}).values():
+        if entry.get("yahoo_final"):
+            official_final(entry)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -411,4 +422,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-21 points for by week", _points_for_by_week),
            ("2026-10-21 move forecasts", _move_forecasts),
            ("2026-10-22 hc bulju team page", _hc_bulju_team_page),
-           ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day)]
+           ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day),
+           ("2026-10-26 yahoo finals", _yahoo_finals)]

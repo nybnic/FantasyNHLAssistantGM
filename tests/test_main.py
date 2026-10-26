@@ -816,7 +816,7 @@ def test_the_weeks_first_plan_keeps_each_nights_forecast_for_the_race(tmp_path):
 def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
     view = {"week": 1, "opponent": "Bahelin Boys", "finished": True, "final": [170.0, 160.0],
-            "goalie_min": [True, True]}
+            "goalie_min": [True, True], "source": "box scores"}
     monkeypatch.setattr(weekly, "week_result", lambda *a: view)
     monkeypatch.setattr(report, "result_text", lambda v: "Week 1 result")
     monkeypatch.setattr(charts, "result_chart", lambda v: None)
@@ -855,6 +855,12 @@ def test_a_weeks_result_scores_each_day_with_that_days_roster(monkeypatch, tmp_p
     view = weekly.week_result(state, 1, players, league, Ctx())
     assert view["final"] == [2.75 + 4.0, 8.0] and view["finished"]
     assert view["goalie_min"] == [False, False]  # nobody's goalies played: goalie points (none) zeroed
+    # Yahoo's final, from a past week's matchup screenshot, decides the result: box scores
+    # guess the opponent's lineup (week 4 2026: a win reported as a loss).
+    state["results"]["1"] = {"opponent": "Bahelin Boys", "yahoo_final": {"score": [9.0, 7.5], "at": "x"}}
+    view = weekly.week_result(state, 1, players, league, Ctx())
+    assert view["final"] == [9.0, 7.5] and view["source"] == "yahoo"
+    assert sum(view["mine"]) == pytest.approx(9.0) and sum(view["theirs"]) == pytest.approx(7.5)
 
 
 def test_a_tap_on_an_add_records_its_players(monkeypatch, tmp_path):
@@ -1209,6 +1215,29 @@ def test_a_past_weeks_matchup_is_kept_as_yahoos_final_only(monkeypatch):
     assert state["results"]["1"]["yahoo_final"]["score"] == [62.0, 118.0]
     assert state["results"]["1"]["opponent"] == "Bahelin Boys" and state["matchup_shots"] is None
     assert sent[0].startswith("Week 1 (a past week): 62.00 - 118.00 saved as Yahoo's final.")
+
+
+def test_yahoos_final_after_the_report_corrects_the_result(monkeypatch):
+    from types import SimpleNamespace
+    from state import repairs
+    box = {"score": [221.45, 222.65], "goalie_min": [True, True], "at": "2026-10-26T10:00+00:00",
+           "source": "box scores"}
+    state = {"results": {"4": {"opponent": "Jättiläisentie Giants", "final": dict(box),
+                               "value": {"actual": 221.45, "added": 27.7, "margin": -1.2}}}, "matchup_shots": {}}
+    sent = []
+    draft = {"week": 4, "labels": ["JÄTTILÄISENTIE GIANTS"], "score": (221.6, 209.65),
+             "at": "2026-10-26T04:49:07+00:00", "rows": []}
+    ingest.other_week(state, draft, None, 5, SimpleNamespace(send=sent.append))
+    week = state["results"]["4"]
+    assert week["final"]["score"] == [221.6, 209.65] and week["final"]["source"] == "yahoo"
+    assert week["value"]["margin"] == 11.95
+    assert sent[0].startswith("Week 4 (a past week): 221.60 - 209.65 saved as Yahoo's final: you won. "
+                              "Monday's report had 221 - 223 from box scores; corrected.")
+    # The repair does the same for a final saved before the report read it.
+    state = {"results": {"4": {"final": dict(box), "yahoo_final": {"score": [221.6, 209.65], "at": "x"}},
+                         "5": {"opponent": "Viktorios"}}}
+    repairs._yahoo_finals(state, [], {})
+    assert state["results"]["4"]["final"]["score"] == [221.6, 209.65] and "final" not in state["results"]["5"]
 
 
 def test_scrolled_all_matchups_take_the_week_of_the_labeled_one(monkeypatch, tmp_path):
