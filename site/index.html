@@ -240,6 +240,13 @@
   .scell2.off { background: #1E3A5F; }
   .scell2.offbg { background: #13263F; }
   .scell2.use { background: var(--blue); color: var(--on-blue); }
+  .stweek { font: 700 13px "Barlow Condensed", system-ui, sans-serif; color: #fff; letter-spacing: .04em; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; padding: 2px 0 2px 2px; border-bottom: 1px solid var(--grid); }
+  .stweek small { font: 500 11px Inter, system-ui, sans-serif; color: var(--text-2); letter-spacing: 0; }
+  .stgap { align-self: stretch; }
+  .stgrid .tbadge { position: sticky; left: 0; z-index: 1; box-shadow: -4px 0 0 var(--card), 6px 0 0 var(--card); }  /* the team stays in view as the weeks scroll */
+  .stgrid .tbadge.logo { background: var(--card) !important; }
+  .snum.wk { font-size: 11px; font-weight: 600; color: var(--text-2); }
   /* the Telegram card (?card): night style, read at about 80% on a phone, so no text under 13px */
   .nc { background: #0B1422; color: #fff; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px;
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -787,8 +794,9 @@ function scheduleCard() {
   return card;
 }
 
-// ---- streaming: every team's games in the chosen week, against your open slots ------------------
+// ---- streaming: every team's games over the next 14 days, week by week, against your open slots --
 let streamPos = recall("streamPos", "all");
+const STREAM_DAYS = 14;  // the streaming table looks two weeks out, whichever week is picked above it
 function teamBadge(team) {  // the team's logo on its colour, its abbreviation if the logo can't load
   const b = el("span", { class: "tbadge" }, team);
   b.style.background = TEAM_COLORS[team] || "#3A4A63";
@@ -800,39 +808,68 @@ function streamCard() {
   const s = data.streaming;
   if (!s || !s.days.length) return null;
   const pos = s.slots[streamPos] ? streamPos : "all";
-  const ix = s.days.map((d, i) => i).filter(i => s.days[i].week === (schedWeek ?? data.week) && s.days[i].date >= data.date);
+  const ix = s.days.map((d, i) => i).filter(i => s.days[i].date >= data.date).slice(0, STREAM_DAYS);
   if (!ix.length) return null;
+  const weeks = [...new Set(ix.map(i => s.days[i].week))].map(w => ({ week: w, ix: ix.filter(i => s.days[i].week === w),
+                 opponent: ((s.weeks || []).find(x => x.week === w) || {}).opponent }));
   const card = el("section", { class: "card" });
-  card.append(el("h2", {}, `League-wide streaming · wk ${schedWeek ?? data.week}`));
+  card.append(el("h2", {}, `League-wide streaming · next ${ix.length} days`));
   const tabs = tabsEl([["all", "All"]].concat(Object.keys(s.slots).map(p => [p, p])), pos,
                       v => { streamPos = v; remember("streamPos", v); render(); });
   tabs.classList.add("tight");
   card.append(tabs);
-  card.append(el("div", { class: "note" }, pos === "all"
+  card.append(el("div", { class: "note" }, (pos === "all"
     ? "Every team's games, best schedule first: the most on off-nights (half the league or less playing), then the most games. Under each day: NHL games that night."
     : `Blue: a game on a night your lineup has a ${pos} slot open, with the plan's moves made. Count: those games / all games.`
-      + (pos === "G" ? " A goalie's game counts only if he starts." : "")));
+      + (pos === "G" ? " A goalie's game counts only if he starts." : ""))
+    + " By week: each week's count, then the total."));
   const usable = i => pos !== "all" && s.days[i].open && s.days[i].open[pos] > 0;
   const off = i => s.days[i].games * 2 <= s.teams.length / 2;  // an off-night, when lineups have slots open
-  let rows = s.teams.map(t => ({ team: t.team, cells: t.cells, games: ix.filter(i => t.cells[i]).length,
-                                good: ix.filter(i => t.cells[i] && (pos === "all" ? off(i) : usable(i))).length }))
+  const count = (t, days) => ({ games: days.filter(i => t.cells[i]).length,
+                                good: days.filter(i => t.cells[i] && (pos === "all" ? off(i) : usable(i))).length });
+  let rows = s.teams.map(t => ({ team: t.team, cells: t.cells, ...count(t, ix), by: weeks.map(w => count(t, w.ix)) }))
     .sort((a, b) => (b.good - a.good) || (b.games - a.games) || a.team.localeCompare(b.team));
   const total = rows.length;
   if (!streamAll) rows = rows.slice(0, 10);
-  const grid = el("div", { class: "stgrid" });
-  grid.style.gridTemplateColumns = `40px 38px repeat(${ix.length}, minmax(0, 1fr))`;
-  grid.append(el("span"), el("span", { class: "sday" }, pos === "all" ? "off/gp" : `${pos}/gp`));
-  ix.forEach(i => {
-    const d = s.days[i], h = el("span", { class: "sday" + (off(i) ? " off" : "") + (d.date === data.date ? " today" : "") }, d.label);
-    h.append(el("br"), el("b", { class: "num" }, String(d.games)));
+  // Columns: the team, then each week's nights and its count, then the total; a gap between weeks.
+  const grid = el("div", { class: "stgrid" }), cols = ["40px"];
+  weeks.forEach((w, k) => { if (k) cols.push("4px"); cols.push(`repeat(${w.ix.length}, minmax(24px, 1fr))`, "34px"); });
+  cols.push("38px");
+  grid.style.gridTemplateColumns = cols.join(" ");
+  grid.style.minWidth = `${90 + weeks.length * 42 + ix.length * 27}px`;
+  const gap = () => el("span", { class: "stgap" });
+  grid.append(el("span"));
+  weeks.forEach((w, k) => {
+    if (k) grid.append(gap());
+    const h = el("span", { class: "stweek" }, `WK ${w.week}`);
+    if (w.opponent) h.append(el("small", {}, ` vs ${shortTeam(w.opponent)}`));
+    h.style.gridColumn = `span ${w.ix.length + 1}`;
     grid.append(h);
   });
-  rows.forEach(r => {
-    grid.append(teamBadge(r.team), el("b", { class: "snum num" }, `${r.good}/${r.games}`));
-    ix.forEach(i => {
-      const c = r.cells[i];
-      grid.append(el("span", { class: "scell2" + (c ? usable(i) ? " use" : off(i) ? " off" : " plain" : off(i) ? " offbg" : "") }, c || ""));
+  grid.append(el("span"));
+  grid.append(el("span"));
+  const unit = pos === "all" ? "off/gp" : `${pos}/gp`;
+  weeks.forEach((w, k) => {
+    if (k) grid.append(gap());
+    w.ix.forEach(i => {
+      const d = s.days[i], h = el("span", { class: "sday" + (off(i) ? " off" : "") + (d.date === data.date ? " today" : "") }, d.label);
+      h.append(el("br"), el("span", {}, String(d.day)), el("br"), el("b", { class: "num" }, String(d.games)));
+      grid.append(h);
     });
+    grid.append(el("span", { class: "sday" }, unit));
+  });
+  grid.append(el("span", { class: "sday" }, "total"));
+  rows.forEach(r => {
+    grid.append(teamBadge(r.team));
+    weeks.forEach((w, k) => {
+      if (k) grid.append(gap());
+      w.ix.forEach(i => {
+        const c = r.cells[i];
+        grid.append(el("span", { class: "scell2" + (c ? usable(i) ? " use" : off(i) ? " off" : " plain" : off(i) ? " offbg" : "") }, c || ""));
+      });
+      grid.append(el("span", { class: "snum num wk" }, `${r.by[k].good}/${r.by[k].games}`));
+    });
+    grid.append(el("b", { class: "snum num" }, `${r.good}/${r.games}`));
   });
   const scroll = el("div", { class: "scroll" });
   scroll.append(grid);

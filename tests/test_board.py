@@ -319,6 +319,14 @@ def test_every_dashboard_tab_draws_on_a_phone():
                 if tab == "today":
                     assert page.locator("polyline.forecast").count() == 2
                     assert "forecast: 209-197 at the end" in page.locator("main").inner_text()
+                if tab == "schedule":  # league-wide streaming: the next 14 days, under a header per week
+                    card = page.locator("section.card", has_text="League-wide streaming")
+                    days = [d for d in data["streaming"]["days"] if d["date"] >= data["date"]][:14]
+                    weeks = sorted({d["week"] for d in days})
+                    assert card.locator(".stweek").all_inner_texts()[0].startswith(f"WK {weeks[0]}")
+                    assert card.locator(".stweek").count() == len(weeks)
+                    assert card.locator(".sday", has_text="total").count() == 1
+                    assert card.locator(".sday").count() == len(days) + len(weeks) + 1  # each night, each week's count, the total
                 if tab == "today":  # a phone has no hover: a tap on a mark pins its number, a tap elsewhere hides it
                     page.locator("section.card svg rect[rx]").first.click()
                     assert page.locator("#tip").is_visible() and page.locator("#tip b").inner_text()
