@@ -361,7 +361,7 @@
         "goalie_name": "Juuse Saros"
       },
       "NYI": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Semyon Varlamov"
       },
       "OTT": {
@@ -974,7 +974,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-27T19:00+00:00",
+    "at": "2026-10-27T19:30+00:00",
     "moves": [
       {
         "add": {
@@ -992,7 +992,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2291,
+        "value": 0.2288,
         "when": "2026-10-27",
         "why": "now"
       }
@@ -1230,6 +1230,7 @@
       "8478444:promoted": "2026-10-18",
       "8478474:promoted": "2026-10-23",
       "8478498:promoted": "2026-10-24",
+      "8478499:goalie": "2026-10-27",
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
       "8478851:ice time": "2026-10-18",
@@ -1312,6 +1313,7 @@
       "8482660:promoted": "2026-10-24",
       "8482665:promoted": "2026-10-25",
       "8482679:promoted": "2026-10-17",
+      "8482703:promoted": "2026-10-27",
       "8482705:promoted": "2026-10-21",
       "8482713:promoted": "2026-10-14",
       "8482731:ice time": "2026-10-21",
@@ -1518,12 +1520,6 @@
         ],
         "since": {}
       },
-      "8475235": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8475279": {
         "groups": [
           "d1",
@@ -1635,7 +1631,7 @@
       },
       "8475791": {
         "groups": [
-          "f3",
+          "f4",
           "ir",
           "pp2"
         ],
@@ -1836,6 +1832,14 @@
         "groups": [
           "f3",
           "pk1"
+        ],
+        "since": {}
+      },
+      "8476873": {
+        "groups": [
+          "f3",
+          "ir",
+          "pp2"
         ],
         "since": {}
       },
@@ -2211,13 +2215,6 @@
           "f2": "2026-10-21"
         }
       },
-      "8478013": {
-        "groups": [
-          "d3",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8478020": {
         "groups": [
           "f3",
@@ -2256,7 +2253,7 @@
       },
       "8478396": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -2352,8 +2349,7 @@
       },
       "8478472": {
         "groups": [
-          "f3",
-          "pk1"
+          "f4"
         ],
         "since": {}
       },
@@ -2503,7 +2499,7 @@
       },
       "8479365": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -2850,8 +2846,7 @@
       },
       "8480829": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -3076,7 +3071,7 @@
       },
       "8481572": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -3362,11 +3357,9 @@
       },
       "8482166": {
         "groups": [
-          "d1"
+          "d3"
         ],
-        "since": {
-          "d1": "2026-10-26"
-        }
+        "since": {}
       },
       "8482171": {
         "groups": [
@@ -3531,10 +3524,12 @@
       },
       "8482703": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-27"
+        }
       },
       "8482705": {
         "groups": [
@@ -6637,6 +6632,36 @@
         "team": "WPG",
         "value": -0.161,
         "verdict": "-16 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8478499,
+        "kinds": [
+          "goalie"
+        ],
+        "name": "Adin Hill",
+        "positions": "G",
+        "price": null,
+        "sent": true,
+        "team": "VGK",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "He has started 4 of his team's last 10. Expected to start 57% of the games ahead, against 35% projected before the season."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8482703,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Colton Dach",
+        "positions": "C/LW",
+        "price": 0.128,
+        "sent": false,
+        "team": "EDM",
+        "value": 0.0357,
+        "verdict": "+4 win-pts against the 12.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
       }
     ]
