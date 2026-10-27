@@ -34,7 +34,8 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    keeper that does nothing this week waits for Monday only if another move can use
    this week's slot), `time_moves` (the exact day: the drop's games first, the add in
    before his; else the earliest, as waiting risks a claim), `starter_conditions` (a goalie add
-   worth it only if he starts tonight waits for his team's confirmation), `decide` (the plan Nico
+   worth it only if he starts tonight waits for his team's confirmation; DailyFaceoff's starters are
+   read fresh every run 19-22 local, `bot/goalie_news.py`, and any news re-weighs the plan quietly), `decide` (the plan Nico
    has seen stays unless a move can't be made or a new one is 0.02 wins better).
 5. **The Board** (`bot/board.py`, `state/board.json`): everything one plan run computed,
    every move with its status (plan / passes / fails) and why. `explain_week` prints it.
@@ -57,7 +58,7 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
 | Path | What lives there |
 |---|---|
 | `main.py` | Entry point: the run, step by step (each isolated), and the failure alert |
-| `bot/` | The steps: `ingest.py` (Telegram taps, commands incl. `/why`, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `watch.py` (the breakout watch: free agents whose role just changed), `common.py` (outbox, dates, free agents) |
+| `bot/` | The steps: `ingest.py` (Telegram taps, commands incl. `/why`, screenshots, Transactions), `weekly.py` (the plan run: inputs, search, keeping it, the plan check; results, Monday's report, dashboard data), `board.py` (the Board), `messages.py` (the plan's words), `daily.py` (briefing, /trade, data check), `watch.py` (the breakout watch: free agents whose role just changed), `goalie_news.py` (tonight's starters, 19-22 local), `common.py` (outbox, dates, free agents) |
 | `config/league.py` | **Single source of league rules**: scoring, slots, add limits, schedule (every regular-season opponent), calendar |
 | `model/` | Projections: skater xFP, goalie per-start model, team ratings. See `model/CLAUDE.md` (evidence table) |
 | `engine/` | Decisions: `matchup.py` (the week, every move's value), `plan.py` (the plan), `addprice.py`, `lineup.py`, `availability.py`, `ir.py`, `season.py`, `trade.py`. See `engine/CLAUDE.md` (how the plan works, **the decision log**, judgment calls) |

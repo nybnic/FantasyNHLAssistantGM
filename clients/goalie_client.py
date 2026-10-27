@@ -46,14 +46,15 @@ def parse_entries(entries: list[dict], team_codes: dict[str, str]) -> dict[str, 
     return starters
 
 
-def get_starters(date: dt.date) -> dict[str, dict]:
-    """{team code: {"goalie_name", "confirmed"}} for `date`; {} on any failure."""
+def get_starters(date: dt.date, max_age: float = HOUR / 2) -> dict[str, dict]:
+    """{team code: {"goalie_name", "confirmed"}} for `date`; {} on any failure.
+    `max_age`: how old a cached copy may be (bot/goalie_news.py reads it fresh)."""
     try:
         def fetch() -> list[dict]:
             match = _NEXT_DATA_RE.search(get(URL.format(date=date.isoformat())).text)
             return json.loads(match.group(1))["props"]["pageProps"]["data"]
 
-        entries = cached_json(f"dfo_starters/{date.isoformat()}", HOUR / 2, fetch)
+        entries = cached_json(f"dfo_starters/{date.isoformat()}", max_age, fetch)
         starters = parse_entries(entries, _team_codes())
     except Exception:
         logger.warning("DailyFaceoff starting goalies unavailable for %s", date, exc_info=True)

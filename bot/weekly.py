@@ -838,19 +838,25 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
 def plan_check_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
                     build_context=context.build) -> None:
     """The plan again between plan messages: right after a screenshot or a
-    Taken or Skip tap (a reply either way), and once an evening before the
-    first puck (a message only if the plan changed: an injury, a confirmed
-    goalie, a player taken)."""
+    Taken or Skip tap (a reply either way), once an evening before the
+    first puck, and on goalie news 19-22 local (bot/goalie_news.py) (a message
+    only if the plan changed: an injury, a confirmed goalie, a player taken)."""
     date = nhl_date(now)
     week = weeks.week_of(date)
     if week is None or not roster_mod.active(players) or not current_opponent(state, week):
-        state["plan_check"] = False
+        state["plan_check"] = state["goalie_recheck"] = False
         return
     if state.get("plan_check"):
         run_plan(state, players, league, now, outbox, build_context, "check")
-        state["plan_check"] = False
+        state["plan_check"] = state["goalie_recheck"] = False
         return
     games = nhl_client.games_on(date)
+    if state["goalie_recheck"]:
+        run_plan(state, players, league, now, outbox, build_context, "quiet")
+        state["goalie_recheck"] = False
+        if games and now >= briefing.briefing_due(date, games[0].start):
+            state["news_checked"] = date.isoformat()  # it was the evening's check too
+        return
     if not games or state["news_checked"] == date.isoformat():
         return
     if now < briefing.briefing_due(date, games[0].start) or briefing.quiet(now) or now >= games[0].start:

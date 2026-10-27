@@ -73,6 +73,9 @@ plan's numbers are in board.json (bot/board.py). The keys:
 - daily_plan: the Yahoo (Pacific) date whose full plan went out before its rollover (bot/weekly.daily_plan_due)
 - plan_check: a screenshot or a Taken/Skip tap came in: re-plan on this run
   (bot/weekly.plan_check_step: the score, or the change)
+- goalie_news: DailyFaceoff's starting goalies last read in the goalie news hours, 19-22 local
+  ({date: NHL date, starters: {team: {goalie_name, confirmed}}}, bot/goalie_news.py)
+- goalie_recheck: a starter was new, changed or confirmed: re-plan quietly on this run
 - plan: the plan Nico has seen (engine/plan.py: it changes only when it must):
   {week, at, moves: [{key, add, drop, when, why, value, rec_id, message_id}]}
 - trade_request: the text after /trade, judged on this run
@@ -198,6 +201,8 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("week_requested", False)
     state.setdefault("daily_plan", None)
     state.setdefault("plan_check", False)
+    state.setdefault("goalie_news", None)
+    state.setdefault("goalie_recheck", False)
     state.setdefault("watch", {"groups": {}, "alerted": {}})  # bot/watch.py: DFO groups last seen, alerts sent
     state.setdefault("watch_score", [])
     state.setdefault("plan", None)

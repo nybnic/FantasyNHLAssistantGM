@@ -15,7 +15,8 @@ one alert a day):
    weeks ahead, the budget (a plan that fails stays due for the next run);
 6. the evening briefing, a diff against Yahoo's Start Active (bot/daily.py);
 7. the plan check: after a screenshot or a Taken/Skip tap (the score, or what
-   changed), and once an evening (only if the plan changed);
+   changed), once an evening, and on goalie news, read every run 19-22 local
+   (bot/goalie_news.py) (only if the plan changed);
 8. the data check: sources down or stale, once a day.
 
 Notify-only: it never touches Yahoo.
@@ -36,7 +37,7 @@ from bot.common import Outbox, _safe, nhl_today, remember_mine
 from bot.daily import alert_health, briefing_step, sync_teams, trade_step
 from bot.ingest import process_updates, report_relay, sync_webhook
 from bot.weekly import plan_check_step, report_step, snapshot_rosters, weekly_step
-from bot import dfo_archive, watch, xfp_log
+from bot import dfo_archive, goalie_news, watch, xfp_log
 from clients import health
 from config.settings import Settings, load_settings
 from league import roster as roster_mod
@@ -113,6 +114,7 @@ def main() -> None:
         ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),
         ("week report", lambda: report_step(state, players, league, now, outbox, build_context, args.report)),
         ("weekly plan", lambda: weekly_step(state, players, league, now, args.force, outbox, build_context)),
+        ("goalie news", lambda: goalie_news.news_step(state, players, now)),
         ("briefing", lambda: briefing_step(state, players, now, args.force, outbox, build_context)),
         ("plan check", lambda: plan_check_step(state, players, league, now, outbox, build_context)),
         ("breakout watch", lambda: watch.watch_step(state, players, league, now, outbox, build_context)),

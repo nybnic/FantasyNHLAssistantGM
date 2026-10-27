@@ -42,7 +42,8 @@ Duplicates and extras are safe; each kind is checked before it changes anything:
 - **NHL API**: schedule, rosters, box scores and game logs (the results, re-fetchable any time), standings, past seasons' stats.
 - **DailyFaceoff**: line charts and injuries (with each injured player's latest news, whose timeline
   "rest of the season", "four more weeks" sets his return: `clients/injury_news.py`), confirmed
-  starting goalies, preseason projections. ESPN's injury feed has a structured return date too
+  starting goalies (read fresh every run 19-22 Helsinki, `bot/goalie_news.py`; GamedayTweets is
+  behind a Cloudflare bot check), preseason projections. ESPN's injury feed has a structured return date too
   (`scripts/injury_sources.py`), not used yet.
 
 Kept in `data/cache/gm` between runs (GitHub's cache, not committed; current data expires in hours).
