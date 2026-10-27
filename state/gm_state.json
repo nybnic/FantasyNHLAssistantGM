@@ -842,7 +842,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-27T11:39+00:00",
+    "at": "2026-10-27T16:30+00:00",
     "moves": [
       {
         "add": {
@@ -860,7 +860,7 @@
         "key": "8484390:8476455",
         "message_id": 635,
         "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2299,
+        "value": 0.2288,
         "when": "2026-10-27",
         "why": "now"
       }
@@ -1040,6 +1040,7 @@
       "8473986:promoted": "2026-10-13",
       "8473994:promoted": "2026-10-14",
       "8474013:promoted": "2026-10-19",
+      "8474141:promoted": "2026-10-27",
       "8474150:promoted": "2026-10-26",
       "8474189:promoted": "2026-10-14",
       "8474563:promoted": "2026-10-14",
@@ -1056,6 +1057,7 @@
       "8475794:promoted": "2026-10-14",
       "8475831:no1": "2026-10-13",
       "8475848:promoted": "2026-10-24",
+      "8476392:promoted": "2026-10-27",
       "8476441:ice time": "2026-10-23",
       "8476448:promoted": "2026-10-26",
       "8476461:promoted": "2026-10-22",
@@ -1092,6 +1094,7 @@
       "8478401:promoted": "2026-10-20",
       "8478413:promoted": "2026-10-24",
       "8478438:promoted": "2026-10-19",
+      "8478443:promoted": "2026-10-27",
       "8478444:promoted": "2026-10-18",
       "8478474:promoted": "2026-10-23",
       "8478498:promoted": "2026-10-24",
@@ -1181,13 +1184,16 @@
       "8482713:promoted": "2026-10-14",
       "8482731:ice time": "2026-10-21",
       "8482758:promoted": "2026-10-20",
+      "8482765:promoted": "2026-10-27",
       "8482775:promoted": "2026-10-22",
       "8482803:promoted": "2026-10-14",
       "8483406:promoted": "2026-10-27",
+      "8483450:promoted": "2026-10-27",
       "8483460:promoted": "2026-10-16",
       "8483468:promoted": "2026-10-19",
       "8483476:promoted": "2026-10-27",
       "8483489:ice time": "2026-10-20",
+      "8483493:promoted": "2026-10-27",
       "8483499:promoted": "2026-10-15",
       "8483505:promoted": "2026-10-18",
       "8483521:promoted": "2026-10-24",
@@ -1258,7 +1264,7 @@
       },
       "8471724": {
         "groups": [
-          "d3",
+          "d2",
           "pp2"
         ],
         "since": {}
@@ -1289,11 +1295,11 @@
       },
       "8474141": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": null,
+          "f2": "2026-10-27",
           "pp1": null
         }
       },
@@ -1469,7 +1475,7 @@
       },
       "8475764": {
         "groups": [
-          "d3",
+          "d2",
           "pk2",
           "pp2"
         ],
@@ -1508,13 +1514,6 @@
           "f2": "2026-10-19"
         }
       },
-      "8475799": {
-        "groups": [
-          "f4",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8475848": {
         "groups": [
           "f3"
@@ -1538,17 +1537,19 @@
       },
       "8476331": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
       },
       "8476392": {
         "groups": [
-          "f3",
+          "f2",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-27"
+        }
       },
       "8476393": {
         "groups": [
@@ -1628,12 +1629,6 @@
         "groups": [
           "f3",
           "pk1"
-        ],
-        "since": {}
-      },
-      "8476480": {
-        "groups": [
-          "ir"
         ],
         "since": {}
       },
@@ -1718,7 +1713,7 @@
       },
       "8476882": {
         "groups": [
-          "f3",
+          "f4",
           "pp1"
         ],
         "since": {
@@ -1902,11 +1897,10 @@
       },
       "8477479": {
         "groups": [
-          "f2",
+          "f3",
           "pp1"
         ],
         "since": {
-          "f2": null,
           "pp1": null
         }
       },
@@ -2003,13 +1997,6 @@
         "since": {
           "d1": null
         }
-      },
-      "8477938": {
-        "groups": [
-          "d3",
-          "pp2"
-        ],
-        "since": {}
       },
       "8477950": {
         "groups": [
@@ -2119,12 +2106,6 @@
         ],
         "since": {}
       },
-      "8478233": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8478396": {
         "groups": [
           "d3",
@@ -2151,12 +2132,10 @@
       },
       "8478413": {
         "groups": [
-          "f2",
+          "f4",
           "pk1"
         ],
-        "since": {
-          "f2": "2026-10-24"
-        }
+        "since": {}
       },
       "8478416": {
         "groups": [
@@ -2190,10 +2169,12 @@
       },
       "8478443": {
         "groups": [
-          "d3",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-27"
+        }
       },
       "8478444": {
         "groups": [
@@ -2394,6 +2375,7 @@
       },
       "8479398": {
         "groups": [
+          "d3",
           "ir"
         ],
         "since": {}
@@ -2484,7 +2466,7 @@
       },
       "8479983": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -2609,12 +2591,10 @@
       },
       "8480113": {
         "groups": [
-          "f2",
+          "f3",
           "pk1"
         ],
-        "since": {
-          "f2": "2026-10-19"
-        }
+        "since": {}
       },
       "8480185": {
         "groups": [
@@ -2835,13 +2815,6 @@
           "f2": "2026-10-23"
         }
       },
-      "8481122": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8481161": {
         "groups": [
           "d2"
@@ -2870,7 +2843,7 @@
       },
       "8481481": {
         "groups": [
-          "f3",
+          "f4",
           "pk1"
         ],
         "since": {}
@@ -2896,19 +2869,17 @@
       },
       "8481527": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
       },
       "8481535": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-26"
-        }
+        "since": {}
       },
       "8481538": {
         "groups": [
@@ -2918,6 +2889,14 @@
         "since": {
           "f1": "2026-10-24"
         }
+      },
+      "8481546": {
+        "groups": [
+          "d3",
+          "pk2",
+          "pp2"
+        ],
+        "since": {}
       },
       "8481553": {
         "groups": [
@@ -2959,7 +2938,6 @@
       "8481580": {
         "groups": [
           "f2",
-          "pk2",
           "pp2"
         ],
         "since": {
@@ -3051,12 +3029,6 @@
         "since": {
           "f1": "2026-10-13"
         }
-      },
-      "8481725": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
       },
       "8481726": {
         "groups": [
@@ -3164,7 +3136,7 @@
       },
       "8482111": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -3205,11 +3177,11 @@
       },
       "8482145": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": "2026-10-26"
+          "f2": "2026-10-27"
         }
       },
       "8482146": {
@@ -3224,12 +3196,9 @@
       },
       "8482148": {
         "groups": [
-          "f2",
-          "pp2"
+          "f3"
         ],
-        "since": {
-          "f2": "2026-10-22"
-        }
+        "since": {}
       },
       "8482159": {
         "groups": [
@@ -3312,7 +3281,7 @@
           "f2": null
         }
       },
-      "8482470": {
+      "8482459": {
         "groups": [
           "d3"
         ],
@@ -3320,9 +3289,13 @@
       },
       "8482475": {
         "groups": [
-          "ir"
+          "f2",
+          "ir",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-27"
+        }
       },
       "8482476": {
         "groups": [
@@ -3476,20 +3449,21 @@
       },
       "8482758": {
         "groups": [
-          "f2",
+          "f3",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-20",
           "pp1": "2026-10-22"
         }
       },
       "8482765": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-27"
+        }
       },
       "8482768": {
         "groups": [
@@ -3553,14 +3527,6 @@
         ],
         "since": {}
       },
-      "8482993": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": null
-        }
-      },
       "8483017": {
         "groups": [
           "d3"
@@ -3609,11 +3575,13 @@
       },
       "8483450": {
         "groups": [
-          "f4",
+          "f1",
           "pk2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-27"
+        }
       },
       "8483455": {
         "groups": [
@@ -3637,6 +3605,13 @@
       "8483468": {
         "groups": [
           "ir"
+        ],
+        "since": {}
+      },
+      "8483471": {
+        "groups": [
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -3666,13 +3641,6 @@
         ],
         "since": {}
       },
-      "8483487": {
-        "groups": [
-          "f3",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8483489": {
         "groups": [
           "f2",
@@ -3691,11 +3659,13 @@
       },
       "8483493": {
         "groups": [
-          "f3",
+          "f2",
           "pk1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-27"
+        }
       },
       "8483495": {
         "groups": [
@@ -3739,13 +3709,15 @@
       },
       "8483506": {
         "groups": [
-          "d3"
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
       "8483510": {
         "groups": [
-          "d2"
+          "d2",
+          "pp2"
         ],
         "since": {}
       },
@@ -3919,11 +3891,13 @@
         ],
         "since": {}
       },
-      "8484230": {
+      "8484197": {
         "groups": [
-          "f4"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": null
+        }
       },
       "8484234": {
         "groups": [
@@ -3943,12 +3917,10 @@
       },
       "8484241": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-26"
-        }
+        "since": {}
       },
       "8484305": {
         "groups": [
@@ -4021,14 +3993,13 @@
       "8484783": {
         "groups": [
           "d2",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
       "8484790": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -4074,7 +4045,7 @@
       },
       "8484829": {
         "groups": [
-          "f3",
+          "f4",
           "pk2",
           "pp2"
         ],
@@ -4123,12 +4094,10 @@
       },
       "8485391": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8485395": {
         "groups": [
@@ -4170,13 +4139,11 @@
       },
       "8486025": {
         "groups": [
-          "f2",
+          "f3",
           "pk1",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8486067": {
         "groups": [
@@ -4199,7 +4166,7 @@
       },
       "8486130": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -6441,6 +6408,96 @@
         "value": -0.165,
         "verdict": "-16 win-pts against the 12.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line and the first power play, and it has held for 1 days."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8483450,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ryan Greene",
+        "positions": "C/RW",
+        "price": 0.128,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.147,
+        "verdict": "-15 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8474141,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Patrick Kane",
+        "positions": "RW",
+        "price": 0.128,
+        "sent": false,
+        "team": "CHI",
+        "value": 0.0271,
+        "verdict": "+3 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8483493,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Frank Nazar",
+        "positions": "C",
+        "price": null,
+        "sent": false,
+        "team": "CHI",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8478443,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Brandon Carlo",
+        "positions": "D",
+        "price": null,
+        "sent": false,
+        "team": "STL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8476392,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Adam Lowry",
+        "positions": "C",
+        "price": 0.128,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.0829,
+        "verdict": "-8 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-10-27",
+        "id": 8482765,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Isak Rosen",
+        "positions": "RW",
+        "price": 0.128,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.161,
+        "verdict": "-16 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
