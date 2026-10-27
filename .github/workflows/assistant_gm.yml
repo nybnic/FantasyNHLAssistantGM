@@ -6,6 +6,9 @@ on:
     # 11:00-23:30 in winter. main.py itself decides when a briefing is due
     # and keeps quiet 23:00-08:00 local. GitHub may start runs a few minutes late.
     - cron: "*/30 9-21 * * *"
+    # 30 and 15 min before Yahoo's day turns (midnight Pacific: 07:00 UTC in summer
+    # time, 08:00 in winter): the daily plan (bot/weekly.daily_plan_due).
+    - cron: "30,45 6,7 * * *"
   workflow_dispatch: {}
 
 permissions:

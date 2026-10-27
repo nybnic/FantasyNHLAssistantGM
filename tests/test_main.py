@@ -214,6 +214,28 @@ def test_weekly_plan_waits_for_noon_on_the_weeks_first_day(monkeypatch, tmp_path
     assert state["weeks"] == {} and sent == []
 
 
+def test_the_daily_plan_goes_out_in_the_half_hour_before_yahoos_day_turns(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    runs = []
+    monkeypatch.setattr(weekly, "run_plan", lambda *a: runs.append(a[-1]))
+    utc = dt.timezone.utc
+    # Tue 27 Oct: midnight Pacific (PDT) is 07:00 UTC, 09:00 Helsinki.
+    assert not weekly.daily_plan_due(state, dt.datetime(2026, 10, 28, 6, 29, tzinfo=utc))
+    assert weekly.daily_plan_due(state, dt.datetime(2026, 10, 28, 6, 30, tzinfo=utc))
+    assert weekly.daily_plan_due(state, dt.datetime(2026, 10, 28, 6, 59, tzinfo=utc))
+    assert not weekly.daily_plan_due(state, dt.datetime(2026, 10, 28, 7, 0, tzinfo=utc))  # Yahoo's new day
+    # From Sun 1 Nov, Pacific standard time: 08:00 UTC, 10:00 Helsinki.
+    assert not weekly.daily_plan_due(state, dt.datetime(2026, 11, 4, 7, 15, tzinfo=utc))
+    assert weekly.daily_plan_due(state, dt.datetime(2026, 11, 4, 7, 45, tzinfo=utc))
+
+    at = dt.datetime(2026, 10, 28, 6, 35, tzinfo=utc)  # Wed 09:35 Helsinki, before noon's plan
+    for minutes in (0, 15):
+        weekly.weekly_step(state, players, {"teams": {}, "taken": []}, at + dt.timedelta(minutes=minutes), False,
+                           common.Outbox(settings), build_context=lambda d: 1 / 0)
+    assert runs == ["full"] and state["daily_plan"] == "2026-10-27"
+    assert "midweek" in state["weeks"]["5"]  # noon's mid-week plan has gone out with it
+
+
 def test_trade_command_is_judged_later_in_the_run(monkeypatch, tmp_path):
     message = {"update_id": 9, "message": {"chat": {"id": 42}, "text": "/trade B for Nobody"}}
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [message])

@@ -2,7 +2,8 @@
 
 ## How it runs
 - **GitHub Actions** (`.github/workflows/assistant_gm.yml`): started every 30 min,
-  09:00-21:30 UTC, by the relay's Cloudflare crons (`relay/wrangler.toml`), and
+  09:00-21:30 UTC, and 30 and 15 min before midnight Pacific (the daily plan, before
+  Yahoo's day turns: 06:30/06:45 UTC in US summer time, 07:30/07:45 in winter), by the relay's Cloudflare crons (`relay/wrangler.toml`), and
   by the relay on each Telegram message. The workflow's own cron is only a
   backup: GitHub ran it ~3 times a day. Changing the crons needs `npx wrangler
   deploy` in `relay/`; `tests/test_relay.py` checks they cover the briefing window. The concurrency group `assistant-gm` runs one at a time; a newer

@@ -11,7 +11,7 @@ one alert a day):
 3. /trade (bot/daily.py);
 4. on a new week's first day, last week's result (bot/weekly.py);
 5. the weekly plan from noon on the week's first day, again from Wednesday
-   noon, and on /week: the matchup, the plan (which add/drops, when), the
+   noon, every day in the half hour before Yahoo's day turns, and on /week: the matchup, the plan (which add/drops, when), the
    weeks ahead, the budget (a plan that fails stays due for the next run);
 6. the evening briefing, a diff against Yahoo's Start Active (bot/daily.py);
 7. the plan check: after a screenshot or a Taken/Skip tap (the score, or what

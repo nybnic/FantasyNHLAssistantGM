@@ -70,6 +70,7 @@ plan's numbers are in board.json (bot/board.py). The keys:
   on it within 30 days is a correction, not an add)
 - news_checked: the NHL date the evening news check (an add newly worth it) last ran
 - week_requested: /week was sent; plan the week on this run
+- daily_plan: the Yahoo (Pacific) date whose full plan went out before its rollover (bot/weekly.daily_plan_due)
 - plan_check: a screenshot or a Taken/Skip tap came in: re-plan on this run
   (bot/weekly.plan_check_step: the score, or the change)
 - plan: the plan Nico has seen (engine/plan.py: it changes only when it must):
@@ -195,6 +196,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("news_checked", None)
     state.setdefault("results", {"1": WEEK_1})
     state.setdefault("week_requested", False)
+    state.setdefault("daily_plan", None)
     state.setdefault("plan_check", False)
     state.setdefault("watch", {"groups": {}, "alerted": {}})  # bot/watch.py: DFO groups last seen, alerts sent
     state.setdefault("watch_score", [])

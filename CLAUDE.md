@@ -7,8 +7,8 @@ points. The bot's edge over data sites is the decision: it plays out every night
 of this week's matchup and the next two, values every add/drop in win
 probability, and sends **one plan**: which move, on which day, and why.
 
-Runs on GitHub Actions every 30 min, 09-21 UTC (plus on each Telegram message via
-the Cloudflare relay). Notify-only: there is no Yahoo API access, so Nico makes
+Runs on GitHub Actions every 30 min, 09-21 UTC, and 30 and 15 min before midnight Pacific (plus
+on each Telegram message via the Cloudflare relay). Notify-only: there is no Yahoo API access, so Nico makes
 every move in Yahoo, and the bot learns about them from Done/Taken/Skip taps and
 Yahoo screenshots (team pages, matchups, transactions from the app, website or
 league chat) or pasted pages.
@@ -46,7 +46,8 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    the breakout watch; a tap-open sheet per player and per move; the Board's `teams`/`players` from `engine/report.py`),
    its `?card` view screenshotted for Telegram (`notify/snapshot.py`; `?card=move&key=` is each move's card,
    sent with its Done/Taken/Skip and a "Why?" link to its sheet, `#move=KEY`; `?card=result` is Monday's).
-   When: Monday and Wednesday noon and `/week` = the full plan; a screenshot or
+   When: Monday and Wednesday noon, daily in the half hour before Yahoo's day turns (midnight
+   Pacific), and `/week` = the full plan; a screenshot or
    Taken/Skip tap = a check; once an evening = silent unless the plan changed.
 7. **The breakout watch** (`bot/watch.py`), every run: a free agent whose role just changed (a goalie
    whose teammates are hurt, a DFO promotion, an ice-time jump) gets one message with the plan's verdict

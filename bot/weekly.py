@@ -10,6 +10,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from functools import partial
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 from clients import dfo_lines, goalie_client, nhl_client
@@ -37,6 +38,11 @@ MIN_KNOWN_ROSTER = 10  # a league team's roster counts toward the matchup spread
 
 
 WEEKLY_PLAN_TIME = dt.time(12, 0)  # local, on the week's first day: before any NHL game
+# Yahoo's fantasy day turns at midnight Pacific (its transaction deadline is 11:59 PM PT):
+# the full plan goes out every day in the half hour before (Nico, 2026-10-27). The
+# workflow starts runs 30 and 15 min before it (GitHub can start them minutes late).
+YAHOO_TIME = ZoneInfo("America/Los_Angeles")
+DAILY_PLAN_LEAD = dt.timedelta(minutes=30)
 
 
 def waiver_days(pool: list, league: dict, date: dt.date) -> dict[int, dt.date]:
@@ -788,20 +794,28 @@ def _plan_sent(state: dict, key: str, now: dt.datetime, midweek: bool) -> None:
     state["plan_check"] = False
 
 
+def daily_plan_due(state: dict, now: dt.datetime) -> bool:
+    """In the last half hour of Yahoo's day, and not yet sent for it."""
+    yahoo = now.astimezone(YAHOO_TIME)
+    rollover = dt.datetime.combine(yahoo.date() + dt.timedelta(days=1), dt.time(0), YAHOO_TIME)
+    return rollover - now <= DAILY_PLAN_LEAD and state["daily_plan"] != yahoo.date().isoformat()
+
+
 def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, force: bool, outbox: Outbox,
                 build_context=context.build) -> None:
     """The plan message: from noon local on the week's first day, again from
-    noon on its Wednesday, and whenever you send /week."""
+    noon on its Wednesday, every day before Yahoo's day turns, and whenever you send /week."""
     date = nhl_date(now)
     week = weeks.week_of(date)
     requested = state["week_requested"]
+    daily = daily_plan_due(state, now)
     if week is None or not roster_mod.active(players):
         if requested:
             outbox.send("No roster yet." if not players else "No fantasy week in progress.")
         state["week_requested"] = False
         return
     key = str(week)
-    if not (force or requested):
+    if not (force or requested or daily):
         if not plan_due(state["weeks"].get(key), date, week) or briefing.quiet(now) \
                 or now.astimezone(briefing.LOCAL).time() < WEEKLY_PLAN_TIME:
             return
@@ -810,11 +824,15 @@ def weekly_step(state: dict, players: list, league: dict, now: dt.datetime, forc
     if not opponent:
         outbox.send(f"Week {week} is a playoff week: who are you playing? Send /opp Team Name.")
         _plan_sent(state, key, now, is_midweek)  # asked once; /opp then /week brings the plan
+        if daily:
+            state["daily_plan"] = now.astimezone(YAHOO_TIME).date().isoformat()
         return
     run_plan(state, players, league, now, outbox, build_context, "full")
     # Only now: a run that fails before this (an NHL or DailyFaceoff outage) leaves
     # the plan due, so the next run sends it.
     _plan_sent(state, key, now, is_midweek)
+    if daily:
+        state["daily_plan"] = now.astimezone(YAHOO_TIME).date().isoformat()
 
 
 def plan_check_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,

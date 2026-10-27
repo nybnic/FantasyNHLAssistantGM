@@ -10,9 +10,11 @@ GITHUB_WORKFLOW = "assistant_gm.yml"
 
 # Starts the workflow on time (see worker.js): every 30 min, 09:00-21:30 UTC,
 # the same hours as the workflow's cron. Covers the briefing window, 19:30-20:30
-# Helsinki, in both summer and winter time (tests/test_relay.py checks).
+# Helsinki, in both summer and winter time; and 30 and 15 min before midnight
+# Pacific (07:00 UTC in summer time, 08:00 in winter), when the daily plan goes
+# out before Yahoo's day turns (tests/test_relay.py checks).
 [triggers]
-crons = ["*/30 9-21 * * *"]
+crons = ["*/30 9-21 * * *", "30,45 6,7 * * *"]
 
 [[d1_databases]]
 binding = "DB"
