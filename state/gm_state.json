@@ -657,6 +657,24 @@
       "message_id": 675,
       "type": "add"
     },
+    "add-2026-10-28-0535-8484390": {
+      "add": {
+        "id": 8484390,
+        "name": "Roman Kantserov",
+        "positions": [
+          "RW"
+        ],
+        "slot": null,
+        "team": "CHI"
+      },
+      "add_slot": null,
+      "date": "2026-10-28",
+      "drop": 8480855,
+      "drop_name": "Jack McBain",
+      "ir": {},
+      "message_id": 750,
+      "type": "add"
+    },
     "lineup-2026-10-14-1631": {
       "assignment": {
         "8474564": "RW",
@@ -933,7 +951,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-27T19:30+00:00",
+    "at": "2026-10-28T05:35+00:00",
     "moves": [
       {
         "add": {
@@ -945,14 +963,14 @@
           "team": "CHI"
         },
         "drop": {
-          "id": 8476455,
-          "name": "Gabriel Landeskog"
+          "id": 8480855,
+          "name": "Jack McBain"
         },
-        "key": "8484390:8476455",
-        "message_id": 635,
-        "rec_id": "add-2026-10-23-1257-8484390",
-        "value": 0.2288,
-        "when": "2026-10-27",
+        "key": "8484390:8480855",
+        "message_id": 750,
+        "rec_id": "add-2026-10-28-0535-8484390",
+        "value": 0.1557,
+        "when": "2026-10-28",
         "why": "now"
       }
     ],
@@ -1120,7 +1138,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784781,
+  "telegram_offset": 929784783,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
