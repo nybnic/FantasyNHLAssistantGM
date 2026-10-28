@@ -928,7 +928,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-28T19:31+00:00",
+    "at": "2026-10-28T20:44+00:00",
     "moves": [
       {
         "add": {
@@ -1124,7 +1124,7 @@
     "alerted": {
       "8470621:promoted": "2026-10-14",
       "8471214:promoted": "2026-10-13",
-      "8473986:promoted": "2026-10-13",
+      "8473986:promoted": "2026-10-28",
       "8473994:promoted": "2026-10-14",
       "8474013:promoted": "2026-10-19",
       "8474141:promoted": "2026-10-27",
@@ -1228,6 +1228,7 @@
       "8481064:goalie": "2026-10-26",
       "8481068:promoted": "2026-10-17",
       "8481161:ice time": "2026-10-25",
+      "8481523:promoted": "2026-10-28",
       "8481527:ice time": "2026-10-18",
       "8481534:promoted": "2026-10-23",
       "8481535:promoted": "2026-10-21",
@@ -1313,6 +1314,7 @@
       "8484798:promoted": "2026-10-26",
       "8484800:promoted": "2026-10-24",
       "8484803:ice time": "2026-10-14",
+      "8484806:promoted": "2026-10-28",
       "8484829:promoted": "2026-10-14",
       "8484911:promoted": "2026-10-24",
       "8484999:promoted": "2026-10-13",
@@ -1373,11 +1375,13 @@
       },
       "8473986": {
         "groups": [
-          "f3",
+          "f1",
           "pk1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-10-28"
+        }
       },
       "8473994": {
         "groups": [
@@ -1879,8 +1883,7 @@
       "8476925": {
         "groups": [
           "f3",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
@@ -1963,7 +1966,9 @@
       },
       "8477426": {
         "groups": [
-          "f2"
+          "f2",
+          "pk2",
+          "pp2"
         ],
         "since": {
           "f2": "2026-10-15"
@@ -2034,12 +2039,10 @@
       },
       "8477498": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8477501": {
         "groups": [
@@ -2204,6 +2207,13 @@
         ],
         "since": {}
       },
+      "8478366": {
+        "groups": [
+          "f4",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8478396": {
         "groups": [
           "d2",
@@ -2244,7 +2254,7 @@
       },
       "8478421": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -2499,7 +2509,8 @@
       },
       "8479520": {
         "groups": [
-          "f4"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -2826,7 +2837,7 @@
       },
       "8480848": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -2862,7 +2873,7 @@
       },
       "8480891": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -2978,9 +2989,12 @@
       "8481523": {
         "groups": [
           "f4",
-          "pk2"
+          "pk2",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-28"
+        }
       },
       "8481524": {
         "groups": [
@@ -3163,13 +3177,6 @@
       "8481732": {
         "groups": [
           "f4",
-          "pp2"
-        ],
-        "since": {}
-      },
-      "8481754": {
-        "groups": [
-          "f3",
           "pp2"
         ],
         "since": {}
@@ -3507,6 +3514,12 @@
           "pp1": null
         }
       },
+      "8482700": {
+        "groups": [
+          "d2"
+        ],
+        "since": {}
+      },
       "8482703": {
         "groups": [
           "f2",
@@ -3593,11 +3606,10 @@
       "8482775": {
         "groups": [
           "f2",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f2": "2026-10-28",
-          "pp1": "2026-10-22"
+          "f2": "2026-10-28"
         }
       },
       "8482802": {
@@ -3617,13 +3629,6 @@
         "groups": [
           "d2",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8482859": {
-        "groups": [
-          "f4",
-          "pk1"
         ],
         "since": {}
       },
@@ -3765,6 +3770,7 @@
       },
       "8483490": {
         "groups": [
+          "d3",
           "ir"
         ],
         "since": {}
@@ -4003,13 +4009,6 @@
         ],
         "since": {}
       },
-      "8484152": {
-        "groups": [
-          "d3",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8484154": {
         "groups": [
           "f4"
@@ -4166,10 +4165,12 @@
       },
       "8484806": {
         "groups": [
-          "d2",
+          "d1",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-10-28"
+        }
       },
       "8484829": {
         "groups": [
@@ -4191,7 +4192,7 @@
       "8484911": {
         "groups": [
           "f1",
-          "pk2"
+          "pk1"
         ],
         "since": {
           "f1": "2026-10-27"
@@ -4245,7 +4246,7 @@
       },
       "8485512": {
         "groups": [
-          "f4",
+          "f3",
           "pk1"
         ],
         "since": {}
@@ -6852,6 +6853,51 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-28",
+        "id": 8473986,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Alex Killorn",
+        "positions": "LW/RW",
+        "price": null,
+        "sent": false,
+        "team": "ANA",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-28",
+        "id": 8481523,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Kirby Dach",
+        "positions": "C/RW",
+        "price": null,
+        "sent": false,
+        "team": "MTL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-28",
+        "id": 8484806,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Sam Dickinson",
+        "positions": "D",
+        "price": null,
+        "sent": false,
+        "team": "SJS",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
