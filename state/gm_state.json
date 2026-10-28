@@ -924,7 +924,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-28T17:30+00:00",
+    "at": "2026-10-28T18:30+00:00",
     "moves": [
       {
         "add": {
@@ -970,7 +970,8 @@
     "2026-10-21 move forecasts",
     "2026-10-22 hc bulju team page",
     "2026-10-23 week 4 forecast by day",
-    "2026-10-26 yahoo finals"
+    "2026-10-26 yahoo finals",
+    "2026-10-28 cooley positions"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -1232,6 +1233,7 @@
       "8481568:promoted": "2026-10-19",
       "8481593:promoted": "2026-10-16",
       "8481601:promoted": "2026-10-17",
+      "8481618:promoted": "2026-10-28",
       "8481641:promoted": "2026-10-24",
       "8481656:promoted": "2026-10-23",
       "8481711:promoted": "2026-10-15",
@@ -1448,7 +1450,9 @@
       },
       "8475167": {
         "groups": [
-          "ir"
+          "d4",
+          "ir",
+          "pk2"
         ],
         "since": {}
       },
@@ -1803,13 +1807,6 @@
         ],
         "since": {}
       },
-      "8476878": {
-        "groups": [
-          "f3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8476879": {
         "groups": [
           "d3",
@@ -1926,12 +1923,6 @@
         ],
         "since": {}
       },
-      "8477149": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8477220": {
         "groups": [
           "d2",
@@ -1941,10 +1932,12 @@
       },
       "8477402": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-28"
+        }
       },
       "8477407": {
         "groups": [
@@ -2288,8 +2281,7 @@
       },
       "8478462": {
         "groups": [
-          "f2",
-          "ir"
+          "f2"
         ],
         "since": {
           "f2": null
@@ -2786,7 +2778,7 @@
       },
       "8480727": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
@@ -3058,12 +3050,10 @@
       },
       "8481580": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8481593": {
         "groups": [
@@ -3098,11 +3088,11 @@
       },
       "8481618": {
         "groups": [
-          "f2",
+          "f1",
           "pp2"
         ],
         "since": {
-          "f2": null
+          "f1": "2026-10-28"
         }
       },
       "8481624": {
@@ -3333,7 +3323,7 @@
       },
       "8482165": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -3590,11 +3580,11 @@
       },
       "8482775": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": "2026-10-22",
+          "f2": "2026-10-28",
           "pp1": "2026-10-22"
         }
       },
@@ -3633,8 +3623,7 @@
       },
       "8482929": {
         "groups": [
-          "d3",
-          "pk2"
+          "d3"
         ],
         "since": {}
       },
@@ -3912,6 +3901,13 @@
         ],
         "since": {}
       },
+      "8483752": {
+        "groups": [
+          "f3",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8483756": {
         "groups": [
           "f4"
@@ -4105,7 +4101,7 @@
       },
       "8484768": {
         "groups": [
-          "d3",
+          "d2",
           "pp1"
         ],
         "since": {
@@ -6813,6 +6809,21 @@
         "value": -0.0824,
         "verdict": "-8 win-pts against the 12.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line, and it has held for 9 days."
+      },
+      {
+        "date": "2026-10-28",
+        "id": 8481618,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Alex Newhook",
+        "positions": "C/LW",
+        "price": null,
+        "sent": false,
+        "team": "MTL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
