@@ -113,19 +113,20 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
         outbox.send("No regular-season games left to judge a trade on.")
         return
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
-    pool, ctx, rounds = free_agents(players, league), build_context(date), draft.rounds()
+    pool, ctx, rounds, price = free_agents(players, league), build_context(date), draft.rounds(), add_price()
     if parsed is None:
-        outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds),
-                                           add_price()))
+        outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds,
+                                                         price)))
         return
     give, get, partner = parsed
-    result = trade.evaluate(players, others[partner], partner, give, get, pool, ctx, schedule, lines, {}, rounds)
+    result = trade.evaluate(players, others[partner], partner, give, get, pool, ctx, schedule, lines, {}, rounds,
+                            price)
     note = ""
     updated = teams.updated(league, partner)
     if updated and (date - dt.date.fromisoformat(updated)).days >= 1:
         note = (f"\n{partner}'s roster is from {dt.date.fromisoformat(updated):%d %b}: "
                 "send League > Transactions screenshots (or /opp with their page) if it has changed.")
-    outbox.send(trade.text(result, add_price()) + note)
+    outbox.send(trade.text(result) + note)
 
 
 def alert_health(state: dict, outbox: Outbox, now: dt.datetime) -> None:
