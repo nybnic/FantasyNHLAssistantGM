@@ -1454,3 +1454,15 @@ def test_the_drafted_rosters_forecast_is_kept_only_with_the_weeks_first_plan(mon
     weekly.record_plan(state, 3, "R", me, them, NOW + dt.timedelta(days=2))  # a later plan: no forecast
     weekly.record_drafted(state, 3, wk)
     assert "drafted" not in state["results"]["3"]["first"]
+
+
+def test_the_2026_10_28_repair_gives_cooley_yahoos_c_lw(tmp_path):
+    from league import positions
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-28 cooley positions"]
+    league = {"teams": {"Bottom three": {"players": [{"id": repairs.COOLEY, "name": "Logan Cooley", "team": "UTA",
+                                                      "positions": ["C"], "slot": None}]}}, "taken": []}
+    repairs.apply(state, [], league)
+    assert league["teams"]["Bottom three"]["players"][0]["positions"] == ["C", "LW"]
+    assert positions.load()[repairs.COOLEY] == ["C", "LW"]

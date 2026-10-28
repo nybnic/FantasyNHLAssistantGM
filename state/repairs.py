@@ -406,6 +406,21 @@ def _yahoo_finals(state: dict, players: list[RosterPlayer], league: dict) -> Non
             official_final(entry)
 
 
+COOLEY = 8483431
+
+
+def _cooley_positions(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-28 (Nico: "Cooley is C,LW"): Yahoo has never shown Logan Cooley to the bot, so he
+    # took his NHL position, C only, and read as Bottom three's third pure center when weighing
+    # trades for him. Yahoo's C/LW, learned as a screenshot would, and on their roster.
+    known = positions.load()
+    if positions.learn(known, {COOLEY: ["C", "LW"]}):
+        positions.save(known)
+    for p in league.get("teams", {}).get("Bottom three", {}).get("players", []):
+        if p["id"] == COOLEY:
+            p["positions"] = ["C", "LW"]
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -423,4 +438,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-21 move forecasts", _move_forecasts),
            ("2026-10-22 hc bulju team page", _hc_bulju_team_page),
            ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day),
-           ("2026-10-26 yahoo finals", _yahoo_finals)]
+           ("2026-10-26 yahoo finals", _yahoo_finals),
+           ("2026-10-28 cooley positions", _cooley_positions)]
