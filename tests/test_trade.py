@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pytest
 
 from engine import matchup, trade
@@ -184,8 +186,14 @@ def _two_for_one():
 PRICE = AddPrice(lam=0.12, later_weight=0.01, pace=1.0)  # an add must buy 12 points
 
 
-def test_an_add_costs_its_price_in_points():
-    assert trade.add_cost(AddPrice(lam=0.128, later_weight=0.00672, pace=1.3)) == pytest.approx(19.05, abs=0.01)
+def test_an_add_costs_its_price_in_points_over_the_weeks_the_plan_counts():
+    assert trade.add_cost(AddPrice(lam=0.128, later_weight=0.00672, pace=1.3), 6.0) == pytest.approx(3.17, abs=0.01)
+    # From Fri 30 Oct (the check, 2026-10-28): a gain counted ~3.5 weeks as my lowest skater, ~12.4 as a 7th+.
+    friday = dt.date(2026, 10, 30)
+    assert trade.counted_weeks("skater, lowest", friday) == pytest.approx(3.5, abs=0.05)
+    assert trade.counted_weeks("skater, 4th-6th", friday) == pytest.approx(9.6, abs=0.05)
+    assert trade.counted_weeks("skater, 7th+", friday) == pytest.approx(12.4, abs=0.05)
+    assert trade.counted_weeks("skater, 7th+", dt.date(2027, 3, 29)) < 3  # week 26: its own days only
 
 
 def test_an_add_the_trade_needs_is_charged_the_add_price():
@@ -194,11 +202,13 @@ def test_an_add_the_trade_needs_is_charged_the_add_price():
     free_add = trade.evaluate(mine, theirs, "Them", mine[:2], [theirs[0]], [free], FakeContext(), schedule, {}, {})
     charged = trade.evaluate(mine, theirs, "Them", mine[:2], [theirs[0]], [free], FakeContext(), schedule, {}, {},
                              price=PRICE)
-    weeks = len(schedule) / 7
-    assert charged.me.adds == [free] and charged.me.add_cost == pytest.approx(12 / weeks)
-    assert charged.me.per_week == pytest.approx(free_add.me.per_week - 12 / weeks)
+    # The 4-point star would be my best skater: his gain counted as a 7th+ one's from Mon 9 Nov.
+    assert charged.me.tenure_bin == "skater, 7th+"
+    per_week = 12 / trade.counted_weeks("skater, 7th+", MON)
+    assert charged.me.adds == [free] and charged.me.add_cost == pytest.approx(per_week)
+    assert charged.me.per_week == pytest.approx(free_add.me.per_week - per_week)
     assert charged.win_even < free_add.win_even
-    assert f"(1 more add, charged {12 / weeks:.1f} pts/week)" in trade.text(charged)
+    assert f"(1 more add, charged {per_week:.1f} pts/week: the add price over the" in trade.text(charged)
     assert "an add the trade needs is charged the add price" in trade.text(charged)
     assert "charged" not in trade.text(free_add)
 
@@ -220,9 +230,11 @@ def test_a_goalie_the_trade_forces_me_to_add_is_charged_and_so_is_their_add():
     schedule = {MON: [_game(MON, "BOS", "NYR")], WED: [_game(WED, "PHI", "BOS")]}
     result = trade.evaluate(mine, theirs, "Them", [mine[-1]], [theirs[-1]], pool, FakeContext(), schedule, {}, {},
                             price=PRICE)
-    assert [p.id for p in result.me.adds] == [900] and result.me.add_cost == pytest.approx(12 / (2 / 7))
+    assert [p.id for p in result.me.adds] == [900] and result.me.tenure_bin.startswith("skater")
+    assert result.me.add_cost == pytest.approx(12 / trade.counted_weeks(result.me.tenure_bin, MON))
     # Their 1-for-2 the other way: they're left a spot, filled and charged.
     mine, theirs, free, schedule = _two_for_one()
     result = trade.evaluate(theirs, mine, "Them", [theirs[0]], mine[:2], [free], FakeContext(), schedule, {}, {},
                             price=PRICE)
-    assert result.them.adds == [free] and result.them.add_cost == pytest.approx(12 / (2 / 7))
+    assert result.them.adds == [free]
+    assert result.them.add_cost == pytest.approx(12 / trade.counted_weeks(result.them.tenure_bin, MON))
