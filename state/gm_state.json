@@ -928,7 +928,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-28T19:00+00:00",
+    "at": "2026-10-28T19:31+00:00",
     "moves": [
       {
         "add": {
@@ -946,7 +946,7 @@
         "key": "8484390:8480855",
         "message_id": 750,
         "rec_id": "add-2026-10-28-0535-8484390",
-        "value": 0.1566,
+        "value": 0.1561,
         "when": "2026-10-28",
         "why": "now"
       }
@@ -1320,6 +1320,7 @@
       "8485402:promoted": "2026-10-19",
       "8485406:promoted": "2026-10-16",
       "8485702:promoted": "2026-10-25",
+      "8486067:promoted": "2026-10-28",
       "8486103:promoted": "2026-10-26"
     },
     "groups": {
@@ -1878,7 +1879,8 @@
       "8476925": {
         "groups": [
           "f3",
-          "pk1"
+          "pk1",
+          "pp2"
         ],
         "since": {}
       },
@@ -2844,6 +2846,12 @@
         "since": {
           "d1": null
         }
+      },
+      "8480870": {
+        "groups": [
+          "f3"
+        ],
+        "since": {}
       },
       "8480878": {
         "groups": [
@@ -4267,10 +4275,11 @@
       },
       "8486067": {
         "groups": [
-          "f3",
+          "f1",
           "pp1"
         ],
         "since": {
+          "f1": "2026-10-28",
           "pp1": null
         }
       },
@@ -6825,6 +6834,21 @@
         "price": null,
         "sent": false,
         "team": "MTL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-28",
+        "id": 8486067,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Gavin McKenna",
+        "positions": "LW",
+        "price": null,
+        "sent": false,
+        "team": "TOR",
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the first line."
