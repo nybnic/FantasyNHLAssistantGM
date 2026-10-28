@@ -173,7 +173,10 @@ jobs:
               python -m scripts.depth_json data/depth.json
               git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
               git add -f data/depth.json; git commit -m "Depth as JSON for the League Depth Map"; git push origin "HEAD:$GITHUB_REF_NAME" ;;
-            trade) time python main.py --dry-run --trade "$PLAYERS" ;;
+            trade) IFS=',' read -ra ps <<< "$PLAYERS"; names=(); for n in "${ps[@]}"; do n="${n#"${n%%[![:space:]]*}"}"; n="${n%"${n##*[![:space:]]}"}"; [ -n "$n" ] && names+=("$n"); done
+              python -m scripts.compare_json data/compare.json "${names[@]}"
+              git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
+              git add -f data/compare.json; git commit -m "Player comparison as JSON"; git push origin "HEAD:$GITHUB_REF_NAME" ;;
             scoreboard) python -m scripts.scorecard ;;
             replay) time python -m scripts.replay --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} ${REFERENCE:+--reference "$REFERENCE"} ${variants[@]:+--variants "${variants[@]}"} ;;
             replay-audit) time python -m scripts.replay --audit --seed "${WEEKS:-11}" --leagues "${LEAGUES:-8}" --workers 4 ${PRICE:+--price "$PRICE"} --reference "${REFERENCE:-pace 0.08 k2}" --variants "${variants[@]:-${REFERENCE:-pace 0.08 k2}}" ;;
