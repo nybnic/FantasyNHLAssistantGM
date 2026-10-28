@@ -9,10 +9,11 @@ import logging
 
 from clients import dfo_lines, goalie_client, health, nhl_client
 from config.league import (MY_TEAM, TRADE_DEADLINE)
-from engine import briefing, ir, trade
+from engine import addprice, briefing, ir, trade
 from league import draft, teams, weeks
 from league import roster as roster_mod
 from model import context
+from bot import board
 from bot.common import NHL_TIME, Outbox, _safe, free_agents
 
 logger = logging.getLogger(__name__)
@@ -84,6 +85,13 @@ def _new_ir_note(state: dict, players: list, ctx, team_lines: dict) -> str:
                    [p for k, p in keys.items() if k in new and not isinstance(p, ir.IrMove)], cuts)
 
 
+def add_price() -> addprice.AddPrice | None:
+    """The latest plan run's add price (state/board.json): it moves only when
+    adds are made or saved, so the last Board's stands."""
+    price = ((board.load() or {}).get("header") or {}).get("price")
+    return addprice.AddPrice(**price) if price else None
+
+
 def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
                build_context=context.build) -> None:
     """Answer /trade: both teams' points per week before and after, or with
@@ -107,7 +115,8 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
     pool, ctx, rounds = free_agents(players, league), build_context(date), draft.rounds()
     if parsed is None:
-        outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds)))
+        outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds),
+                                           add_price()))
         return
     give, get, partner = parsed
     result = trade.evaluate(players, others[partner], partner, give, get, pool, ctx, schedule, lines, {}, rounds)
@@ -116,7 +125,7 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     if updated and (date - dt.date.fromisoformat(updated)).days >= 1:
         note = (f"\n{partner}'s roster is from {dt.date.fromisoformat(updated):%d %b}: "
                 "send League > Transactions screenshots (or /opp with their page) if it has changed.")
-    outbox.send(trade.text(result) + note)
+    outbox.send(trade.text(result, add_price()) + note)
 
 
 def alert_health(state: dict, outbox: Outbox, now: dt.datetime) -> None:

@@ -3,12 +3,16 @@
 Judged like the weekly plan judges a long-run add: the whole-lineup
 projection over the 6 weeks after the trade clears (with durability), per
 week, before and after. Both teams play from the same free-agent pool, so:
-- a team left with an open roster spot fills it with its best free agent
-  (that costs an add), and one left over the limit drops its lowest-value
-  players;
+- a spot the trade opens stays open: filling it takes an add, which is the
+  weekly plan's call against the add price, so the best free agent for it is
+  shown beside the trade, not in it (Nico, 2026-10-28: Stamkos, McBain for
+  Eichel read +1.1 a week against -0.6 for Stamkos for Eichel only through a
+  free Pospisil add the plan fails). A spot open before the trade is filled
+  either way, and one left over the limit drops its lowest-value players;
 - you keep at least two goalies (matchup.MIN_GOALIES), so trading one away
-  below that means adding one; above it, the projection (each week's goalie
-  minimum) prices whether the third is worth his spot;
+  below that means adding one (counted: it isn't optional); above it, the
+  projection (each week's goalie minimum) prices whether the third is worth
+  his spot;
 - the result is close to zero-sum: what you gain they mostly lose. A trade
   gets accepted because they value players differently (names, "starting
   goalie"), which the numbers here don't try to model.
@@ -44,7 +48,7 @@ from functools import lru_cache
 
 from clients.names import normalize_name
 from config.league import GOALIE_WEIGHTS, LEAGUE_TEAMS, SKATER_WEIGHTS, STARTERS, fantasy_points
-from engine import matchup
+from engine import addprice, matchup
 from league.roster import BENCH, RosterPlayer, active
 
 # The commissioner can reject a trade for two days (league settings). A trade
@@ -84,6 +88,8 @@ class Side:
     drops: list[RosterPlayer]  # to get back under the roster limit
     balance: tuple[str, str] = ("", "")  # "7F 4D 2G" before and after, before any adds
     short: list[str] = field(default_factory=list)  # starting slots it can no longer fill itself
+    opens: list[RosterPlayer] = field(default_factory=list)  # best free agents for the spots it opens, not counted
+    opens_gain: float = 0.0  # what they'd add, points per week
 
 
 @dataclass
@@ -96,6 +102,7 @@ class Result:
     win_even: float  # P(win) after the trade vs a team as good as yours before it
     give_rounds: list[int] = field(default_factory=list)  # draft rounds, UNDRAFTED_ROUND if none
     get_rounds: list[int] = field(default_factory=list)
+    weeks: float = HORIZON_DAYS / 7  # the horizon's length (shorter at the season's end)
 
 
 def horizon(today: dt.date) -> list[dt.date]:
@@ -149,11 +156,13 @@ def _long_run(roster, ctx, schedule, lines, starters) -> matchup.TeamWeek:
 
 
 def _settle(roster: list[RosterPlayer], pool: list[RosterPlayer], min_goalies: int, ctx, schedule, lines,
-            starters) -> tuple[list[RosterPlayer], list[RosterPlayer], list[RosterPlayer]]:
+            starters, max_adds: int | None = None
+            ) -> tuple[list[RosterPlayer], list[RosterPlayer], list[RosterPlayer]]:
     """(roster, adds, drops) once it fits the roster limit again: extra
     players go, lowest long-run value first (keeping `min_goalies`, and
     making room for a goalie if it's short of them), and open spots take
-    the free agent who adds the most."""
+    the free agent who adds the most, up to `max_adds` (a goalie needed for
+    `min_goalies` comes on top)."""
     drops = []
 
     def goalies() -> int:
@@ -169,6 +178,8 @@ def _settle(roster: list[RosterPlayer], pool: list[RosterPlayer], min_goalies: i
     adds = []
     while len(active(roster)) < matchup.ACTIVE_SPOTS:
         need_goalie = goalies() < min_goalies
+        if max_adds is not None and len(adds) >= max_adds and not need_goalie:
+            break
         options = [p for p in shortlist if p.is_goalie or not need_goalie]
         if not options:
             break
@@ -295,31 +306,42 @@ def evaluate(mine: list[RosterPlayer], theirs: list[RosterPlayer], partner: str,
              rounds: dict[str, int] | None = None) -> Result:
     """`schedule` is the horizon's games (see `horizon`); `pool` the free agents.
     Open spots are filled before the trade too, so a trade gets no credit
-    for a hole the weekly plan would fill anyway."""
+    for a hole the weekly plan would fill anyway; a spot the trade opens
+    stays open (its best free agent is shown in `Side.opens`, not counted)."""
     weeks = len(schedule) / 7
 
     def both(roster, pool, min_goalies):
         settled_before, adds_before, _ = _settle(roster(False), pool, min_goalies, ctx, schedule, lines, starters)
-        settled_after, adds_after, drops = _settle(roster(True), pool, min_goalies, ctx, schedule, lines, starters)
+        settled_after, adds_after, drops = _settle(roster(True), pool, min_goalies, ctx, schedule, lines, starters,
+                                                   max_adds=len(adds_before))
         before = _long_run(settled_before, ctx, schedule, lines, starters)
         after = _long_run(settled_after, ctx, schedule, lines, starters)
-        return before, after, adds_after, adds_before, drops, {p.id for p in adds_before + adds_after}
+        opens, opens_gain = [], 0.0
+        if len(active(settled_after)) < matchup.ACTIVE_SPOTS:
+            filled, adds_filled, _ = _settle(roster(True), pool, min_goalies, ctx, schedule, lines, starters)
+            opens = [p for p in adds_filled if p not in adds_after]
+            opens_gain = (_long_run(filled, ctx, schedule, lines, starters).expected - after.expected) / weeks
+        taken = {p.id for p in adds_before + adds_after}
+        return before, after, adds_after, adds_before, drops, opens, opens_gain, taken
 
-    my_before, my_after, my_adds, my_usual, my_drops, taken = both(
+    my_before, my_after, my_adds, my_usual, my_drops, my_opens, my_opens_gain, taken = both(
         lambda traded: _after(mine, give, get) if traded else mine, pool, matchup.MIN_GOALIES)
-    their_before, their_after, their_adds, their_usual, their_drops, _ = both(
+    their_before, their_after, their_adds, their_usual, their_drops, their_opens, their_opens_gain, _ = both(
         lambda traded: _after(theirs, get, give) if traded else theirs, [p for p in pool if p.id not in taken], 0)
     my_traded, their_traded = _after(mine, give, get), _after(theirs, get, give)
     rounds = rounds or {}
     return Result(
         partner=partner, give=give, get=get,
         me=Side("you", (my_after.expected - my_before.expected) / weeks, my_adds, my_usual, my_drops,
-                (balance(mine, lines), balance(my_traded, lines)), _new_short(mine, my_traded)),
+                (balance(mine, lines), balance(my_traded, lines)), _new_short(mine, my_traded),
+                my_opens, my_opens_gain),
         them=Side(partner, (their_after.expected - their_before.expected) / weeks, their_adds, their_usual,
-                  their_drops, (balance(theirs, lines), balance(their_traded, lines)), _new_short(theirs, their_traded)),
+                  their_drops, (balance(theirs, lines), balance(their_traded, lines)), _new_short(theirs, their_traded),
+                  their_opens, their_opens_gain),
         win_even=matchup.win_prob(_per_week(my_after, weeks), _per_week(my_before, weeks)),
         give_rounds=[draft_round(p, rounds) for p in give],
         get_rounds=[draft_round(p, rounds) for p in get],
+        weeks=weeks,
     )
 
 
@@ -393,12 +415,36 @@ def _adds_text(side: Side, who: str) -> list[str]:
     return lines
 
 
+def opens_wins(side: Side, weeks: float, price: addprice.AddPrice) -> float:
+    """Roughly what filling the spots a trade opens is worth, in wins, to set
+    against the add price: the points over the horizon at a typical week's worth
+    of a point. A judgment call, untested: it leaves out this week's matchup and
+    the weeks past the horizon (Pospisil for McBain, Oct 28: ~7 win-pts here,
+    8.9 on the Board)."""
+    return side.opens_gain * weeks * price.later_weight
+
+
+def _opens_text(side: Side, weeks: float, price: addprice.AddPrice | None, theirs: bool = False) -> list[str]:
+    """The spots a trade opens and their best free agents, set against the add
+    price on my side (theirs is theirs to judge)."""
+    if not side.opens or side.opens_gain <= 0:
+        return []
+    spots = "a spot" if len(side.opens) == 1 else f"{len(side.opens)} spots"
+    line = (f"{'They open' if theirs else 'It opens'} {spots}, not counted: "
+            f"{_names(side.opens)} {side.opens_gain:+.1f} pts/week")
+    if price is None or theirs:
+        return [line]
+    value, cost = opens_wins(side, weeks, price) * 100, price.lam * 100
+    verdict = "worth the add" if value >= cost * len(side.opens) else "not worth an add"
+    return [line + f" (~{value:.0f} win-pts against the {cost:.0f} an add costs: {verdict})"]
+
+
 def _short_text(side: Side) -> str:
     what = {"F": "forward", "D": "D", "G": "goalie"}
     return ", ".join(f"{side.short.count(g)} {what[g]}" for g in dict.fromkeys(side.short))
 
 
-def suggestions_text(results: list[Result]) -> str:
+def suggestions_text(results: list[Result], price: addprice.AddPrice | None = None) -> str:
     if not results:
         return ("No trade I'd expect them to accept gains you 1+ pts/week. "
                 "Try one yourself: /trade Your Player for Their Player")
@@ -409,14 +455,14 @@ def suggestions_text(results: list[Result]) -> str:
                      f"{r.me.per_week:+.1f} / {r.them.per_week:+.1f}, {_odds(r)}")
         lines.append(f"   Drafted {_rounds(r.give_rounds)} for {_rounds(r.get_rounds)}; "
                      f"they go {r.them.balance[0]} -> {r.them.balance[1]}")
-        lines += ["   " + line for line in _adds_text(r.me, "You")]
+        lines += ["   " + line for line in _adds_text(r.me, "You") + _opens_text(r.me, r.weeks, price)]
         if r.them.drops:
             lines.append(f"   They drop {_names(r.them.drops)}")
     lines.append("Details: /trade " + _names(results[0].give) + " for " + _names(results[0].get))
     return "\n".join(lines)
 
 
-def text(r: Result) -> str:
+def text(r: Result, price: addprice.AddPrice | None = None) -> str:
     if r.me.per_week >= MIN_GAIN_PER_WEEK:
         verdict = "Worth proposing"
     elif r.me.per_week > -MIN_GAIN_PER_WEEK:
@@ -436,7 +482,7 @@ def text(r: Result) -> str:
     if min(r.give_rounds + r.get_rounds, default=UNDRAFTED_ROUND) < UNDRAFTED_ROUND:
         lines.append(f"Drafted: you give {_rounds(r.give_rounds)}, get {_rounds(r.get_rounds)}")
     for side, who in ((r.me, "You"), (r.them, "They")):
-        lines += _adds_text(side, who)
-    lines.append(f"Per week over the {HORIZON_DAYS // 7} weeks after the 2-day review; open spots filled from "
-                 "free agents either way.")
+        lines += _adds_text(side, who) + _opens_text(side, r.weeks, price, theirs=side is r.them)
+    lines.append(f"Per week over the {HORIZON_DAYS // 7} weeks after the 2-day review; a spot open before is filled "
+                 "either way, one the trade opens stays open (an add is the plan's call).")
     return "\n".join(lines)

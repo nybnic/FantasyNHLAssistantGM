@@ -169,3 +169,43 @@ def test_the_gain_reads_as_a_typical_weeks_win_odds_not_this_weeks():
     for text in (trade.text(result), trade.suggestions_text([result])):
         assert "typical week's win odds +7%" in text and "win 50%" not in text
     assert "next 6 weeks" in trade.suggestions_text([result])
+
+
+def _two_for_one():
+    """Two of my 1-point centers for their 4-point star, with a 3-point center free."""
+    mine, theirs = _full("BOS", 100, 3), _full("NYR", 300, 3)
+    theirs[0] = RosterPlayer(11, "Star", "NYR", ["C"])
+    free = RosterPlayer(9, "Free Skater", "BOS", ["C"])
+    schedule = {MON: [_game(MON, "BOS", "NYR")], WED: [_game(WED, "BOS", "NYR")]}
+    return mine, theirs, free, schedule
+
+
+def test_a_spot_the_trade_opens_stays_open_and_its_add_is_shown_not_counted():
+    # Stamkos, McBain for Eichel read better than Stamkos for Eichel through a free Pospisil add (Nico, 2026-10-28).
+    mine, theirs, free, schedule = _two_for_one()
+    result = trade.evaluate(mine, theirs, "Them", mine[:2], [theirs[0]], [free], FakeContext(), schedule, {}, {})
+    without_him = trade.evaluate(mine, theirs, "Them", mine[:2], [theirs[0]], [], FakeContext(), schedule, {}, {})
+    assert result.me.per_week == pytest.approx(without_him.me.per_week)
+    assert result.me.adds == [] and result.me.opens == [free]
+    # 3 pts for a 1-pt starter in 2 games, per week, a little under it for availability
+    assert result.me.opens_gain == pytest.approx(2.0 * 2 / result.weeks, rel=0.05)
+    assert "It opens a spot, not counted: Free Skater" in trade.text(result)
+    assert "You then add" not in trade.text(result)
+
+
+def test_the_opened_spots_add_is_set_against_the_add_price():
+    from engine.addprice import AddPrice
+    mine, theirs, free, schedule = _two_for_one()
+    result = trade.evaluate(mine, theirs, "Them", mine[:2], [theirs[0]], [free], FakeContext(), schedule, {}, {})
+    points = result.me.opens_gain * result.weeks  # 4 points over the horizon
+    assert trade.opens_wins(result.me, result.weeks, AddPrice(0.12, 0.01, 1.0)) == pytest.approx(points * 0.01)
+    assert "~4 win-pts against the 12 an add costs: not worth an add" in trade.text(result, AddPrice(0.12, 0.01, 1.0))
+    assert "~16 win-pts against the 12 an add costs: worth the add" in trade.text(result, AddPrice(0.12, 0.04, 1.0))
+
+
+def test_a_spot_the_trade_opens_for_them_stays_open_too():
+    mine, theirs, free, schedule = _two_for_one()
+    result = trade.evaluate(theirs, mine, "Them", [theirs[0]], mine[:2], [free], FakeContext(), schedule, {}, {})
+    assert result.them.adds == [] and result.them.opens == [free]
+    assert "They open a spot, not counted: Free Skater" in trade.text(result)
+    assert result.me.drops  # one over the limit on my side: a drop costs no add
