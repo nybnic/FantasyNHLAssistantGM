@@ -12,11 +12,11 @@ import json
 import statistics
 
 from config.league import MY_TEAM
-from scripts.depth import (FORWARD_SLOTS, SLOTS, Nights, analyse, load, median_starters, schedule,
-                           slot_of, swaps, total)
+from scripts.depth import (FORWARD_SLOTS, SLOTS, Nights, analyse, free_agents, latest_rows, load, median_starters,
+                           schedule, slot_of, swaps, total, try_moves)
 
 
-def build(offline: bool) -> dict:
+def build(offline: bool, tries: list[str] = (), detail: str = "") -> dict:
     teams, waiver, missing = load()
     if offline:
         nights = Nights.random({p.nhl for ps in teams.values() for p in ps})
@@ -61,7 +61,27 @@ def build(offline: bool) -> dict:
                               "give": s.give.name, "give_pos": slot_of(s.give),
                               "get": s.get.name, "get_pos": slot_of(s.get),
                               "mine": r(s.mine), "theirs": r(s.theirs)})
-    return {"label": nights.label, "waiver": {k: r(v) for k, v in waiver.items()},
+    tried = []
+    if tries:
+        pool = free_agents(latest_rows(), {p.id for ps in teams.values() for p in ps}, waiver)
+        for text in tries:
+            t = try_moves(text, MY_TEAM, depths, pool, nights)
+            for team, (before, after) in t.sides.items():
+                week = nights.week(after)
+                empty, games = nights.usage(after)
+                tried.append({"scenario": text, "team": team, "delta": r(total(week) - total(before.week)),
+                              **{s: r(week[s] - before.week[s]) for s in SLOTS},
+                              "empty_D_before": r(before.empty["D"]), "empty_D_after": r(empty["D"]),
+                              "empty_RW_before": r(before.empty["RW"]), "empty_RW_after": r(empty["RW"]),
+                              "benched_pts_after": r(sum(games[p.id][1] * p.value for p in after))})
+    roster = []
+    if detail:
+        d = depths[detail]
+        for p in d.active + d.extra:
+            g, b = d.games.get(p.id, (0.0, 0.0)) if p in d.active else (0.0, 0.0)
+            roster.append({"player": p.name, "pos": slot_of(p), "pts_game": r(p.value), "games": r(g),
+                           "benched": r(b), "active": p in d.active})
+    return {"tried": tried, "detail_team": detail, "detail_roster": roster, "label": nights.label, "waiver": {k: r(v) for k, v in waiver.items()},
             "missing": missing, "teams": team_rows, "players": players, "swaps": swap_rows}
 
 
@@ -69,8 +89,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out")
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument("--try", dest="tries", default="")
+    parser.add_argument("--detail", default="")
     args = parser.parse_args()
-    data = build(args.offline)
+    data = build(args.offline, [t.strip() for t in args.tries.split("|") if t.strip()], args.detail)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
     print(f"{len(data['teams'])} teams, {len(data['players'])} players, {len(data['swaps'])} swaps; {data['label']}")

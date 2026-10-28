@@ -170,7 +170,7 @@ jobs:
             goalie-form) time python -m scripts.fit_goalie_form ;;
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
             depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ${MOVES:+--try "$MOVES"}
-              python -m scripts.depth_json data/depth.json
+              python -m scripts.depth_json data/depth.json ${MOVES:+--try "$MOVES"} ${PLAYERS:+--detail "$PLAYERS"}
               git config user.name github-actions; git config user.email github-actions@users.noreply.github.com
               git add -f data/depth.json; git commit -m "Depth as JSON for the League Depth Map"; git push origin "HEAD:$GITHUB_REF_NAME" ;;
             trade) IFS=',' read -ra ps <<< "$PLAYERS"; names=(); for n in "${ps[@]}"; do n="${n#"${n%%[![:space:]]*}"}"; n="${n%"${n##*[![:space:]]}"}"; [ -n "$n" ] && names+=("$n"); done
