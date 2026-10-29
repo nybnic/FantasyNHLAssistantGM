@@ -348,6 +348,10 @@
         "confirmed": true,
         "goalie_name": "Arturs Silovs"
       },
+      "SJS": {
+        "confirmed": true,
+        "goalie_name": "Yaroslav Askarov"
+      },
       "STL": {
         "confirmed": true,
         "goalie_name": "Joel Hofer"
@@ -978,7 +982,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-29T17:31+00:00",
+    "at": "2026-10-29T18:01+00:00",
     "moves": [
       {
         "add": {
@@ -996,7 +1000,7 @@
         "key": "8484390:8476455",
         "message_id": 774,
         "rec_id": "add-2026-10-29-0413-8484390",
-        "value": 0.2279,
+        "value": 0.2283,
         "when": "2026-10-29",
         "why": "now"
       }
@@ -1345,6 +1349,7 @@
       "8483493:promoted": "2026-10-27",
       "8483499:promoted": "2026-10-15",
       "8483505:promoted": "2026-10-18",
+      "8483510:promoted": "2026-10-29",
       "8483521:promoted": "2026-10-24",
       "8483525:promoted": "2026-10-14",
       "8483553:ice time": "2026-10-18",
@@ -1740,7 +1745,8 @@
       },
       "8476429": {
         "groups": [
-          "d3"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -2003,6 +2009,12 @@
         ],
         "since": {}
       },
+      "8477365": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8477402": {
         "groups": [
           "f2",
@@ -2131,7 +2143,7 @@
       "8477506": {
         "groups": [
           "d2",
-          "pk2"
+          "pk1"
         ],
         "since": {}
       },
@@ -2780,12 +2792,6 @@
           "f2": "2026-10-26"
         }
       },
-      "8480084": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8480113": {
         "groups": [
           "f3",
@@ -3039,6 +3045,12 @@
         "since": {}
       },
       "8481186": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
+      "8481237": {
         "groups": [
           "f4"
         ],
@@ -3324,7 +3336,7 @@
       },
       "8482095": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -3517,13 +3529,6 @@
         ],
         "since": {}
       },
-      "8482516": {
-        "groups": [
-          "d4",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8482641": {
         "groups": [
           "d3"
@@ -3704,12 +3709,6 @@
         "since": {}
       },
       "8482929": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
-      "8483017": {
         "groups": [
           "d3"
         ],
@@ -3900,9 +3899,11 @@
       "8483510": {
         "groups": [
           "d3",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-10-29"
+        }
       },
       "8483514": {
         "groups": [
@@ -3990,12 +3991,6 @@
         "groups": [
           "f3",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8483756": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -4136,13 +4131,6 @@
         ],
         "since": {}
       },
-      "8484321": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8484386": {
         "groups": [
           "d3"
@@ -4178,8 +4166,7 @@
       },
       "8484759": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -7011,6 +6998,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-10-29",
+        "id": 8483510,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Elias Salomonsson",
+        "positions": "D",
+        "price": 0.128,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.098,
+        "verdict": "-10 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
