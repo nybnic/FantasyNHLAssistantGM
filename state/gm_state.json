@@ -312,6 +312,10 @@
         "confirmed": true,
         "goalie_name": "Jeremy Swayman"
       },
+      "BUF": {
+        "confirmed": false,
+        "goalie_name": "Colten Ellis"
+      },
       "CAR": {
         "confirmed": false,
         "goalie_name": "Pyotr Kochetkov"
@@ -331,6 +335,10 @@
       "DET": {
         "confirmed": true,
         "goalie_name": "John Gibson"
+      },
+      "LAK": {
+        "confirmed": true,
+        "goalie_name": "Darcy Kuemper"
       },
       "MTL": {
         "confirmed": true,
@@ -990,7 +998,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-29T18:22+00:00",
+    "at": "2026-10-29T18:34+00:00",
     "moves": [
       {
         "add": {
@@ -1008,7 +1016,7 @@
         "key": "8484390:8476455",
         "message_id": 774,
         "rec_id": "add-2026-10-29-0413-8484390",
-        "value": 0.2285,
+        "value": 0.2277,
         "when": "2026-10-29",
         "why": "now"
       }
@@ -1178,7 +1186,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784796,
+  "telegram_offset": 929784797,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -3834,16 +3842,6 @@
           "pp2"
         ],
         "since": {}
-      },
-      "8483489": {
-        "groups": [
-          "f2",
-          "pk2",
-          "pp2"
-        ],
-        "since": {
-          "f2": "2026-10-20"
-        }
       },
       "8483490": {
         "groups": [
