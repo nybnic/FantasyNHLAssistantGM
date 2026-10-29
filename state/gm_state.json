@@ -611,6 +611,24 @@
       "message_id": 750,
       "type": "add"
     },
+    "add-2026-10-29-0413-8484390": {
+      "add": {
+        "id": 8484390,
+        "name": "Roman Kantserov",
+        "positions": [
+          "RW"
+        ],
+        "slot": null,
+        "team": "CHI"
+      },
+      "add_slot": null,
+      "date": "2026-10-29",
+      "drop": 8476455,
+      "drop_name": "Gabriel Landeskog",
+      "ir": {},
+      "message_id": 774,
+      "type": "add"
+    },
     "lineup-2026-10-15-1631": {
       "assignment": {
         "8474564": "RW",
@@ -887,7 +905,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-28T20:44+00:00",
+    "at": "2026-10-29T04:13+00:00",
     "moves": [
       {
         "add": {
@@ -899,14 +917,14 @@
           "team": "CHI"
         },
         "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
+          "id": 8476455,
+          "name": "Gabriel Landeskog"
         },
-        "key": "8484390:8480855",
-        "message_id": 750,
-        "rec_id": "add-2026-10-28-0535-8484390",
-        "value": 0.1561,
-        "when": "2026-10-28",
+        "key": "8484390:8476455",
+        "message_id": 774,
+        "rec_id": "add-2026-10-29-0413-8484390",
+        "value": 0.2266,
+        "when": "2026-10-29",
         "why": "now"
       }
     ],
@@ -1075,7 +1093,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784791,
+  "telegram_offset": 929784793,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -3120,11 +3138,11 @@
       },
       "8481721": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": "2026-10-13"
+          "f2": "2026-10-29"
         }
       },
       "8481726": {
@@ -3284,11 +3302,11 @@
       },
       "8482146": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": null,
+          "f1": "2026-10-29",
           "pp1": null
         }
       },
@@ -3534,7 +3552,8 @@
       },
       "8482747": {
         "groups": [
-          "f4"
+          "f4",
+          "ir"
         ],
         "since": {}
       },
