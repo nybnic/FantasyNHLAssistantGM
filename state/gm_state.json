@@ -905,7 +905,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-10-29T08:12+00:00",
+    "at": "2026-10-29T14:31+00:00",
     "moves": [
       {
         "add": {
@@ -923,7 +923,7 @@
         "key": "8484390:8476455",
         "message_id": 774,
         "rec_id": "add-2026-10-29-0413-8484390",
-        "value": 0.2274,
+        "value": 0.2271,
         "when": "2026-10-29",
         "why": "now"
       }
@@ -1148,6 +1148,8 @@
       "8477497:promoted": "2026-10-23",
       "8477501:promoted": "2026-10-28",
       "8477505:promoted": "2026-10-14",
+      "8477919:promoted": "2026-10-29",
+      "8477953:promoted": "2026-10-29",
       "8477955:promoted": "2026-10-18",
       "8477989:promoted": "2026-10-28",
       "8477992:goalie": "2026-10-23",
@@ -1308,7 +1310,8 @@
     "groups": {
       "8470613": {
         "groups": [
-          "d3"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -1531,8 +1534,7 @@
       },
       "8475455": {
         "groups": [
-          "d3",
-          "pk2"
+          "d3"
         ],
         "since": {}
       },
@@ -1967,7 +1969,6 @@
       "8477426": {
         "groups": [
           "f2",
-          "pk2",
           "pp2"
         ],
         "since": {
@@ -2000,7 +2001,7 @@
       "8477450": {
         "groups": [
           "f3",
-          "pk1"
+          "pk2"
         ],
         "since": {}
       },
@@ -2098,10 +2099,12 @@
       },
       "8477919": {
         "groups": [
-          "f4",
+          "f2",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-10-29"
+        }
       },
       "8477932": {
         "groups": [
@@ -2124,10 +2127,11 @@
         "groups": [
           "f2",
           "pk1",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": null
+          "f2": null,
+          "pp1": "2026-10-29"
         }
       },
       "8477964": {
@@ -2298,7 +2302,8 @@
       },
       "8478462": {
         "groups": [
-          "f2"
+          "f2",
+          "pk1"
         ],
         "since": {
           "f2": null
@@ -2312,7 +2317,8 @@
       },
       "8478472": {
         "groups": [
-          "f3"
+          "f3",
+          "pk1"
         ],
         "since": {}
       },
@@ -2368,7 +2374,8 @@
       },
       "8478569": {
         "groups": [
-          "f4"
+          "f4",
+          "pk1"
         ],
         "since": {}
       },
@@ -2396,7 +2403,7 @@
       "8478854": {
         "groups": [
           "d2",
-          "pk2",
+          "pk1",
           "pp2"
         ],
         "since": {}
@@ -2461,7 +2468,8 @@
       },
       "8479365": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -2510,8 +2518,7 @@
       },
       "8479520": {
         "groups": [
-          "f4",
-          "pk2"
+          "f4"
         ],
         "since": {}
       },
@@ -2611,8 +2618,7 @@
       },
       "8479996": {
         "groups": [
-          "f4",
-          "pk2"
+          "f4"
         ],
         "since": {}
       },
@@ -2655,8 +2661,7 @@
       },
       "8480029": {
         "groups": [
-          "f3",
-          "pk2"
+          "f3"
         ],
         "since": {}
       },
@@ -2946,7 +2951,7 @@
       "8481068": {
         "groups": [
           "f2",
-          "pk1",
+          "pk2",
           "pp2"
         ],
         "since": {
@@ -2961,8 +2966,7 @@
       },
       "8481186": {
         "groups": [
-          "f4",
-          "pk1"
+          "f4"
         ],
         "since": {}
       },
@@ -3033,7 +3037,7 @@
       "8481546": {
         "groups": [
           "d2",
-          "pk2"
+          "pk1"
         ],
         "since": {}
       },
@@ -3146,7 +3150,7 @@
       "8481656": {
         "groups": [
           "f1",
-          "pk1"
+          "pk2"
         ],
         "since": {
           "f1": "2026-10-23"
@@ -3161,6 +3165,7 @@
       "8481721": {
         "groups": [
           "f2",
+          "pk2",
           "pp2"
         ],
         "since": {
@@ -3341,7 +3346,6 @@
       "8482159": {
         "groups": [
           "f3",
-          "pk1",
           "pp2"
         ],
         "since": {}
@@ -3355,7 +3359,8 @@
       },
       "8482166": {
         "groups": [
-          "d3"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -3502,7 +3507,6 @@
       "8482665": {
         "groups": [
           "f1",
-          "pk2",
           "pp1"
         ],
         "since": {
@@ -3582,7 +3586,7 @@
       "8482751": {
         "groups": [
           "f4",
-          "pk1"
+          "pk2"
         ],
         "since": {}
       },
@@ -3809,11 +3813,9 @@
       },
       "8483497": {
         "groups": [
-          "f2"
+          "f4"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8483499": {
         "groups": [
@@ -3888,7 +3890,8 @@
       },
       "8483570": {
         "groups": [
-          "f4"
+          "f4",
+          "pk1"
         ],
         "since": {}
       },
@@ -3947,8 +3950,7 @@
       },
       "8483760": {
         "groups": [
-          "d3",
-          "pk1"
+          "d3"
         ],
         "since": {}
       },
@@ -4024,7 +4026,8 @@
       },
       "8484154": {
         "groups": [
-          "f4"
+          "f4",
+          "pk1"
         ],
         "since": {}
       },
@@ -6851,6 +6854,36 @@
         "value": -0.067,
         "verdict": "-7 win-pts against the 12.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line and the first power play, and it has held for 6 days."
+      },
+      {
+        "date": "2026-10-29",
+        "id": 8477953,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Kasperi Kapanen",
+        "positions": "RW",
+        "price": 0.128,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.0024,
+        "verdict": "-0 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-10-29",
+        "id": 8477919,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Frederick Gaudreau",
+        "positions": "C",
+        "price": 0.128,
+        "sent": false,
+        "team": "SEA",
+        "value": -0.1452,
+        "verdict": "-15 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
