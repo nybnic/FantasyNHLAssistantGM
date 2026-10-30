@@ -14,6 +14,8 @@ on:
           - dry-run
           - explain-week
           - trade-suggestions
+          - trade-scan
+          - trade-list
           - backtest
           - check-sigma
           - check-sigma-nights
@@ -48,7 +50,7 @@ on:
         type: string
         required: false
       moves:
-        description: Optional moves for depth to weigh, OUT > IN, comma-separated, scenarios separated by |, e.g. Shane Pinto > Lucas Raymond | Shane Pinto > Leevi Merilainen
+        description: Optional moves for depth to weigh, OUT > IN, comma-separated, scenarios separated by |, e.g. Shane Pinto > Lucas Raymond | Shane Pinto > Leevi Merilainen; for trade-scan MINE > TEAM, e.g. Steven Stamkos > Bottom three
         type: string
         required: false
       variants:
@@ -157,6 +159,8 @@ jobs:
             dry-run) python main.py --dry-run --force ${NOW:+--now "$NOW"} ;;
             explain-week) python -m scripts.explain_week --top "$top" ${NOW:+--now "$NOW"} "${adds[@]}" ;;
             trade-suggestions) time python main.py --dry-run --trade ;;
+            trade-scan) time python -m scripts.trade_scan --give "${MOVES%%>*}" --team "$(echo "${MOVES#*>}" | xargs)" ;;
+            trade-list) time python -m scripts.trade_scan --team "$(echo "$PLAYERS" | xargs)" ${MOVES:+--trades "$MOVES"} ;;
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
             check-sigma-nights) for season in 20252026 20242025; do time python -m scripts.check_sigma --season "$season" --from-day 6 5 4 3 2 1 0 --leagues "${LEAGUES:-8}"; done ;;
