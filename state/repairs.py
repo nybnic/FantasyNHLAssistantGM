@@ -421,6 +421,32 @@ def _cooley_positions(state: dict, players: list[RosterPlayer], league: dict) ->
             p["positions"] = ["C", "LW"]
 
 
+# Nico's two screenshots of Randy's team page (Yahoo app), sent in a development session on
+# 2026-10-30 (09:58): id, name, NHL team and positions as Yahoo showed them. Joonas
+# Korpisalo was in IR+ ("IR"); Bobby McMann, on Randy's roster since the draft, was gone.
+RANDY_OCT_30 = [
+    (8478402, "Connor McDavid", "EDM", ["C"]), (8475754, "Brock Nelson", "COL", ["C"]),
+    (8482116, "Tim Stützle", "OTT", ["C", "LW"]), (8477478, "William Carrier", "CAR", ["LW"]),
+    (8482155, "Alex Laferriere", "LAK", ["C", "LW", "RW"]), (8483609, "Adam Klapka", "CGY", ["RW"]),
+    (8476885, "Jacob Trouba", "SJS", ["D"]), (8477986, "Brandon Montour", "SEA", ["D"]),
+    (8483521, "Noah Warren", "ANA", ["D"]), (8478136, "Jake Middleton", "CGY", ["D"]),
+    (8476880, "Tom Wilson", "WSH", ["RW"]), (8476468, "J.T. Miller", "NYR", ["C", "LW", "RW"]),
+    (8476883, "Andrei Vasilevskiy", "TBL", ["G"]), (8482137, "Yaroslav Askarov", "SJS", ["G"]),
+    (8476914, "Joonas Korpisalo", "NYR", ["G"]),
+]
+
+
+def _randy_team_page(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-30: Randy's page as bot/ingest.save_team would have saved it (McMann off, Warren
+    # on, unseen in the transactions), with Yahoo's positions learned. Slots stay unset, as for
+    # every other team: Korpisalo's IR+ is read from DFO's status.
+    roster = [RosterPlayer(pid, name, team, pos, None) for pid, name, team, pos in RANDY_OCT_30]
+    teams.set_team(league, "Randy", roster, dt.date(2026, 10, 30))
+    known = positions.load()
+    if positions.learn(known, {p.id: p.positions for p in roster}):
+        positions.save(known)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -439,4 +465,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-22 hc bulju team page", _hc_bulju_team_page),
            ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day),
            ("2026-10-26 yahoo finals", _yahoo_finals),
-           ("2026-10-28 cooley positions", _cooley_positions)]
+           ("2026-10-28 cooley positions", _cooley_positions),
+           ("2026-10-30 randy team page", _randy_team_page)]

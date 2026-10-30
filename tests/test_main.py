@@ -1466,3 +1466,18 @@ def test_the_2026_10_28_repair_gives_cooley_yahoos_c_lw(tmp_path):
     repairs.apply(state, [], league)
     assert league["teams"]["Bottom three"]["players"][0]["positions"] == ["C", "LW"]
     assert positions.load()[repairs.COOLEY] == ["C", "LW"]
+
+
+def test_the_2026_10_30_repair_saves_randys_team_page(tmp_path):
+    from league import positions
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-30 randy team page"]
+    league = {"teams": {"Randy": {"updated": "2026-09-29", "players": [
+        {"id": 8482259, "name": "Bobby McMann", "team": "SEA", "positions": ["LW", "RW"], "slot": None}]}},
+        "taken": [8483521]}
+    repairs.apply(state, [], league)
+    randy = league["teams"]["Randy"]
+    assert randy["updated"] == "2026-10-30" and len(randy["players"]) == 15
+    assert 8482259 not in {p["id"] for p in randy["players"]} and league["taken"] == []
+    assert positions.load()[8483521] == ["D"] and positions.load()[8476883] == ["G"]
