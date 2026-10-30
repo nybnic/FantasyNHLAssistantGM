@@ -2,6 +2,7 @@
 
     python -m scripts.trade_scan --give "Steven Stamkos" --team "Bottom three"   # him for 1-2 of theirs
     python -m scripts.trade_scan --team Randy                                    # every 1-for-1
+    python -m scripts.trade_scan --team Randy --one-for-two --skip "Macklin Celebrini"   # 1 of mine for 2
     python -m scripts.trade_scan --team Randy --trades "Vejmelka, Landeskog > J.T. Miller | Pionk > Wilson"
 
 Prints them best for me first: points a week for me and for them (the add price
@@ -17,6 +18,7 @@ import itertools
 from bot.common import NHL_TIME, _safe, free_agents
 from bot.daily import add_price, sync_teams
 from clients import dfo_lines, nhl_client
+from clients.names import normalize_name
 from config.league import MY_TEAM
 from engine import trade
 from league import draft, teams, weeks
@@ -31,6 +33,8 @@ def main() -> None:
     parser.add_argument("--trades", help='trades to judge too, MINE > THEIRS, separated by |')
     parser.add_argument("--team", required=True, help="the other team")
     parser.add_argument("--max-get", type=int, default=2, help="their players per trade (1 or 2)")
+    parser.add_argument("--one-for-two", action="store_true", help="every 1 of mine for 2 of theirs instead")
+    parser.add_argument("--skip", default="", help="my players to leave out, comma-separated")
     args = parser.parse_args()
 
     state, players, league = gm_state.load(), roster_mod.load(), teams.load()
@@ -46,7 +50,10 @@ def main() -> None:
             raise SystemExit(parsed)
         trades += [(parsed[0], list(c)) for n in range(1, args.max_get + 1) for c in itertools.combinations(theirs, n)]
     else:
-        trades += [([mine], [their]) for mine in roster_mod.active(players) for their in theirs]
+        skip = {normalize_name(n) for n in args.skip.split(",") if n.strip()}
+        mine = [p for p in roster_mod.active(players) if normalize_name(p.name) not in skip]
+        gets = itertools.combinations(theirs, 2) if args.one_for_two else ([p] for p in theirs)
+        trades += [([m], list(get)) for get in gets for m in mine]
     for text in (args.trades or "").split("|"):
         if text.strip():
             parsed = trade.resolve(text.replace(">", " for "), MY_TEAM, rosters)
@@ -60,8 +67,17 @@ def main() -> None:
     results = [trade.evaluate(players, others[args.team], args.team, give, get, pool, ctx, schedule, lines, {},
                               rounds, price) for give, get in trades]
     print(f"Trades with {args.team}: {len(results)}, pts/week over the next {trade.HORIZON_DAYS // 7} weeks "
-          "(me / them), best for me first; drafted rounds given / got")
-    for r in sorted(results, key=lambda r: -r.me.per_week):
+          "(me / them); drafted rounds given / got")
+    both = sorted((r for r in results if r.me.per_week > 0 and r.them.per_week > 0),
+                  key=lambda r: -min(r.me.per_week, r.them.per_week))
+    print(f"\nBoth gain ({len(both)}), the smaller gain first:")
+    _print(both)
+    print("\nBest for me (top 60):")
+    _print(sorted(results, key=lambda r: -r.me.per_week)[:60])
+
+
+def _print(results: list) -> None:
+    for r in results:
         notes = []
         if r.me.adds and len(r.me.adds) > len(r.me.adds_before):
             notes.append(f"I add {', '.join(p.name for p in r.me.adds if p not in r.me.adds_before)}")

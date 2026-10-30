@@ -16,6 +16,7 @@ on:
           - trade-suggestions
           - trade-scan
           - trade-list
+          - trade-1for2
           - backtest
           - check-sigma
           - check-sigma-nights
@@ -161,6 +162,7 @@ jobs:
             trade-suggestions) time python main.py --dry-run --trade ;;
             trade-scan) time python -m scripts.trade_scan --give "${MOVES%%>*}" --team "$(echo "${MOVES#*>}" | xargs)" ;;
             trade-list) time python -m scripts.trade_scan --team "$(echo "$PLAYERS" | xargs)" ${MOVES:+--trades "$MOVES"} ;;
+            trade-1for2) time python -m scripts.trade_scan --team "$(echo "$PLAYERS" | xargs)" --one-for-two --skip "$IR" ;;
             backtest) python -m scripts.backtest ;;
             check-sigma) python -m scripts.check_sigma ;;
             check-sigma-nights) for season in 20252026 20242025; do time python -m scripts.check_sigma --season "$season" --from-day 6 5 4 3 2 1 0 --leagues "${LEAGUES:-8}"; done ;;
