@@ -1010,13 +1010,34 @@ def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox) -> No
     learn_positions(found.players, found.tagged)
     for p in found.players:
         p.slot = None  # other teams are assumed to set their best lineup
+    before = teams.players(league, team) if team in league["teams"] else []
+    owner = {p.id: t for t in league["teams"] if t != team for p in teams.players(league, t)}
     teams.set_team(league, team, found.players, common.nhl_today())
     lines = [f"{team}: {len(found.players)} players saved."]
     lines += [f"  {p.name} ({p.team}, {'/'.join(p.positions)})" for p in found.players]
+    lines += traded_back(team, before, found.players, owner, league)
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     lines.append("Send /week for the updated forecast.")
     outbox.send("\n".join(lines))
+
+
+def traded_back(team: str, before: list, shown: list, owner: dict, league: dict) -> list[str]:
+    """A team page that shows players another team had (and only one other team) and lacks
+    some of its own was most likely a trade: the players gone went to that team, not to the
+    free agents (2026-10-28: Viktorios's page showed Matthew Tkachuk, Bellova's, without
+    Sidney Crosby, who read as a free agent). Returns what to tell Nico."""
+    shown_ids = {p.id for p in shown}
+    came_from = {owner[p.id] for p in shown if p.id in owner}
+    gone = [p for p in before if p.id not in shown_ids]
+    if len(came_from) != 1 or not gone:
+        return []
+    other = came_from.pop()
+    for p in gone:
+        teams.add_player(league, other, p)
+    got = [p.name for p in shown if owner.get(p.id) == other]
+    return [f"A trade with {other}? {', '.join(got)} came from them, so {', '.join(p.name for p in gone)} "
+            f"went to them, not to the free agents."]
 
 
 def taken_command(text: str, league: dict, outbox: Outbox) -> None:

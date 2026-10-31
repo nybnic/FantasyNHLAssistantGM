@@ -1481,3 +1481,31 @@ def test_the_2026_10_30_repair_saves_randys_team_page(tmp_path):
     assert randy["updated"] == "2026-10-30" and len(randy["players"]) == 15
     assert 8482259 not in {p["id"] for p in randy["players"]} and league["taken"] == []
     assert positions.load()[8483521] == ["D"] and positions.load()[8476883] == ["G"]
+
+
+def test_a_team_page_with_another_teams_players_sends_its_missing_players_there(monkeypatch):
+    monkeypatch.setattr(common, "nhl_today", lambda: dt.date(2026, 10, 28))
+    sent = []
+    outbox = type("Out", (), {"send": lambda self, text, *a, **k: sent.append(text)})()
+    p = lambda i, name: {"id": i, "name": name, "team": "PIT", "positions": ["C"], "slot": None}
+    league = {"teams": {"Viktorios": {"updated": "2026-09-29", "players": [p(1, "Sidney Crosby"), p(2, "Leo Carlsson")]},
+                        "Bellova": {"updated": "2026-09-29", "players": [p(3, "Matthew Tkachuk"), p(4, "Robert Thomas")]}},
+              "taken": []}
+    shown = [RosterPlayer(2, "Leo Carlsson", "ANA", ["C"], None), RosterPlayer(3, "Matthew Tkachuk", "FLA", ["LW"], None)]
+    ingest.save_team("Viktorios", parse.Found(players=shown), league, outbox)
+    assert {q["id"] for q in league["teams"]["Bellova"]["players"]} == {1, 4}
+    assert "A trade with Bellova? Matthew Tkachuk came from them, so Sidney Crosby went to them" in sent[0]
+    # Only players new from nowhere (adds): the missing ones were dropped, free agents.
+    league["teams"]["Viktorios"]["players"].append(p(5, "Boone Jenner"))
+    ingest.save_team("Viktorios", parse.Found(players=shown + [RosterPlayer(6, "X Y", "WSH", ["C"], None)]),
+                     league, outbox)
+    assert 5 not in teams.rostered_ids(league) and "trade" not in sent[1]
+
+
+def test_the_2026_10_31_repair_gives_crosby_back_to_bellova(tmp_path):
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-10-31 crosby to bellova"]
+    league = {"teams": {"Bellova": {"updated": "2026-09-29", "players": []}}, "taken": []}
+    repairs.apply(state, [], league)
+    assert [q["name"] for q in league["teams"]["Bellova"]["players"]] == ["Sidney Crosby"]
+    assert repairs.CROSBY in teams.rostered_ids(league)

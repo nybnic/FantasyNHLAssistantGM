@@ -447,6 +447,17 @@ def _randy_team_page(state: dict, players: list[RosterPlayer], league: dict) -> 
         positions.save(known)
 
 
+CROSBY = 8471675
+
+
+def _crosby_to_bellova(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-10-31 (Nico: "Crosby is not FA, he is owned by Bellova"): Viktorios's team page
+    # (2026-10-28) showed Matthew Tkachuk, Bellova's, and not Sidney Crosby, a trade the
+    # transactions never showed. Tkachuk moved off Bellova; Crosby went to the free agents.
+    if CROSBY not in teams.rostered_ids(league):
+        teams.add_player(league, "Bellova", RosterPlayer(CROSBY, "Sidney Crosby", "PIT", ["C"], None))
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -466,4 +477,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-23 week 4 forecast by day", _week_4_forecast_by_day),
            ("2026-10-26 yahoo finals", _yahoo_finals),
            ("2026-10-28 cooley positions", _cooley_positions),
-           ("2026-10-30 randy team page", _randy_team_page)]
+           ("2026-10-30 randy team page", _randy_team_page),
+           ("2026-10-31 crosby to bellova", _crosby_to_bellova)]
