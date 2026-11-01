@@ -264,3 +264,19 @@ def test_with_the_plan_a_players_nights_follow_the_plans_lineups_and_end_at_his_
     assert rows["A. Larsson"]["cells"] == ["start", "start"] and rows["A. Larsson"]["plan_cells"] == ["bench", None]
     assert rows["S. Knight"]["plan_cells"] == ["start", None] and rows["S. Knight"]["id"] == 3
     assert "plan_cells" not in report.schedule_view([knight], [(1, "B", mine, mine)])["rows"][0]  # no plan, as is only
+
+
+def test_a_goalies_start_tonight_says_why_when_dailyfaceoff_names_the_starter():
+    # 2026-11-01: Dostal at 3% with no reason shown; DailyFaceoff had Brossoit confirmed.
+    ctx = _BreakdownContext()
+    sched = {d: [ScheduledGame(i, dt.datetime(2026, 10, d.day, 23, tzinfo=dt.timezone.utc), "WPG", "CHI")]
+             for i, d in enumerate((THU, FRI + dt.timedelta(days=1)))}
+    other = {"WPG": {"goalie_name": "Eric Comrie", "confirmed": True}}
+    starts = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, other, sched, "me")["starts"]
+    assert starts[0]["prob"] == pytest.approx(0.03) and starts[0]["why"] == "Eric Comrie confirmed to start"
+    assert starts[1]["why"] is None  # DailyFaceoff's pick is for tonight only
+    own = {"WPG": {"goalie_name": "Connor Hellebuyck", "confirmed": False}}
+    starts = report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, own, sched, "me")["starts"]
+    assert starts[0]["prob"] == pytest.approx(0.8) and starts[0]["why"] == "likely starter"
+    assert report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, sched,
+                              "me")["starts"][0]["why"] is None

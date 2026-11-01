@@ -1378,12 +1378,13 @@ function playerSheet(id) {
     const hi = Math.max(...p.starts.map(s => s.xfp), 1);
     const box = el("div", { class: "bars" });
     p.starts.forEach(s => {
-      const tip = [`${fmtDay(s.date)} ${s.opp}`, `${pct(s.prob)} to start`, `${f1(s.xfp)} pts if he does`, `${f1(s.prob * s.xfp)} expected`];
+      const tip = [`${fmtDay(s.date)} ${s.opp}`, `${pct(s.prob)} to start` + (s.why ? ` (${s.why})` : ""), `${f1(s.xfp)} pts if he does`, `${f1(s.prob * s.xfp)} expected`];
       barRow(box, fmtDay(s.date, { weekday: "short", day: "numeric" }), s.opp,
              track([{ v: s.prob * s.xfp, token: "--blue", tip }, { v: s.xfp * (1 - s.prob), token: "--blue", ghost: true, tip }], 0, hi),
              valSub(pct(s.prob), `× ${f1(s.xfp)}`), null);
     });
     out.push(box, el("div", { class: "note" }, "Solid: expected points (start odds × points if he starts). Dashed: the rest, if he starts."));
+    p.starts.filter(s => s.why).forEach(s => out.push(el("p", { class: "aside" }, `${fmtDay(s.date)}: ${s.why} (DailyFaceoff).`)));
   }
   if (!p.goalie && p.durability < 1)
     out.push(el("p", { class: "aside" }, "A projected missed game costs only his edge over the streamer who'd fill it, so a fringe player's durability barely matters."));

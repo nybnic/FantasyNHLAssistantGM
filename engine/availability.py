@@ -266,13 +266,7 @@ def goalie(
                             injured or "day-to-day")
 
     if dfo_starter:
-        confirmed = dfo_starter["confirmed"]
-        if normalize_name(dfo_starter["goalie_name"]) == normalize_name(name):
-            return Availability(CONFIRMED_START if confirmed else LIKELY_START,
-                                "confirmed starter" if confirmed else "likely starter")
-        other = dfo_starter["goalie_name"]
-        return Availability(1 - (CONFIRMED_START if confirmed else LIKELY_START),
-                            f"{other} {'confirmed' if confirmed else 'likely'} to start")
+        return dfo_start(name, dfo_starter)
 
     share = start_share(player_id, date, info, team_starts, prior_share, absent, rivals)
     past = [(d, pid) for d, pid in team_starts if d < date]
@@ -299,6 +293,19 @@ def goalie(
         p = min(share * (1 - with_odds(theirs, odds)) / (1 - theirs), CONFIRMED_START)
         return Availability(p, f"~{p:.0%} to start (other goalie after {how})")
     return Availability(share, f"~{share:.0%} to start (not confirmed yet)")
+
+
+def dfo_start(name: str, dfo_starter: dict) -> Availability:
+    """His odds tonight from DailyFaceoff's pick for his team: his own name,
+    or a teammate's (any goalie of the team, a call-up included: 2026-11-01,
+    Brossoit confirmed for ANA put Dostal at 3%)."""
+    confirmed = dfo_starter["confirmed"]
+    if normalize_name(dfo_starter["goalie_name"]) == normalize_name(name):
+        return Availability(CONFIRMED_START if confirmed else LIKELY_START,
+                            "confirmed starter" if confirmed else "likely starter")
+    other = dfo_starter["goalie_name"]
+    return Availability(1 - (CONFIRMED_START if confirmed else LIKELY_START),
+                        f"{other} {'confirmed' if confirmed else 'likely'} to start")
 
 
 def with_odds(p: float, multiplier: float) -> float:

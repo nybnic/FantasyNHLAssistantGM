@@ -144,7 +144,8 @@ def player_lines(p: dict) -> list[str]:
     out = [head, "    " + ", ".join(f"{k} {v:+.2f}" for k, v in (p["per_game"] or {}).items())]
     if p["goalie"]:
         out.append(f"    start share {p['share']:.0%}; starts left this week: " + (", ".join(
-            f"{s['date'][5:]} {s['opp']} {s['prob']:.0%} x {s['xfp']:.1f}" for s in p["starts"]) or "none"))
+            f"{s['date'][5:]} {s['opp']} {s['prob']:.0%} x {s['xfp']:.1f}" + (f" ({s['why']})" if s.get("why") else "")
+            for s in p["starts"]) or "none"))
     else:
         out.append(f"    TOI {p['toi']:.1f} (PP {p['pp_toi']:.1f}); plays tonight {p['play']:.0%}"
                    + (f" ({p['note']})" if p["note"] else "")

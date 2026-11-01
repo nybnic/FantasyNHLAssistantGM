@@ -381,8 +381,12 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
             home = game.home == p.team
             stats = ctx.goalie_start(p.id, p.team, game.away if home else game.home, home)
             line = line or stats
+            # Why tonight's odds are what they are, when DailyFaceoff names a starter
+            # (Nico, 2026-11-01: Dostal at 3% showed no reason; Brossoit was confirmed).
+            pick = starters.get(p.team) if d == today else None
             starts.append({"date": d.isoformat(), "opp": ("" if home else "@") + (game.away if home else game.home),
-                           "prob": _r(prob, 3), "xfp": _r(stats["xfp"])})
+                           "prob": _r(prob, 3), "xfp": _r(stats["xfp"]),
+                           "why": availability.dfo_start(p.name, pick).note if pick else None})
         nxt = starts[0] if starts else None
         for d in [] if line else sorted(later or {}):
             game = matchup._game_of(later[d]).get(p.team)
