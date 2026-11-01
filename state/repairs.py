@@ -458,6 +458,37 @@ def _crosby_to_bellova(state: dict, players: list[RosterPlayer], league: dict) -
         teams.add_player(league, "Bellova", RosterPlayer(CROSBY, "Sidney Crosby", "PIT", ["C"], None))
 
 
+# Nico's screenshots of Yahoo's Starting Rosters, all 16 teams (Sat 31 Oct, sent 2026-11-01 07:23
+# Helsinki): where the bot's rosters differed. Players a matchup screenshot had dropped, since
+# Yahoo's matchup view leaves out IR slots (bot/ingest.save_opponent, fixed the same day), and
+# Bedard, traded to Bottom three for Cooley and Dubois, read as a free agent (planned as an add).
+LEAGUE_OCT_31_MISSING = [
+    ("Bottom three", 8484144, "Connor Bedard", "CHI", ["C", "RW"]),
+    ("Bahelin Boys", 8482122, "Brock Faber", "MIN", ["D"]),
+    ("Jättiläisentie Giants", 8481524, "Bowen Byram", "CHI", ["D"]),
+    ("Jättiläisentie Giants", 8480015, "Owen Tippett", "PHI", ["LW", "RW"]),
+    ("Viktorios", 8477504, "Josh Morrissey", "WPG", ["D"]),
+]
+# Yahoo's positions there that the bot had narrower; Hellebuyck's NHL team (NJ, not WPG).
+LEAGUE_OCT_31_POSITIONS = {8475172: ["C", "LW", "RW"], 8484186: ["LW", "RW"], 8477933: ["C", "RW"]}
+HELLEBUYCK = 8476945
+
+
+def _league_rosters_oct_31(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    for team, pid, name, nhl_team, pos in LEAGUE_OCT_31_MISSING:
+        if team in league["teams"] and pid not in {p["id"] for p in league["teams"][team]["players"]}:
+            teams.add_player(league, team, RosterPlayer(pid, name, nhl_team, pos, None))
+    for entry in league["teams"].values():
+        for p in entry["players"]:
+            if p["id"] in LEAGUE_OCT_31_POSITIONS:
+                p["positions"] = list(LEAGUE_OCT_31_POSITIONS[p["id"]])
+            if p["id"] == HELLEBUYCK:
+                p["team"] = "NJD"
+    known = positions.load()
+    if positions.learn(known, {pid: pos for _, pid, _, _, pos in LEAGUE_OCT_31_MISSING} | LEAGUE_OCT_31_POSITIONS):
+        positions.save(known)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -478,4 +509,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-26 yahoo finals", _yahoo_finals),
            ("2026-10-28 cooley positions", _cooley_positions),
            ("2026-10-30 randy team page", _randy_team_page),
-           ("2026-10-31 crosby to bellova", _crosby_to_bellova)]
+           ("2026-10-31 crosby to bellova", _crosby_to_bellova),
+           ("2026-11-01 league rosters oct 31", _league_rosters_oct_31)]

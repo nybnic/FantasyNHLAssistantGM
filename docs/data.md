@@ -28,6 +28,9 @@ Duplicates and extras are safe; each kind is checked before it changes anything:
   box scores only when there's none, as they guess the opponent's lineup.
   Before any games, the top card's numbers are read as Yahoo's projection with the score 0 - 0
   ("Games Played 0/43" for both).
+  The opponent's side doesn't show IR slots: players it leaves out are kept (up to 2, less the ones new
+  players replaced, none of those on waivers; all of them when a shown player came from another team,
+  which reads as a trade and asks for the team page), `ingest.save_opponent` (2026-11-01).
 - **All Matchups**: each team's latest score replaces the previous one, and the first one seen is kept
   (`first`). Unlabeled scrolled screenshots take the week of the labeled one before them.
 - **Website matchup headers**: the week is the label if in view, else the latest week those two teams meet;

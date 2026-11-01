@@ -813,23 +813,53 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
         lines.append(kept_line(kept))
     lines += count_new_players(state, league, before, players, date)
     if opponent and theirs:
-        before = {p.id: p.name for p in teams.players(league, opponent)}
-        found_them = parse.match_shown_names(theirs, registry, set(before))
+        found_them = parse.match_shown_names(theirs, registry, {p.id for p in teams.players(league, opponent)})
         learn_positions(found_them.players, found_them.tagged)
-        for p in found_them.players:
-            p.slot = None  # other teams are assumed to set their best lineup
-        teams.set_team(league, opponent, found_them.players, date)
-        after = {p.id for p in found_them.players}
-        new = [p.name for p in found_them.players if p.id not in before]
-        gone = [name for pid, name in before.items() if pid not in after]
-        changed = (f"new: {', '.join(new)}" if new else "") + ("; " if new and gone else "") + (
-            f"gone: {', '.join(gone)}" if gone else "")
-        lines.append(f"{opponent}: " + (changed if before and changed else f"{len(after)} players saved") + ".")
+        lines += save_opponent(league, opponent, found_them.players, date)
         found.problems += found_them.problems
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     state["plan_check"] = True  # the score, or the plan if it changed, right after
     outbox.send("\n".join(lines))
+
+
+UNSHOWN_KEPT = 2  # IR + IR+: the slots Yahoo's matchup view leaves out
+
+
+def save_opponent(league: dict, opponent: str, shown: list, date: dt.date) -> list[str]:
+    """The opponent's side of a matchup screenshot. Yahoo's matchup view leaves out the IR
+    and IR+ slots, so players it doesn't show are kept, up to those two: the bot had read
+    every opponent's IR players as free agents (2026-11-01: Morrissey, Byram, Tippett, Faber
+    weighed as IR stashes). Players shown that another team had came in a trade: whoever went
+    the other way can't be told from here, so Nico is asked for the team page (2026-11-01:
+    Viktorios showed Cooley and Dubois, Bottom three's; Bedard, gone to them, read as a free
+    agent and was planned as an add). Returns what to tell Nico."""
+    had = teams.players(league, opponent)
+    owner = {p.id: t for t in league["teams"] if t != opponent for p in teams.players(league, t)}
+    for p in shown:
+        p.slot = None  # other teams are assumed to set their best lineup
+    seen, had_ids = {p.id for p in shown}, {p.id for p in had}
+    unseen = [p for p in had if p.id not in seen]
+    # Hidden in IR slots: those not shown beyond the ones new players replaced (an add/drop
+    # keeps the count), but none the transactions say were dropped (on waivers). With a
+    # trade, sizes can change, so all of them, until the team page tells.
+    traded = sorted({owner[p.id] for p in shown if p.id in owner})
+    maybe = [p for p in unseen if str(p.id) not in league.get("waivers", {})]
+    replaced = max(0, sum(p.id not in had_ids for p in shown) - (len(unseen) - len(maybe)))  # new, less known drops
+    hidden = len(maybe) if traded else max(0, len(maybe) - replaced)
+    kept = maybe[:hidden] if hidden <= UNSHOWN_KEPT else []
+    teams.set_team(league, opponent, list(shown) + kept, date)
+    new = [p.name for p in shown if p.id not in had_ids]
+    gone = [p.name for p in unseen if p not in kept]
+    changed = (f"new: {', '.join(new)}" if new else "") + ("; " if new and gone else "") + (
+        f"gone: {', '.join(gone)}" if gone else "")
+    lines = [f"{opponent}: " + (changed if had and changed else f"{len(shown)} players saved") + "."]
+    if kept:
+        lines.append(f"  Not shown, so kept (Yahoo's matchup leaves out IR slots): {', '.join(p.name for p in kept)}.")
+    if traded:
+        lines.append(f"  {', '.join(p.name for p in shown if p.id in owner)} came from {', '.join(traded)}: a trade? "
+                     f"Send {opponent}'s team page so I know who went the other way.")
+    return lines
 
 
 def _whose(rows: list[dict], players: list, league: dict) -> str:

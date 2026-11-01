@@ -108,7 +108,7 @@ def main() -> None:
 
     steps = [("updates", read_updates)] if not settings.dry_run else []
     steps += [
-        ("NHL teams", lambda: sync_teams(players) if players else None),
+        ("NHL teams", lambda: sync_teams(players, league)),
         ("who's mine", lambda: remember_mine(state, players, nhl_today())),
         ("day rosters", lambda: snapshot_rosters(state, players, league, now)),
         ("trade", lambda: trade_step(state, players, league, now, outbox, build_context)),

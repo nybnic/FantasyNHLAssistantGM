@@ -1509,3 +1509,59 @@ def test_the_2026_10_31_repair_gives_crosby_back_to_bellova(tmp_path):
     repairs.apply(state, [], league)
     assert [q["name"] for q in league["teams"]["Bellova"]["players"]] == ["Sidney Crosby"]
     assert repairs.CROSBY in teams.rostered_ids(league)
+
+
+def test_a_matchup_keeps_the_opponents_ir_players_and_flags_a_trade():
+    # 2026-11-01: Yahoo's matchup view leaves out IR slots, so Morrissey (IR+) read as a free
+    # agent; Viktorios showed Cooley and Dubois, Bottom three's, and Bedard, gone to them, too.
+    p = lambda i, name: {"id": i, "name": name, "team": "ANA", "positions": ["C"], "slot": None}
+    league = {"teams": {"Viktorios": {"updated": "2026-10-31", "players": [
+                  p(1, "Leo Carlsson"), p(2, "Connor Bedard"), p(3, "Josh Morrissey")]},
+                        "Bottom three": {"updated": "2026-10-31", "players": [p(4, "Logan Cooley"), p(5, "Jack Eichel")]}},
+              "taken": []}
+    shown = [RosterPlayer(1, "Leo Carlsson", "ANA", ["C"], "C"), RosterPlayer(4, "Logan Cooley", "UTA", ["C"], "BN")]
+    lines = ingest.save_opponent(league, "Viktorios", shown, dt.date(2026, 11, 1))
+    viktorios = {q["id"]: q for q in league["teams"]["Viktorios"]["players"]}
+    assert set(viktorios) == {1, 2, 3, 4} and viktorios[4]["slot"] is None  # none of them a free agent
+    assert [q["id"] for q in league["teams"]["Bottom three"]["players"]] == [5]
+    assert lines[0] == "Viktorios: new: Logan Cooley."
+    assert "kept (Yahoo's matchup leaves out IR slots): Connor Bedard, Josh Morrissey" in lines[1]
+    assert "Logan Cooley came from Bottom three: a trade? Send Viktorios's team page" in lines[2]
+    # More missing than the two IR slots: not a matter of slots, so they're gone.
+    league["teams"]["Viktorios"]["players"] += [p(6, "A B"), p(7, "C D")]
+    lines = ingest.save_opponent(league, "Viktorios", shown, dt.date(2026, 11, 1))
+    assert {q["id"] for q in league["teams"]["Viktorios"]["players"]} == {1, 4} and "gone: " in lines[0]
+    # No trade: one in IR, one dropped for the new one (an add/drop keeps the count).
+    league = {"teams": {"Viktorios": {"updated": "2026-10-31", "players": [p(1, "Leo Carlsson"), p(3, "Josh Morrissey"),
+                                                                           p(8, "Dropped Guy")]}},
+              "taken": [], "waivers": {"8": "2026-10-31"}}
+    shown = [RosterPlayer(1, "Leo Carlsson", "ANA", ["C"], "C"), RosterPlayer(9, "New Guy", "ANA", ["C"], "BN")]
+    lines = ingest.save_opponent(league, "Viktorios", shown, dt.date(2026, 11, 1))
+    assert {q["id"] for q in league["teams"]["Viktorios"]["players"]} == {1, 3, 9}  # the drop known from waivers
+    assert lines[0] == "Viktorios: new: New Guy; gone: Dropped Guy." and "trade" not in " ".join(lines)
+
+
+def test_other_teams_players_follow_nhl_trades(monkeypatch):
+    from bot import daily
+    monkeypatch.setattr(daily.nhl_client, "current_rosters", lambda: [{"id": 8476945, "team": "NJD"}])
+    league = {"teams": {"Vantaa": {"players": [{"id": 8476945, "name": "Connor Hellebuyck", "team": "WPG"},
+                                               {"id": 9, "name": "Unlisted", "team": "BOS"}]}}}
+    mine = [RosterPlayer(8476945, "Connor Hellebuyck", "WPG", ["G"], "G")]
+    daily.sync_teams(mine, league)
+    assert mine[0].team == "NJD" and [q["team"] for q in league["teams"]["Vantaa"]["players"]] == ["NJD", "BOS"]
+
+
+def test_the_2026_11_01_repair_puts_back_the_players_read_as_free_agents(tmp_path):
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-11-01 league rosters oct 31"]
+    gwp = [{"id": 8477933, "name": "Sam Reinhart", "team": "FLA", "positions": ["RW"], "slot": None}]
+    vantaa = [{"id": 8476945, "name": "Connor Hellebuyck", "team": "WPG", "positions": ["G"], "slot": None}]
+    league = {"teams": {t: {"updated": "2026-10-31", "players": []} for t, *_ in repairs.LEAGUE_OCT_31_MISSING}
+              | {"Gwp": {"updated": "2026-09-29", "players": gwp}, "Vantaa": {"updated": "2026-09-29", "players": vantaa}},
+              "taken": [8484144]}
+    repairs.apply(state, [], league)
+    assert [q["name"] for q in league["teams"]["Jättiläisentie Giants"]["players"]] == ["Bowen Byram", "Owen Tippett"]
+    assert league["taken"] == [] and 8484144 in {q["id"] for q in league["teams"]["Bottom three"]["players"]}
+    assert gwp[0]["positions"] == ["C", "RW"] and vantaa[0]["team"] == "NJD"
+    from league import positions
+    assert positions.load()[8475172] == ["C", "LW", "RW"] and positions.load()[8477504] == ["D"]

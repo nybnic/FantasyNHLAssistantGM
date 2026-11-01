@@ -18,11 +18,15 @@ from bot.common import NHL_TIME, Outbox, _safe, free_agents
 
 logger = logging.getLogger(__name__)
 
-def sync_teams(players: list) -> None:
-    """Follow trades: take each player's current NHL team."""
+def sync_teams(players: list, league: dict | None = None) -> None:
+    """Follow trades: take each player's current NHL team, mine and every other
+    team's (2026-11-01: Hellebuyck, traded to NJ, was still projected on WPG's schedule)."""
     team_of = {p["id"]: p["team"] for p in nhl_client.current_rosters()}
     for p in players:
         p.team = team_of.get(p.id, p.team)
+    for entry in (league or {}).get("teams", {}).values():
+        for p in entry["players"]:
+            p["team"] = team_of.get(p["id"], p["team"])
 
 
 def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, outbox: Outbox,
