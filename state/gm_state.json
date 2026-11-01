@@ -563,25 +563,6 @@
       "message_id": 774,
       "type": "add"
     },
-    "add-2026-11-01-0441-8484144": {
-      "add": {
-        "id": 8484144,
-        "name": "Connor Bedard",
-        "positions": [
-          "C",
-          "RW"
-        ],
-        "slot": null,
-        "team": "CHI"
-      },
-      "add_slot": null,
-      "date": "2026-11-01",
-      "drop": 8476455,
-      "drop_name": "Gabriel Landeskog",
-      "ir": {},
-      "message_id": 830,
-      "type": "add"
-    },
     "lineup-2026-10-18-1631": {
       "assignment": {
         "8474564": "RW",
@@ -879,30 +860,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-01T04:41+00:00",
-    "moves": [
-      {
-        "add": {
-          "id": 8484144,
-          "name": "Connor Bedard",
-          "positions": [
-            "C",
-            "RW"
-          ],
-          "team": "CHI"
-        },
-        "drop": {
-          "id": 8476455,
-          "name": "Gabriel Landeskog"
-        },
-        "key": "8484144:8476455",
-        "message_id": 830,
-        "rec_id": "add-2026-11-01-0441-8484144",
-        "value": 0.5227,
-        "when": "2026-11-01",
-        "why": "spare"
-      }
-    ],
+    "at": "2026-11-01T05:09+00:00",
+    "moves": [],
     "week": 5
   },
   "plan_check": false,
@@ -1070,7 +1029,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784815,
+  "telegram_offset": 929784816,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -3926,16 +3885,6 @@
         ],
         "since": {
           "pp1": "2026-10-13"
-        }
-      },
-      "8484144": {
-        "groups": [
-          "f1",
-          "pp1"
-        ],
-        "since": {
-          "f1": null,
-          "pp1": null
         }
       },
       "8484145": {
