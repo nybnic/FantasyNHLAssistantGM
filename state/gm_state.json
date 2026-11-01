@@ -913,7 +913,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-01T17:01+00:00",
+    "at": "2026-11-01T19:01+00:00",
     "moves": [],
     "week": 5
   },
@@ -1186,6 +1186,7 @@
       "8479983:promoted": "2026-10-15",
       "8479998:ice time": "2026-10-25",
       "8479999:promoted": "2026-10-18",
+      "8480014:promoted": "2026-11-01",
       "8480028:promoted": "2026-10-22",
       "8480049:promoted": "2026-10-30",
       "8480064:promoted": "2026-10-25",
@@ -1645,6 +1646,13 @@
           "f2": "2026-10-19"
         }
       },
+      "8475799": {
+        "groups": [
+          "f4",
+          "pk1"
+        ],
+        "since": {}
+      },
       "8475842": {
         "groups": [
           "f4"
@@ -1674,7 +1682,7 @@
       },
       "8476331": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -2680,11 +2688,11 @@
       },
       "8480014": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": null,
+          "f2": "2026-11-01",
           "pp1": null
         }
       },
@@ -2967,13 +2975,6 @@
         "groups": [
           "f4",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8481043": {
-        "groups": [
-          "f4",
-          "pk1"
         ],
         "since": {}
       },
@@ -3272,12 +3273,12 @@
       },
       "8482110": {
         "groups": [
-          "f2",
+          "f1",
           "pk2",
           "pp2"
         ],
         "since": {
-          "f2": "2026-10-29"
+          "f1": "2026-11-01"
         }
       },
       "8482111": {
@@ -3819,7 +3820,7 @@
       },
       "8483510": {
         "groups": [
-          "d3",
+          "d2",
           "pk2",
           "pp2"
         ],
@@ -6809,6 +6810,21 @@
         "value": -0.0005,
         "verdict": "-0 win-pts against the 12.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 8 days."
+      },
+      {
+        "date": "2026-11-01",
+        "id": 8480014,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Gabriel Vilardi",
+        "positions": "C/RW",
+        "price": 0.128,
+        "sent": false,
+        "team": "WPG",
+        "value": 0.0048,
+        "verdict": "+0 win-pts against the 12.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
