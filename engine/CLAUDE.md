@@ -286,6 +286,16 @@ positions, Monday decisions, no free-agent competition, no IR slots; goalies not
   more exactly changes few moves and wins nothing. Deciding every day beats Mon + Thu by ~2 SE, as the
   live bot does; replays from here use "tenure daily" as the reference.
 
+- Insurance streams on the week's last day (2026-11-02, Nico: "I was 95% likely to win on Sunday but still
+  lost", week 5: any Sunday stream would have won it, every one failed the add price; then "Do the test").
+  Only the bar is lowered, on the last day(s), with this week's adds left (they expire Sunday); the move's
+  value is unchanged. 32 leagues (seeds 11 / 23 / 37 / 51, 8 each) against "tenure daily", wins a season
+  (pooled SE): Sunday at half the price -0.09 (0.05), -0.5 pts a week, 29.3 adds vs 29.2; Saturday and
+  Sunday at half -0.13 (0.06), -0.7 pts a week, 29.4 adds; Sunday any move worth more than nothing -0.84
+  (0.07), -4.3 pts a week, the whole 30 spent (its price runs ~1.8 in the last third: the adds are gone
+  when moves that pay come up). Every variant loses on the pooled leagues, the two halves by ~2 SE: an add
+  kept for a later week is worth more than a last-day stream's few percent of a decided week. No change.
+
 ## Judgment calls (untested)
 `addprice.BAR` 0.12 (set on two weeks of live plans; re-check mid-December), `MODEL_SD_SHARE` 0.08, `addprice.DEFAULT_TAU` 20 (until rosters give a spread),
 `PLAYOFF_RESERVE` 6, `MIN_GOALIES` 2 (the floor), `MIN_WIN_GAIN` 0.02 (display only), `LONG_RUN_WEEKS` 6 (/trade only since tenure), `STREAM_WEEKS` 2 (the "next two weeks" shown), `tenure`'s bins (by rank on my roster: replayed as a whole, the cut points not tuned), `STREAM_BELOW` 0.25 (wording only), `KEEPER_WAITS_BELOW` 1.0, `plan.CHANGE_MARGIN` 0.02, `CONCEDE_BELOW` 0.10 / `COAST_ABOVE` 0.90 / `EVEN_WITHIN` 0.03 (wording only; an even week also shows the biggest swing), `trade.MIN_GAIN_PER_WEEK` 1.0, `trade.PICK_DECAY` 0.8 (how a draft round "feels" to a manager), `trade.PERCEPTION_GAMES` 20, `trade.add_cost` (the 6-week rate standing in for the gain's later rate; the incoming player's tenure for the whole gain, the free agent's share included), `availability.DTD_RETURN` (0.85 then 0.97; fit from the DFO archive once it has the cases), `matchup.RELIEF_SHARE` 0.5 (only its order matters). Revisit when we have in-season results.
