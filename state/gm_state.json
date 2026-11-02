@@ -853,7 +853,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-02T06:45+00:00",
+    "at": "2026-11-02T08:48+00:00",
     "moves": [
       {
         "add": {
@@ -871,7 +871,7 @@
         "key": "8484390:8476455",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1246,
+        "value": 0.1252,
         "when": "2026-11-04",
         "why": "now"
       }
@@ -1044,7 +1044,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784823,
+  "telegram_offset": 929784824,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1084,6 +1084,7 @@
       "8476479:ice time": "2026-10-30",
       "8476539:promoted": "2026-10-28",
       "8476854:ice time": "2026-10-18",
+      "8476873:ice time": "2026-11-02",
       "8476882:promoted": "2026-10-29",
       "8476905:promoted": "2026-11-01",
       "8476917:promoted": "2026-10-31",
@@ -2339,6 +2340,15 @@
         ],
         "since": {}
       },
+      "8478474": {
+        "groups": [
+          "f2",
+          "pk1"
+        ],
+        "since": {
+          "f2": null
+        }
+      },
       "8478498": {
         "groups": [
           "f1",
@@ -2361,16 +2371,6 @@
           "pk2"
         ],
         "since": {}
-      },
-      "8478519": {
-        "groups": [
-          "f2",
-          "pk1",
-          "pp2"
-        ],
-        "since": {
-          "f2": null
-        }
       },
       "8478542": {
         "groups": [
@@ -2487,6 +2487,16 @@
           "d3"
         ],
         "since": {}
+      },
+      "8479385": {
+        "groups": [
+          "f2",
+          "pp1"
+        ],
+        "since": {
+          "f2": null,
+          "pp1": null
+        }
       },
       "8479390": {
         "groups": [
@@ -3079,6 +3089,16 @@
         ],
         "since": {}
       },
+      "8481596": {
+        "groups": [
+          "f2",
+          "pk1",
+          "pp2"
+        ],
+        "since": {
+          "f2": null
+        }
+      },
       "8481601": {
         "groups": [
           "f1",
@@ -3353,15 +3373,6 @@
         ],
         "since": {}
       },
-      "8482175": {
-        "groups": [
-          "f1",
-          "pp2"
-        ],
-        "since": {
-          "f1": "2026-10-19"
-        }
-      },
       "8482176": {
         "groups": [
           "d2",
@@ -3565,6 +3576,16 @@
           "f4"
         ],
         "since": {}
+      },
+      "8482745": {
+        "groups": [
+          "f2",
+          "pp1"
+        ],
+        "since": {
+          "f2": null,
+          "pp1": null
+        }
       },
       "8482747": {
         "groups": [
@@ -4032,17 +4053,6 @@
           "f4"
         ],
         "since": {}
-      },
-      "8484471": {
-        "groups": [
-          "f1",
-          "pk1",
-          "pp1"
-        ],
-        "since": {
-          "f1": "2026-10-21",
-          "pp1": "2026-10-29"
-        }
       },
       "8484768": {
         "groups": [
@@ -6698,6 +6708,21 @@
         "value": -0.3726,
         "verdict": "-37 win-pts against the 11.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair, and it has held for 14 days."
+      },
+      {
+        "date": "2026-11-02",
+        "id": 8476873,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Mark Jankowski",
+        "positions": "C",
+        "price": null,
+        "sent": true,
+        "team": "CAR",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "Ice time 17:02 a game in his last 3, up from 13:46. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
