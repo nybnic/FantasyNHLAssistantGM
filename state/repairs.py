@@ -489,6 +489,20 @@ def _league_rosters_oct_31(state: dict, players: list[RosterPlayer], league: dic
         positions.save(known)
 
 
+def _week_5_from_yahoo(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-11-02 (Nico: "again the weekly message counted the score from box score, not yahoo
+    # screenshots"): week 5's report said 230 - 291 from box scores alone, though Yahoo's score
+    # through Saturday was saved (224.05 - 178.65; the box scores had the opponent at 231 by then,
+    # Cooley, Dubois and Morrissey counted on every day). Its result is reported again, anchored
+    # on Yahoo's score, saying it corrects the first (unless Yahoo's final came in meanwhile).
+    entry = state.get("results", {}).get("5") or {}
+    final = entry.get("final")
+    if final and final.get("source") == "box scores" and not entry.get("yahoo_final"):
+        entry["corrects"] = final["score"]
+        entry.pop("final")
+        entry.pop("value", None)
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -510,4 +524,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-28 cooley positions", _cooley_positions),
            ("2026-10-30 randy team page", _randy_team_page),
            ("2026-10-31 crosby to bellova", _crosby_to_bellova),
-           ("2026-11-01 league rosters oct 31", _league_rosters_oct_31)]
+           ("2026-11-01 league rosters oct 31", _league_rosters_oct_31),
+           ("2026-11-02 week 5 from yahoo", _week_5_from_yahoo)]

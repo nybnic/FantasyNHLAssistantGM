@@ -146,7 +146,8 @@ def budget_view(adds: list[dict], week: int) -> dict:
 def result_view(week: int, opponent: str, days: list[dt.date], mine: list[float], theirs: list[float],
                 goalie_min: list[bool], plan: dict | None, adds: list[dict], skipped: int, budget: dict,
                 finished: bool = True, scorecard: str | None = None, value: dict | None = None,
-                moves_text: str | None = None, official: list[float] | None = None) -> dict:
+                moves_text: str | None = None, official: list[float] | None = None,
+                source: str | None = None) -> dict:
     """The finished week: each day's points for both teams (box scores, each
     day's roster, goalie points zeroed if the minimum was missed), against
     the week's first plan; the adds made and skipped; the budget; what the
@@ -154,13 +155,15 @@ def result_view(week: int, opponent: str, days: list[dt.date], mine: list[float]
     against the drafted roster, engine/scorecard.py). `official`: Yahoo's final
     from a screenshot, which decides the result; each side's days are then
     scaled to it, so the race ends where the score does (box scores guess the
-    opponent's lineup: week 4 had them 13 pts high and called a win a loss)."""
+    opponent's lineup: week 4 had them 13 pts high and called a win a loss).
+    `source`: "yahoo through D" when Yahoo's score ran only through day D
+    and the box scores added the days after."""
     if official:
         scale = lambda xs, total: [x * total / sum(xs) for x in xs] if sum(xs) else xs
         mine, theirs = scale(mine, official[0]), scale(theirs, official[1])
     final = list(official) if official else [sum(mine), sum(theirs)]
     view = {"week": week, "opponent": opponent, "days": [d.isoformat() for d in days], "finished": finished,
-            "source": "yahoo" if official else "box scores",
+            "source": source or ("yahoo" if official else "box scores"),
             "mine": mine, "theirs": theirs, "final": final, "goalie_min": goalie_min, "plan": plan,
             "adds": len(adds), "added": [a["name"] for a in adds if a["name"]], "skipped": skipped,
             "budget": budget, "scorecard": scorecard, "value": value, "moves_text": moves_text}
@@ -175,9 +178,20 @@ def result_text(view: dict) -> str:
     me, them = view["final"]
     outcome = "won" if me > them else "lost" if me < them else "tied"
     result = f"you {outcome}" if view["finished"] else "so far"
-    source = ("Yahoo's final" if view.get("source") == "yahoo" else
-              "box scores with the best lineup each day; Yahoo's can differ by bench choices")
+    src = view.get("source") or "box scores"
+    if src == "yahoo":
+        source = "Yahoo's final"
+    elif src.startswith("yahoo through "):
+        through = dt.date.fromisoformat(src.split()[-1])
+        after = [dt.date.fromisoformat(d).strftime("%a") for d in view["days"] if d > through.isoformat()]
+        source = (f"Yahoo's score through {through.strftime('%a')}, {' and '.join(after) or 'the rest'} "
+                  f"from box scores; a screenshot of Yahoo's final settles it")
+    else:
+        source = "box scores with the best lineup each day; Yahoo's can differ by bench choices"
     lines = [f"Week {view['week']} vs {view['opponent']}: {result} {me:.0f} - {them:.0f} ({source})."]
+    if view.get("corrects"):
+        old = view["corrects"]
+        lines.append(f"Corrected: the first report had {old[0]:.0f} - {old[1]:.0f} from box scores alone.")
     for name, made in zip(("You", "They"), view["goalie_min"]):
         if not made:
             lines.append(f"{name} missed the goalie minimum: goalie points count zero.")

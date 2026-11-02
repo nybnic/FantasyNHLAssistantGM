@@ -159,18 +159,31 @@ def race_days(ctx, days: list[dt.date], date: dt.date, *sides, checkpoints: list
     out = {"days": [d.isoformat() for d in done]}
     for k, (name, (roster, history, total)) in enumerate(zip(("me", "them"), sides)):
         box = [sum(matchup._so_far(roster, ctx, [d], history)[:2]) for d in done]
-        anchors = {0: 0.0}
-        for c in checkpoints:
-            i = sum(d.isoformat() < c["through"] for d in done)  # days before its date
-            if 0 < i < len(done) and c.get("yahoo"):
-                anchors[i] = c["yahoo"][k]
-        anchors[len(done)] = total
-        marks, pts = sorted(anchors.items()), []
-        for (i0, c0), (i1, c1) in zip(marks, marks[1:]):
-            span = box[i0:i1]
-            pts += [(c1 - c0) * (x / sum(span) if sum(span) > 0 else 1 / len(span)) for x in span]
-        out[name] = [round(x, 1) for x in pts]
+        anchors = {i: c for i, c in yahoo_anchors(done, checkpoints, k).items() if i < len(done)}
+        out[name] = [round(x, 1) for x in spread(box, anchors | {len(done): total})]
     return out
+
+
+def yahoo_anchors(days: list[dt.date], checkpoints, k: int) -> dict[int, float]:
+    """Side k's Yahoo score after the first i of `days`, by i, from matchup
+    screenshots (results[week]["live"]: "through" D = the score of the days before D)."""
+    anchors = {0: 0.0}
+    for c in checkpoints:
+        i = sum(d.isoformat() < c["through"] for d in days)  # days before its date
+        if 0 < i <= len(days) and c.get("yahoo"):
+            anchors[i] = c["yahoo"][k]
+    return anchors
+
+
+def spread(box: list[float], anchors: dict[int, float]) -> list[float]:
+    """Each day's points with the anchors' totals kept: the box scores only
+    split a gap between two anchors across its days (evenly when they show
+    nothing); days after the last anchor are the box scores' own."""
+    marks, pts = sorted(anchors.items()), []
+    for (i0, c0), (i1, c1) in zip(marks, marks[1:]):
+        span = box[i0:i1]
+        pts += [(c1 - c0) * (x / sum(span) if sum(span) > 0 else 1 / len(span)) for x in span]
+    return pts + list(box[marks[-1][0]:])
 
 
 def replacement_xfp(pool: list, ctx) -> dict[str, float]:
@@ -461,6 +474,17 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
     entry = state["results"].get(str(week), {})
     plan = entry.get("first")
     official = (entry.get("yahoo_final") or {}).get("score") if finished else None
+    source = "yahoo" if official else "box scores"
+    if not official:
+        # Yahoo's latest score from a matchup screenshot decides it, the box
+        # scores only add the days after it: they guess the opponent's lineup
+        # (week 5 2026: 53 pts high by Saturday, today's players on every day).
+        anchors = [yahoo_anchors(days, entry.get("live") or [], k) for k in (0, 1)]
+        shown = max(anchors[0])
+        if shown:
+            mine, theirs = spread(mine, anchors[0]), spread(theirs, anchors[1])
+            source = "yahoo" if shown == len(weeks.days(week)) else f"yahoo through {days[shown - 1].isoformat()}"
+            official = [round(sum(mine), 2), round(sum(theirs), 2)]
     value = official_margin(_safe(moves_value, state, week, players, official[1] if official else sum(theirs),
                                   ctx, finished), official)
     text = None
@@ -474,7 +498,7 @@ def week_result(state: dict, week: int, players: list, league: dict, ctx) -> dic
     return report.result_view(week, opponent, days, mine, theirs, [my_min, their_min], plan, adds, skipped,
                               report.budget_view(state["adds"], week), finished,
                               scorecard.line(scorecard.score(state["decisions"], ctx, ctx.today)), value, text,
-                              official)
+                              official, source) | ({"corrects": entry["corrects"]} if entry.get("corrects") else {})
 
 
 def report_step(state: dict, players: list, league: dict, now: dt.datetime, outbox: Outbox,
@@ -503,6 +527,7 @@ def report_step(state: dict, players: list, league: dict, now: dt.datetime, outb
     entry = state["results"].setdefault(str(week), {"opponent": view["opponent"]})
     entry["final"] = {"score": [round(x, 2) for x in view["final"]], "goalie_min": view["goalie_min"],
                       "at": now.isoformat(timespec="minutes"), "source": view["source"]}
+    entry.pop("corrects", None)
     if view.get("value"):
         entry["value"] = view["value"]
 

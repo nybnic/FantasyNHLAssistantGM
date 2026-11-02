@@ -849,6 +849,14 @@ def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):
     weekly.report_step(state, players, {"teams": {}, "taken": []}, noon, common.Outbox(settings), lambda d: None)
     weekly.report_step(state, players, {"teams": {}, "taken": []}, noon, common.Outbox(settings), lambda d: None)
     assert sent == ["Week 1 result"] and state["results"]["1"]["final"]["score"] == [170.0, 160.0]
+    # A result from box scores alone is reported again after the 2026-11-02 repair, once.
+    state["results"]["5"] = {"final": {"score": [229.8, 290.5], "source": "box scores"}, "value": {}}
+    repairs._week_5_from_yahoo(state, [], {})
+    assert state["results"]["5"] == {"corrects": [229.8, 290.5]}
+    state["results"]["1"]["corrects"] = [1.0, 2.0]
+    del state["results"]["1"]["final"]
+    weekly.report_step(state, players, {"teams": {}, "taken": []}, noon, common.Outbox(settings), lambda d: None)
+    assert len(sent) == 2 and "corrects" not in state["results"]["1"]
 
 
 def test_a_weeks_result_scores_each_day_with_that_days_roster(monkeypatch, tmp_path):
@@ -883,6 +891,18 @@ def test_a_weeks_result_scores_each_day_with_that_days_roster(monkeypatch, tmp_p
     view = weekly.week_result(state, 1, players, league, Ctx())
     assert view["final"] == [9.0, 7.5] and view["source"] == "yahoo"
     assert sum(view["mine"]) == pytest.approx(9.0) and sum(view["theirs"]) == pytest.approx(7.5)
+    # Without Yahoo's final, its latest score from a matchup screenshot decides, and the box
+    # scores add only the days after it (week 5 2026: the opponent 53 pts high by Saturday).
+    state["results"]["1"] = {"opponent": "Bahelin Boys", "corrects": [6.75, 8.0], "live": [
+        {"through": "2026-10-01", "yahoo": [3.0, 0.0]}, {"through": "2026-10-03", "yahoo": [5.0, 2.0]}]}
+    view = weekly.week_result(state, 1, players, league, Ctx())
+    assert view["source"] == "yahoo through 2026-10-02"
+    assert view["final"] == pytest.approx([5.0, 2.0])  # no box-score points after Fri 2 Oct
+    assert view["theirs"][:4] == pytest.approx([0.0, 0.0, 0.0, 2.0])  # Fri's 8 box pts scaled to Yahoo's 2
+    assert view["mine"][:4] == pytest.approx([3 * 2.75 / 6.75, 3 * 4 / 6.75, 1.0, 1.0])  # evenly where box shows 0
+    text = report.result_text(view)
+    assert "Yahoo's score through Fri, Sat and Sun from box scores" in text
+    assert "Corrected: the first report had 7 - 8 from box scores alone." in text
 
 
 def test_a_tap_on_an_add_records_its_players(monkeypatch, tmp_path):
