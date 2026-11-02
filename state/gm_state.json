@@ -894,7 +894,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-02T18:01+00:00",
+    "at": "2026-11-02T18:32+00:00",
     "moves": [
       {
         "add": {
@@ -912,7 +912,7 @@
         "key": "8484390:8476455",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1268,
+        "value": 0.1271,
         "when": "2026-11-04",
         "why": "now"
       }
@@ -1199,7 +1199,7 @@
       "8480049:promoted": "2026-10-30",
       "8480064:promoted": "2026-10-25",
       "8480078:promoted": "2026-10-18",
-      "8480113:promoted": "2026-10-19",
+      "8480113:promoted": "2026-11-02",
       "8480188:promoted": "2026-10-21",
       "8480193:no1": "2026-10-13",
       "8480220:promoted": "2026-10-27",
@@ -1656,13 +1656,6 @@
         ],
         "since": {}
       },
-      "8475799": {
-        "groups": [
-          "f4",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8475842": {
         "groups": [
           "f4"
@@ -1691,10 +1684,12 @@
       },
       "8476392": {
         "groups": [
-          "f3",
-          "pk2"
+          "f2",
+          "pk1"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-02"
+        }
       },
       "8476393": {
         "groups": [
@@ -2677,11 +2672,11 @@
       },
       "8480014": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-11-01",
+          "f1": "2026-11-02",
           "pp1": null
         }
       },
@@ -2733,10 +2728,12 @@
       },
       "8480113": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-02"
+        }
       },
       "8480185": {
         "groups": [
@@ -2785,8 +2782,8 @@
       },
       "8480289": {
         "groups": [
-          "f4",
-          "pk1"
+          "f3",
+          "pk2"
         ],
         "since": {}
       },
@@ -2959,6 +2956,13 @@
         "groups": [
           "f4",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8481043": {
+        "groups": [
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -3270,13 +3274,11 @@
       },
       "8482110": {
         "groups": [
-          "f1",
-          "pk2",
+          "f3",
+          "pk1",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-01"
-        }
+        "since": {}
       },
       "8482111": {
         "groups": [
@@ -3433,12 +3435,6 @@
         "groups": [
           "f4",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8482459": {
-        "groups": [
-          "d4"
         ],
         "since": {}
       },
@@ -3628,7 +3624,7 @@
       },
       "8482765": {
         "groups": [
-          "f3",
+          "f4",
           "pp2"
         ],
         "since": {}
@@ -3752,6 +3748,12 @@
       "8483468": {
         "groups": [
           "ir"
+        ],
+        "since": {}
+      },
+      "8483471": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -3976,6 +3978,7 @@
       "8484145": {
         "groups": [
           "f1",
+          "ir",
           "pk1",
           "pp1"
         ],
@@ -4282,12 +4285,10 @@
       },
       "8486025": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-29"
-        }
+        "since": {}
       },
       "8486103": {
         "groups": [
@@ -6810,6 +6811,21 @@
         "team": "TOR",
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-02",
+        "id": 8480113,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Alex Iafallo",
+        "positions": "LW/RW",
+        "price": 0.1148,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.2003,
+        "verdict": "-20 win-pts against the 11.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
       }
     ]
