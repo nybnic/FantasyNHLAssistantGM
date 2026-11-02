@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-18": {
-      "recommended": {
-        "8474564": "RW",
-        "8476455": "BN",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "BN",
-        "8484801": "C"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-19": {
       "recommended": {
         "8474564": "BN",
@@ -337,25 +317,6 @@
   "matchup_shots": null,
   "news_checked": "2026-11-01",
   "pending": {
-    "add-2026-10-18-0509-8481028": {
-      "add": {
-        "id": 8481028,
-        "name": "Martin Pospisil",
-        "positions": [
-          "C",
-          "RW"
-        ],
-        "slot": null,
-        "team": "CGY"
-      },
-      "add_slot": null,
-      "date": "2026-10-18",
-      "drop": 8476457,
-      "drop_name": "Adam Larsson",
-      "ir": {},
-      "message_id": 504,
-      "type": "add"
-    },
     "add-2026-10-20-0535-8475311": {
       "add": {
         "id": 8475311,
@@ -594,27 +555,6 @@
       "ir": {},
       "message_id": 774,
       "type": "add"
-    },
-    "lineup-2026-10-18-1631": {
-      "assignment": {
-        "8474564": "RW",
-        "8476455": "BN",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "LW",
-        "8480865": "D",
-        "8481519": "G",
-        "8481596": "BN",
-        "8484801": "C"
-      },
-      "date": "2026-10-18",
-      "message_id": 509,
-      "type": "lineup"
     },
     "lineup-2026-10-19-1631": {
       "assignment": {
@@ -913,9 +853,30 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-01T19:01+00:00",
-    "moves": [],
-    "week": 5
+    "at": "2026-11-02T04:07+00:00",
+    "moves": [
+      {
+        "add": {
+          "id": 8484390,
+          "name": "Roman Kantserov",
+          "positions": [
+            "RW"
+          ],
+          "team": "CHI"
+        },
+        "drop": {
+          "id": 8476455,
+          "name": "Gabriel Landeskog"
+        },
+        "key": "8484390:8476455",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.1247,
+        "when": "2026-11-04",
+        "why": "now"
+      }
+    ],
+    "week": 6
   },
   "plan_check": false,
   "relay_alert": "2026-09-29",
@@ -1083,7 +1044,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784820,
+  "telegram_offset": 929784822,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -2283,12 +2244,6 @@
           "f2": null
         }
       },
-      "8478366": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8478396": {
         "groups": [
           "d2",
@@ -3200,6 +3155,12 @@
         ],
         "since": {}
       },
+      "8481754": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8481789": {
         "groups": [
           "f2",
@@ -3781,7 +3742,6 @@
       "8483490": {
         "groups": [
           "d2",
-          "ir",
           "pk2"
         ],
         "since": {}
