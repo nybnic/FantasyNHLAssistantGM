@@ -275,3 +275,13 @@ def test_goalie_games_count_the_starts_banked_two_a_day():
     assert replay.goalie_games(s, [10, 11, 12], MON, days=3) == 3  # Monday's three starts: two slots
     assert replay.goalie_games(s, [10, 11], MON, [(days[4], [10, 12])], days=6) == 4  # 12 from Friday
     assert "tenure daily met" in replay.SHRINK_MET and replay.DECISION_DAYS["tenure daily met"] == (1, 2, 3, 4, 5, 6)
+
+
+def test_last_day_variants_lower_only_that_days_price():
+    assert replay.day_price("tenure daily last half", 6, 0.12) == 0.06
+    assert replay.day_price("tenure daily last half", 5, 0.12) == 0.12
+    assert 0.0 < replay.day_price("tenure daily last free", 6, 0.12) < 1e-6
+    assert replay.day_price("tenure daily weekend half", 5, 0.12) == 0.06
+    assert replay.day_price("tenure daily", 6, 0.12) == 0.12
+    assert all(replay.DECISION_DAYS[v] == (1, 2, 3, 4, 5, 6) for v in replay.LAST_DAY_PRICE)
+    assert set(replay.LAST_DAY_PRICE) <= set(replay.VARIANTS) and set(replay.LAST_DAY_PRICE) <= replay.WHOLE_SCHEDULE

@@ -141,12 +141,20 @@ VARIANTS = {
     # The split (check_sigma, both goalie minimums met by then or not): met, Friday to Sunday 0.98 / 0.90,
     # 0.98 / 0.90, 0.93 / 0.95; not, 0.71-0.83. "met": REALIZES_MET once both teams have their minimum.
     "tenure daily met": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    # Insurance streams on the week's last day(s) (Nico, 2026-11-02, after week 5 was lost from 94% on
+    # Sunday: any Sunday stream would have won it, but every one failed the add price). This week's adds
+    # left expire on Sunday, so a last-day stream may deserve a lower bar: LAST_DAY_PRICE.
+    "tenure daily last half": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure daily last free": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    "tenure daily weekend half": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
 }
 # The days after each Monday a variant also decides on, with the week's adds left (Thursday: MIDWEEK).
 MIDWEEK_DAY = 3
 DECISION_DAYS = {**{name: (MIDWEEK_DAY,) for name in ("tenure midweek", "tenure full ahead midweek",
                                                        "tenure stream ahead midweek")},
-                 **{name: (1, 2, 3, 4, 5, 6) for name in ("tenure daily", "tenure daily shrink", "tenure daily met")}}
+                 **{name: (1, 2, 3, 4, 5, 6) for name in ("tenure daily", "tenure daily shrink", "tenure daily met",
+                                                          "tenure daily last half", "tenure daily last free",
+                                                          "tenure daily weekend half")}}
 MIDWEEK = set(DECISION_DAYS)
 # This week's margin as it realizes, by the days left to play (check_sigma --from-day, 16 leagues,
 # 2025-26 / 2024-25: 0.91 / 0.81, 0.91 / 0.76, 0.91 / 0.79, 0.87 / 0.81, 0.85 / 0.76, 0.87 / 0.88 from
@@ -155,6 +163,17 @@ REALIZES_BY_DAYS_LEFT = {7: matchup.MARGIN_REALIZES, 6: 0.86, 5: 0.835, 4: 0.85,
 SHRINK = {"tenure daily shrink"}
 REALIZES_MET = 0.94
 SHRINK_MET = {"tenure daily met"}
+# The add price on the week's last day(s): (days after Monday, the price's share). The move's value is
+# unchanged (this week's P(win), the weeks ahead, the drop's later points); only the bar is lowered.
+# "free": any move worth more than nothing. Spent adds raise every later price through the pacing.
+LAST_DAY_PRICE = {"tenure daily last half": ((6,), 0.5), "tenure daily last free": ((6,), 0.0),
+                  "tenure daily weekend half": ((5, 6), 0.5)}
+
+
+def day_price(name: str, offset: int, price: float) -> float:
+    """The add price on `offset` days after Monday under variant `name` (LAST_DAY_PRICE)."""
+    days, share = LAST_DAY_PRICE.get(name, ((), 1.0))
+    return max(price * share, 1e-9) if offset in days else price
 # Keep rules valued by tenure_after, and how each weighs the weeks ahead (TENURE_AHEAD).
 TENURE_RULES = {"tenure": "survival", "tenure full ahead": "full", "tenure stream ahead": "stream"}
 # Variants whose long run covers the whole season left (the rest: the next LONG_RUN_WEEKS).
@@ -560,6 +579,7 @@ def run_league(args: tuple) -> dict:
                         realizes = REALIZES_MET
                     while week_adds < 2 and used < cap:
                         price = rule if fixed else monday_price(rule, used, w, n_weeks, picks, None)
+                        price = day_price(name, offset, price)
                         parts = {} if audit else None
                         move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | this_week, keep_rule,
                                          spots, discount, n_weeks, used, None, price, (), name not in SKATERS_ONLY,
