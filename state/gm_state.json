@@ -308,6 +308,10 @@
   "goalie_news": {
     "date": "2026-11-03",
     "starters": {
+      "ANA": {
+        "confirmed": true,
+        "goalie_name": "Laurent Brossoit"
+      },
       "CBJ": {
         "confirmed": true,
         "goalie_name": "Cam Talbot"
@@ -958,7 +962,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-03T18:58+00:00",
+    "at": "2026-11-03T19:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -1180,6 +1184,7 @@
       "8476967:ice time": "2026-10-26",
       "8476979:ice time": "2026-10-29",
       "8476979:promoted": "2026-10-29",
+      "8477015:promoted": "2026-11-03",
       "8477035:goalie": "2026-10-24",
       "8477402:promoted": "2026-11-01",
       "8477416:promoted": "2026-10-25",
@@ -1716,6 +1721,12 @@
         ],
         "since": {}
       },
+      "8476374": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8476392": {
         "groups": [
           "f2",
@@ -2001,9 +2012,12 @@
       },
       "8477015": {
         "groups": [
-          "f4"
+          "f4",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-03"
+        }
       },
       "8477070": {
         "groups": [
@@ -2424,8 +2438,7 @@
       "8478542": {
         "groups": [
           "f3",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
@@ -2917,12 +2930,6 @@
           "d1": null
         }
       },
-      "8480876": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8480878": {
         "groups": [
           "d2",
@@ -3031,13 +3038,6 @@
         "groups": [
           "f4",
           "pk1"
-        ],
-        "since": {}
-      },
-      "8481219": {
-        "groups": [
-          "d3",
-          "pk2"
         ],
         "since": {}
       },
@@ -3385,11 +3385,10 @@
       "8482146": {
         "groups": [
           "f1",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f1": "2026-10-29",
-          "pp1": null
+          "f1": "2026-10-29"
         }
       },
       "8482148": {
@@ -3571,7 +3570,6 @@
       "8482665": {
         "groups": [
           "f1",
-          "ir",
           "pp1"
         ],
         "since": {
@@ -3619,12 +3617,10 @@
       },
       "8482713": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-19"
-        }
+        "since": {}
       },
       "8482720": {
         "groups": [
@@ -3752,6 +3748,12 @@
         ],
         "since": {}
       },
+      "8483017": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8483398": {
         "groups": [
           "d3",
@@ -3873,6 +3875,12 @@
           "d1": null
         }
       },
+      "8483497": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8483499": {
         "groups": [
           "f2",
@@ -3891,12 +3899,6 @@
           "f2": null,
           "pp1": null
         }
-      },
-      "8483505": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
       },
       "8483506": {
         "groups": [
@@ -4110,10 +4112,12 @@
       },
       "8484241": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-03"
+        }
       },
       "8484262": {
         "groups": [
@@ -6952,6 +6956,21 @@
         "value": null,
         "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8477015,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Connor Brown",
+        "positions": "RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "NJD",
+        "value": -0.2271,
+        "verdict": "-23 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
