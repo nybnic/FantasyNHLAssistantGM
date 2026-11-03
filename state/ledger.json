@@ -661,6 +661,12 @@
       "id": 8482087,
       "name": "Kaiden Guhle",
       "source": "roster"
+    },
+    {
+      "date": "2026-11-03",
+      "id": 8476483,
+      "name": "Rickard Rakell",
+      "source": "roster"
     }
   ],
   "day_rosters": {
@@ -4473,13 +4479,13 @@
           "team": "UTA"
         },
         {
-          "id": 8484801,
-          "name": "Macklin Celebrini",
+          "id": 8476460,
+          "name": "Mark Scheifele",
           "positions": [
             "C"
           ],
           "slot": "C",
-          "team": "SJS"
+          "team": "WPG"
         },
         {
           "id": 8476887,
@@ -4491,20 +4497,20 @@
           "team": "NSH"
         },
         {
-          "id": 8476455,
-          "name": "Gabriel Landeskog",
+          "id": 8476483,
+          "name": "Rickard Rakell",
           "positions": [
-            "LW",
             "RW"
           ],
           "slot": "LW",
-          "team": "COL"
+          "team": "PIT"
         },
         {
           "id": 8474564,
           "name": "Steven Stamkos",
           "positions": [
             "C",
+            "LW",
             "RW"
           ],
           "slot": "RW",
@@ -4566,31 +4572,31 @@
           "team": "UTA"
         },
         {
-          "id": 8481519,
-          "name": "Spencer Knight",
-          "positions": [
-            "G"
-          ],
-          "slot": "G",
-          "team": "CHI"
-        },
-        {
-          "id": 8476460,
-          "name": "Mark Scheifele",
-          "positions": [
-            "C"
-          ],
-          "slot": "BN",
-          "team": "WPG"
-        },
-        {
           "id": 8482447,
           "name": "Leevi Meril\u00e4inen",
           "positions": [
             "G"
           ],
-          "slot": "BN",
+          "slot": "G",
           "team": "VAN"
+        },
+        {
+          "id": 8484801,
+          "name": "Macklin Celebrini",
+          "positions": [
+            "C"
+          ],
+          "slot": "BN",
+          "team": "SJS"
+        },
+        {
+          "id": 8481519,
+          "name": "Spencer Knight",
+          "positions": [
+            "G"
+          ],
+          "slot": "BN",
+          "team": "CHI"
         }
       ],
       "them": {
@@ -4618,7 +4624,9 @@
             "id": 8483445,
             "name": "Cutter Gauthier",
             "positions": [
-              "LW"
+              "C",
+              "LW",
+              "RW"
             ],
             "slot": null,
             "team": "ANA"
@@ -4662,15 +4670,6 @@
             "team": "CAR"
           },
           {
-            "id": 8478469,
-            "name": "Thomas Chabot",
-            "positions": [
-              "D"
-            ],
-            "slot": null,
-            "team": "OTT"
-          },
-          {
             "id": 8480803,
             "name": "Evan Bouchard",
             "positions": [
@@ -4689,24 +4688,6 @@
             "team": "UTA"
           },
           {
-            "id": 8478435,
-            "name": "Dan Vladar",
-            "positions": [
-              "G"
-            ],
-            "slot": null,
-            "team": "PHI"
-          },
-          {
-            "id": 8480193,
-            "name": "Daniil Tarasov",
-            "positions": [
-              "G"
-            ],
-            "slot": null,
-            "team": "DET"
-          },
-          {
             "id": 8478460,
             "name": "Zach Werenski",
             "positions": [
@@ -4716,6 +4697,15 @@
             "team": "CBJ"
           },
           {
+            "id": 8478435,
+            "name": "Dan Vladar",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "PHI"
+          },
+          {
             "id": 8474596,
             "name": "Jake Allen",
             "positions": [
@@ -4723,6 +4713,24 @@
             ],
             "slot": null,
             "team": "NJD"
+          },
+          {
+            "id": 8478469,
+            "name": "Thomas Chabot",
+            "positions": [
+              "D"
+            ],
+            "slot": null,
+            "team": "OTT"
+          },
+          {
+            "id": 8480193,
+            "name": "Daniil Tarasov",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "DET"
           },
           {
             "id": 8480893,
@@ -6099,14 +6107,14 @@
     }
   },
   "live_score": {
-    "at": "2026-11-03T04:50:27+00:00",
+    "at": "2026-11-03T08:11:28+00:00",
     "goalies": [
-      5.4,
-      10.05
+      0.0,
+      0.0
     ],
     "opponent": "HC Bulju",
     "projected": [
-      251.79,
+      234.0,
       216.8
     ],
     "score": [
@@ -6928,9 +6936,9 @@
     ],
     "2026-11-03": [
       8480855,
-      8484801,
+      8476460,
       8476887,
-      8476455,
+      8476483,
       8474564,
       8477949,
       8480807,
@@ -6938,9 +6946,9 @@
       8480145,
       8482087,
       8478872,
-      8481519,
-      8476460,
-      8482447
+      8482447,
+      8484801,
+      8481519
     ]
   },
   "my_players": {
@@ -6948,6 +6956,7 @@
       "name": "Steven Stamkos",
       "positions": [
         "C",
+        "LW",
         "RW"
       ],
       "team": "NSH"
@@ -6981,6 +6990,13 @@
         "C"
       ],
       "team": "WPG"
+    },
+    "8476483": {
+      "name": "Rickard Rakell",
+      "positions": [
+        "RW"
+      ],
+      "team": "PIT"
     },
     "8476887": {
       "name": "Filip Forsberg",
@@ -7996,7 +8012,7 @@
             10.05
           ],
           "yahoo_projected": [
-            251.79,
+            234.0,
             216.8
           ]
         }
@@ -8021,6 +8037,7 @@
     "8476455": "2026-11-03",
     "8476457": "2026-10-25",
     "8476460": "2026-11-03",
+    "8476483": "2026-11-03",
     "8476887": "2026-11-03",
     "8477949": "2026-11-03",
     "8478872": "2026-11-03",
