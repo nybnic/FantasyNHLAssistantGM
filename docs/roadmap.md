@@ -186,6 +186,17 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
   (Next, item 4), the consolation bracket.
 - Late regular season: weigh playoff seeding (the higher seed wins tied playoff
   weeks) when planning weeks 20-23.
+- **Playoff-schedule trades, before the trade deadline (Wed 3 Mar 2027)** (Nico, 2026-11-03: "trade away my
+  Winnipeg players who have few playoff games for players with a more favourable playoff schedule"). Build in
+  early February, once P(playoffs) is high. Today /trade judges the 6 weeks after the review, every week equal,
+  and runs only when asked; `depth.py` is schedule-blind. (1) /trade: next to the 6-week line, the trade's points
+  per playoff week (weeks 24-26, each side's games and off-nights from `report.playoff_view`). (2) A pre-deadline
+  playoff screen: 1-for-1s that trade a weak playoff schedule for a strong one at about equal season value
+  (WPG 4/3/2 = 9 games, 2 on off-nights, vs WSH 4/4/4 = 12, 6), partners out of the playoff race first (the
+  schedule costs them nothing, so acceptance is the usual "feel"). Not without evidence: weighting playoff points
+  above regular ones (playoff points x2 lowered title odds for adds, `sim_leverage`, 2026-10-03), so a trade that
+  gives up season points for playoff games needs that simulation first. Size: 3 more playoff games ~15 pts,
+  about what 0.5 pts a game more makes back. `trade.py` is outside the engine freeze.
 - Projections overstate differences (`scripts/check_sigma.py`, aged priors since 2026-10-03:
   margins realize at 0.84; teams now -0.01 sigma, unbiased): healthy skaters' falling
   availability (0.96 -> 0.89 over six weeks) is the next suspect, before shrinking add gains.
@@ -382,3 +393,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-11-02 | Last-day insurance streams replayed (Nico: "Do the test"): variants "tenure daily last half", "last free", "weekend half" (`replay.LAST_DAY_PRICE`: only the bar lowered on Sunday / the weekend, this week's adds left), Check's replay takes a seed. 32 leagues against "tenure daily": -0.09 (0.05), -0.84 (0.07), -0.13 (0.06) wins a season. No change: an add kept is worth more than a last-day stream | |
 | 2026-11-02 | Monday's result anchored on Yahoo's latest score (Nico: "again the weekly message counted the score from box score, not yahoo screenshots"). Week 5's report said 230 - 291 from box scores alone: no screenshot of Yahoo's final came in, so the 2026-10-26 fix (Yahoo's final decides) didn't apply, though Yahoo's score through Saturday was saved (224.05 - 178.65; the box scores had the opponent at 231 by then, today's roster, Cooley, Dubois, Morrissey, counted on every day). Now `weekly.week_result` takes the latest matchup screenshot's score (`results[w].live`) and the box scores add only the days after it (and split the days between two screenshots, as the race does: `weekly.yahoo_anchors`, `spread`); the message says so ("Yahoo's score through Sat, Sun from box scores; a screenshot of Yahoo's final settles it"), and a Yahoo final arriving later still corrects it. Repair `2026-11-02 week 5 from yahoo` reports week 5 again, anchored (about 236 - 238 by the saved numbers, still a loss), saying it corrects the first. Not dry-run (the NHL API is blocked from the session): the next live run sends it | (this commit) |
 | 2026-11-03 | The playoff schedule on the dashboard's Schedule tab (Nico: "add the full playoff schedule (games per week) per team so I can check always from there"): every team's games and off-night games in weeks 24-26, most first, my players named under their team, tap a team for its nights (`report.playoff_view`, from the plan run's own schedule through the playoffs, no new fetch). View only | (this commit) |
+| 2026-11-03 | Roadmap: playoff-schedule trades before the 3 Mar deadline (Nico: "Add"), under Later, to build in early February: a playoff line in /trade and a pre-deadline playoff screen; a reminder is scheduled for 1 Feb 2027 | (this commit) |
