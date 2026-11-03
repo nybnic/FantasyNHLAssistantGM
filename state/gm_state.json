@@ -560,6 +560,26 @@
       "message_id": 774,
       "type": "add"
     },
+    "add-2026-11-03-0451-8476483": {
+      "add": {
+        "id": 8476483,
+        "name": "Rickard Rakell",
+        "positions": [
+          "C",
+          "LW",
+          "RW"
+        ],
+        "slot": null,
+        "team": "PIT"
+      },
+      "add_slot": null,
+      "date": "2026-11-03",
+      "drop": 8476455,
+      "drop_name": "Gabriel Landeskog",
+      "ir": {},
+      "message_id": 875,
+      "type": "add"
+    },
     "lineup-2026-10-20-1631": {
       "assignment": {
         "8474564": "RW",
@@ -857,26 +877,28 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-02T20:01+00:00",
+    "at": "2026-11-03T04:51+00:00",
     "moves": [
       {
         "add": {
-          "id": 8484390,
-          "name": "Roman Kantserov",
+          "id": 8476483,
+          "name": "Rickard Rakell",
           "positions": [
+            "C",
+            "LW",
             "RW"
           ],
-          "team": "CHI"
+          "team": "PIT"
         },
         "drop": {
           "id": 8476455,
           "name": "Gabriel Landeskog"
         },
-        "key": "8484390:8476455",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.1263,
-        "when": "2026-11-04",
+        "key": "8476483:8476455",
+        "message_id": 875,
+        "rec_id": "add-2026-11-03-0451-8476483",
+        "value": 0.1502,
+        "when": "2026-11-03",
         "why": "now"
       }
     ],
@@ -1049,7 +1071,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784829,
+  "telegram_offset": 929784831,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
