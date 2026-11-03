@@ -286,31 +286,59 @@
   "daily_plan": null,
   "dfo_archived": "2026-11-02",
   "goalie_news": {
-    "date": "2026-11-02",
+    "date": "2026-11-03",
     "starters": {
-      "BOS": {
+      "CBJ": {
         "confirmed": true,
-        "goalie_name": "Jeremy Swayman"
+        "goalie_name": "Cam Talbot"
       },
-      "CGY": {
+      "COL": {
         "confirmed": true,
-        "goalie_name": "Dustin Wolf"
+        "goalie_name": "Scott Wedgewood"
       },
-      "CHI": {
+      "DAL": {
         "confirmed": true,
-        "goalie_name": "Spencer Knight"
+        "goalie_name": "Jake Oettinger"
       },
-      "DET": {
+      "MIN": {
         "confirmed": true,
-        "goalie_name": "Daniil Tarasov"
+        "goalie_name": "Jesper Wallstedt"
       },
-      "FLA": {
+      "MTL": {
         "confirmed": true,
-        "goalie_name": "Jacob Markstrom"
+        "goalie_name": "Jacob Fowler"
       },
-      "SJS": {
+      "NJD": {
+        "confirmed": true,
+        "goalie_name": "Connor Hellebuyck"
+      },
+      "NSH": {
+        "confirmed": true,
+        "goalie_name": "Juuse Saros"
+      },
+      "NYR": {
+        "confirmed": true,
+        "goalie_name": "Dylan Garand"
+      },
+      "PHI": {
+        "confirmed": true,
+        "goalie_name": "Dan Vladar"
+      },
+      "PIT": {
+        "confirmed": true,
+        "goalie_name": "Arturs Silovs"
+      },
+      "STL": {
         "confirmed": false,
-        "goalie_name": "Yaroslav Askarov"
+        "goalie_name": "Joel Hofer"
+      },
+      "TOR": {
+        "confirmed": true,
+        "goalie_name": "Sergei Bobrovsky"
+      },
+      "WSH": {
+        "confirmed": true,
+        "goalie_name": "Logan Thompson"
       }
     }
   },
@@ -877,7 +905,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-03T08:24+00:00",
+    "at": "2026-11-03T17:01+00:00",
     "moves": [],
     "week": 6
   },
@@ -1193,6 +1221,7 @@
       "8481553:promoted": "2026-10-30",
       "8481554:promoted": "2026-10-24",
       "8481568:promoted": "2026-11-02",
+      "8481580:promoted": "2026-11-03",
       "8481593:promoted": "2026-10-16",
       "8481601:ice time": "2026-10-31",
       "8481601:promoted": "2026-10-31",
@@ -1262,6 +1291,7 @@
       "8483678:ice time": "2026-10-16",
       "8483731:promoted": "2026-10-22",
       "8483787:promoted": "2026-10-28",
+      "8483808:promoted": "2026-11-03",
       "8483890:ice time": "2026-10-16",
       "8484142:promoted": "2026-10-27",
       "8484145:promoted": "2026-10-27",
@@ -1818,6 +1848,13 @@
         ],
         "since": {}
       },
+      "8476889": {
+        "groups": [
+          "f4",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8476892": {
         "groups": [
           "ir"
@@ -1930,12 +1967,10 @@
       },
       "8477402": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-28"
-        }
+        "since": {}
       },
       "8477407": {
         "groups": [
@@ -2060,7 +2095,7 @@
       },
       "8477527": {
         "groups": [
-          "ir"
+          "f4"
         ],
         "since": {}
       },
@@ -2155,6 +2190,12 @@
         "since": {
           "f1": "2026-10-26"
         }
+      },
+      "8478013": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
       },
       "8478020": {
         "groups": [
@@ -2430,10 +2471,9 @@
         ],
         "since": {}
       },
-      "8479365": {
+      "8479368": {
         "groups": [
-          "f4",
-          "pp2"
+          "f4"
         ],
         "since": {}
       },
@@ -2484,6 +2524,12 @@
         "groups": [
           "f3",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8479638": {
+        "groups": [
+          "f3"
         ],
         "since": {}
       },
@@ -2788,12 +2834,6 @@
         ],
         "since": {}
       },
-      "8480834": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8480835": {
         "groups": [
           "f3",
@@ -2803,7 +2843,8 @@
       },
       "8480842": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -2978,6 +3019,7 @@
       "8481527": {
         "groups": [
           "d2",
+          "ir",
           "pk1"
         ],
         "since": {}
@@ -3041,10 +3083,12 @@
       },
       "8481580": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-03"
+        }
       },
       "8481593": {
         "groups": [
@@ -3081,10 +3125,14 @@
       },
       "8481618": {
         "groups": [
-          "f4",
-          "pp2"
+          "f1",
+          "pk2",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-03",
+          "pp1": "2026-11-03"
+        }
       },
       "8481624": {
         "groups": [
@@ -3293,7 +3341,8 @@
       },
       "8482148": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3631,6 +3680,12 @@
         ],
         "since": {}
       },
+      "8482877": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8482896": {
         "groups": [
           "f4"
@@ -3639,7 +3694,8 @@
       },
       "8482964": {
         "groups": [
-          "d3"
+          "d3",
+          "pk2"
         ],
         "since": {}
       },
@@ -3700,12 +3756,6 @@
       "8483455": {
         "groups": [
           "ir"
-        ],
-        "since": {}
-      },
-      "8483463": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3862,8 +3912,7 @@
       },
       "8483686": {
         "groups": [
-          "d3",
-          "pk2"
+          "d3"
         ],
         "since": {}
       },
@@ -3918,10 +3967,12 @@
       },
       "8483808": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-03"
+        }
       },
       "8483890": {
         "groups": [
@@ -4046,6 +4097,12 @@
           "f1": null,
           "pp1": null
         }
+      },
+      "8484403": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8484768": {
         "groups": [
@@ -6812,6 +6869,36 @@
         "value": -0.2421,
         "verdict": "-24 win-pts against the 11.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair, and it has held for 14 days."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8483808,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Andrei Kuzmenko",
+        "positions": "LW",
+        "price": null,
+        "sent": false,
+        "team": "PIT",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8481580,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Connor McMichael",
+        "positions": "C/LW",
+        "price": null,
+        "sent": false,
+        "team": "STL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
