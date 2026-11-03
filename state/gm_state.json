@@ -281,6 +281,26 @@
       },
       "sent": true,
       "updates": 0
+    },
+    "2026-11-03": {
+      "recommended": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "LW",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "C",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "BN"
+      },
+      "sent": true,
+      "updates": 0
     }
   },
   "daily_plan": null,
@@ -299,6 +319,10 @@
       "DAL": {
         "confirmed": true,
         "goalie_name": "Jake Oettinger"
+      },
+      "EDM": {
+        "confirmed": true,
+        "goalie_name": "Tristan Jarry"
       },
       "MIN": {
         "confirmed": true,
@@ -329,12 +353,16 @@
         "goalie_name": "Arturs Silovs"
       },
       "STL": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Joel Hofer"
       },
       "TOR": {
         "confirmed": true,
         "goalie_name": "Sergei Bobrovsky"
+      },
+      "UTA": {
+        "confirmed": false,
+        "goalie_name": "Sebastian Cossa"
       },
       "WSH": {
         "confirmed": true,
@@ -347,7 +375,7 @@
   "ir_noted": [],
   "last_error": null,
   "matchup_shots": null,
-  "news_checked": "2026-11-02",
+  "news_checked": "2026-11-03",
   "pending": {
     "add-2026-10-20-0535-8475311": {
       "add": {
@@ -901,11 +929,32 @@
       "date": "2026-11-02",
       "message_id": 863,
       "type": "lineup"
+    },
+    "lineup-2026-11-03-1731": {
+      "assignment": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "LW",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "C",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "BN"
+      },
+      "date": "2026-11-03",
+      "message_id": 892,
+      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-03T17:01+00:00",
+    "at": "2026-11-03T17:31+00:00",
     "moves": [],
     "week": 6
   },
