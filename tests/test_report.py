@@ -280,3 +280,25 @@ def test_a_goalies_start_tonight_says_why_when_dailyfaceoff_names_the_starter():
     assert starts[0]["prob"] == pytest.approx(0.8) and starts[0]["why"] == "likely starter"
     assert report.player_view(RosterPlayer(3, "Connor Hellebuyck", "WPG", ["G"]), ctx, {}, {}, sched,
                               "me")["starts"][0]["why"] is None
+
+
+def test_playoff_view_counts_each_teams_games_and_off_nights_by_playoff_week_with_my_players():
+    from config.league import PLAYOFF_WEEKS
+    from league import weeks
+    game = lambda d, home, away: ScheduledGame(1, dt.datetime(d.year, d.month, d.day, 23, tzinfo=dt.timezone.utc),
+                                               home, away)
+    w24, w25 = weeks.days(PLAYOFF_WEEKS[0]), weeks.days(PLAYOFF_WEEKS[1])
+    busy = [game(w24[0], h, a) for h, a in (("WPG", "CHI"), ("DAL", "BOS"), ("PIT", "COL"), ("UTA", "SEA"))]
+    future = {w24[0] - dt.timedelta(days=1): [game(w24[0], "TOR", "MTL")],  # week 23: not a playoff night
+              w24[0]: busy, w24[1]: [game(w24[1], "PIT", "WPG")], w25[0]: [game(w25[0], "BOS", "PIT")]}
+    mine = [RosterPlayer(1, "Rickard Rakell", "PIT", ["C"]), RosterPlayer(2, "Gabriel Landeskog", "COL", ["LW"])]
+    view = report.playoff_view(future, mine)
+    assert [w["week"] for w in view["weeks"]] == list(PLAYOFF_WEEKS)
+    assert [(d["games"], d["off"]) for d in view["weeks"][0]["days"]] == [(4, False), (1, True)]  # 8 teams: 2 or fewer games
+    pit = view["teams"][0]
+    assert pit["team"] == "PIT" and pit["games"] == 3 and pit["off"] == 2 and pit["mine"] == ["Rakell"]
+    assert [w["games"] for w in pit["weeks"]] == [2, 1, 0] and pit["weeks"][0]["cells"] == ["COL", "WPG"]
+    assert pit["weeks"][1]["cells"] == ["@BOS"]
+    assert [t["team"] for t in view["teams"]][1:3] == ["BOS", "WPG"]  # 2 games and 1 off-night each: by name
+    assert "TOR" not in {t["team"] for t in view["teams"]}
+    assert report.playoff_view({}, mine)["teams"] == []

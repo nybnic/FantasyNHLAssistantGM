@@ -87,7 +87,9 @@ Team colours (`TEAM_COLORS`) are dark enough for white initials.
   **Moves** (top 8 as bars by when they pay vs the price; every move; the budget as 36 tokens),
   **Schedule** (a week at a time for this week and the next two; my lineup night by night,
   with the plan or as is, or by slot; could-stream free agents; then every team's games, last:
-  the next 14 days whichever week is picked, a header per week (its opponent), each week's count, then the total),
+  the next 14 days whichever week is picked, a header per week (its opponent), each week's count, then the total;
+  then the playoff schedule, weeks 24-26: every team's games and off-night games by week, most first, my
+  players named under their team, a team tapped for its nights, all teams or my players' teams),
   **Watch** (the breakout watch).
 - **"With plan / As is"** switches everything it touches: each player's nights (`plan_cells`), drops
   ending on their day, adds starting on theirs, the sums, and each week's odds (`win_plan`).

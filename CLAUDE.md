@@ -43,7 +43,8 @@ inputs -> **Board** -> rule -> views. Direction and history: `docs/plan-2026-10-
    once; a screenshot gets the score or the change), `site/data.json` + `site/index.html`
    (the dashboard, night style, five tabs: Today = the odds, the plan, the race, why the win %, the nights, the weeks
    ahead; Matchup = player by player, points by stat; Moves = the top moves, every move, the budget; Schedule = my
-   lineup night by night for this week and the next two, with the plan or as is, then every team's games; Watch =
+   lineup night by night for this week and the next two, with the plan or as is, then every team's games, then the
+   playoff schedule (weeks 24-26, games and off-nights per team, `report.playoff_view`); Watch =
    the breakout watch; a tap-open sheet per player and per move; the Board's `teams`/`players` from `engine/report.py`),
    its `?card` view screenshotted for Telegram (`notify/snapshot.py`; `?card=move&key=` is each move's card,
    sent with its Done/Taken/Skip and a "Why?" link to its sheet, `#move=KEY`; `?card=result` is Monday's).

@@ -8,8 +8,8 @@ from __future__ import annotations
 import datetime as dt
 
 from clients.names import normalize_name
-from config.league import (GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS, STARTERS,
-                           fantasy_points)
+from config.league import (GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, PLAYOFF_WEEKS, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS,
+                           STARTERS, fantasy_points)
 from engine import availability, matchup
 from league import weeks
 from league.roster import BENCH, IR_SLOTS, RosterPlayer, active
@@ -368,6 +368,43 @@ def streaming_view(spans: list[tuple[int, str, dict, matchup.TeamWeek | None]], 
             "weeks": [{"week": w, "opponent": opp} for w, opp, schedule, _ in spans
                       if any(d >= today for d in schedule)],
             "teams": [{"team": t, "cells": [g.get(d["date"]) for d in days]} for t, g in sorted(by_team.items())]}
+
+
+def playoff_view(future: dict, players: list[RosterPlayer]) -> dict:
+    """Every NHL team's games in the fantasy playoff weeks (PLAYOFF_WEEKS), from
+    `future` (the NHL schedule by date, through the playoffs): each week's
+    nights with their game counts, and each team's games and games on
+    off-nights (a quarter of the league's teams or fewer playing, as the
+    streaming table counts them) by week, its opponent ("@" away) by night, and
+    my players on it. Teams most games first, then most off-nights."""
+    out_weeks, by_team = [], {}
+    for week in PLAYOFF_WEEKS:
+        days = [d for d in weeks.days(week) if d in future]
+        out_weeks.append({"week": week, "days": [{"date": d.isoformat(), "label": f"{d:%a}", "day": d.day,
+                                                   "games": len(future[d])} for d in days]})
+        for d in days:
+            for team, game in matchup._game_of(future[d]).items():
+                home = game.home == team
+                by_team.setdefault(team, {})[d] = ("" if home else "@") + (game.away if home else game.home)
+    if not by_team:
+        return {"weeks": out_weeks, "teams": []}
+    for w in out_weeks:
+        for d in w["days"]:
+            d["off"] = d["games"] * 4 <= len(by_team)
+    mine: dict[str, list[str]] = {}
+    for p in players:
+        mine.setdefault(p.team, []).append(_last(p.name))
+    teams = []
+    for team, games in by_team.items():
+        by = []
+        for w in out_weeks:
+            cells = [games.get(dt.date.fromisoformat(d["date"])) for d in w["days"]]
+            by.append({"games": sum(c is not None for c in cells),
+                       "off": sum(c is not None and d["off"] for c, d in zip(cells, w["days"])), "cells": cells})
+        teams.append({"team": team, "games": sum(b["games"] for b in by), "off": sum(b["off"] for b in by),
+                      "weeks": by, "mine": sorted(mine.get(team, []))})
+    teams.sort(key=lambda t: (-t["games"], -t["off"], t["team"]))
+    return {"weeks": out_weeks, "teams": teams}
 
 
 def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dict, owner: str,

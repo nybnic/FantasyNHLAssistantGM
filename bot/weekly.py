@@ -600,7 +600,8 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
     from bot import watch
     return {"schedule": report.schedule_view(players, spans, streams, moves, plan_entries, after),
             "streaming": streaming(state, players, plan, week, wk, nxt, after),
-            "budget": report.budget_view(state["adds"], week), "watch": watch.watch_view(state, wk.ctx.today)}
+            "budget": report.budget_view(state["adds"], week), "watch": watch.watch_view(state, wk.ctx.today),
+            "playoffs": report.playoff_view(wk.future, players)}
 
 
 def streaming(state: dict, players: list, plan: list, week: int, wk: WeekInputs, nxt: NextWeek,

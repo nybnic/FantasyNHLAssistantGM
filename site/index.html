@@ -247,6 +247,15 @@
   .stgrid .tbadge { position: sticky; left: 0; z-index: 1; box-shadow: -4px 0 0 var(--card), 6px 0 0 var(--card); }  /* the team stays in view as the weeks scroll */
   .stgrid .tbadge.logo { background: var(--card) !important; }
   .snum.wk { font-size: 11px; font-weight: 600; color: var(--text-2); }
+  .pogrid { display: grid; grid-template-columns: 40px repeat(3, minmax(52px, 1fr)) 52px; gap: 3px; align-items: center; margin-top: 8px; }
+  .pogrid .row { display: contents; cursor: pointer; }
+  .pocell { height: 30px; border-radius: 6px; display: flex; align-items: baseline; justify-content: center; gap: 4px;
+            background: var(--surface); border: 1px solid #2A3A55; padding-top: 5px; font-size: 14px; font-weight: 700; }
+  .pocell small { font-size: 11px; font-weight: 500; color: #7DB8FF; }
+  .pocell.total { background: none; border: none; }
+  .pomine { grid-column: 1 / -1; font-size: 11px; color: #7DB8FF; margin: -1px 0 3px 44px; }
+  .ponights { grid-column: 1 / -1; font-size: 12px; color: var(--text-2); margin: 0 0 6px 44px; line-height: 1.5; }
+  .ponights .off { color: #fff; background: #1E3A5F; border-radius: 4px; padding: 0 3px; }
   /* the Telegram card (?card): night style, read at about 80% on a phone, so no text under 13px */
   .nc { background: #0B1422; color: #fff; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px;
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -879,6 +888,60 @@ function streamCard() {
     more.onclick = () => { streamAll = !streamAll; render(); };
     card.append(more);
   }
+  return card;
+}
+
+// ---- The fantasy playoffs (weeks 24-26): every team's games by week, my teams marked (report.playoff_view) ----
+let poOpen = null, poMine = recall("poMine", "all");
+function playoffCard() {
+  const s = data.playoffs;
+  if (!s || !s.teams.length) return null;
+  const card = el("section", { class: "card" });
+  card.append(el("h2", {}, `Playoff schedule · weeks ${s.weeks[0].week}-${s.weeks[s.weeks.length - 1].week}`));
+  const anyMine = s.teams.some(t => t.mine.length), mineOnly = anyMine && poMine === "mine";
+  if (anyMine) {
+    const tabs = tabsEl([["all", "All teams"], ["mine", "My players' teams"]], mineOnly ? "mine" : "all",
+                        v => { poMine = v; remember("poMine", v); render(); });
+    tabs.classList.add("tight");
+    card.append(tabs);
+  }
+  card.append(el("div", { class: "note" }, "Games each playoff week, most first; blue: games on off-nights (a quarter "
+    + "of the league or fewer playing), when lineups have slots open. Your players are named under their team. Tap a team for its nights."));
+  const grid = el("div", { class: "pogrid" });
+  grid.append(el("span"));
+  s.weeks.forEach(w => {
+    const h = el("span", { class: "stweek" }, `WK ${w.week}`);
+    h.append(el("small", {}, ` ${w.days.length ? fmtDay(w.days[0].date, { day: "numeric", month: "short" }) : ""}`));
+    grid.append(h);
+  });
+  grid.append(el("span", { class: "sday" }, "total"));
+  const cell = (games, off, cls = "") => {
+    const c = el("span", { class: "pocell num" + cls }, String(games));
+    if (off) c.append(el("small", {}, `${off} off`));
+    return c;
+  };
+  s.teams.filter(t => !mineOnly || t.mine.length).forEach(t => {
+    const row = el("div", { class: "row", role: "button", tabindex: "0", "aria-expanded": String(poOpen === t.team) });
+    row.append(teamBadge(t.team), ...t.weeks.map(w => cell(w.games, w.off)), cell(t.games, t.off, " total"));
+    row.onclick = () => { poOpen = poOpen === t.team ? null : t.team; render(); };
+    grid.append(row);
+    if (t.mine.length) grid.append(el("div", { class: "pomine" }, t.mine.join(", ")));
+    if (poOpen === t.team) {
+      const n = el("div", { class: "ponights" });
+      s.weeks.forEach((w, k) => {
+        n.append(el("b", {}, `WK ${w.week}: `));
+        const games = w.days.map((d, i) => [d, t.weeks[k].cells[i]]).filter(([, c]) => c);
+        if (!games.length) n.append("no games");
+        games.forEach(([d, c], i) => {
+          n.append(el("span", d.off ? { class: "off" } : {}, `${d.label} ${c}`));
+          if (i < games.length - 1) n.append(", ");
+        });
+        n.append(el("br"));
+      });
+      grid.append(n);
+    }
+  });
+  card.append(grid);
   return card;
 }
 
@@ -1813,7 +1876,7 @@ function render() {
     app.classList.add("nc");
     const pages = { today: [todayTop, planSection, raceCard, whyCard, nightsCard, weekTiles],
                     matchup: [playersCard, statsCard], moves: [movesBars, moveTable, budgetTokens],
-                    schedule: [weekPicker, scheduleCard, streamCard], watch: [watchCard] };
+                    schedule: [weekPicker, scheduleCard, streamCard, playoffCard], watch: [watchCard] };
     app.replaceChildren(...(pages[tab] || pages.today).map(safe).filter(Boolean));
     document.querySelector(".tabbar")?.remove();
     document.body.append(tabBar());
