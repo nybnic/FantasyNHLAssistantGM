@@ -4469,64 +4469,6 @@
     "2026-11-03": {
       "me": [
         {
-          "id": 8480855,
-          "name": "Jack McBain",
-          "positions": [
-            "C",
-            "LW"
-          ],
-          "slot": "C",
-          "team": "UTA"
-        },
-        {
-          "id": 8476460,
-          "name": "Mark Scheifele",
-          "positions": [
-            "C"
-          ],
-          "slot": "C",
-          "team": "WPG"
-        },
-        {
-          "id": 8476887,
-          "name": "Filip Forsberg",
-          "positions": [
-            "LW"
-          ],
-          "slot": "LW",
-          "team": "NSH"
-        },
-        {
-          "id": 8476483,
-          "name": "Rickard Rakell",
-          "positions": [
-            "RW"
-          ],
-          "slot": "LW",
-          "team": "PIT"
-        },
-        {
-          "id": 8474564,
-          "name": "Steven Stamkos",
-          "positions": [
-            "C",
-            "LW",
-            "RW"
-          ],
-          "slot": "RW",
-          "team": "NSH"
-        },
-        {
-          "id": 8477949,
-          "name": "Alex Tuch",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "slot": "RW",
-          "team": "WSH"
-        },
-        {
           "id": 8480807,
           "name": "Mattias Samuelsson",
           "positions": [
@@ -4597,69 +4539,70 @@
           ],
           "slot": "BN",
           "team": "CHI"
+        },
+        {
+          "id": 8480855,
+          "name": "Jack McBain",
+          "positions": [
+            "C",
+            "LW"
+          ],
+          "slot": "C",
+          "team": "UTA"
+        },
+        {
+          "id": 8476460,
+          "name": "Mark Scheifele",
+          "positions": [
+            "C"
+          ],
+          "slot": "C",
+          "team": "WPG"
+        },
+        {
+          "id": 8476887,
+          "name": "Filip Forsberg",
+          "positions": [
+            "LW"
+          ],
+          "slot": "LW",
+          "team": "NSH"
+        },
+        {
+          "id": 8476483,
+          "name": "Rickard Rakell",
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "slot": "LW",
+          "team": "PIT"
+        },
+        {
+          "id": 8474564,
+          "name": "Steven Stamkos",
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "slot": "RW",
+          "team": "NSH"
+        },
+        {
+          "id": 8477949,
+          "name": "Alex Tuch",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "slot": "RW",
+          "team": "WSH"
         }
       ],
       "them": {
         "players": [
-          {
-            "id": 8475158,
-            "name": "Ryan O'Reilly",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "NSH"
-          },
-          {
-            "id": 8476389,
-            "name": "Vincent Trocheck",
-            "positions": [
-              "C",
-              "RW"
-            ],
-            "slot": null,
-            "team": "UTA"
-          },
-          {
-            "id": 8483445,
-            "name": "Cutter Gauthier",
-            "positions": [
-              "C",
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "ANA"
-          },
-          {
-            "id": 8482089,
-            "name": "Jake Neighbours",
-            "positions": [
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "STL"
-          },
-          {
-            "id": 8477960,
-            "name": "Adrian Kempe",
-            "positions": [
-              "RW"
-            ],
-            "slot": null,
-            "team": "LAK"
-          },
-          {
-            "id": 8479542,
-            "name": "Brandon Hagel",
-            "positions": [
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "TBL"
-          },
           {
             "id": 8476958,
             "name": "Jaccob Slavin",
@@ -4731,6 +4674,65 @@
             ],
             "slot": null,
             "team": "DET"
+          },
+          {
+            "id": 8475158,
+            "name": "Ryan O'Reilly",
+            "positions": [
+              "C"
+            ],
+            "slot": null,
+            "team": "NSH"
+          },
+          {
+            "id": 8476389,
+            "name": "Vincent Trocheck",
+            "positions": [
+              "C",
+              "RW"
+            ],
+            "slot": null,
+            "team": "UTA"
+          },
+          {
+            "id": 8483445,
+            "name": "Cutter Gauthier",
+            "positions": [
+              "C",
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "ANA"
+          },
+          {
+            "id": 8482089,
+            "name": "Jake Neighbours",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "STL"
+          },
+          {
+            "id": 8477960,
+            "name": "Adrian Kempe",
+            "positions": [
+              "RW"
+            ],
+            "slot": null,
+            "team": "LAK"
+          },
+          {
+            "id": 8479542,
+            "name": "Brandon Hagel",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "TBL"
           },
           {
             "id": 8480893,
@@ -6107,14 +6109,14 @@
     }
   },
   "live_score": {
-    "at": "2026-11-03T08:11:28+00:00",
+    "at": "2026-11-03T08:24:01+00:00",
     "goalies": [
       0.0,
       0.0
     ],
     "opponent": "HC Bulju",
     "projected": [
-      234.0,
+      264.06,
       216.8
     ],
     "score": [
@@ -6935,12 +6937,6 @@
       8477949
     ],
     "2026-11-03": [
-      8480855,
-      8476460,
-      8476887,
-      8476483,
-      8474564,
-      8477949,
       8480807,
       8480865,
       8480145,
@@ -6948,7 +6944,13 @@
       8478872,
       8482447,
       8484801,
-      8481519
+      8481519,
+      8480855,
+      8476460,
+      8476887,
+      8476483,
+      8474564,
+      8477949
     ]
   },
   "my_players": {
@@ -6994,6 +6996,8 @@
     "8476483": {
       "name": "Rickard Rakell",
       "positions": [
+        "C",
+        "LW",
         "RW"
       ],
       "team": "PIT"
@@ -8012,7 +8016,7 @@
             10.05
           ],
           "yahoo_projected": [
-            234.0,
+            264.06,
             216.8
           ]
         }
