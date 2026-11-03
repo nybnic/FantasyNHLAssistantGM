@@ -877,7 +877,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-03T04:51+00:00",
+    "at": "2026-11-03T06:41+00:00",
     "moves": [
       {
         "add": {
@@ -897,7 +897,7 @@
         "key": "8476483:8476455",
         "message_id": 875,
         "rec_id": "add-2026-11-03-0451-8476483",
-        "value": 0.1502,
+        "value": 0.1503,
         "when": "2026-11-03",
         "why": "now"
       }
@@ -1071,7 +1071,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784831,
+  "telegram_offset": 929784832,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1090,6 +1090,7 @@
       "8474563:promoted": "2026-10-14",
       "8474574:ice time": "2026-10-26",
       "8475151:promoted": "2026-11-02",
+      "8475172:promoted": "2026-11-03",
       "8475208:promoted": "2026-10-14",
       "8475231:promoted": "2026-11-02",
       "8475287:promoted": "2026-10-22",
@@ -1139,6 +1140,7 @@
       "8477950:ice time": "2026-11-01",
       "8477953:promoted": "2026-10-29",
       "8477955:promoted": "2026-10-18",
+      "8477971:ice time": "2026-11-03",
       "8477987:promoted": "2026-10-29",
       "8477989:promoted": "2026-10-28",
       "8477992:goalie": "2026-10-23",
@@ -1149,12 +1151,14 @@
       "8478057:promoted": "2026-11-02",
       "8478133:ice time": "2026-10-28",
       "8478366:promoted": "2026-10-17",
+      "8478396:ice time": "2026-11-03",
       "8478401:promoted": "2026-10-20",
       "8478413:promoted": "2026-10-24",
       "8478438:ice time": "2026-11-02",
       "8478438:promoted": "2026-11-02",
       "8478443:promoted": "2026-10-27",
       "8478444:promoted": "2026-11-01",
+      "8478462:promoted": "2026-11-03",
       "8478474:promoted": "2026-10-23",
       "8478498:promoted": "2026-10-24",
       "8478499:goalie": "2026-10-27",
@@ -1198,7 +1202,7 @@
       "8481024:promoted": "2026-10-31",
       "8481032:promoted": "2026-10-18",
       "8481035:no1": "2026-10-13",
-      "8481056:promoted": "2026-10-20",
+      "8481056:promoted": "2026-11-03",
       "8481064:goalie": "2026-10-26",
       "8481068:promoted": "2026-10-17",
       "8481161:ice time": "2026-10-25",
@@ -1208,6 +1212,7 @@
       "8481534:promoted": "2026-10-23",
       "8481535:promoted": "2026-10-21",
       "8481538:ice time": "2026-10-20",
+      "8481538:promoted": "2026-11-03",
       "8481553:promoted": "2026-10-30",
       "8481554:promoted": "2026-10-24",
       "8481568:promoted": "2026-11-02",
@@ -1258,7 +1263,7 @@
       "8482713:promoted": "2026-10-28",
       "8482720:promoted": "2026-10-30",
       "8482731:ice time": "2026-10-21",
-      "8482758:promoted": "2026-10-20",
+      "8482758:promoted": "2026-11-03",
       "8482765:promoted": "2026-10-27",
       "8482775:promoted": "2026-10-22",
       "8482803:promoted": "2026-10-14",
@@ -4301,96 +4306,6 @@
     },
     "log": [
       {
-        "date": "2026-10-20",
-        "id": 8481538,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Judd Caulfield",
-        "positions": "RW",
-        "price": 0.0997,
-        "sent": true,
-        "team": "ANA",
-        "value": -0.0086,
-        "verdict": "-1 win-pts against the 10.0 an add costs: not yet worth one.",
-        "why": "Ice time 14:29 a game in his last 3, up from 11:19. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-10-20",
-        "id": 8483489,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Fraser Minten",
-        "positions": "C",
-        "price": null,
-        "sent": true,
-        "team": "BOS",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "Ice time 18:45 a game in his last 3, up from 15:21. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-10-20",
-        "id": 8478569,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Noel Acciari",
-        "positions": "C/RW",
-        "price": null,
-        "sent": false,
-        "team": "PHI",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line, and it has held for 1 days."
-      },
-      {
-        "date": "2026-10-20",
-        "id": 8482758,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Ville Koivunen",
-        "positions": "RW",
-        "price": null,
-        "sent": false,
-        "team": "PIT",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-20",
-        "id": 8481056,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Spencer Stastney",
-        "positions": "D",
-        "price": null,
-        "sent": false,
-        "team": "PIT",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the top D pair."
-      },
-      {
-        "date": "2026-10-20",
-        "id": 8478401,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Pavel Zacha",
-        "positions": "C/LW",
-        "price": 0.1241,
-        "sent": true,
-        "team": "BOS",
-        "value": 0.0711,
-        "verdict": "+7 win-pts against the 12.4 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line and the first power play."
-      },
-      {
         "date": "2026-10-21",
         "id": 8482731,
         "kinds": [
@@ -6825,6 +6740,111 @@
         "value": -0.0629,
         "verdict": "-6 win-pts against the 11.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8475172,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Nazem Kadri",
+        "positions": "C/LW/RW",
+        "price": 0.1148,
+        "sent": true,
+        "team": "COL",
+        "value": 0.1049,
+        "verdict": "+10 win-pts against the 11.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8477971,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Andreas Englund",
+        "positions": "D",
+        "price": 0.1148,
+        "sent": true,
+        "team": "DET",
+        "value": -0.1919,
+        "verdict": "-19 win-pts against the 11.5 an add costs: not yet worth one.",
+        "why": "Ice time 15:23 a game in his last 3, up from 12:06. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8478396,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Noah Hanifin",
+        "positions": "D",
+        "price": 0.1148,
+        "sent": true,
+        "team": "VGK",
+        "value": -0.2987,
+        "verdict": "-30 win-pts against the 11.5 an add costs: not yet worth one.",
+        "why": "Ice time 23:20 a game in his last 3, up from 20:19. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8481538,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Judd Caulfield",
+        "positions": "RW",
+        "price": 0.1148,
+        "sent": false,
+        "team": "ANA",
+        "value": 0.0253,
+        "verdict": "+3 win-pts against the 11.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 10 days."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8478462,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Nicolas Roy",
+        "positions": "C/RW",
+        "price": null,
+        "sent": false,
+        "team": "COL",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8482758,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ville Koivunen",
+        "positions": "RW",
+        "price": null,
+        "sent": false,
+        "team": "PIT",
+        "value": null,
+        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
+        "why": "DFO moved up to the first power play, and it has held for 12 days."
+      },
+      {
+        "date": "2026-11-03",
+        "id": 8481056,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Spencer Stastney",
+        "positions": "D",
+        "price": 0.1148,
+        "sent": false,
+        "team": "PIT",
+        "value": -0.2421,
+        "verdict": "-24 win-pts against the 11.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 14 days."
       }
     ]
   },
