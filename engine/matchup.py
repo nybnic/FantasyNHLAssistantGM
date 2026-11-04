@@ -135,7 +135,7 @@ POOL_LONG_TERM_PER_POSITION = 3
 # lineup leaves that slot open, this week and next (streamers).
 POOL_FIT_PER_POSITION = 4
 STREAMER_POSITIONS = ("C", "LW", "RW", "D", "G")  # a goalie fits the nights a G slot is open
-STREAMER_SHORTLIST = 4  # per position, judged on next week's lineup too
+STREAMERS_SHOWN = 6  # the dashboard's "could stream" rows, by win-pts (display only)
 # Injured free agents weighed as IR stashes (straight into an empty IR or IR+
 # slot, Yahoo allows it): the best few by season value (a judgment call).
 STASH_CANDIDATES = 6
@@ -1208,34 +1208,33 @@ def streamers(
     so_far: tuple[float, float, int] | None = None,
     available_from: dict[int, dt.date] | None = None,
 ) -> list[dict]:
-    """Per skater position, the free agent who adds the most points to my
-    lineup over this week and next (games on nights the slot is full add
-    nothing, and so do games before he can join: `available_from`), with his
-    best drop: {"position", "move", "next_gain", "this_week", "next_week"}
-    (the trial lineups' weeks). Positions where nobody helps are left out."""
+    """The dashboard's "could stream" rows: the STREAMERS_SHOWN free agents
+    whose best move is worth the most win-pts (Move.value, as the Moves tab
+    ranks them; Nico, 2026-11-04: the best player per position by points read
+    as random), each with that move and the trial lineups of this week and
+    next: {"position", "move", "next_gain", "this_week", "next_week"}. Moves
+    that add nothing to my lineup this week or the next two, and IR stashes,
+    are left out. Display only: the plan doesn't read this."""
     base_next = project("me", roster, ctx, next_schedule, lines, starters, True).expected if next_schedule else 0.0
-    out, used = [], set()
-    for position in STREAMER_POSITIONS:
-        best: dict[int, Move] = {}
-        for m in ranked:
-            if m.add.positions[0] != position or m.add.id in used or m.ir_slot:  # a stash is no streamer
-                continue
-            if m.add.id not in best or m.week_gain + m.next_weeks / 2 > best[m.add.id].week_gain + best[m.add.id].next_weeks / 2:
-                best[m.add.id] = m
-        shortlisted = sorted(best.values(), key=lambda m: m.week_gain + m.next_weeks / 2, reverse=True)
-        top = None
-        for m in shortlisted[:STREAMER_SHORTLIST]:
-            trial, joins, leaves = _deferred(roster, m.add, m.drop, (available_from or {}).get(m.add.id))
-            nxt = (project("me", trial, ctx, next_schedule, lines, starters, True, joins, leaves=leaves)
-                   if next_schedule else None)
-            gain = (nxt.expected - base_next) if nxt else 0.0
-            if m.week_gain + gain > 0 and (top is None or m.week_gain + gain > top["move"].week_gain + top["next_gain"]):
-                top = {"position": position, "move": m, "next_gain": gain, "next_week": nxt,
-                       "this_week": project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far,
-                                            leaves=leaves)}
-        if top:
-            used.add(top["move"].add.id)
-            out.append(top)
+    best: dict[int, Move] = {}
+    for m in ranked:
+        if m.ir_slot:  # a stash is no streamer
+            continue
+        if m.add.id not in best or m.value > best[m.add.id].value:
+            best[m.add.id] = m
+    out = []
+    for m in sorted(best.values(), key=lambda m: m.value, reverse=True):
+        if len(out) == STREAMERS_SHOWN:
+            break
+        trial, joins, leaves = _deferred(roster, m.add, m.drop, (available_from or {}).get(m.add.id))
+        nxt = (project("me", trial, ctx, next_schedule, lines, starters, True, joins, leaves=leaves)
+               if next_schedule else None)
+        gain = (nxt.expected - base_next) if nxt else 0.0
+        if m.week_gain + gain <= 0 and m.next_weeks <= 0:
+            continue  # nothing for my lineup this week or next
+        out.append({"position": m.add.positions[0], "move": m, "next_gain": gain, "next_week": nxt,
+                    "this_week": project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far,
+                                         leaves=leaves)})
     return out
 
 

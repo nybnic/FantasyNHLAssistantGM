@@ -214,7 +214,7 @@ def test_a_streamer_is_shortlisted_for_games_on_nights_his_slot_is_open():
     assert 60 not in [p.id for p in matchup.shortlist(pool, FakeContext(), schedule, {}, {})]
 
 
-def test_the_best_streamer_per_position_counts_only_points_that_reach_the_lineup():
+def test_a_streamer_counts_only_points_that_reach_the_lineup():
     roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["D"], "D")]
     schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "SEA", "BOS")]}
     opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
@@ -223,6 +223,23 @@ def test_the_best_streamer_per_position_counts_only_points_that_reach_the_lineup
     found = matchup.streamers(roster, ranked, FakeContext(), schedule, {}, {}, {})
     assert {s["position"]: s["move"].add.id for s in found} == {"LW": 9, "D": 11}
     assert all(s["move"].drop is None for s in found)  # open roster spots first
+
+
+def test_could_stream_lists_the_adds_worth_most_win_pts_whatever_their_position():
+    # Two left wings worth more than the defenseman both show, best first (Nico, 2026-11-04: the best
+    # player per position by points read as random); one row per free agent, his best move.
+    ctx = FakeContext()
+    ctx.xfp = {1: 4.0, 2: 2.0, 9: 3.0, 10: 5.0, 11: 0.5}
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["D"], "D")]
+    schedule = {MON: [_game(MON, "NYR", "PHI")], TUE: [_game(TUE, "SEA", "BOS")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    pool = [RosterPlayer(9, "Wing", "NYR", ["LW"]), RosterPlayer(10, "Big Wing", "NYR", ["LW"]),
+            RosterPlayer(11, "Dman", "SEA", ["D"])]
+    ranked = matchup.candidate_moves(roster, opponent, pool, ctx, schedule, {}, {}, future={}, weeks_after=0)
+    found = matchup.streamers(roster, ranked, ctx, schedule, {}, {}, {})
+    ids = [s["move"].add.id for s in found]
+    assert ids[:2] == [10, 9] and len(ids) == len(set(ids))
+    assert [s["move"].value for s in found] == sorted((s["move"].value for s in found), reverse=True)
 
 
 def test_a_streamer_who_joins_next_week_gets_nothing_this_week():

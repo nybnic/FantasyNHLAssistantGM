@@ -64,8 +64,8 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
     """My active players by day over the given weeks ((week, opponent, my week,
     their week)): "start" (in the best lineup), "bench" (plays, but no slot is
     free), or None (no game); goalies carry their start odds. Then the plan's
-    adds (`plan`: as streamers, with "when") and the best streamer per position
-    (matchup.streamers) on the same days, as they'd slot in, and below: open
+    adds (`plan`: as streamers, with "when") and the free agents worth the most
+    win-pts (matchup.streamers, best first) on the same days, as they'd slot in, and below: open
     starting slots, games lost to a full lineup, and both teams' lineup games
     per day; with `after` (my weeks with the plan made, one per span), the
     open slots and games with the plan too."""
@@ -114,6 +114,7 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
             continue  # shown once, as the plan's
         row = _add_row(st, days)
         row["recommended"] = (st["move"].add.id, st["move"].drop.id if st["move"].drop else None) in chosen
+        row["value"] = round(st["move"].value, 4)  # win-pts / 100, what the rows are ranked by
         stream_rows.append(row)
     return {"days": days, "rows": rows, "plan": plan_rows, "streamers": stream_rows, "open": open_slots,
             "benched": benched, "my_games": my_games, "their_games": their_games, "with_plan": with_plan,

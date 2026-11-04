@@ -730,14 +730,17 @@ function lineupRows(grid, ix) {
   if (plan) (s.plan || []).forEach(r => groups[GROUP_OF(r.positions)].push({
     name: lastName(r.name), sub: r.when && r.when > data.date ? `+ from ${fmtDay(r.when, { weekday: "short", day: "numeric" })}` : "+ today",
     cls: "add", dots: ix.map(i => dot(r.cells[i], aqua)) }));
-  const streams = (s.streamers || []).map(r => ({ name: lastName(r.name), sub: `${r.positions} · ${r.team}`, cls: "fa",
+  // The free agents worth the most win-pts (best first), each with his best move's win-pts; a tap opens the move.
+  const streams = (s.streamers || []).map(r => ({ name: lastName(r.name), key: r.key, cls: "fa",
+                                                    sub: `${r.positions} · ${r.team}` + (r.value != null ? ` · ${wp(r.value)}` : ""),
                                                     dots: ix.map(i => dot(r.cells[i] === "start" ? "start" : null, aqua, null, true)) }));
-  Object.entries(groups).concat(streams.length ? [["COULD STREAM", streams]] : []).forEach(([title, rows]) => {
+  Object.entries(groups).concat(streams.length ? [["COULD STREAM, BY WIN-PTS", streams]] : []).forEach(([title, rows]) => {
     if (!rows.length) return;
     grid.append(el("span", { class: "sgroup" }, title));
     rows.forEach(r => {
       const who = el("span", { class: `swho ${r.cls}` });
       who.append(el("b", {}, r.name), el("small", {}, r.sub));
+      if (r.key && data.moves.some(m => m.key === r.key)) { who.classList.add("tap"); who.onclick = () => openSheet("move", r.key); }
       grid.append(who, ...r.dots.map(d => { const c = el("span", { class: "scell" }); c.append(d); return c; }));
     });
   });
