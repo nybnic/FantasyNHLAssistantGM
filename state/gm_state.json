@@ -286,75 +286,23 @@
   "daily_plan": null,
   "dfo_archived": "2026-11-03",
   "goalie_news": {
-    "date": "2026-11-03",
+    "date": "2026-11-04",
     "starters": {
-      "ANA": {
-        "confirmed": true,
-        "goalie_name": "Laurent Brossoit"
-      },
-      "CBJ": {
-        "confirmed": true,
-        "goalie_name": "Cam Talbot"
-      },
-      "COL": {
-        "confirmed": true,
-        "goalie_name": "Scott Wedgewood"
-      },
-      "DAL": {
-        "confirmed": true,
-        "goalie_name": "Jake Oettinger"
-      },
-      "EDM": {
-        "confirmed": true,
-        "goalie_name": "Tristan Jarry"
-      },
-      "MIN": {
-        "confirmed": true,
-        "goalie_name": "Jesper Wallstedt"
-      },
-      "MTL": {
-        "confirmed": true,
-        "goalie_name": "Jacob Fowler"
-      },
-      "NJD": {
-        "confirmed": true,
-        "goalie_name": "Connor Hellebuyck"
-      },
-      "NSH": {
-        "confirmed": true,
-        "goalie_name": "Juuse Saros"
-      },
-      "NYR": {
-        "confirmed": true,
-        "goalie_name": "Dylan Garand"
-      },
-      "PHI": {
-        "confirmed": true,
-        "goalie_name": "Dan Vladar"
-      },
-      "PIT": {
-        "confirmed": true,
-        "goalie_name": "Arturs Silovs"
-      },
-      "STL": {
-        "confirmed": true,
-        "goalie_name": "Joel Hofer"
-      },
-      "TOR": {
-        "confirmed": true,
-        "goalie_name": "Sergei Bobrovsky"
-      },
-      "UTA": {
-        "confirmed": true,
-        "goalie_name": "Sebastian Cossa"
-      },
-      "VAN": {
+      "BUF": {
         "confirmed": false,
-        "goalie_name": "Kevin Lankinen"
+        "goalie_name": "Colten Ellis"
       },
-      "WSH": {
+      "CHI": {
+        "confirmed": false,
+        "goalie_name": "Spencer Knight"
+      },
+      "FLA": {
         "confirmed": true,
-        "goalie_name": "Logan Thompson"
+        "goalie_name": "Jacob Markstrom"
+      },
+      "OTT": {
+        "confirmed": true,
+        "goalie_name": "Samuel Ersson"
       }
     }
   },
@@ -849,7 +797,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-04T16:01+00:00",
+    "at": "2026-11-04T17:01+00:00",
     "moves": [],
     "week": 6
   },
@@ -1251,12 +1199,14 @@
       "8484154:ice time": "2026-10-27",
       "8484158:promoted": "2026-10-17",
       "8484160:ice time": "2026-10-23",
+      "8484197:promoted": "2026-11-04",
       "8484210:ice time": "2026-10-14",
       "8484234:promoted": "2026-10-22",
       "8484241:promoted": "2026-11-04",
       "8484387:promoted": "2026-10-17",
       "8484471:promoted": "2026-11-02",
       "8484759:promoted": "2026-10-14",
+      "8484783:promoted": "2026-11-04",
       "8484790:ice time": "2026-11-04",
       "8484790:promoted": "2026-10-18",
       "8484797:promoted": "2026-10-23",
@@ -1340,28 +1290,16 @@
       },
       "8474013": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-10-19"
-        }
+        "since": {}
       },
       "8474102": {
         "groups": [
           "f4"
         ],
         "since": {}
-      },
-      "8474141": {
-        "groups": [
-          "f3",
-          "ir",
-          "pp1"
-        ],
-        "since": {
-          "pp1": null
-        }
       },
       "8474150": {
         "groups": [
@@ -1498,12 +1436,6 @@
       "8475343": {
         "groups": [
           "f4"
-        ],
-        "since": {}
-      },
-      "8475462": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -1799,8 +1731,9 @@
       },
       "8476882": {
         "groups": [
-          "f4",
-          "pk1"
+          "f3",
+          "pk1",
+          "pp2"
         ],
         "since": {}
       },
@@ -1992,12 +1925,11 @@
       },
       "8477479": {
         "groups": [
-          "f2",
-          "pp1"
+          "f1",
+          "pp2"
         ],
         "since": {
-          "f2": "2026-10-29",
-          "pp1": null
+          "f1": "2026-11-04"
         }
       },
       "8477488": {
@@ -2132,11 +2064,11 @@
       },
       "8477987": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": "2026-10-31"
+          "f2": "2026-11-04"
         }
       },
       "8477989": {
@@ -2201,14 +2133,6 @@
         ],
         "since": {}
       },
-      "8478233": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": null
-        }
-      },
       "8478396": {
         "groups": [
           "d3",
@@ -2220,6 +2144,12 @@
         "groups": [
           "d2",
           "pk1"
+        ],
+        "since": {}
+      },
+      "8478413": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -3034,12 +2964,10 @@
       },
       "8481568": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-10-19"
-        }
+        "since": {}
       },
       "8481580": {
         "groups": [
@@ -3177,7 +3105,7 @@
       },
       "8482062": {
         "groups": [
-          "f4",
+          "f3",
           "pk2"
         ],
         "since": {}
@@ -3345,10 +3273,12 @@
       },
       "8482176": {
         "groups": [
-          "d2",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-04"
+        }
       },
       "8482177": {
         "groups": [
@@ -3688,8 +3618,7 @@
       "8483450": {
         "groups": [
           "f4",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -3740,10 +3669,13 @@
       },
       "8483493": {
         "groups": [
-          "f3",
-          "pp2"
+          "f2",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-04",
+          "pp1": "2026-11-04"
+        }
       },
       "8483495": {
         "groups": [
@@ -3971,10 +3903,12 @@
       },
       "8484197": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-04"
+        }
       },
       "8484201": {
         "groups": [
@@ -3999,6 +3933,12 @@
         }
       },
       "8484262": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
+      "8484304": {
         "groups": [
           "d3"
         ],
@@ -4040,6 +3980,12 @@
         ],
         "since": {}
       },
+      "8484759": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8484768": {
         "groups": [
           "d3",
@@ -4051,10 +3997,14 @@
       },
       "8484783": {
         "groups": [
-          "d2",
-          "pk2"
+          "d1",
+          "pk2",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-04",
+          "pp1": "2026-11-04"
+        }
       },
       "8484790": {
         "groups": [
@@ -4159,12 +4109,11 @@
       },
       "8485391": {
         "groups": [
-          "f2",
+          "f3",
           "pk1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-10-29",
           "pp1": "2026-10-31"
         }
       },
@@ -4213,6 +4162,12 @@
           "f3",
           "pk1",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8485554": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -6872,6 +6827,36 @@
         "value": -0.1217,
         "verdict": "-12 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-04",
+        "id": 8484197,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Oliver Moore",
+        "positions": "C/RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.1543,
+        "verdict": "-15 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-04",
+        "id": 8484783,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Artyom Levshunov",
+        "positions": "D",
+        "price": 0.125,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.1372,
+        "verdict": "-14 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair and the first power play."
       }
     ]
   },
