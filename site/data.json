@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-04T17:28+00:00",
+ "generated": "2026-11-04T19:01+00:00",
  "date": "2026-11-04",
  "week": 6,
  "opponent": "HC Bulju",
@@ -91,10 +91,10 @@
   },
   "season": {
    "playoffs": 0.9736,
-   "title": 0.1685,
+   "title": 0.1682,
    "leverage": 0.0295,
    "typical": 0.0347,
-   "seed": 3.6037,
+   "seed": 3.6031,
    "note": " (Standings through week 3: send a new screenshot.)"
   }
  },
@@ -2620,7 +2620,7 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0568,
+   "later_wins": -0.0569,
    "value": -0.0596,
    "status": "fails",
    "why": "dropping Jack McBain costs about 8 pts later, more than this week's +4 win-pts make up for"
@@ -2721,7 +2721,7 @@
     0.165
    ],
    "later_wins": -0.0669,
-   "value": -0.066,
+   "value": -0.0661,
    "status": "fails",
    "why": "dropping Jack McBain costs about 9 pts later, more than this week's +1 win-pts make up for"
   },
@@ -15600,24 +15600,24 @@
   "plan": [],
   "streamers": [
    {
-    "key": "8485512:8478872",
-    "name": "T. Washe",
-    "positions": "C",
-    "team": "ANA",
-    "drop": "K. Vejmelka",
+    "key": "8479671:8480855",
+    "name": "M. Olivier",
+    "positions": "RW",
+    "team": "CBJ",
+    "drop": "J. McBain",
     "cells": [
      null,
      "start",
      "start",
      null,
-     "start",
      null,
      null,
      "start",
      null,
-     null,
-     "bench",
      "start",
+     null,
+     "start",
+     null,
      null,
      null,
      null,
@@ -15629,32 +15629,33 @@
     "slot_games": 5,
     "slot_starts": null,
     "gain": [
-     11.600993490207628,
-     -6.150818210544514
+     1.0929108199330244,
+     1.639366229899565
     ],
     "plan": false,
     "when": null,
-    "recommended": false
+    "recommended": false,
+    "value": 0.1187
    },
    {
-    "key": "8482159:8478872",
-    "name": "T. Foerster",
-    "positions": "LW/RW",
-    "team": "PHI",
-    "drop": "K. Vejmelka",
+    "key": "8484390:8480855",
+    "name": "R. Kantserov",
+    "positions": "RW",
+    "team": "CHI",
+    "drop": "J. McBain",
     "cells": [
-     null,
-     "start",
-     null,
-     null,
      "start",
      "start",
      null,
      "start",
      null,
      null,
+     null,
+     null,
      "start",
+     null,
      "start",
+     null,
      null,
      null,
      null,
@@ -15663,22 +15664,23 @@
      null,
      null
     ],
-    "slot_games": 6,
+    "slot_games": 5,
     "slot_starts": null,
     "gain": [
-     5.881924240770587,
-     1.1769113620682674
+     5.89642309845749,
+     -3.587481648088385
     ],
     "plan": false,
     "when": null,
-    "recommended": false
+    "recommended": false,
+    "value": 0.1035
    },
    {
-    "key": "8485406:8478872",
+    "key": "8485406:8480855",
     "name": "P. Martone",
     "positions": "RW",
     "team": "PHI",
-    "drop": "K. Vejmelka",
+    "drop": "J. McBain",
     "cells": [
      null,
      "start",
@@ -15703,29 +15705,68 @@
     "slot_games": 6,
     "slot_starts": null,
     "gain": [
-     6.874787588984162,
-     3.1626380584954177
+     0.32607869591959115,
+     5.163215620075221
     ],
     "plan": false,
     "when": null,
-    "recommended": false
+    "recommended": false,
+    "value": 0.0198
    },
    {
-    "key": "8476473:8478872",
-    "name": "C. Murphy",
-    "positions": "D",
-    "team": "EDM",
-    "drop": "K. Vejmelka",
+    "key": "8481726:8480855",
+    "name": "A. Edstrom",
+    "positions": "C/LW",
+    "team": "NSH",
+    "drop": "J. McBain",
     "cells": [
      null,
      "start",
      null,
      "start",
      null,
+     null,
+     "start",
      "start",
      null,
      "start",
      null,
+     "start",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "slot_games": 6,
+    "slot_starts": null,
+    "gain": [
+     0.5259055036871985,
+     5.562869235610492
+    ],
+    "plan": false,
+    "when": null,
+    "recommended": false,
+    "value": 0.0196
+   },
+   {
+    "key": "8482113:8480855",
+    "name": "A. Lundell",
+    "positions": "C",
+    "team": "FLA",
+    "drop": "J. McBain",
+    "cells": [
+     "start",
+     null,
+     null,
+     "start",
+     "start",
+     null,
+     "start",
+     null,
+     "start",
      null,
      "bench",
      "start",
@@ -15737,35 +15778,36 @@
      null,
      null
     ],
-    "slot_games": 5,
+    "slot_games": 6,
     "slot_starts": null,
     "gain": [
-     5.34544570364784,
-     -3.809290863025609
+     6.43408109450084,
+     1.92302286626483
     ],
     "plan": false,
     "when": null,
-    "recommended": false
+    "recommended": false,
+    "value": 0.0089
    },
    {
-    "key": "8476316:8478872",
-    "name": "L. Brossoit",
-    "positions": "G",
-    "team": "ANA",
-    "drop": "K. Vejmelka",
+    "key": "8478042:8480855",
+    "name": "V. Arvidsson",
+    "positions": "LW/RW",
+    "team": "DET",
+    "drop": "J. McBain",
     "cells": [
      null,
      "start",
-     "start",
      null,
      "start",
      null,
      null,
      "start",
      null,
+     "start",
      null,
      "start",
-     "start",
+     null,
      null,
      null,
      null,
@@ -15774,15 +15816,16 @@
      null,
      null
     ],
-    "slot_games": 6,
-    "slot_starts": 3.35,
+    "slot_games": 5,
+    "slot_starts": null,
     "gain": [
-     11.320052411610646,
-     -0.3915913747814841
+     0.7763272052069681,
+     1.1644908078105232
     ],
     "plan": false,
     "when": null,
-    "recommended": false
+    "recommended": false,
+    "value": 0.0078
    }
   ],
   "open": [
