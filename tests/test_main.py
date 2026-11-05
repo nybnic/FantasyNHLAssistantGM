@@ -586,6 +586,18 @@ def test_transactions_already_applied_are_skipped_and_a_gap_is_flagged(monkeypat
     assert "may be missing" in sent[-1] and 700 not in _ids(league, "Pastasauce")
 
 
+def test_a_name_cut_off_at_the_screens_edge_is_the_move_already_seen(monkeypatch, tmp_path):
+    # 2026-11-05: Viktorios' "A. Gritsyuk, W. Smith" read in full, then as "W. Smi" on a later
+    # screenshot: "Couldn't place" for a move the bot already had.
+    full = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add"), ("J. Faulk", "drop")])]
+    cut = [_tx("add/drop", (9, 30, 14, 3), ["Pastasauce"], [("J. McCa", "add"), ("J. Fau", "drop")])]
+    state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": full, "b": cut})
+    assert len(sent) == 1 and "1 new" in sent[0] and "Couldn't place" not in sent[0]
+    assert _ids(league, "Pastasauce") == {700, 702} and league["waivers"] == {"701": "2026-10-02"}
+    assert ingest._same_names(("afaulk", "jmcca"), ("jfaulk", "jmccann")) is False  # another initial
+    assert ingest._same_names(("jmc",), ("jmccann",)) is False  # too little of it shows
+
+
 def test_transactions_reaching_back_carry_every_roster_forward(monkeypatch, tmp_path):
     old = [_tx("add", (9, 30, 14, 3), ["Pastasauce"], [("J. McCann", "add")])]
     state, players, league, sent = _transactions(monkeypatch, tmp_path, {"a": old})

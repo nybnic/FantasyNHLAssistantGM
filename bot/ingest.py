@@ -373,15 +373,36 @@ def _tx_key(row: dict) -> str:
     return f"{_tx_time(row['when'])}|{row['type']}|{teams_}|{names}"
 
 
-def _tx_move(key: str) -> tuple[dt.datetime, str]:
+def _tx_move(key: str) -> tuple[dt.datetime, tuple]:
     """A key's time, and the move itself (type, teams, players) in any order."""
     when, kind, teams_, names = key.split("|")
-    return dt.datetime.fromisoformat(when), f"{kind}|{sorted(teams_.split(','))}|{sorted(names.split(','))}"
+    return dt.datetime.fromisoformat(when), (kind, tuple(sorted(teams_.split(","))), tuple(sorted(names.split(","))))
 
 
-def _seen_move(key: str, moves: dict[str, list[dt.datetime]]) -> bool:
-    when, move = _tx_move(key)
-    return any(abs(when - t) <= TX_SAME_MOVE for t in moves.get(move, []))
+# A name cut off at the screen's edge ("wsmi" for "wsmith", 2026-11-05) still names
+# the same player in the same move, if at least this much of it shows.
+TX_NAME_SHOWN = 4
+
+
+def _same_names(a: tuple, b: tuple) -> bool:
+    """Each name in `a` is one in `b`, or the start of it, or b's the start of it (one each)."""
+    if len(a) != len(b):
+        return False
+    left = list(b)
+    for name in a:
+        match = next((n for n in left if n == name or (min(len(n), len(name)) >= TX_NAME_SHOWN
+                                                       and (n.startswith(name) or name.startswith(n)))), None)
+        if match is None:
+            return False
+        left.remove(match)
+    return True
+
+
+def _seen_move(key: str, moves: dict[tuple, list[dt.datetime]]) -> bool:
+    when, (kind, teams_, names) = _tx_move(key)
+    return any(abs(when - t) <= TX_SAME_MOVE
+               for (k, ts, ns), times in moves.items() if k == kind and ts == teams_ and _same_names(names, ns)
+               for t in times)
 
 
 def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox) -> None:
@@ -400,7 +421,7 @@ def finish_transactions(state: dict, players: list, league: dict, outbox: Outbox
     seen = state["transactions_seen"]
     newest_seen = max(seen.values(), default=None)
     had_seen = bool(seen)
-    moves: dict[str, list[dt.datetime]] = {}
+    moves: dict[tuple, list[dt.datetime]] = {}
     for key in seen:
         when, move = _tx_move(key)
         moves.setdefault(move, []).append(when)
