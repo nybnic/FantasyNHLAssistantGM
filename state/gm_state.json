@@ -364,6 +364,10 @@
         "confirmed": false,
         "goalie_name": "Sebastian Cossa"
       },
+      "VAN": {
+        "confirmed": false,
+        "goalie_name": "Leevi Merilainen"
+      },
       "WPG": {
         "confirmed": true,
         "goalie_name": "Stuart Skinner"
@@ -827,7 +831,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-05T18:01+00:00",
+    "at": "2026-11-05T18:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -1524,7 +1528,7 @@
       },
       "8475764": {
         "groups": [
-          "d2",
+          "d3",
           "pk2",
           "pp2"
         ],
@@ -1773,12 +1777,10 @@
       },
       "8476892": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-11-05"
-        }
+        "since": {}
       },
       "8476902": {
         "groups": [
@@ -2213,10 +2215,12 @@
       },
       "8478443": {
         "groups": [
-          "d2",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-05"
+        }
       },
       "8478444": {
         "groups": [
@@ -3156,7 +3160,7 @@
       },
       "8482111": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
