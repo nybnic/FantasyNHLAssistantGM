@@ -50,3 +50,39 @@ def test_an_old_cached_copy_is_reported(monkeypatch, tmp_path):
     cache.cached_json("schedule/2026-10-01", 3 * cache.HOUR, down)
     assert health.problems() == {"NHL schedule": ["down, using a copy 5 h old"]}
     health.clear()
+
+
+def _stale(monkeypatch, tmp_path, name, hours_old, max_age=cache.HOUR / 2):
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    path = tmp_path / f"{name}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("[]", encoding="utf-8")
+    then = time.time() - hours_old * cache.HOUR
+    os.utime(path, (then, then))
+    health.clear()
+
+    def down():
+        raise ConnectionError
+    cache.cached_json(name, max_age, down)
+    problems = health.problems()
+    health.clear()
+    return problems
+
+
+def test_one_missed_refresh_is_not_reported(monkeypatch, tmp_path):
+    """2026-11-04: DFO's starters 403'd once; the copy used was 31 min old (of 30),
+    and the data check said "1 h old"."""
+    assert _stale(monkeypatch, tmp_path, "dfo_starters/2026-11-04", 31 / 60) == {}
+
+
+def test_a_copy_an_hour_overdue_is_reported(monkeypatch, tmp_path):
+    starters = "dfo_starters/2026-11-04"
+    assert _stale(monkeypatch, tmp_path, starters, 2) == {"DailyFaceoff starting goalies": ["down, using a copy 2 h old"]}
+    # In the goalie news hours it's read fresh every run (a 60 s max_age): in minutes then.
+    assert _stale(monkeypatch, tmp_path, starters, 70 / 60, max_age=60) == {
+        "DailyFaceoff starting goalies": ["down, using a copy 70 min old"]}
+
+
+def test_stale_line_charts_are_reported(monkeypatch, tmp_path):
+    """The cache name is dfo_lines_v2/ since 2026-10-13; health knew only dfo_lines/."""
+    assert health.source_of("dfo_lines_v2/BOS") == "DailyFaceoff line charts"

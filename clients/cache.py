@@ -22,6 +22,11 @@ DAY = 24 * HOUR
 # weekly plan) or a silent fallback (DFO's injuries gone: everyone healthy).
 # Judgment call: schedules and rosters barely change in two days.
 STALE_LIMIT = 2 * DAY
+# A fallback copy is reported (Telegram's data check) only once it is this far past
+# its own max_age: one missed refresh is routine (a 403 from DFO's bot check on
+# 2026-11-04 left a 31-min-old copy of a 30-min one, and the alert said "1 h old"),
+# a copy an hour overdue is not. Judgment call.
+STALE_ALERT = HOUR
 logger = logging.getLogger(__name__)
 
 
@@ -40,11 +45,23 @@ def cached_json(name: str, max_age: float | None, fetch: Callable[[], Any]) -> A
             raise
         logger.warning("Refetching %s failed; using the cached copy from %.1f h ago", name, age / HOUR,
                        exc_info=True)
-        health.report(name, f"down, using a copy {age / HOUR:.0f} h old")
+        if max_age is None or age >= max_age + STALE_ALERT:
+            health.report(name, f"down, using a copy {describe_age(age)} old")
         return json.loads(path.read_text(encoding="utf-8"))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
     return data
+
+
+def describe_age(seconds: float) -> str:
+    """'31 min', '5 h'."""
+    return f"{seconds / 60:.0f} min" if seconds < 1.5 * HOUR else f"{seconds / HOUR:.0f} h"
+
+
+def retryable(exc: requests.RequestException) -> bool:
+    """A dropped connection, a timeout, a 429 or a 5xx may pass; another 4xx won't."""
+    status = exc.response.status_code if exc.response is not None else None
+    return status is None or status == 429 or status >= 500
 
 
 def get(url: str, params: dict | None = None, retries: int = 3) -> requests.Response:
@@ -53,8 +70,8 @@ def get(url: str, params: dict | None = None, retries: int = 3) -> requests.Resp
             resp = requests.get(url, params=params, headers={"User-Agent": USER_AGENT}, timeout=60)
             resp.raise_for_status()
             return resp
-        except requests.RequestException:
-            if attempt == retries - 1:
+        except requests.RequestException as exc:
+            if attempt == retries - 1 or not retryable(exc):
                 raise
             time.sleep(2 * (attempt + 1))
     raise AssertionError("unreachable")

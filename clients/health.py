@@ -17,7 +17,7 @@ SOURCES = {
 }
 # Disk-cache names (clients/cache.py) and fetch functions (main._safe) -> source.
 _BY_NAME = {
-    "dfo_lines/": "DailyFaceoff line charts", "dfo_teams": "DailyFaceoff line charts",
+    "dfo_lines": "DailyFaceoff line charts", "dfo_teams": "DailyFaceoff line charts",
     "team_lines": "DailyFaceoff line charts",
     "dfo_starters/": "DailyFaceoff starting goalies", "get_starters": "DailyFaceoff starting goalies",
     "dfo_projections": "DailyFaceoff projections",

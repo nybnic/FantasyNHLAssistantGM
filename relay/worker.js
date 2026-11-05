@@ -21,7 +21,14 @@ export default {
   async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url);
     if (request.method === "POST" && pathname === "/telegram") return receive(request, env, ctx);
-    if (request.method === "POST" && pathname === "/updates") return updates(request, env);
+    if (request.method === "POST" && pathname === "/updates") {
+      // Uncaught, a D1 hiccup is Cloudflare's bare 500 (2026-11-04): say what failed.
+      try {
+        return await updates(request, env);
+      } catch (e) {
+        return Response.json({ ok: false, error: String(e).slice(0, 300) }, { status: 500 });
+      }
+    }
     return new Response("Not found", { status: 404 });
   },
   async scheduled(controller, env, ctx) {

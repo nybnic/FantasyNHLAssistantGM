@@ -11,6 +11,8 @@ import time
 
 import requests
 
+from clients.cache import retryable
+
 API_URL = "https://api.telegram.org/bot{token}/{method}"
 FILE_URL = "https://api.telegram.org/file/bot{token}/{path}"
 # Every message carries the dashboard (GitHub Pages, published from site/) as a
@@ -88,12 +90,24 @@ def get_updates(token: str, offset: int) -> list[dict]:
     return _call(token, "getUpdates", offset=offset, timeout=0, allowed_updates=["message", "callback_query"])
 
 
+# The relay's /updates gave a one-off 500 on 2026-11-04 (Cloudflare D1, most likely)
+# and the next run read it fine: a blip, so tried again after 2 s and 4 s.
+RELAY_TRIES = 3
+
+
 def get_relayed_updates(relay_url: str, relay_token: str, offset: int) -> tuple[list[dict], str | None]:
     """Updates queued by the webhook relay (relay/worker.js), which stands in
     for getUpdates while a webhook is set, plus its last error starting a run."""
-    resp = requests.post(f"{relay_url}/updates", json={"offset": offset},
-                         headers={"Authorization": f"Bearer {relay_token}"}, timeout=30)
-    resp.raise_for_status()
+    for attempt in range(RELAY_TRIES):
+        try:
+            resp = requests.post(f"{relay_url}/updates", json={"offset": offset},
+                                 headers={"Authorization": f"Bearer {relay_token}"}, timeout=30)
+            resp.raise_for_status()
+            break
+        except requests.RequestException as exc:
+            if attempt == RELAY_TRIES - 1 or not retryable(exc):
+                raise
+            time.sleep(2 * (attempt + 1))
     body = resp.json()
     return body["result"], body.get("dispatch_error")
 

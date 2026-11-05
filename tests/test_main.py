@@ -1,7 +1,9 @@
 import dataclasses
 import datetime as dt
+import json
 
 import pytest
+import requests
 
 import main
 from bot import common, daily, ingest, weekly
@@ -14,6 +16,7 @@ from notify import charts, snapshot, telegram
 from state import gm_state, repairs
 
 NOW = dt.datetime(2026, 10, 1, 12, tzinfo=dt.timezone.utc)
+REAL_RELAYED = telegram.get_relayed_updates
 
 
 def _setup(monkeypatch, tmp_path, updates):
@@ -120,6 +123,47 @@ def test_relay_dispatch_errors_alert_once_a_day(monkeypatch, tmp_path):
         ingest.report_relay(problem, state, outbox, NOW)
     assert len(sent) == 1 and "GitHub 401" in sent[0]
 
+
+
+def _response(status, body=None):
+    resp = requests.Response()
+    resp.status_code = status
+    resp._content = json.dumps(body).encode() if body is not None else b""
+    return resp
+
+
+def test_a_relay_blip_is_tried_again(monkeypatch):
+    """2026-11-04: one 500 from the relay's /updates failed a whole run."""
+    answers = [_response(500), _response(200, {"ok": True, "result": [{"update_id": 3}]})]
+    monkeypatch.setattr(telegram.requests, "post", lambda *a, **k: answers.pop(0))
+    monkeypatch.setattr(telegram.time, "sleep", lambda s: None)
+    assert telegram.get_relayed_updates("https://relay.example", "r", 0) == ([{"update_id": 3}], None)
+
+
+def test_a_relay_refusal_is_not_tried_again(monkeypatch):
+    calls = []
+    monkeypatch.setattr(telegram.requests, "post", lambda *a, **k: calls.append(1) or _response(403))
+    with pytest.raises(requests.HTTPError):
+        telegram.get_relayed_updates("https://relay.example", "r", 0)
+    assert len(calls) == 1
+
+
+def test_a_relay_that_stays_down_is_a_relay_alert_not_a_failed_run(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
+    _relay(monkeypatch, [])
+    monkeypatch.setattr(telegram.requests, "post",
+                        lambda *a, **k: _response(500, {"ok": False, "error": "D1_ERROR: Network connection lost."}))
+    monkeypatch.setattr(telegram.time, "sleep", lambda s: None)
+    monkeypatch.setattr(telegram, "get_relayed_updates", REAL_RELAYED)
+    settings = load_settings()
+    outbox = common.Outbox(settings)
+    state["telegram_offset"] = 7
+    for _ in range(2):
+        problem = ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, outbox)
+        ingest.report_relay(problem, state, outbox, NOW)
+    assert state["telegram_offset"] == 7  # nothing acknowledged: the relay keeps it
+    assert sent == ["Instant replies are down: the relay can't be read (HTTP 500: D1_ERROR: Network "
+                    "connection lost., 3 tries), so your messages and taps wait until it's back; it keeps them all."]
 
 def _webhook(monkeypatch, info):
     calls = []

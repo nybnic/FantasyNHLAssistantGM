@@ -108,8 +108,21 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
     token, chat_id = settings.telegram_bot_token, settings.telegram_chat_id
     problem = None
     if settings.relay_url:
-        updates, dispatch_error = telegram.get_relayed_updates(
-            settings.relay_url, settings.relay_token, state["telegram_offset"])
+        try:
+            updates, dispatch_error = telegram.get_relayed_updates(
+                settings.relay_url, settings.relay_token, state["telegram_offset"])
+        except requests.RequestException as exc:
+            # Not a failed run: the relay keeps every update until a run reads it,
+            # so nothing is lost, and the rest of the run doesn't need it.
+            status = exc.response.status_code if exc.response is not None else None
+            why = f"HTTP {status}" if status else type(exc).__name__
+            try:
+                why += f": {exc.response.json()['error'][:120]}"  # relay/worker.js says what failed
+            except Exception:
+                pass
+            return (f"the relay can't be read ({why}, "
+                    f"{telegram.RELAY_TRIES} tries), so your messages and taps wait until it's back; "
+                    "it keeps them all.")
         if dispatch_error:
             problem = (f"the relay can't start runs ({dispatch_error}), so replies wait for the "
                        "half-hourly runs. A 401 means its GitHub token needs renewing (see README).")
