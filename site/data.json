@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-05T18:31+00:00",
+ "generated": "2026-11-05T19:31+00:00",
  "date": "2026-11-05",
  "week": 6,
  "opponent": "HC Bulju",
@@ -58,11 +58,11 @@
   },
   "price": {
    "lam": 0.125,
-   "later_weight": 0.00721,
+   "later_weight": 0.0072,
    "pace": 1.278
   },
-  "later_weight": 0.00721,
-  "tau": 28.8,
+  "later_weight": 0.0072,
+  "tau": 28.94,
   "ahead": [
    {
     "week": 7,
@@ -88,18 +88,18 @@
    ]
   },
   "season": {
-   "playoffs": 0.9876,
-   "title": 0.2018,
-   "leverage": 0.014,
-   "typical": 0.0194,
-   "seed": 3.3783,
+   "playoffs": 0.9883,
+   "title": 0.2012,
+   "leverage": 0.0137,
+   "typical": 0.0188,
+   "seed": 3.3815,
    "note": " (Standings through week 3: send a new screenshot.)"
   }
  },
  "plan": [],
  "plan_empty": "No add is worth one of yours now.",
  "changed": "",
- "this_week_line": "For this week alone, the best is Tim Washe for Karel Vejmelka: win 35% -> 50%. Not worth an add: -7 win-pts in all, as dropping Karel Vejmelka costs 22 later, against the 13 an add costs.",
+ "this_week_line": "For this week alone, the best is Laurent Brossoit for Karel Vejmelka: win 35% -> 52%. Not worth an add: 3 win-pts in all, as dropping Karel Vejmelka costs 14 later, against the 13 an add costs.",
  "weeks": [
   {
    "week": 6,
@@ -169,8 +169,8 @@
     0.518,
     0.255
    ],
-   "later_wins": 0.0913,
-   "value": 0.1189,
+   "later_wins": 0.0912,
+   "value": 0.1188,
    "status": "fails",
    "why": "worth 11.9 win-pts, under the 12.5 an add costs"
   },
@@ -270,7 +270,7 @@
     0.255
    ],
    "later_wins": 0.0444,
-   "value": 0.0653,
+   "value": 0.0652,
    "status": "fails",
    "why": "worth 6.5 win-pts, under the 12.5 an add costs"
   },
@@ -319,10 +319,60 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0634,
-   "value": 0.0277,
+   "later_wins": -0.0633,
+   "value": 0.0278,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 9 pts later, more than this week's +12 win-pts make up for"
+  },
+  {
+   "key": "8476316:8478872",
+   "add": {
+    "id": 8476316,
+    "name": "Laurent Brossoit",
+    "team": "ANA",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8478872,
+    "name": "Karel Vejmelka"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 3,
+   "week_pts": 15.06,
+   "next_two_pts": -9.74,
+   "later_pts": -15.06,
+   "win": [
+    0.3517,
+    0.5217
+   ],
+   "now_wins": 0.17,
+   "ahead_wins": [
+    -0.0089,
+    -0.0259
+   ],
+   "ahead_pts": -4.95,
+   "ahead_week_pts": [
+    -1.24,
+    -3.71
+   ],
+   "held": true,
+   "keep": 0.185,
+   "bin": "goalie, the weakest of 3+",
+   "stays": [
+    0.362,
+    0.185,
+    0.111
+   ],
+   "later_wins": -0.1084,
+   "value": 0.0267,
+   "status": "fails",
+   "why": "dropping Karel Vejmelka costs about 15 pts later, more than this week's +17 win-pts make up for"
   },
   {
    "key": "8481726:8480855",
@@ -470,7 +520,7 @@
     0.379,
     0.165
    ],
-   "later_wins": -0.1018,
+   "later_wins": -0.1017,
    "value": 0.01,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 14 pts later, more than this week's +10 win-pts make up for"
@@ -521,7 +571,7 @@
     0.208,
     0.074
    ],
-   "later_wins": 0.0099,
+   "later_wins": 0.0098,
    "value": 0.0089,
    "status": "fails",
    "why": "worth 0.9 win-pts, under the 12.5 an add costs"
@@ -624,7 +674,7 @@
     0.074
    ],
    "later_wins": -0.0616,
-   "value": 0.0069,
+   "value": 0.007,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 9 pts later, more than this week's +9 win-pts make up for"
   },
@@ -866,60 +916,10 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0145,
+   "later_wins": -0.0144,
    "value": -0.0013,
    "status": "fails",
    "why": "dropping Jack McBain costs about 2 pts later, more than this week's +4 win-pts make up for"
-  },
-  {
-   "key": "8476316:8478872",
-   "add": {
-    "id": 8476316,
-    "name": "Laurent Brossoit",
-    "team": "ANA",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8478872,
-    "name": "Karel Vejmelka"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 12.45,
-   "next_two_pts": -9.74,
-   "later_pts": -15.06,
-   "win": [
-    0.3517,
-    0.4926
-   ],
-   "now_wins": 0.1408,
-   "ahead_wins": [
-    -0.0089,
-    -0.0259
-   ],
-   "ahead_pts": -4.95,
-   "ahead_week_pts": [
-    -1.24,
-    -3.71
-   ],
-   "held": true,
-   "keep": 0.185,
-   "bin": "goalie, the weakest of 3+",
-   "stays": [
-    0.362,
-    0.185,
-    0.111
-   ],
-   "later_wins": -0.1085,
-   "value": -0.0025,
-   "status": "fails",
-   "why": "dropping Karel Vejmelka costs about 15 pts later, more than this week's +14 win-pts make up for"
   },
   {
    "key": "8475168:0:IR",
@@ -1014,7 +1014,7 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0768,
+   "later_wins": -0.0767,
    "value": -0.0062,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 11 pts later, more than this week's +9 win-pts make up for"
@@ -1115,8 +1115,8 @@
     0.698,
     0.446
    ],
-   "later_wins": -0.1102,
-   "value": -0.008,
+   "later_wins": -0.1101,
+   "value": -0.0079,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 15 pts later, more than this week's +11 win-pts make up for"
   },
@@ -1414,8 +1414,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0385,
-   "value": -0.0208,
+   "later_wins": -0.0384,
+   "value": -0.0207,
    "status": "fails",
    "why": "dropping Jack McBain costs about 5 pts later, more than this week's +6 win-pts make up for"
   },
@@ -1511,7 +1511,7 @@
     0.185,
     0.111
    ],
-   "later_wins": -0.0564,
+   "later_wins": -0.0563,
    "value": -0.026,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 8 pts later, more than this week's +4 win-pts make up for"
@@ -1562,8 +1562,8 @@
     0.379,
     0.165
    ],
-   "later_wins": -0.1024,
-   "value": -0.0276,
+   "later_wins": -0.1023,
+   "value": -0.0275,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 14 pts later, more than this week's +9 win-pts make up for"
   },
@@ -1614,7 +1614,7 @@
     0.074
    ],
    "later_wins": -0.0863,
-   "value": -0.0345,
+   "value": -0.0344,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +7 win-pts make up for"
   },
@@ -1668,6 +1668,56 @@
    "value": -0.0368,
    "status": "fails",
    "why": "dropping Jack McBain costs about 4 pts later, more than this week's +2 win-pts make up for"
+  },
+  {
+   "key": "8476932:8478872",
+   "add": {
+    "id": 8476932,
+    "name": "Anthony Stolarz",
+    "team": "TOR",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8478872,
+    "name": "Karel Vejmelka"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": "2026-11-07",
+   "when": null,
+   "games": 2,
+   "week_pts": 6.41,
+   "next_two_pts": -10.51,
+   "later_pts": -10.23,
+   "win": [
+    0.3517,
+    0.4244
+   ],
+   "now_wins": 0.0727,
+   "ahead_wins": [
+    -0.0161,
+    -0.0238
+   ],
+   "ahead_pts": -5.63,
+   "ahead_week_pts": [
+    -2.22,
+    -3.41
+   ],
+   "held": true,
+   "keep": 0.185,
+   "bin": "goalie, the weakest of 3+",
+   "stays": [
+    0.362,
+    0.185,
+    0.111
+   ],
+   "later_wins": -0.0737,
+   "value": -0.0409,
+   "status": "fails",
+   "why": "dropping Karel Vejmelka costs about 10 pts later, more than this week's +7 win-pts make up for"
   },
   {
    "key": "8478438:8480855",
@@ -1766,8 +1816,8 @@
     0.379,
     0.165
    ],
-   "later_wins": -0.1302,
-   "value": -0.0461,
+   "later_wins": -0.1301,
+   "value": -0.046,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 18 pts later, more than this week's +9 win-pts make up for"
   },
@@ -1869,7 +1919,7 @@
     0.074
    ],
    "later_wins": -0.0337,
-   "value": -0.0533,
+   "value": -0.0532,
    "status": "fails",
    "why": "dropping Jack McBain costs about 5 pts later, more than this week's +2 win-pts make up for"
   },
@@ -1919,24 +1969,24 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.082,
+   "later_wins": -0.0819,
    "value": -0.0542,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 11 pts later, more than this week's +8 win-pts make up for"
   },
   {
-   "key": "8478024:8478872",
+   "key": "8476316:8480855",
    "add": {
-    "id": 8478024,
-    "name": "Ville Husso",
+    "id": 8476316,
+    "name": "Laurent Brossoit",
     "team": "ANA",
     "positions": [
      "G"
     ]
    },
    "drop": {
-    "id": 8478872,
-    "name": "Karel Vejmelka"
+    "id": 8480855,
+    "name": "Jack McBain"
    },
    "ir_slot": null,
    "later_drop": null,
@@ -1944,22 +1994,22 @@
    "plays_from": null,
    "when": null,
    "games": 3,
-   "week_pts": 7.65,
-   "next_two_pts": -12.44,
-   "later_pts": -13.3,
+   "week_pts": 6.04,
+   "next_two_pts": -10.16,
+   "later_pts": -11.51,
    "win": [
     0.3517,
-    0.4386
+    0.4206
    ],
-   "now_wins": 0.0869,
+   "now_wins": 0.0689,
    "ahead_wins": [
-    -0.019,
-    -0.0283
+    -0.0219,
+    -0.0189
    ],
-   "ahead_pts": -6.66,
+   "ahead_pts": -5.73,
    "ahead_week_pts": [
-    -2.62,
-    -4.05
+    -3.0,
+    -2.73
    ],
    "held": true,
    "keep": 0.185,
@@ -1969,10 +2019,10 @@
     0.185,
     0.111
    ],
-   "later_wins": -0.0959,
-   "value": -0.0563,
+   "later_wins": -0.0829,
+   "value": -0.0548,
    "status": "fails",
-   "why": "dropping Karel Vejmelka costs about 13 pts later, more than this week's +9 win-pts make up for"
+   "why": "dropping Jack McBain costs about 12 pts later, more than this week's +7 win-pts make up for"
   },
   {
    "key": "8473533:0:IR",
@@ -2017,7 +2067,7 @@
     0.165
    ],
    "later_wins": -0.0547,
-   "value": -0.0585,
+   "value": -0.0584,
    "status": "fails",
    "why": "worth -5.8 win-pts, under the 12.5 an add costs"
   },
@@ -2068,7 +2118,7 @@
     0.074
    ],
    "later_wins": -0.0359,
-   "value": -0.0594,
+   "value": -0.0593,
    "status": "fails",
    "why": "dropping Jack McBain costs about 5 pts later, more than this week's +1 win-pts make up for"
   },
@@ -2168,8 +2218,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0414,
-   "value": -0.0654,
+   "later_wins": -0.0413,
+   "value": -0.0653,
    "status": "fails",
    "why": "dropping Jack McBain costs about 6 pts later, more than this week's +2 win-pts make up for"
   },
@@ -2220,8 +2270,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0869,
-   "value": -0.0675,
+   "later_wins": -0.0868,
+   "value": -0.0674,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +7 win-pts make up for"
   },
@@ -2321,8 +2371,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0958,
-   "value": -0.0709,
+   "later_wins": -0.0957,
+   "value": -0.0708,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 13 pts later, more than this week's +8 win-pts make up for"
   },
@@ -2371,8 +2421,8 @@
     0.379,
     0.165
    ],
-   "later_wins": -0.1578,
-   "value": -0.0714,
+   "later_wins": -0.1577,
+   "value": -0.0712,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 22 pts later, more than this week's +15 win-pts make up for"
   },
@@ -2422,8 +2472,58 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0887,
-   "value": -0.0724,
+   "later_wins": -0.0886,
+   "value": -0.0723,
+   "status": "fails",
+   "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +7 win-pts make up for"
+  },
+  {
+   "key": "8473575:8478872",
+   "add": {
+    "id": 8473575,
+    "name": "Semyon Varlamov",
+    "team": "NYI",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8478872,
+    "name": "Karel Vejmelka"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "when": null,
+   "games": 2,
+   "week_pts": 6.69,
+   "next_two_pts": -14.95,
+   "later_pts": -12.35,
+   "win": [
+    0.3517,
+    0.4266
+   ],
+   "now_wins": 0.0749,
+   "ahead_wins": [
+    -0.0339,
+    -0.0271
+   ],
+   "ahead_pts": -8.5,
+   "ahead_week_pts": [
+    -4.62,
+    -3.88
+   ],
+   "held": true,
+   "keep": 0.185,
+   "bin": "goalie, the weakest of 3+",
+   "stays": [
+    0.362,
+    0.185,
+    0.111
+   ],
+   "later_wins": -0.0889,
+   "value": -0.0751,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +7 win-pts make up for"
   },
@@ -2474,59 +2574,9 @@
     0.074
    ],
    "later_wins": -0.0418,
-   "value": -0.0752,
+   "value": -0.0751,
    "status": "fails",
    "why": "dropping Jack McBain costs about 6 pts later, more than this week's +1 win-pts make up for"
-  },
-  {
-   "key": "8473575:8478872",
-   "add": {
-    "id": 8473575,
-    "name": "Semyon Varlamov",
-    "team": "NYI",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8478872,
-    "name": "Karel Vejmelka"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 2,
-   "week_pts": 6.69,
-   "next_two_pts": -14.95,
-   "later_pts": -12.35,
-   "win": [
-    0.3517,
-    0.4266
-   ],
-   "now_wins": 0.0749,
-   "ahead_wins": [
-    -0.0339,
-    -0.0271
-   ],
-   "ahead_pts": -8.5,
-   "ahead_week_pts": [
-    -4.62,
-    -3.88
-   ],
-   "held": true,
-   "keep": 0.185,
-   "bin": "goalie, the weakest of 3+",
-   "stays": [
-    0.362,
-    0.185,
-    0.111
-   ],
-   "later_wins": -0.089,
-   "value": -0.0752,
-   "status": "fails",
-   "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +7 win-pts make up for"
   },
   {
    "key": "8481538:8480807",
@@ -2573,8 +2623,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0554,
-   "value": -0.0819,
+   "later_wins": -0.0553,
+   "value": -0.0818,
    "status": "fails",
    "why": "dropping Mattias Samuelsson costs about 8 pts later, more than this week's +2 win-pts make up for"
   },
@@ -2623,60 +2673,10 @@
     0.185,
     0.111
    ],
-   "later_wins": -0.0535,
+   "later_wins": -0.0534,
    "value": -0.0828,
    "status": "fails",
    "why": "dropping Jack McBain costs about 7 pts later, more than this week's +1 win-pts make up for"
-  },
-  {
-   "key": "8476316:8480855",
-   "add": {
-    "id": 8476316,
-    "name": "Laurent Brossoit",
-    "team": "ANA",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "when": null,
-   "games": 3,
-   "week_pts": 3.42,
-   "next_two_pts": -10.16,
-   "later_pts": -11.51,
-   "win": [
-    0.3517,
-    0.3916
-   ],
-   "now_wins": 0.0399,
-   "ahead_wins": [
-    -0.0219,
-    -0.0189
-   ],
-   "ahead_pts": -5.73,
-   "ahead_week_pts": [
-    -3.0,
-    -2.73
-   ],
-   "held": true,
-   "keep": 0.185,
-   "bin": "goalie, the weakest of 3+",
-   "stays": [
-    0.362,
-    0.185,
-    0.111
-   ],
-   "later_wins": -0.083,
-   "value": -0.0839,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 12 pts later, more than this week's +4 win-pts make up for"
   },
   {
    "key": "8480193:8478872",
@@ -2724,7 +2724,7 @@
     0.111
    ],
    "later_wins": -0.0878,
-   "value": -0.0848,
+   "value": -0.0847,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 12 pts later, more than this week's +6 win-pts make up for"
   },
@@ -2774,7 +2774,7 @@
     0.074
    ],
    "later_wins": -0.0646,
-   "value": -0.0851,
+   "value": -0.085,
    "status": "fails",
    "why": "dropping Jack McBain costs about 9 pts later, more than this week's +2 win-pts make up for"
   },
@@ -2824,8 +2824,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0934,
-   "value": -0.0851,
+   "later_wins": -0.0933,
+   "value": -0.085,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 13 pts later, more than this week's +7 win-pts make up for"
   },
@@ -2875,8 +2875,8 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.101,
-   "value": -0.0864,
+   "later_wins": -0.1009,
+   "value": -0.0863,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 14 pts later, more than this week's +7 win-pts make up for"
   },
@@ -3026,7 +3026,7 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0448,
+   "later_wins": -0.0447,
    "value": -0.0897,
    "status": "fails",
    "why": "dropping Jack McBain costs about 6 pts later, more than this week's +1 win-pts make up for"
@@ -3076,8 +3076,8 @@
     0.185,
     0.111
    ],
-   "later_wins": -0.113,
-   "value": -0.0918,
+   "later_wins": -0.1129,
+   "value": -0.0917,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 16 pts later, more than this week's +8 win-pts make up for"
   },
@@ -8321,6 +8321,97 @@
    "kept": 1.0,
    "replacement": 5.576
   },
+  "8476316": {
+   "id": 8476316,
+   "name": "Laurent Brossoit",
+   "team": "ANA",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 2,
+    "pts": 16.6,
+    "proj": 17.4,
+    "pts_projected": 16.6,
+    "stats": {
+     "Wins": [
+      2.0,
+      1.2
+     ],
+     "Saves": [
+      39.0,
+      43.0
+     ],
+     "Goals against": [
+      7.0,
+      5.2
+     ],
+     "Shutouts": [
+      0.0,
+      0.1
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-11-03",
+      "opp": "@VAN",
+      "pts": 7.6,
+      "proj": 8.8
+     },
+     {
+      "date": "2026-11-01",
+      "opp": "OTT",
+      "pts": 9.0,
+      "proj": 8.6
+     }
+    ],
+    "starts": 2,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 2.0,
+    "Saves": 8.02,
+    "Goals against": -2.77,
+    "Shutout": 0.24
+   },
+   "stats": {
+    "Wins": 0.5,
+    "Saves": 22.9,
+    "Goals against": 2.77,
+    "Shutouts": 0.05
+   },
+   "xfp": 8.48,
+   "share": 0.243,
+   "starts": [
+    {
+     "date": "2026-11-05",
+     "opp": "@EDM",
+     "prob": 0.8,
+     "xfp": 8.48,
+     "why": "likely starter"
+    },
+    {
+     "date": "2026-11-06",
+     "opp": "@CGY",
+     "prob": 0.68,
+     "xfp": 8.71,
+     "why": null
+    },
+    {
+     "date": "2026-11-08",
+     "opp": "PIT",
+     "prob": 0.451,
+     "xfp": 8.84,
+     "why": null
+    }
+   ],
+   "next": {
+    "date": "2026-11-05",
+    "opp": "@EDM"
+   },
+   "gp": 2
+  },
   "8481726": {
    "id": 8481726,
    "name": "Adam Edstrom",
@@ -9706,97 +9797,6 @@
    "kept": 1.0,
    "replacement": 5.576
   },
-  "8476316": {
-   "id": 8476316,
-   "name": "Laurent Brossoit",
-   "team": "ANA",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 2,
-    "pts": 16.6,
-    "proj": 17.4,
-    "pts_projected": 16.6,
-    "stats": {
-     "Wins": [
-      2.0,
-      1.2
-     ],
-     "Saves": [
-      39.0,
-      43.0
-     ],
-     "Goals against": [
-      7.0,
-      5.2
-     ],
-     "Shutouts": [
-      0.0,
-      0.1
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-11-03",
-      "opp": "@VAN",
-      "pts": 7.6,
-      "proj": 8.8
-     },
-     {
-      "date": "2026-11-01",
-      "opp": "OTT",
-      "pts": 9.0,
-      "proj": 8.6
-     }
-    ],
-    "starts": 2,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 2.0,
-    "Saves": 8.02,
-    "Goals against": -2.77,
-    "Shutout": 0.24
-   },
-   "stats": {
-    "Wins": 0.5,
-    "Saves": 22.9,
-    "Goals against": 2.77,
-    "Shutouts": 0.05
-   },
-   "xfp": 8.48,
-   "share": 0.243,
-   "starts": [
-    {
-     "date": "2026-11-05",
-     "opp": "@EDM",
-     "prob": 0.492,
-     "xfp": 8.48,
-     "why": null
-    },
-    {
-     "date": "2026-11-06",
-     "opp": "@CGY",
-     "prob": 0.68,
-     "xfp": 8.71,
-     "why": null
-    },
-    {
-     "date": "2026-11-08",
-     "opp": "PIT",
-     "prob": 0.451,
-     "xfp": 8.84,
-     "why": null
-    }
-   ],
-   "next": {
-    "date": "2026-11-05",
-    "opp": "@EDM"
-   },
-   "gp": 2
-  },
   "8475168": {
    "id": 8475168,
    "name": "Matt Duchene",
@@ -11013,6 +11013,114 @@
    "kept": 1.0,
    "replacement": 5.576
   },
+  "8476932": {
+   "id": 8476932,
+   "name": "Anthony Stolarz",
+   "team": "TOR",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 6,
+    "pts": 66.7,
+    "proj": 57.7,
+    "pts_projected": 66.7,
+    "stats": {
+     "Wins": [
+      5.0,
+      3.3
+     ],
+     "Saves": [
+      162.0,
+      150.4
+     ],
+     "Goals against": [
+      16.0,
+      15.7
+     ],
+     "Shutouts": [
+      0.0,
+      0.3
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-31",
+      "opp": "@VAN",
+      "pts": 12.1,
+      "proj": 9.7
+     },
+     {
+      "date": "2026-10-24",
+      "opp": "@EDM",
+      "pts": 13.5,
+      "proj": 9.5
+     },
+     {
+      "date": "2026-10-20",
+      "opp": "@CBJ",
+      "pts": 15.6,
+      "proj": 9.5
+     },
+     {
+      "date": "2026-10-13",
+      "opp": "@UTA",
+      "pts": 4.0,
+      "proj": 9.9
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "NSH",
+      "pts": 8.3,
+      "proj": 9.7
+     },
+     {
+      "date": "2026-09-30",
+      "opp": "NYI",
+      "pts": 13.1,
+      "proj": 9.4
+     }
+    ],
+    "starts": 6,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 2.19,
+    "Saves": 8.81,
+    "Goals against": -2.61,
+    "Shutout": 0.28
+   },
+   "stats": {
+    "Wins": 0.55,
+    "Saves": 25.17,
+    "Goals against": 2.61,
+    "Shutouts": 0.06
+   },
+   "xfp": 9.67,
+   "share": 0.319,
+   "starts": [
+    {
+     "date": "2026-11-07",
+     "opp": "MTL",
+     "prob": 0.602,
+     "xfp": 9.67,
+     "why": null
+    },
+    {
+     "date": "2026-11-08",
+     "opp": "NJD",
+     "prob": 0.627,
+     "xfp": 10.18,
+     "why": null
+    }
+   ],
+   "next": {
+    "date": "2026-11-07",
+    "opp": "MTL"
+   },
+   "gp": 6
+  },
   "8478438": {
    "id": 8478438,
    "name": "Tommy Novak",
@@ -11428,115 +11536,6 @@
    "durability": 0.984,
    "kept": 1.0,
    "replacement": 5.576
-  },
-  "8478024": {
-   "id": 8478024,
-   "name": "Ville Husso",
-   "team": "ANA",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 5,
-    "pts": 26.7,
-    "proj": 34.4,
-    "pts_projected": 26.0,
-    "stats": {
-     "Wins": [
-      1.0,
-      2.0
-     ],
-     "Saves": [
-      100.0,
-      94.4
-     ],
-     "Goals against": [
-      17.0,
-      11.5
-     ],
-     "Shutouts": [
-      0.0,
-      0.2
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-29",
-      "opp": "BUF",
-      "pts": 2.4,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-10-22",
-      "opp": "@NJD",
-      "pts": 6.4,
-      "proj": 8.8
-     },
-     {
-      "date": "2026-10-19",
-      "opp": "@NYR",
-      "pts": 4.8,
-      "proj": 8.2
-     },
-     {
-      "date": "2026-10-10",
-      "opp": "@CGY",
-      "pts": 12.4,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-10-07",
-      "opp": "EDM",
-      "pts": 0.7,
-      "proj": null
-     }
-    ],
-    "starts": 4,
-    "relief": 1
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.95,
-    "Saves": 7.99,
-    "Goals against": -2.85,
-    "Shutout": 0.22
-   },
-   "stats": {
-    "Wins": 0.49,
-    "Saves": 22.82,
-    "Goals against": 2.85,
-    "Shutouts": 0.04
-   },
-   "xfp": 8.3,
-   "share": 0.315,
-   "starts": [
-    {
-     "date": "2026-11-05",
-     "opp": "@EDM",
-     "prob": 0.224,
-     "xfp": 8.3,
-     "why": null
-    },
-    {
-     "date": "2026-11-06",
-     "opp": "@CGY",
-     "prob": 0.629,
-     "xfp": 8.53,
-     "why": null
-    },
-    {
-     "date": "2026-11-08",
-     "opp": "PIT",
-     "prob": 0.239,
-     "xfp": 8.66,
-     "why": null
-    }
-   ],
-   "next": {
-    "date": "2026-11-05",
-    "opp": "@EDM"
-   },
-   "gp": 5
   },
   "8473533": {
    "id": 8473533,
@@ -12284,6 +12283,102 @@
    "kept": 1.0,
    "replacement": 5.576
   },
+  "8473575": {
+   "id": 8473575,
+   "name": "Semyon Varlamov",
+   "team": "NYI",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 4,
+    "pts": 26.7,
+    "proj": 32.8,
+    "pts_projected": 26.7,
+    "stats": {
+     "Wins": [
+      1.0,
+      1.8
+     ],
+     "Saves": [
+      82.0,
+      88.1
+     ],
+     "Goals against": [
+      10.0,
+      10.4
+     ],
+     "Shutouts": [
+      0.0,
+      0.2
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-10-27",
+      "opp": "@NSH",
+      "pts": 9.0,
+      "proj": 8.3
+     },
+     {
+      "date": "2026-10-22",
+      "opp": "LAK",
+      "pts": 6.4,
+      "proj": 8.4
+     },
+     {
+      "date": "2026-10-15",
+      "opp": "@OTT",
+      "pts": 6.6,
+      "proj": 8.1
+     },
+     {
+      "date": "2026-10-06",
+      "opp": "@NYR",
+      "pts": 4.6,
+      "proj": 7.9
+     }
+    ],
+    "starts": 4,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 1.35,
+    "Saves": 9.16,
+    "Goals against": -3.09,
+    "Shutout": 0.17
+   },
+   "stats": {
+    "Wins": 0.34,
+    "Saves": 26.17,
+    "Goals against": 3.09,
+    "Shutouts": 0.03
+   },
+   "xfp": 8.58,
+   "share": 0.314,
+   "starts": [
+    {
+     "date": "2026-11-05",
+     "opp": "CAR",
+     "prob": 0.97,
+     "xfp": 8.58,
+     "why": "confirmed starter"
+    },
+    {
+     "date": "2026-11-07",
+     "opp": "NJD",
+     "prob": 0.257,
+     "xfp": 8.67,
+     "why": null
+    }
+   ],
+   "next": {
+    "date": "2026-11-05",
+    "opp": "CAR"
+   },
+   "gp": 4
+  },
   "8479996": {
    "id": 8479996,
    "name": "Cody Glass",
@@ -12437,102 +12532,6 @@
    "durability": 0.867,
    "kept": 1.0,
    "replacement": 5.576
-  },
-  "8473575": {
-   "id": 8473575,
-   "name": "Semyon Varlamov",
-   "team": "NYI",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 4,
-    "pts": 26.7,
-    "proj": 32.8,
-    "pts_projected": 26.7,
-    "stats": {
-     "Wins": [
-      1.0,
-      1.8
-     ],
-     "Saves": [
-      82.0,
-      88.1
-     ],
-     "Goals against": [
-      10.0,
-      10.4
-     ],
-     "Shutouts": [
-      0.0,
-      0.2
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-10-27",
-      "opp": "@NSH",
-      "pts": 9.0,
-      "proj": 8.3
-     },
-     {
-      "date": "2026-10-22",
-      "opp": "LAK",
-      "pts": 6.4,
-      "proj": 8.4
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "@OTT",
-      "pts": 6.6,
-      "proj": 8.1
-     },
-     {
-      "date": "2026-10-06",
-      "opp": "@NYR",
-      "pts": 4.6,
-      "proj": 7.9
-     }
-    ],
-    "starts": 4,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.35,
-    "Saves": 9.16,
-    "Goals against": -3.09,
-    "Shutout": 0.17
-   },
-   "stats": {
-    "Wins": 0.34,
-    "Saves": 26.17,
-    "Goals against": 3.09,
-    "Shutouts": 0.03
-   },
-   "xfp": 8.58,
-   "share": 0.314,
-   "starts": [
-    {
-     "date": "2026-11-05",
-     "opp": "CAR",
-     "prob": 0.97,
-     "xfp": 8.58,
-     "why": "confirmed starter"
-    },
-    {
-     "date": "2026-11-07",
-     "opp": "NJD",
-     "prob": 0.257,
-     "xfp": 8.67,
-     "why": null
-    }
-   ],
-   "next": {
-    "date": "2026-11-05",
-    "opp": "CAR"
-   },
-   "gp": 4
   },
   "8480193": {
    "id": 8480193,
@@ -14887,7 +14886,7 @@
     "plan": false,
     "when": null,
     "recommended": false,
-    "value": 0.1189
+    "value": 0.1188
    },
    {
     "key": "8475660:8478872",
@@ -14961,7 +14960,7 @@
     "plan": false,
     "when": null,
     "recommended": false,
-    "value": 0.0653
+    "value": 0.0652
    },
    {
     "key": "8481538:8478872",
@@ -14998,7 +14997,44 @@
     "plan": false,
     "when": null,
     "recommended": false,
-    "value": 0.0277
+    "value": 0.0278
+   },
+   {
+    "key": "8476316:8478872",
+    "name": "L. Brossoit",
+    "positions": "G",
+    "team": "ANA",
+    "drop": "K. Vejmelka",
+    "cells": [
+     "start",
+     "start",
+     null,
+     "start",
+     null,
+     null,
+     "start",
+     null,
+     null,
+     "start",
+     "start",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "slot_games": 6,
+    "slot_starts": 3.31,
+    "gain": [
+     15.064252801995849,
+     -1.7761941006487234
+    ],
+    "plan": false,
+    "when": null,
+    "recommended": false,
+    "value": 0.0267
    },
    {
     "key": "8481726:8480855",
@@ -15036,43 +15072,6 @@
     "when": null,
     "recommended": false,
     "value": 0.0193
-   },
-   {
-    "key": "8485406:8480855",
-    "name": "P. Martone",
-    "positions": "RW",
-    "team": "PHI",
-    "drop": "J. McBain",
-    "cells": [
-     "start",
-     null,
-     null,
-     "start",
-     "start",
-     null,
-     "start",
-     null,
-     null,
-     "start",
-     "start",
-     null,
-     null,
-     null,
-     null,
-     null,
-     null,
-     null
-    ],
-    "slot_games": 6,
-    "slot_starts": null,
-    "gain": [
-     0.32607869591959115,
-     5.163215620075221
-    ],
-    "plan": false,
-    "when": null,
-    "recommended": false,
-    "value": 0.019
    }
   ],
   "open": [
