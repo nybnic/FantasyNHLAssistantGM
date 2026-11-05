@@ -281,6 +281,26 @@
       },
       "sent": true,
       "updates": 0
+    },
+    "2026-11-05": {
+      "recommended": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "RW",
+        "8476887": "LW",
+        "8477949": "BN",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "LW",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "C"
+      },
+      "sent": true,
+      "updates": 0
     }
   },
   "daily_plan": null,
@@ -291,6 +311,10 @@
       "CBJ": {
         "confirmed": true,
         "goalie_name": "Cam Talbot"
+      },
+      "DAL": {
+        "confirmed": true,
+        "goalie_name": "Casey DeSmith"
       },
       "DET": {
         "confirmed": false,
@@ -320,6 +344,18 @@
         "confirmed": true,
         "goalie_name": "Arturs Silovs"
       },
+      "STL": {
+        "confirmed": true,
+        "goalie_name": "Jordan Binnington"
+      },
+      "TBL": {
+        "confirmed": false,
+        "goalie_name": "Andrei Vasilevskiy"
+      },
+      "UTA": {
+        "confirmed": false,
+        "goalie_name": "Sebastian Cossa"
+      },
       "WPG": {
         "confirmed": true,
         "goalie_name": "Stuart Skinner"
@@ -334,7 +370,7 @@
   "ir_noted": [],
   "last_error": "2026-11-04",
   "matchup_shots": null,
-  "news_checked": "2026-11-04",
+  "news_checked": "2026-11-05",
   "pending": {
     "add-2026-10-22-1028-8481028": {
       "add": {
@@ -758,11 +794,32 @@
       "date": "2026-11-04",
       "message_id": 914,
       "type": "lineup"
+    },
+    "lineup-2026-11-05-1731": {
+      "assignment": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "RW",
+        "8476887": "LW",
+        "8477949": "BN",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "LW",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "C"
+      },
+      "date": "2026-11-05",
+      "message_id": 929,
+      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-05T17:01+00:00",
+    "at": "2026-11-05T17:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -981,6 +1038,7 @@
       "8476854:ice time": "2026-10-18",
       "8476873:ice time": "2026-11-02",
       "8476882:promoted": "2026-10-29",
+      "8476892:promoted": "2026-11-05",
       "8476905:promoted": "2026-11-01",
       "8476917:promoted": "2026-10-31",
       "8476923:promoted": "2026-10-24",
@@ -1707,9 +1765,12 @@
       },
       "8476892": {
         "groups": [
-          "ir"
+          "d1",
+          "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-05"
+        }
       },
       "8476902": {
         "groups": [
@@ -2144,12 +2205,10 @@
       },
       "8478443": {
         "groups": [
-          "d1",
-          "pk1"
+          "d2",
+          "pk2"
         ],
-        "since": {
-          "d1": "2026-10-27"
-        }
+        "since": {}
       },
       "8478444": {
         "groups": [
@@ -2290,10 +2349,12 @@
       },
       "8478911": {
         "groups": [
-          "d2",
+          "d1",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-05"
+        }
       },
       "8478970": {
         "groups": [
@@ -2344,11 +2405,11 @@
       },
       "8479385": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": null,
+          "f1": "2026-11-05",
           "pp1": null
         }
       },
@@ -2520,7 +2581,7 @@
       },
       "8480043": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -2748,14 +2809,6 @@
           "pp2"
         ],
         "since": {}
-      },
-      "8481013": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": null
-        }
       },
       "8481024": {
         "groups": [
@@ -2991,11 +3044,11 @@
       },
       "8481656": {
         "groups": [
-          "f1",
+          "f2",
           "pk2"
         ],
         "since": {
-          "f1": "2026-10-23"
+          "f2": "2026-11-05"
         }
       },
       "8481726": {
@@ -3542,6 +3595,14 @@
         ],
         "since": {}
       },
+      "8483463": {
+        "groups": [
+          "f2"
+        ],
+        "since": {
+          "f2": null
+        }
+      },
       "8483468": {
         "groups": [
           "ir"
@@ -3797,14 +3858,8 @@
       },
       "8484164": {
         "groups": [
-          "f3"
-        ],
-        "since": {}
-      },
-      "8484188": {
-        "groups": [
-          "d3",
-          "pk2"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -3927,8 +3982,7 @@
       },
       "8484790": {
         "groups": [
-          "d2",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -6660,6 +6714,21 @@
         "value": 0.019,
         "verdict": "+2 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-05",
+        "id": 8476892,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Colton Parayko",
+        "positions": "D",
+        "price": 0.125,
+        "sent": false,
+        "team": "STL",
+        "value": -0.2237,
+        "verdict": "-22 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
