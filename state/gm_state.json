@@ -775,7 +775,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-06T09:01+00:00",
+    "at": "2026-11-06T09:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -1057,7 +1057,7 @@
       "8479351:promoted": "2026-10-29",
       "8479359:ice time": "2026-10-30",
       "8479365:promoted": "2026-10-15",
-      "8479369:ice time": "2026-10-23",
+      "8479369:ice time": "2026-11-06",
       "8479385:promoted": "2026-10-29",
       "8479398:promoted": "2026-11-04",
       "8479442:ice time": "2026-10-21",
@@ -6590,6 +6590,21 @@
         "value": -0.0715,
         "verdict": "-7 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8479369,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Andrew Peeke",
+        "positions": "D",
+        "price": 0.125,
+        "sent": true,
+        "team": "UTA",
+        "value": -0.2372,
+        "verdict": "-24 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "Ice time 20:28 a game in his last 3, up from 17:20. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
