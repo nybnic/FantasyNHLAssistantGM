@@ -775,7 +775,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-06T09:31+00:00",
+    "at": "2026-11-06T15:01+00:00",
     "moves": [],
     "week": 6
   },
@@ -966,6 +966,7 @@
       "8474563:promoted": "2026-10-14",
       "8474574:ice time": "2026-10-26",
       "8475151:promoted": "2026-11-02",
+      "8475167:promoted": "2026-11-06",
       "8475172:promoted": "2026-11-03",
       "8475208:promoted": "2026-10-14",
       "8475231:promoted": "2026-11-02",
@@ -1084,6 +1085,7 @@
       "8480829:ice time": "2026-10-25",
       "8480842:promoted": "2026-10-16",
       "8480849:promoted": "2026-11-04",
+      "8480878:promoted": "2026-11-06",
       "8480995:promoted": "2026-10-30",
       "8481024:promoted": "2026-10-31",
       "8481032:promoted": "2026-10-18",
@@ -1208,6 +1210,7 @@
       "8485395:promoted": "2026-10-18",
       "8485402:promoted": "2026-11-02",
       "8485406:promoted": "2026-11-05",
+      "8485414:promoted": "2026-11-06",
       "8485702:promoted": "2026-10-25",
       "8486025:promoted": "2026-10-30",
       "8486067:promoted": "2026-10-28",
@@ -1283,7 +1286,8 @@
       },
       "8474102": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -1298,7 +1302,7 @@
       },
       "8474151": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
@@ -1347,10 +1351,13 @@
       },
       "8475167": {
         "groups": [
-          "d3",
-          "pk2"
+          "d1",
+          "pk2",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-06"
+        }
       },
       "8475179": {
         "groups": [
@@ -1524,7 +1531,8 @@
       },
       "8476331": {
         "groups": [
-          "d3"
+          "d2",
+          "pk2"
         ],
         "since": {}
       },
@@ -1553,8 +1561,7 @@
       "8476419": {
         "groups": [
           "f3",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -1627,7 +1634,7 @@
       },
       "8476467": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -1740,12 +1747,11 @@
       },
       "8476902": {
         "groups": [
-          "d1",
-          "pk1"
+          "d2",
+          "pk1",
+          "pp2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8476905": {
         "groups": [
@@ -2032,8 +2038,7 @@
       },
       "8477964": {
         "groups": [
-          "f2",
-          "pp2"
+          "f2"
         ],
         "since": {
           "f2": "2026-11-03"
@@ -2153,7 +2158,7 @@
       },
       "8478416": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -2217,7 +2222,7 @@
       },
       "8478465": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -2554,7 +2559,8 @@
       "8480049": {
         "groups": [
           "d1",
-          "pk1"
+          "pk1",
+          "pp2"
         ],
         "since": {
           "d1": "2026-10-16"
@@ -2736,11 +2742,12 @@
       },
       "8480878": {
         "groups": [
-          "d2",
-          "pk2",
-          "pp2"
+          "d1",
+          "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-06"
+        }
       },
       "8480891": {
         "groups": [
@@ -2764,8 +2771,7 @@
       },
       "8480995": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3264,7 +3270,7 @@
       },
       "8482459": {
         "groups": [
-          "f4"
+          "d3"
         ],
         "since": {}
       },
@@ -3285,7 +3291,8 @@
       },
       "8482476": {
         "groups": [
-          "f2"
+          "f2",
+          "pp2"
         ],
         "since": {
           "f2": "2026-11-04"
@@ -3322,12 +3329,10 @@
       },
       "8482655": {
         "groups": [
-          "d1",
+          "d4",
           "pk2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8482659": {
         "groups": [
@@ -3422,11 +3427,15 @@
       "8482758": {
         "groups": [
           "f3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-10-22"
-        }
+        "since": {}
+      },
+      "8482765": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8482766": {
         "groups": [
@@ -3655,14 +3664,6 @@
         ],
         "since": {}
       },
-      "8483510": {
-        "groups": [
-          "d2",
-          "pk2",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8483513": {
         "groups": [
           "f4"
@@ -3769,7 +3770,8 @@
       },
       "8483890": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -4088,10 +4090,11 @@
       "8485414": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": null
+          "f2": null,
+          "pp1": "2026-11-06"
         }
       },
       "8485512": {
@@ -4142,7 +4145,8 @@
       "8486161": {
         "groups": [
           "f4",
-          "pk1"
+          "pk1",
+          "pp2"
         ],
         "since": {}
       },
@@ -6614,6 +6618,51 @@
         "value": -0.2372,
         "verdict": "-24 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "Ice time 20:28 a game in his last 3, up from 17:20. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8480878,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Nils Lundkvist",
+        "positions": "D",
+        "price": 0.125,
+        "sent": false,
+        "team": "DAL",
+        "value": -0.2015,
+        "verdict": "-20 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8485414,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ben Kindel",
+        "positions": "C",
+        "price": 0.125,
+        "sent": false,
+        "team": "PIT",
+        "value": -0.0811,
+        "verdict": "-8 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8475167,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Victor Hedman",
+        "positions": "D",
+        "price": 0.125,
+        "sent": false,
+        "team": "TBL",
+        "value": -0.1066,
+        "verdict": "-11 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
