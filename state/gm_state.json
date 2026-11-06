@@ -309,7 +309,7 @@
     "date": "2026-11-06",
     "starters": {
       "BUF": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Ukko-Pekka Luukkonen"
       },
       "CBJ": {
@@ -323,6 +323,10 @@
       "MIN": {
         "confirmed": true,
         "goalie_name": "Jesper Wallstedt"
+      },
+      "SJS": {
+        "confirmed": true,
+        "goalie_name": "Yaroslav Askarov"
       }
     }
   },
@@ -764,7 +768,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-06T17:31+00:00",
+    "at": "2026-11-06T18:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -971,6 +975,7 @@
       "8475794:promoted": "2026-10-28",
       "8475831:no1": "2026-10-13",
       "8475848:promoted": "2026-10-24",
+      "8476292:promoted": "2026-11-06",
       "8476392:promoted": "2026-10-27",
       "8476393:promoted": "2026-11-05",
       "8476441:ice time": "2026-10-23",
@@ -1195,6 +1200,7 @@
       "8484911:promoted": "2026-10-24",
       "8484938:promoted": "2026-11-02",
       "8484999:promoted": "2026-10-13",
+      "8485388:promoted": "2026-11-06",
       "8485391:promoted": "2026-10-29",
       "8485395:promoted": "2026-10-18",
       "8485402:promoted": "2026-11-02",
@@ -1331,11 +1337,10 @@
       "8475151": {
         "groups": [
           "f1",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f1": "2026-10-19",
-          "pp1": null
+          "f1": "2026-10-19"
         }
       },
       "8475167": {
@@ -1513,11 +1518,13 @@
       },
       "8476292": {
         "groups": [
-          "f3",
+          "f2",
           "pk1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-06"
+        }
       },
       "8476331": {
         "groups": [
@@ -1551,13 +1558,6 @@
       "8476419": {
         "groups": [
           "f3",
-          "pk2"
-        ],
-        "since": {}
-      },
-      "8476429": {
-        "groups": [
-          "d3",
           "pk2"
         ],
         "since": {}
@@ -1827,6 +1827,12 @@
         "since": {
           "pp1": "2026-11-03"
         }
+      },
+      "8477018": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
       },
       "8477070": {
         "groups": [
@@ -2942,12 +2948,11 @@
       },
       "8481601": {
         "groups": [
-          "f1",
+          "f3",
           "pk2",
           "pp1"
         ],
         "since": {
-          "f1": "2026-10-17",
           "pp1": "2026-10-19"
         }
       },
@@ -3274,11 +3279,11 @@
       },
       "8482476": {
         "groups": [
-          "f2",
+          "f1",
           "pp2"
         ],
         "since": {
-          "f2": "2026-11-04"
+          "f1": "2026-11-06"
         }
       },
       "8482482": {
@@ -4024,10 +4029,11 @@
       "8485388": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": null
+          "f2": null,
+          "pp1": "2026-11-06"
         }
       },
       "8485391": {
@@ -6648,6 +6654,36 @@
         "value": -0.1066,
         "verdict": "-11 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8485388,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Victor Eklund",
+        "positions": "RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "NYI",
+        "value": -0.0531,
+        "verdict": "-5 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-11-06",
+        "id": 8476292,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ondrej Palat",
+        "positions": "LW",
+        "price": 0.125,
+        "sent": false,
+        "team": "NYI",
+        "value": -0.1784,
+        "verdict": "-18 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
