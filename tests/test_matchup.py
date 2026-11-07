@@ -869,3 +869,54 @@ def test_the_cheapest_to_lose_counts_the_nights_he_would_be_in_my_lineup():
     assert costs[22] == pytest.approx(0.0) and costs[21] > 0 and costs[23] > costs[21]
     assert [p.id for p in matchup.drop_candidates(d, ctx, {}, costs)] == [22, 21]
     assert [p.id for p in matchup.drop_candidates(d, ctx, {})] == [21, 22]  # points a game alone
+
+
+def test_the_shortlist_ranks_free_agents_by_the_weeks_a_move_is_valued_on(monkeypatch):
+    # 2026-11-07, a Saturday: the teams playing twice that weekend filled the shortlist and Olivier,
+    # idle that weekend with three games the next week, was never scored.
+    monkeypatch.setattr(matchup, "POOL_PER_POSITION", 1)
+    monkeypatch.setattr(matchup, "POOL_LONG_TERM_PER_POSITION", 0)
+    ctx = FakeContext()
+    ctx.xfp = {20: 2.0, 21: 3.0}
+    weekend, keeper = RosterPlayer(20, "Weekend", "BOS", ["C"]), RosterPlayer(21, "Keeper", "NYR", ["C"])
+    schedule = {MON: [_game(MON, "BOS", "PHI")], TUE: [_game(TUE, "BOS", "SEA")]}
+    nxt = [MON + dt.timedelta(days=i) for i in (7, 9, 11)]
+    ahead = {d: [_game(d, "NYR", "PHI")] for d in nxt}
+    assert [p.id for p in matchup.shortlist([weekend, keeper], ctx, schedule, {}, {})] == [20]
+    assert [p.id for p in matchup.shortlist([weekend, keeper], ctx, schedule, {}, {}, ahead_schedule=ahead)] == [21]
+
+
+def test_a_swap_that_costs_the_drops_games_this_week_is_made_after_them_not_left_out():
+    # The drop plays this week and the add doesn't: made now, the swap loses his games (until
+    # 2026-11-07 it was left out). After his game on Monday it costs nothing, so it's made then
+    # (plan.time_moves picks the day); if he plays the week's last day, it's made next Monday.
+    roster = [RosterPlayer(1, "Star", "SEA", ["C"], "C"), RosterPlayer(2, "Depth", "BOS", ["D"], "D")]
+    keeper = RosterPlayer(9, "Keeper", "NYR", ["D"])
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    early = {MON: [_game(MON, "BOS", "PHI")], TUE: [_game(TUE, "SEA", "NJD")], WED: [_game(WED, "SEA", "PHI")]}
+    moves = matchup.candidate_moves(roster, opponent, [keeper], FakeContext(), early, {}, {}, future={}, weeks_after=0)
+    m = next(m for m in moves if m.drop and m.drop.id == 2)
+    assert not m.monday and m.week_gain == pytest.approx(0.0)
+    late = {MON: [_game(MON, "SEA", "PHI")], TUE: [_game(TUE, "BOS", "NJD")]}
+    moves = matchup.candidate_moves(roster, opponent, [keeper], FakeContext(), late, {}, {}, future={}, weeks_after=0)
+    m = next(m for m in moves if m.drop and m.drop.id == 2)
+    assert m.monday and m.week_gain == 0.0 and m.win_after == m.win_before
+
+
+def test_a_swap_made_monday_takes_mondays_add_even_with_this_weeks_left():
+    samuelsson = RosterPlayer(6, "Mattias Samuelsson", "BUF", ["D"])
+    olivier = matchup.Move(RosterPlayer(1, "Mathieu Olivier", "CBJ", ["RW"]), samuelsson, week_gain=0.0,
+                           long_term=30.0, next_weeks=-1.0, games=0, win_before=0.06, win_after=0.06,
+                           later_weight=0.009, monday=True)
+    planned = _compose([olivier], _price(0.05, 0.009))
+    assert [(q.move, q.when, q.why) for q in planned] == [(olivier, MON + dt.timedelta(days=7), "monday")]
+    assert _compose([olivier], _price(0.05, 0.009), monday_slots=0) == []
+
+
+def test_a_monday_swap_says_the_drop_plays_his_games_first():
+    from bot import messages
+    samuelsson = RosterPlayer(6, "Mattias Samuelsson", "BUF", ["D"])
+    m = matchup.Move(RosterPlayer(1, "Mathieu Olivier", "CBJ", ["RW"]), samuelsson, week_gain=0.0, long_term=30.0,
+                     next_weeks=-1.0, games=0, win_before=0.06, win_after=0.06, later_weight=0.009, monday=True)
+    text = messages._detail(plan.Planned(m, MON + dt.timedelta(days=7), "monday"))
+    assert "so Mattias Samuelsson plays his games left this week" in text and "does nothing" not in text

@@ -569,11 +569,15 @@ def weeks_ahead(state: dict, league: dict, week: int, roster: list, wk: WeekInpu
 
 
 def add_candidates(wk: WeekInputs, nxt: NextWeek) -> list:
-    """Free agents to judge, including streamers whose games fall on nights my
-    lineup has their slot open, this week and next (also scripts/explain_week.py)."""
+    """Free agents to judge: the best by their points over this week's days left
+    and the next matchup.AHEAD_WEEKS (the days a move is valued on), including
+    streamers whose games fall on nights my lineup has their slot open, this
+    week and next (also scripts/explain_week.py)."""
     open_days = matchup.open_positions(wk.me) | (matchup.open_positions(nxt.mine) if nxt.mine else {})
+    this = weeks.week_of(wk.days[0]) or 0
+    ahead = {d: g for d, g in wk.future.items() if this < (weeks.week_of(d) or 0) <= this + matchup.AHEAD_WEEKS}
     return matchup.shortlist(wk.pool, wk.ctx, wk.schedule, wk.lines, wk.starters, wk.available_from,
-                             open_days, wk.schedule | nxt.schedule)
+                             open_days, wk.schedule | nxt.schedule, ahead)
 
 
 def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInputs, nxt: NextWeek,

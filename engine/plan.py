@@ -89,7 +89,12 @@ def compose(ranked: list[matchup.Move], rerank: Callable[[list[matchup.Move]], l
             break
         best = passing[0]
         passed.add(key(best))
-        if not matchup.waits(best):
+        if best.monday:  # made Monday so the drop's games this week count: Monday's adds only
+            if not monday_left:
+                continue
+            plan.append(Planned(best, max(monday, best.plays_from or monday), "monday"))
+            monday_left -= 1
+        elif not matchup.waits(best):
             if not now_left:
                 continue  # it pays this week or not at all
             plan.append(Planned(best, best.plays_from or today, "now"))
@@ -110,7 +115,7 @@ def compose(ranked: list[matchup.Move], rerank: Callable[[list[matchup.Move]], l
         current = rerank([p.move for p in plan])
     # A keeper sent to Monday while this week's add went unused after all takes it.
     for i, p in enumerate(plan):
-        if p.why == "monday" and now_left:
+        if p.why == "monday" and now_left and not p.move.monday:
             plan[i] = Planned(p.move, max(midweek, p.move.plays_from or midweek) if hold_keepers
                               else p.move.plays_from or today, "held" if hold_keepers else "spare")
             now_left -= 1

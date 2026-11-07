@@ -46,6 +46,8 @@ def _detail(p: Planned) -> str:
         # A stream pays in the weeks ahead, a keeper over the season (m.keep: P(still mine in 6 weeks)).
         head = f"+{100 * m.value:.0f} win-pts, " + ("a keeper" if m.keep >= 0.5 else "for the weeks ahead")
     when = WHEN_TEXT.get(p.why)
+    if p.why == "monday" and m.monday and m.drop:
+        when = f"made Monday, with next week's add, so {m.drop.name} plays his games left this week"
     claim = f"; a claim, plays from {date_text(m.plays_from)}" if m.plays_from else ""
     claim += f"; holds the spot until {m.until_back} is back" if m.until_back else ""
     cond = f"; {condition_text(p.condition)}" if p.condition else ""

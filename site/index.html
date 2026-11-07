@@ -1488,6 +1488,7 @@ function moveSheet(moveKey) {
   const flags = [];
   if (r.when) flags.push(`Make it ${fmtDay(r.when)}.`);
   if (r.plays_from) flags.push(`On waivers: plays from ${fmtDay(r.plays_from)}.`);
+  if (r.monday && !r.when) flags.push(`Made Monday, with next week's adds: ${r.drop ? r.drop.name : "the drop"} plays his games left this week first.`);
   if (r.ir_slot) flags.push(`Goes straight into ${r.ir_slot}; once he's back, ${r.later_drop || "your cheapest player"} is dropped.`);
   if (r.until_back) flags.push(`Later points allow for ${r.until_back} coming back from IR: then the roster's cheapest player is cut.`);
   if (st && r.held) flags.push(`A stream: where he'd sit on your roster (${r.bin}), adds like him are usually swapped out again within a few weeks (${pct(st[0])} still yours in ${at[0]} weeks).`);

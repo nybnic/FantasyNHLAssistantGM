@@ -128,7 +128,11 @@ BENCHED_SHARE = 0.25
 # any other move. Below two, the minimum (3 starts a week) is out of reach.
 MIN_GOALIES = 2
 # Free agents shortlisted per position (so an empty D slot finds a D) by
-# this week's value, plus a few by long-run value.
+# their points over the days a move is valued on (this week's left and the
+# next AHEAD_WEEKS: `shortlist`'s `ahead_schedule`), plus a few by long-run value.
+# This week's days alone filled a weekend's shortlist with the teams playing
+# twice (2026-11-07: 31 of 63 from five teams) while Olivier, idle that
+# weekend and the best move on Thursday, was never scored.
 POOL_PER_POSITION = 8
 POOL_LONG_TERM_PER_POSITION = 3
 # Plus a few per skater position by schedule fit: points on the nights my best
@@ -143,6 +147,11 @@ STASH_CANDIDATES = 6
 # Whether a move is worth an add is engine/addprice.py's call.
 MIN_WIN_GAIN = 0.02
 # A long-run upgrade that costs points this week can wait for a week where it doesn't.
+# Such a swap is valued as made after the drop's games instead: on the day after
+# one of them this week if that costs at most this, else next Monday with
+# Monday's adds (`Move.monday`). Until 2026-11-07 it was left out, so a keeper
+# whose team was idle while the drop played (Olivier for McBain on a weekend)
+# was never weighed at all.
 MAX_WEEK_COST = 1.0
 # A keeper that gains less than this this week can wait for next week's adds
 # (they reset Monday): this week's go to moves that pay this week. Same idea as
@@ -197,6 +206,7 @@ class Move:
     win_after: float
     later_weight: float = 0.0  # win probability per later point (addprice.later_weight)
     plays_from: dt.date | None = None  # on waivers: the first day a claim of him plays
+    monday: bool = False  # made next Monday (with Monday's adds) so the drop's games this week count
     ir_slot: str | None = None  # an injured add stashed straight into this empty IR slot (no drop now)
     later_drop: RosterPlayer | None = None  # a stash's drop once he's back: the cheapest to lose
     # The weeks after this one (AHEAD_WEEKS), against their real opponents:
@@ -840,28 +850,35 @@ def _too_early(available_from: dict[int, dt.date] | None, p: RosterPlayer, date:
 def shortlist(pool: list[RosterPlayer], ctx, schedule: dict[dt.date, list[ScheduledGame]],
               lines: dict[str, dict[str, LineInfo]], starters: dict[str, dict],
               available_from: dict[int, dt.date] | None = None, open_days: dict[dt.date, set[str]] | None = None,
-              fit_schedule: dict[dt.date, list[ScheduledGame]] | None = None) -> list[RosterPlayer]:
-    """The free agents worth a full evaluation: the best per position by this
-    week's games, a few by long-run value, and with `open_days` (day -> open
-    slots, over `fit_schedule`) a few by points on nights their slot is open.
+              fit_schedule: dict[dt.date, list[ScheduledGame]] | None = None,
+              ahead_schedule: dict[dt.date, list[ScheduledGame]] | None = None) -> list[RosterPlayer]:
+    """The free agents worth a full evaluation: the best per position by his
+    own points on this week's days left and `ahead_schedule`'s (the next weeks
+    a move is valued on), a few by long-run value, and with `open_days` (day ->
+    open slots, over `fit_schedule`) a few by points on nights their slot is open.
     `available_from`: player id -> first day he can play for me (waivers)."""
-    remaining = [d for d in sorted(schedule) if d >= ctx.today]
-    team_games = _team_games(schedule, ctx.today)
+    window = {d: g for d, g in schedule.items() if d >= ctx.today} | (ahead_schedule or {})
+    days, nights = sorted(window), schedule | window
+    team_games = _team_games(window, ctx.today)
+    alone: dict[int, float] = {}
 
-    def week_alone(p: RosterPlayer) -> float:
-        total = 0.0
-        for d in (d for d in remaining if not _too_early(available_from, p, d)):
-            game = _game_of(schedule[d]).get(p.team)
-            if game:
-                yesterday = _game_of(schedule.get(d - dt.timedelta(days=1), []))
-                total += _player_day(p, ctx, d, game, p.team in yesterday, lines, starters)[0]
-        return total
+    def window_alone(p: RosterPlayer) -> float:
+        if p.id not in alone:
+            total = 0.0
+            for d in (d for d in days if not _too_early(available_from, p, d)):
+                game = _game_of(window[d]).get(p.team)
+                if game:
+                    yesterday = _game_of(nights.get(d - dt.timedelta(days=1), []))
+                    total += _player_day_cached(p, ctx, d, game, p.team in yesterday, lines, starters,
+                                                d not in schedule, False)[0]
+            alone[p.id] = total
+        return alone[p.id]
 
     picked: dict[int, RosterPlayer] = {}
     for position in STARTERS:
         group = [p for p in pool if position in p.positions]
         playing = [p for p in group if team_games.get(p.team)]
-        for p in sorted(playing, key=week_alone, reverse=True)[:POOL_PER_POSITION]:
+        for p in sorted(playing, key=window_alone, reverse=True)[:POOL_PER_POSITION]:
             picked[p.id] = p
         for p in sorted(group, key=lambda p: season_value(p, ctx, lines), reverse=True)[:POOL_LONG_TERM_PER_POSITION]:
             picked[p.id] = p
@@ -912,7 +929,8 @@ def candidate_moves(
     only: set[int] | None = None,
 ) -> list[Move]:
     """Every add/drop worth considering, best first. Left out: dropping below
-    MIN_GOALIES, and moves costing more than MAX_WEEK_COST this week.
+    MIN_GOALIES. A swap costing more than MAX_WEEK_COST this week if made now
+    is valued as made after the drop's games (`_after_drop_games`).
     `only`: score just these adds (the rest of `candidates` still set the
     waiver levels, so their values match a full run's).
     `future` is the schedule of every day after this week to the end of the
@@ -952,6 +970,9 @@ def candidate_moves(
                 gain = {d: trial_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
             tried.append((drop, week, gain))
         for drop, week, gain in tried:
+            monday = False
+            if week.expected - current.expected < -MAX_WEEK_COST and drop and plays_from is None:
+                week, monday = _after_drop_games(roster, add, drop, ctx, schedule, lines, starters, so_far, current)
             if week.expected - current.expected < -MAX_WEEK_COST:
                 continue
             # Each later day counts by the odds he's still mine then: one I'd stream
@@ -967,7 +988,7 @@ def candidate_moves(
                 games=team_games.get(add.team, 0),
                 win_before=before, win_after=win_after(current, week, opponent),
                 later_weight=later_weight,
-                plays_from=plays_from,
+                plays_from=plays_from, monday=monday,
                 ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
                 held=keep < STREAM_BELOW, keep=keep, bin=bin_,
             ))
@@ -1166,6 +1187,36 @@ def _swap(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | No
         RosterPlayer(add.id, add.name, add.team, add.positions, slot)]
 
 
+def monday_after(schedule: dict[dt.date, list[ScheduledGame]]) -> dt.date:
+    """The Monday the week of `schedule` ends on (its last day + 1)."""
+    return max(schedule) + dt.timedelta(days=1)
+
+
+def _after_drop_games(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer, ctx,
+                      schedule: dict[dt.date, list[ScheduledGame]], lines, starters, so_far,
+                      current: TeamWeek) -> tuple[TeamWeek, bool]:
+    """A swap that costs more than MAX_WEEK_COST this week made now, made after
+    the drop's games instead: (this week as it would play, made Monday?). The
+    best of the days after each of his games left this week, if it costs at
+    most MAX_WEEK_COST (plan.time_moves then picks that day); else next Monday,
+    which leaves this week as it is and takes one of Monday's adds."""
+    trial = _swap(roster, add, None)
+    best = None
+    for d in sorted(schedule):
+        if d < ctx.today or drop.team not in _game_of(schedule[d]):
+            continue
+        after = d + dt.timedelta(days=1)
+        if after not in schedule:
+            continue  # his last game is the week's last: that's Monday
+        week = project("me", trial, ctx, schedule, lines, starters, joins={add.id: after}, so_far=so_far,
+                       leaves={drop.id: after})
+        if best is None or week.expected > best.expected:
+            best = week
+    if best is not None and best.expected - current.expected >= -MAX_WEEK_COST:
+        return best, False
+    return current, True
+
+
 def _deferred(roster: list[RosterPlayer], add: RosterPlayer, drop: RosterPlayer | None,
               plays_from: dt.date | None) -> tuple[list[RosterPlayer], dict | None, dict | None]:
     """The trial roster with its (joins, leaves) for project: an add who can't
@@ -1226,7 +1277,8 @@ def streamers(
     for m in sorted(best.values(), key=lambda m: m.value, reverse=True):
         if len(out) == STREAMERS_SHOWN:
             break
-        trial, joins, leaves = _deferred(roster, m.add, m.drop, (available_from or {}).get(m.add.id))
+        trial, joins, leaves = _deferred(roster, m.add, m.drop, (available_from or {}).get(m.add.id)
+                                         or (monday_after(schedule) if m.monday else None))
         nxt = (project("me", trial, ctx, next_schedule, lines, starters, True, joins, leaves=leaves)
                if next_schedule else None)
         gain = (nxt.expected - base_next) if nxt else 0.0

@@ -64,6 +64,7 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "later_drop": move.later_drop.name if move.later_drop else None,
         "until_back": move.until_back or None,
         "plays_from": move.plays_from.isoformat() if move.plays_from else None,
+        "monday": move.monday,  # made next Monday so the drop's games this week count
         "when": day.isoformat() if day else None,
         "games": move.games,
         "week_pts": _r(move.week_gain),
