@@ -188,7 +188,7 @@ def table(board: dict, top: int = 25, position: str | None = None) -> list[str]:
     for r in rows:
         drop = r["drop"]["name"] if r["drop"] else f"({r['ir_slot']} stash)" if r["ir_slot"] else "(open spot)"
         win = f"{r['win'][0]:.0%}->{r['win'][1]:.0%}"
-        day = dt.date.fromisoformat(r["when"]).strftime("%a %d") if r.get("when") else ""
+        day = dt.date.fromisoformat(r["when"]).strftime("%a %d") if r.get("when") else ("Mon" if r.get("monday") else "")
         out.append(f"  {r['add']['name'][:22]:22} {'/'.join(r['add']['positions'])[:5]:5} {drop[:18]:18} "
                    f"{r['games']:3} {r['week_pts']:+6.1f} {r['next_two_pts']:+6.1f} {r['later_pts']:+6.1f} "
                    f"{100 * r['now_wins']:+5.1f} {100 * sum(r.get('ahead_wins', [])):+6.1f} "
