@@ -1258,12 +1258,14 @@ def streamers(
     starters: dict[str, dict],
     so_far: tuple[float, float, int] | None = None,
     available_from: dict[int, dt.date] | None = None,
+    third_schedule: dict[dt.date, list[ScheduledGame]] | None = None,
 ) -> list[dict]:
     """The dashboard's "could stream" rows: the STREAMERS_SHOWN free agents
     whose best move is worth the most win-pts (Move.value, as the Moves tab
     ranks them; Nico, 2026-11-04: the best player per position by points read
     as random), each with that move and the trial lineups of this week and
-    next: {"position", "move", "next_gain", "this_week", "next_week"}. Moves
+    next: {"position", "move", "next_gain", "this_week", "next_week",
+    "third_week"} (the week after next, with `third_schedule`). Moves
     that add nothing to my lineup this week or the next two, and IR stashes,
     are left out. Display only: the plan doesn't read this."""
     base_next = project("me", roster, ctx, next_schedule, lines, starters, True).expected if next_schedule else 0.0
@@ -1284,7 +1286,9 @@ def streamers(
         gain = (nxt.expected - base_next) if nxt else 0.0
         if m.week_gain + gain <= 0 and m.next_weeks <= 0:
             continue  # nothing for my lineup this week or next
-        out.append({"position": m.add.positions[0], "move": m, "next_gain": gain, "next_week": nxt,
+        third = (project("me", trial, ctx, third_schedule, lines, starters, True, joins, leaves=leaves)
+                 if third_schedule else None)  # the grid's third week (2026-11-07: Dach's week 8 was blank)
+        out.append({"position": m.add.positions[0], "move": m, "next_gain": gain, "next_week": nxt, "third_week": third,
                     "this_week": project("me", trial, ctx, schedule, lines, starters, joins=joins, so_far=so_far,
                                          leaves=leaves)})
     return out

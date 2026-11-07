@@ -599,7 +599,7 @@ def week_views(state: dict, players: list, league: dict, week: int, wk: WeekInpu
                                      wk.lines, wk.starters, True)
             spans.append((nxt.week + 1, opp or "?", mine, theirs))
     streams = matchup.streamers(players, ranked, wk.ctx, wk.schedule, nxt.schedule, wk.lines, wk.starters, wk.so_far,
-                                wk.available_from)
+                                wk.available_from, third_schedule(wk, nxt))
     plan_entries, after = plan_weeks(players, plan, wk, nxt)
     from bot import watch
     return {"schedule": report.schedule_view(players, spans, streams, moves, plan_entries, after),

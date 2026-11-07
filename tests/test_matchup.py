@@ -920,3 +920,21 @@ def test_a_monday_swap_says_the_drop_plays_his_games_first():
                      next_weeks=-1.0, games=0, win_before=0.06, win_after=0.06, later_weight=0.009, monday=True)
     text = messages._detail(plan.Planned(m, MON + dt.timedelta(days=7), "monday"))
     assert "so Mattias Samuelsson plays his games left this week" in text and "does nothing" not in text
+
+
+def test_a_could_stream_row_has_his_nights_in_all_three_weeks_of_the_grid():
+    # 2026-11-07: Dach for Rakell's sheet showed EDM's four week-8 games blank (the rows had
+    # this week's and next week's lineups only).
+    from engine import report
+    ctx = FakeContext()
+    ctx.xfp = {1: 4.0, 2: 2.0, 10: 5.0}
+    roster = [RosterPlayer(1, "Star", "BOS", ["C"], "C"), RosterPlayer(2, "Depth", "NJD", ["D"], "D")]
+    schedule = {MON: [_game(MON, "NYR", "PHI")]}
+    nxt = {MON + dt.timedelta(days=7): [_game(MON + dt.timedelta(days=7), "NYR", "PHI")]}
+    third = {MON + dt.timedelta(days=14): [_game(MON + dt.timedelta(days=14), "NYR", "SEA")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    pool = [RosterPlayer(10, "Wing", "NYR", ["LW"])]
+    ranked = matchup.candidate_moves(roster, opponent, pool, ctx, schedule, {}, {}, future={}, weeks_after=0)
+    found = matchup.streamers(roster, ranked, ctx, schedule, nxt, {}, {}, third_schedule=third)
+    days = [{"date": d.isoformat()} for d in sorted(schedule | nxt | third)]
+    assert report._add_row(found[0], days)["cells"] == ["start", "start", "start"]
