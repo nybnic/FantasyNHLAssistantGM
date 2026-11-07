@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-23": {
-      "recommended": {
-        "8474564": "RW",
-        "8476455": "LW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-24": {
       "recommended": {
         "8474564": "RW",
@@ -340,42 +320,6 @@
   "matchup_shots": null,
   "news_checked": "2026-11-06",
   "pending": {
-    "add-2026-10-23-0520-8477498": {
-      "add": {
-        "id": 8477498,
-        "name": "Darnell Nurse",
-        "positions": [
-          "D"
-        ],
-        "slot": null,
-        "team": "SJS"
-      },
-      "add_slot": null,
-      "date": "2026-10-23",
-      "drop": 8476457,
-      "drop_name": "Adam Larsson",
-      "ir": {},
-      "message_id": 629,
-      "type": "add"
-    },
-    "add-2026-10-23-1257-8484390": {
-      "add": {
-        "id": 8484390,
-        "name": "Roman Kantserov",
-        "positions": [
-          "RW"
-        ],
-        "slot": null,
-        "team": "CHI"
-      },
-      "add_slot": null,
-      "date": "2026-10-23",
-      "drop": 8476455,
-      "drop_name": "Gabriel Landeskog",
-      "ir": {},
-      "message_id": 635,
-      "type": "add"
-    },
     "add-2026-10-25-0534-8482087": {
       "add": {
         "id": 8482087,
@@ -449,27 +393,6 @@
       "ir": {},
       "message_id": 875,
       "type": "add"
-    },
-    "lineup-2026-10-23-1631": {
-      "assignment": {
-        "8474564": "RW",
-        "8476455": "LW",
-        "8476457": "D",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "date": "2026-10-23",
-      "message_id": 636,
-      "type": "lineup"
     },
     "lineup-2026-10-24-1600": {
       "assignment": {
@@ -768,7 +691,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-06T18:31+00:00",
+    "at": "2026-11-07T04:17+00:00",
     "moves": [],
     "week": 6
   },
@@ -939,7 +862,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784857,
+  "telegram_offset": 929784859,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1945,12 +1868,12 @@
       },
       "8477497": {
         "groups": [
-          "f2",
+          "f1",
           "pk1",
           "pp2"
         ],
         "since": {
-          "f2": "2026-11-04"
+          "f1": "2026-11-06"
         }
       },
       "8477501": {
@@ -1981,6 +1904,15 @@
           "f4"
         ],
         "since": {}
+      },
+      "8477810": {
+        "groups": [
+          "d1",
+          "pk2"
+        ],
+        "since": {
+          "d1": null
+        }
       },
       "8477903": {
         "groups": [
@@ -2343,12 +2275,6 @@
           "d1": null
         }
       },
-      "8479066": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8479359": {
         "groups": [
           "f4",
@@ -2476,6 +2402,12 @@
       "8479977": {
         "groups": [
           "ir"
+        ],
+        "since": {}
+      },
+      "8479982": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -2727,12 +2659,9 @@
       },
       "8480860": {
         "groups": [
-          "d1",
-          "pk2"
+          "ir"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8480878": {
         "groups": [
@@ -3040,12 +2969,6 @@
         "since": {
           "f2": null
         }
-      },
-      "8481806": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
       },
       "8482055": {
         "groups": [
@@ -3528,12 +3451,6 @@
         ],
         "since": {}
       },
-      "8483432": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8483447": {
         "groups": [
           "f4",
@@ -3564,7 +3481,6 @@
       "8483468": {
         "groups": [
           "f3",
-          "ir",
           "pp2"
         ],
         "since": {}
