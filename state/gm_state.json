@@ -283,7 +283,7 @@
       "updates": 0
     }
   },
-  "daily_plan": null,
+  "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-06",
   "goalie_news": {
     "date": "2026-11-06",
@@ -691,7 +691,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-07T04:22+00:00",
+    "at": "2026-11-07T07:43+00:00",
     "moves": [],
     "week": 6
   },
@@ -862,7 +862,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784860,
+  "telegram_offset": 929784861,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -962,7 +962,7 @@
       "8478454:ice time": "2026-11-04",
       "8478462:promoted": "2026-11-03",
       "8478474:promoted": "2026-10-23",
-      "8478498:promoted": "2026-10-24",
+      "8478498:promoted": "2026-11-07",
       "8478499:goalie": "2026-10-27",
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
@@ -1045,7 +1045,7 @@
       "8482124:promoted": "2026-10-29",
       "8482142:ice time": "2026-10-14",
       "8482142:promoted": "2026-10-28",
-      "8482145:promoted": "2026-10-24",
+      "8482145:promoted": "2026-11-07",
       "8482146:promoted": "2026-10-29",
       "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-11-02",
@@ -1120,7 +1120,7 @@
       "8484806:promoted": "2026-10-28",
       "8484829:promoted": "2026-10-14",
       "8484860:ice time": "2026-10-29",
-      "8484911:promoted": "2026-10-24",
+      "8484911:promoted": "2026-11-07",
       "8484938:promoted": "2026-11-02",
       "8484999:promoted": "2026-10-13",
       "8485388:promoted": "2026-11-06",
@@ -4076,186 +4076,6 @@
     },
     "log": [
       {
-        "date": "2026-10-24",
-        "id": 8477035,
-        "kinds": [
-          "goalie"
-        ],
-        "name": "Matt Tomkins",
-        "positions": "G",
-        "price": null,
-        "sent": true,
-        "team": "EDM",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "His starter Devon Levi out (ir). Expected to start 14% of the games ahead, against 35% projected before the season."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8482145,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Mavrik Bourque",
-        "positions": "C/RW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "NSH",
-        "value": -0.0332,
-        "verdict": "-3 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8482660,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Kent Johnson",
-        "positions": "LW/RW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "CBJ",
-        "value": -0.054,
-        "verdict": "-5 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8476923,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Damon Severson",
-        "positions": "D",
-        "price": 0.1307,
-        "sent": false,
-        "team": "CBJ",
-        "value": 0.0112,
-        "verdict": "+1 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8481641,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Joel Kiviranta",
-        "positions": "LW/RW",
-        "price": null,
-        "sent": false,
-        "team": "DAL",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8484911,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Collin Graf",
-        "positions": "LW/RW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "SJS",
-        "value": -0.052,
-        "verdict": "-5 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8483521,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Noah Warren",
-        "positions": "D",
-        "price": 0.1307,
-        "sent": false,
-        "team": "ANA",
-        "value": 0.0079,
-        "verdict": "+1 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the top D pair."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8478413,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jordan Greenway",
-        "positions": "LW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "CHI",
-        "value": -0.1135,
-        "verdict": "-11 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8484800,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Berkly Catton",
-        "positions": "C/LW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "SEA",
-        "value": -0.1961,
-        "verdict": "-20 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8481554,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Kaapo Kakko",
-        "positions": "RW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "SEA",
-        "value": -0.1242,
-        "verdict": "-12 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8478498,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jake DeBrusk",
-        "positions": "LW/RW",
-        "price": 0.1307,
-        "sent": false,
-        "team": "VAN",
-        "value": -0.0192,
-        "verdict": "-2 win-pts against the 13.1 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-24",
-        "id": 8475848,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Brendan Gallagher",
-        "positions": "RW",
-        "price": null,
-        "sent": false,
-        "team": "VAN",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the second line."
-      },
-      {
         "date": "2026-10-25",
         "id": 8481726,
         "kinds": [
@@ -6600,6 +6420,51 @@
         "value": -0.1784,
         "verdict": "-18 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-07",
+        "id": 8482145,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mavrik Bourque",
+        "positions": "C/RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.073,
+        "verdict": "-7 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line and the first power play, and it has held for 3 days."
+      },
+      {
+        "date": "2026-11-07",
+        "id": 8484911,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Collin Graf",
+        "positions": "LW/RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "SJS",
+        "value": -0.0628,
+        "verdict": "-6 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 2 days."
+      },
+      {
+        "date": "2026-11-07",
+        "id": 8478498,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jake DeBrusk",
+        "positions": "LW/RW",
+        "price": 0.125,
+        "sent": false,
+        "team": "VAN",
+        "value": -0.0262,
+        "verdict": "-3 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 12 days."
       }
     ]
   },
@@ -6628,7 +6493,7 @@
       "sent": "2026-10-26T04:56+00:00"
     },
     "6": {
-      "midweek": "2026-11-07T04:22+00:00",
+      "midweek": "2026-11-07T07:43+00:00",
       "sent": "2026-11-02T06:45+00:00"
     }
   },
