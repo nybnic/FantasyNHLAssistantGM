@@ -757,7 +757,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-08T17:01+00:00",
+    "at": "2026-11-08T18:31+00:00",
     "moves": [],
     "week": 6
   },
@@ -944,7 +944,7 @@
       "8474141:promoted": "2026-10-27",
       "8474150:promoted": "2026-10-26",
       "8474151:promoted": "2026-10-30",
-      "8474189:promoted": "2026-10-14",
+      "8474189:promoted": "2026-11-08",
       "8474563:promoted": "2026-10-14",
       "8474574:ice time": "2026-10-26",
       "8475151:promoted": "2026-11-02",
@@ -1048,6 +1048,7 @@
       "8479398:promoted": "2026-11-04",
       "8479442:ice time": "2026-10-21",
       "8479525:promoted": "2026-10-19",
+      "8479591:promoted": "2026-11-08",
       "8479671:ice time": "2026-10-21",
       "8479675:promoted": "2026-10-29",
       "8479980:promoted": "2026-10-14",
@@ -1308,11 +1309,12 @@
       },
       "8474189": {
         "groups": [
-          "f3",
-          "pk2",
-          "pp2"
+          "f2",
+          "pk2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-08"
+        }
       },
       "8474567": {
         "groups": [
@@ -1932,7 +1934,6 @@
       "8477497": {
         "groups": [
           "f1",
-          "ir",
           "pk1",
           "pp2"
         ],
@@ -2419,9 +2420,11 @@
       },
       "8479591": {
         "groups": [
-          "f4"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-08"
+        }
       },
       "8479619": {
         "groups": [
@@ -3027,8 +3030,7 @@
       },
       "8481716": {
         "groups": [
-          "f4",
-          "ir"
+          "f4"
         ],
         "since": {}
       },
@@ -3128,12 +3130,10 @@
       },
       "8482113": {
         "groups": [
-          "f2",
-          "ir"
+          "f3",
+          "pp2"
         ],
-        "since": {
-          "f2": "2026-11-08"
-        }
+        "since": {}
       },
       "8482118": {
         "groups": [
@@ -3598,6 +3598,7 @@
       "8483485": {
         "groups": [
           "d2",
+          "ir",
           "pk1",
           "pp2"
         ],
@@ -3655,12 +3656,10 @@
       },
       "8483505": {
         "groups": [
-          "f2",
+          "f4",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8483506": {
         "groups": [
@@ -3797,12 +3796,6 @@
         "groups": [
           "f4",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8484160": {
-        "groups": [
-          "f3"
         ],
         "since": {}
       },
@@ -6552,6 +6545,36 @@
         "value": -0.0553,
         "verdict": "-6 win-pts against the 12.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-08",
+        "id": 8479591,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Michael Eyssimont",
+        "positions": "LW",
+        "price": 0.125,
+        "sent": false,
+        "team": "BOS",
+        "value": -0.0653,
+        "verdict": "-7 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-08",
+        "id": 8474189,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Lars Eller",
+        "positions": "C",
+        "price": 0.125,
+        "sent": false,
+        "team": "FLA",
+        "value": -0.092,
+        "verdict": "-9 win-pts against the 12.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
