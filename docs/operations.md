@@ -41,7 +41,8 @@ and an `ir` input (players of mine to treat as on IR+, `--ir`, this run only) fo
 move made in Yahoo that the bot hasn't been told about yet.
 `schedule` prints every NHL game day by day for this week and next
 (`scripts/schedule.py`). `scoreboard` prints the season's scoreboard (each week:
-your points vs the drafted roster's, `scripts/scorecard.py`).
+your points vs the drafted roster's, `scripts/scorecard.py`). `pp-share` prints the
+`players`' share of their team's power-play time, game by game (`scripts/pp_share.py`).
 
 ## Secrets
 | Where | Name | Used for |
