@@ -153,6 +153,25 @@ def test_ice_time_is_his_average_a_game_this_season_in_minutes():
     assert view["toi"] == pytest.approx(19.5 / 60, abs=0.01)  # no games yet: the projection's
 
 
+def test_pp_share_is_his_pp_time_over_his_teams_with_the_trend_of_his_last_games():
+    from clients.nhl_stats import SkaterGame
+    ctx = _BreakdownContext()
+    days = [THU - dt.timedelta(days=d) for d in range(10, 0, -1)]  # 10 games played, oldest first
+
+    def game(pid, i, pp):
+        return SkaterGame(pid, "", "C", "WPG", "CHI", days[i], i, pp_toi=pp)
+    # The team's PP: 1500 skater-seconds a game = 300 s. His: 60 s for 5 games, then 150 s.
+    mine = [game(1, i, 60 if i < 5 else 150) for i in range(10)]
+    mates = [game(p, i, 900 - (60 if i < 5 else 150) if p == 2 else 300) for i in range(10) for p in (2, 3, 4)]
+    ctx.skater_games = {1: mine, 9: mates, 7: [SkaterGame(7, "", "C", "CHI", "WPG", days[0], 0, pp_toi=500)]}
+    share = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")["pp_share"]
+    assert share == {"season": 0.35, "recent": 0.5, "recent_games": 5, "trend": 1}  # the other team's PP not counted
+    ctx.skater_games = {1: mine[:5], 9: mates}  # no change: no arrow
+    assert report.pp_share(ctx, 1)["trend"] == 0 and report.pp_share(ctx, 1)["recent"] is None  # 5 games: no trend yet
+    ctx.skater_games = {}
+    assert report.pp_share(ctx, 1) is None
+
+
 def test_a_players_points_split_by_stat_add_up_to_his_projection():
     ctx = _BreakdownContext()
     view = report.player_view(RosterPlayer(1, "Mark Scheifele", "WPG", ["C"]), ctx, {}, {}, {}, "me")

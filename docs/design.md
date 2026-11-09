@@ -94,7 +94,8 @@ Team colours (`TEAM_COLORS`) are dark enough for white initials.
 - **"With plan / As is"** switches everything it touches: each player's nights (`plan_cells`), drops
   ending on their day, adds starting on theirs, the sums, and each week's odds (`win_plan`).
 - **A move's sheet** opens with its move card, then only what the card leaves out (points to
-  win-pts by week, flags, availability, season so far). A player's sheet heads with his face.
+  win-pts by week, flags, availability, season so far). A player's sheet heads with his face; a skater's facts include his share of
+  his team's PP time, with an arrow (aqua up, orange down) when his last 5 games differ by 5 points.
 - **The race** is anchored on Yahoo's score from each matchup screenshot; box scores only split a
   gap between two screenshots (`weekly.race_days`).
 - Install to the home screen (`site/manifest.webmanifest`, the ring as icon, `scripts/make_icons.py`).
