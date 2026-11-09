@@ -1012,6 +1012,18 @@ function moveTable() {
 
 // ---- breakdowns: shared pieces ------------------------------------------------------
 const f0 = v => (v ?? 0).toFixed(0), f1 = v => (v ?? 0).toFixed(1), f2 = v => (v ?? 0).toFixed(2);
+// His share of his team's PP time, with an arrow when his last games differ from the season.
+const ppShare = p => {
+  const s = p.pp_share, whole = x => `${Math.round(x * 100)}%`;
+  const v = el("span", {}, `${whole(s.season)} of ${p.team}'s PP`);
+  if (s.recent != null) {
+    const arrow = s.trend > 0 ? "↑" : s.trend < 0 ? "↓" : "→";
+    const color = s.trend > 0 ? "var(--aqua)" : s.trend < 0 ? "var(--orange)" : "var(--muted)";
+    v.append(" ", el("span", { style: `color:${color};font-weight:700`, title: `last ${s.recent_games} games` }, arrow),
+             el("span", { style: "color:var(--text-2)" }, ` ${whole(s.recent)} last ${s.recent_games}`));
+  }
+  return v;
+};
 const mmss = min => { const s = Math.round((min ?? 0) * 60); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 // Fantasy points by stat, or the stat line itself (goals, shots, hits...): one switch for the page.
 let statView = recall("statView", "points");
@@ -1422,6 +1434,7 @@ function playerSheet(id) {
     add("Start share", pct(p.share));
   } else {
     add("Ice time", `${mmss(p.toi)} a game (PP ${mmss(p.pp_toi)})${p.gp ? ", this season" : ", projected"}`);
+    if (p.pp_share) facts.append(el("span", {}, "PP share"), ppShare(p));
     add("Tonight", p.play >= 0.95 ? "plays" : `${pct(p.play)} to play${p.note ? ` (${p.note})` : ""}`);
     add("Games projected", pct(p.durability));
     add("Long-run points kept", p.replacement != null ? `${pct(p.kept)} (missed games streamed at ${f2(p.replacement)})` : pct(p.kept));

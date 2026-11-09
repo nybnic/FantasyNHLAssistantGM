@@ -6,6 +6,7 @@ dicts, so every view of a number agrees with the weekly plan's.
 from __future__ import annotations
 
 import datetime as dt
+from collections import defaultdict
 
 from clients.names import normalize_name
 from config.league import (GOALIE_WEIGHTS, MAX_ADDS_PER_SEASON, PLAYOFF_WEEKS, REGULAR_SEASON_WEEKS, SKATER_WEIGHTS,
@@ -250,6 +251,46 @@ def avg_toi(ctx, player_id: int) -> tuple[float, float] | None:
     return sum(g.toi for g in games) / len(games) / 60, sum(g.pp_toi for g in games) / len(games) / 60
 
 
+# The PP share's trend: the last PP_TREND_GAMES against the season, an arrow when
+# they differ by PP_TREND_STEP or more (display only; a judgment call, untested).
+PP_TREND_GAMES, PP_TREND_STEP = 5, 0.05
+SKATERS_ON_PP = 5
+
+
+def _team_pp(ctx) -> dict[tuple[int, str], float]:
+    """(game, team) -> the team's power-play time, in seconds: every skater's PP
+    time / 5 (exact at 5-on-4 and 5-on-3; a 4-on-3 reads low, an extra attacker
+    high). Built once per context."""
+    source = getattr(ctx, "skater_games", {})
+    key, cached = getattr(ctx, "_team_pp", (None, None))
+    if key != id(source):
+        cached = defaultdict(float)
+        for games in source.values():
+            for g in games:
+                cached[(g.game_id, g.team)] += g.pp_toi / SKATERS_ON_PP
+        ctx._team_pp = (id(source), cached)
+    return cached
+
+
+def pp_share(ctx, player_id: int) -> dict | None:
+    """His share of his team's PP time this season and over his last games, and
+    the trend between them (+1 up, -1 down, 0 flat); None before his first game
+    or while his team has had no PP time."""
+    games = [g for g in getattr(ctx, "skater_games", {}).get(player_id, []) if g.date < ctx.today]
+    team = _team_pp(ctx)
+
+    def share(gs) -> float | None:
+        total = sum(team.get((g.game_id, g.team), 0.0) for g in gs)
+        return sum(g.pp_toi for g in gs) / total if total else None
+
+    season = share(games)
+    if season is None:
+        return None
+    recent = share(games[-PP_TREND_GAMES:]) if len(games) > PP_TREND_GAMES else None
+    trend = 0 if recent is None or abs(recent - season) < PP_TREND_STEP else (1 if recent > season else -1)
+    return {"season": _r(season, 3), "recent": _r(recent, 3), "recent_games": PP_TREND_GAMES, "trend": trend}
+
+
 def _r(x: float | None, digits: int = 2) -> float | None:
     return None if x is None else round(x, digits)
 
@@ -463,7 +504,7 @@ def player_view(p: RosterPlayer, ctx, lines: dict, starters: dict, schedule: dic
     toi, pp_toi = avg_toi(ctx, p.id) or (proj.toi / 60, proj.pp_toi / 60)  # the projection's when no games yet
     out.update({"per_game": {k: _r(v, 3) for k, v in stat_parts(proj.per_game).items()}, "xfp": _r(proj.xfp, 3),
                 "stats": {k: _r(v, 3) for k, v in stat_counts(proj.per_game).items()},
-                "toi": _r(toi, 2), "pp_toi": _r(pp_toi, 2), "gp": proj.games,
+                "toi": _r(toi, 2), "pp_toi": _r(pp_toi, 2), "pp_share": pp_share(ctx, p.id), "gp": proj.games,
                 "play": _r(status.prob, 3), "note": status.note,
                 "durability": _r(dur, 3), "kept": _r(matchup.durability(ctx, p, proj.xfp), 3),
                 "replacement": _r(repl, 3)})
