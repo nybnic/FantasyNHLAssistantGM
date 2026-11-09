@@ -304,13 +304,17 @@
     }
   },
   "daily_plan": "2026-11-06",
-  "dfo_archived": "2026-11-08",
+  "dfo_archived": "2026-11-09",
   "goalie_news": {
     "date": "2026-11-09",
     "starters": {
       "EDM": {
         "confirmed": true,
         "goalie_name": "Devon Levi"
+      },
+      "NYR": {
+        "confirmed": true,
+        "goalie_name": "Dylan Garand"
       },
       "PHI": {
         "confirmed": false,
@@ -326,7 +330,7 @@
   "ir_noted": [],
   "last_error": "2026-11-04",
   "matchup_shots": null,
-  "news_checked": "2026-11-08",
+  "news_checked": "2026-11-09",
   "pending": {
     "add-2026-10-28-0535-8484390": {
       "add": {
@@ -723,7 +727,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-09T17:01+00:00",
+    "at": "2026-11-09T18:01+00:00",
     "moves": [],
     "week": 7
   },
@@ -1069,6 +1073,7 @@
       "8481641:promoted": "2026-10-24",
       "8481656:promoted": "2026-11-06",
       "8481711:promoted": "2026-10-15",
+      "8481716:promoted": "2026-11-09",
       "8481721:promoted": "2026-10-28",
       "8481726:ice time": "2026-10-25",
       "8481732:promoted": "2026-10-22",
@@ -1457,6 +1462,12 @@
         "groups": [
           "f3",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8475790": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -1918,10 +1929,11 @@
         "groups": [
           "f1",
           "pk1",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f1": "2026-11-06"
+          "f1": "2026-11-06",
+          "pp1": "2026-11-09"
         }
       },
       "8477501": {
@@ -2280,15 +2292,6 @@
         ],
         "since": {}
       },
-      "8478856": {
-        "groups": [
-          "f2",
-          "pp2"
-        ],
-        "since": {
-          "f2": "2026-11-02"
-        }
-      },
       "8478859": {
         "groups": [
           "d2",
@@ -2325,6 +2328,12 @@
         "since": {
           "d1": null
         }
+      },
+      "8479066": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8479351": {
         "groups": [
@@ -2833,12 +2842,6 @@
         ],
         "since": {}
       },
-      "8481161": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8481186": {
         "groups": [
           "f4",
@@ -3034,9 +3037,12 @@
       },
       "8481716": {
         "groups": [
-          "f4"
+          "f2",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-09"
+        }
       },
       "8481732": {
         "groups": [
@@ -6553,6 +6559,21 @@
         "team": "MTL",
         "value": -0.0647,
         "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-09",
+        "id": 8481716,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Dmitri Voronkov",
+        "positions": "LW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CBJ",
+        "value": -0.0835,
+        "verdict": "-8 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
       }
     ]
