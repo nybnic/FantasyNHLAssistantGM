@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-09T16:44+00:00",
+ "generated": "2026-11-09T17:01+00:00",
  "date": "2026-11-09",
  "week": 7,
  "opponent": "HAN-NES",
@@ -2591,58 +2591,6 @@
    "why": "worth -6.4 win-pts, under the 11.2 an add costs"
   },
   {
-   "key": "8480074:8480855",
-   "add": {
-    "id": 8480074,
-    "name": "Alexandre Texier",
-    "team": "MTL",
-    "positions": [
-     "LW",
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8480855,
-    "name": "Jack McBain"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": false,
-   "when": null,
-   "games": 3,
-   "week_pts": 0.0,
-   "next_two_pts": -1.54,
-   "later_pts": -7.07,
-   "win": [
-    0.7094,
-    0.7094
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    -0.0001,
-    -0.0067
-   ],
-   "ahead_pts": -0.83,
-   "ahead_week_pts": [
-    -0.01,
-    -0.82
-   ],
-   "held": true,
-   "keep": 0.208,
-   "bin": "skater, lowest",
-   "stays": [
-    0.423,
-    0.208,
-    0.074
-   ],
-   "later_wins": -0.0579,
-   "value": -0.0647,
-   "status": "fails",
-   "why": "dropping Jack McBain costs about 7 pts later, more than this week's +0 win-pts make up for"
-  },
-  {
    "key": "8477968:8480855",
    "add": {
     "id": 8477968,
@@ -3205,6 +3153,58 @@
    "value": -0.0792,
    "status": "fails",
    "why": "dropping Jack McBain costs about 17 pts later, more than this week's +3 win-pts make up for"
+  },
+  {
+   "key": "8478474:8476483",
+   "add": {
+    "id": 8478474,
+    "name": "Lawson Crouse",
+    "team": "UTA",
+    "positions": [
+     "LW",
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8476483,
+    "name": "Rickard Rakell"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": false,
+   "when": null,
+   "games": 3,
+   "week_pts": 2.54,
+   "next_two_pts": 0.35,
+   "later_pts": -12.09,
+   "win": [
+    0.7094,
+    0.727
+   ],
+   "now_wins": 0.0176,
+   "ahead_wins": [
+    -0.0138,
+    0.0146
+   ],
+   "ahead_pts": -0.11,
+   "ahead_week_pts": [
+    -1.9,
+    1.79
+   ],
+   "held": false,
+   "keep": 0.379,
+   "bin": "skater, 2nd lowest",
+   "stays": [
+    0.656,
+    0.379,
+    0.165
+   ],
+   "later_wins": -0.0991,
+   "value": -0.0807,
+   "status": "fails",
+   "why": "dropping Rickard Rakell costs about 12 pts later, more than this week's +2 win-pts make up for"
   }
  ],
  "teams": {
@@ -12513,166 +12513,6 @@
    "kept": 1.0,
    "replacement": 5.603
   },
-  "8480074": {
-   "id": 8480074,
-   "name": "Alexandre Texier",
-   "team": "MTL",
-   "positions": "LW/RW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 17,
-    "pts": 48.1,
-    "proj": 52.5,
-    "pts_projected": 48.1,
-    "stats": {
-     "Goals": [
-      2.0,
-      2.6
-     ],
-     "Assists": [
-      3.0,
-      3.7
-     ],
-     "PP points": [
-      1.0,
-      0.9
-     ],
-     "SH points": [
-      0.0,
-      0.1
-     ],
-     "GWG": [
-      0.0,
-      0.3
-     ],
-     "Shots": [
-      26.0,
-      23.0
-     ],
-     "Hits": [
-      18.0,
-      18.1
-     ],
-     "Blocks": [
-      7.0,
-      6.0
-     ],
-     "Faceoff wins": [
-      0.0,
-      6.2
-     ],
-     "+/-": [
-      -2.0,
-      0.4
-     ],
-     "PIM": [
-      10.0,
-      8.1
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-11-07",
-      "opp": "TOR",
-      "pts": 2.8,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-11-05",
-      "opp": "UTA",
-      "pts": 2.0,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-11-03",
-      "opp": "WPG",
-      "pts": 1.3,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-31",
-      "opp": "PIT",
-      "pts": 5.5,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-29",
-      "opp": "DAL",
-      "pts": 1.6,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-27",
-      "opp": "STL",
-      "pts": 4.5,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-25",
-      "opp": "WPG",
-      "pts": 2.5,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-23",
-      "opp": "CHI",
-      "pts": 0.6,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-20",
-      "opp": "SJS",
-      "pts": 2.5,
-      "proj": 3.1
-     },
-     {
-      "date": "2026-10-17",
-      "opp": "BUF",
-      "pts": 5.6,
-      "proj": 3.2
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.625,
-    "Assists": 0.578,
-    "PP, SH, GWG": 0.08,
-    "Shots": 0.737,
-    "Hits": 0.62,
-    "Blocks": 0.312,
-    "Faceoffs": 0.023,
-    "+/- and PIM": 0.153
-   },
-   "xfp": 3.127,
-   "stats": {
-    "Goals": 0.156,
-    "Assists": 0.21,
-    "PP points": 0.055,
-    "SH points": 0.007,
-    "GWG": 0.019,
-    "Shots": 1.475,
-    "Hits": 1.034,
-    "Blocks": 0.39,
-    "Faceoff wins": 0.227,
-    "+/-": 0.01,
-    "PIM": 0.492
-   },
-   "toi": 13.29,
-   "pp_toi": 1.5,
-   "pp_share": {
-    "season": 0.299,
-    "recent": 0.36,
-    "recent_games": 5,
-    "trend": 1
-   },
-   "gp": 17,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.855,
-   "kept": 1.0,
-   "replacement": 5.603
-  },
   "8477968": {
    "id": 8477968,
    "name": "Alex Nedeljkovic",
@@ -16747,17 +16587,17 @@
   {
    "date": "2026-11-09",
    "id": 8480074,
-   "name": "Alexandre Texier",
-   "team": "MTL",
-   "positions": "LW/RW",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the second line.",
-   "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
-   "value": -0.0647,
+   "name": "Alexandre Texier",
+   "positions": "LW/RW",
    "price": 0.1115,
-   "sent": false
+   "sent": false,
+   "team": "MTL",
+   "value": -0.0647,
+   "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+   "why": "DFO moved up to the second line."
   },
   {
    "date": "2026-11-09",
