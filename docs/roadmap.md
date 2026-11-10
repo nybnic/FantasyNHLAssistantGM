@@ -123,7 +123,8 @@ one recommendation land here and are tested in batches:
   **Replayed 2026-11-10** (8 leagues x 16 teams, 2025-26, 30 adds a season; wins a season vs always-3 /
   always-3 + swaps, SE): 2 + stream 90% +1.16 (0.23), 23.0 adds, 10.5 streams; 2 + stream 90% + swaps
   +0.45 (0.18) at the 9-pt swap bar (22.5 adds against 11.1), +0.34 (0.16) at a 3-pt bar (25.5 vs
-  15.1; always-3 + swaps itself 11.73 -> 11.60 wins: more skater swaps don't help); 2 + stream 60% +0.24
+  15.1), +0.23 (0.17) at 1 pt (26.4 vs 16.6; always-3 + swaps itself 11.73 -> 11.60 -> 11.52 wins: more
+  skater swaps don't help, so the gain isn't just the adds spent); 2 + stream 60% +0.24
   (0.21) / -0.09 / -0.32. Always-2 without streaming still -0.65 (0.18) / -1.02 (0.19). Goalie points
   zeroed 2.3-2.6 weeks a season with streaming vs 2.5-3.2 with three. A first run had streams leave D
   slots empty (the drop-back refilled any position), -2.1 to -2.6: fixed. Reading: carrying two goalies
