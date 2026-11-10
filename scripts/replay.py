@@ -147,14 +147,30 @@ VARIANTS = {
     "tenure daily last half": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure daily last free": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
     "tenure daily weekend half": ("tenure", 3, 0.5, ("pace", 0.08, 2.0)),
+    # Two goalies, streaming one for the minimum (Nico, 2026-11-10: "I can always stream a starting
+    # goalie from FA if I risk missing the 3-game minimum"; scripts/sim_goalies.py first). STREAM_TWO.
+    **{name: ("tenure", 3, 0.5, ("pace", 0.08, 2.0)) for name in (
+        "2g stream 90", "2g stream 90 contested", "2g stream 60 contested")},
 }
+# Two goalies + streams, by variant: (stream below this P(3 starts by Sunday), the share of free-agent
+# goalies confirmed to start tonight another manager has taken). The team carries two goalies (its
+# weakest goalie traded for a skater in week 1); goalie adds only replace a goalie (never a skater).
+# On any day (Monday included, before the day's other moves) the goalie minimum's odds from the games
+# banked, tonight's confirmed starts of mine and my goalies' shares on the days left fall under the
+# threshold while a G slot is open tonight, the best free agent confirmed to start tonight (not taken)
+# replaces my weakest skater at a position I have a spare at; next Monday my weakest goalie goes for the
+# best free agent at that skater's position. Each is an add (two a stream), within the week's 2 and the
+# budget, and the price rule sees them. Contested: in Nico's league the other 15 teams added 3-4
+# goalies a week in weeks 1-6 (of ~20 adds; Transactions, a lower bound), a judgment call at 0.5.
+STREAM_TWO = {"2g stream 90": (0.90, 0.0), "2g stream 90 contested": (0.90, 0.5),
+              "2g stream 60 contested": (0.60, 0.5)}
 # The days after each Monday a variant also decides on, with the week's adds left (Thursday: MIDWEEK).
 MIDWEEK_DAY = 3
 DECISION_DAYS = {**{name: (MIDWEEK_DAY,) for name in ("tenure midweek", "tenure full ahead midweek",
                                                        "tenure stream ahead midweek")},
                  **{name: (1, 2, 3, 4, 5, 6) for name in ("tenure daily", "tenure daily shrink", "tenure daily met",
                                                           "tenure daily last half", "tenure daily last free",
-                                                          "tenure daily weekend half")}}
+                                                          "tenure daily weekend half", *STREAM_TWO)}}
 MIDWEEK = set(DECISION_DAYS)
 # This week's margin as it realizes, by the days left to play (check_sigma --from-day, 16 leagues,
 # 2025-26 / 2024-25: 0.91 / 0.81, 0.91 / 0.76, 0.91 / 0.79, 0.87 / 0.81, 0.85 / 0.76, 0.87 / 0.88 from
@@ -485,6 +501,59 @@ def best_goalie(s: Season, m: dt.date, taken: set[int]) -> int | None:
                 if q not in taken and s.share(q, m) >= 0.3), default=(0, None))[1]
 
 
+def spare_skater(s: Season, roster: list[int], m: dt.date) -> int:
+    """My weakest skater at a position I have more of than its slots (the weakest of all if none)."""
+    xfp = s.proj(m)[0]
+    skaters = [pid for pid in roster if pid not in s.goalie_ids]
+    count = defaultdict(int)
+    for pid in skaters:
+        count[s.position[pid]] += 1
+    spare = [pid for pid in skaters if count[s.position[pid]] > SLOTS[s.position[pid]]]
+    return min(spare or skaters, key=lambda p: xfp.get(p, 0.0))
+
+
+def skater_for_goalie(s: Season, roster: list[int], m: dt.date, taken: set[int], pos: str | None) -> list[int] | None:
+    """My weakest goalie traded for the best free-agent skater (at `pos`, else the one gaining most over the
+    next LONG_RUN_WEEKS), or None with two goalies or fewer."""
+    goalies = [pid for pid in roster if pid in s.goalie_ids]
+    if len(goalies) <= matchup.MIN_GOALIES:
+        return None
+    gx = s.proj(m)[1]
+    weakest = min(goalies, key=lambda g: s.share(g, m) * gx.get(g, 0.0))
+    by_xfp = s.eligible(m)[1]
+    cands = [next((q for q in by_xfp[p] if q not in taken and q not in roster), None)
+             for p in ([pos] if pos else SLOTS)]
+    cands = [q for q in cands if q is not None]
+    if not cands:
+        return None
+    days = [m + dt.timedelta(days=i) for i in range(7 * matchup.LONG_RUN_WEEKS)]
+    week = Week(s, roster, m, days)
+    best = max(cands, key=lambda q: sum(week.gain(q, weakest, days).values()))
+    return [best if pid == weakest else pid for pid in roster]
+
+
+def minimum_stream(s: Season, roster: list[int], first: list[int], later: list, m: dt.date, offset: int,
+                   taken: set[int], below: float, contested: float, league_key: str) -> int | None:
+    """The free-agent goalie to stream in tonight for the goalie minimum (STREAM_TWO), or None."""
+    d = m + dt.timedelta(days=offset)
+    banked = goalie_games(s, first, m, later or None, offset)
+    goalies = [pid for pid in roster if pid in s.goalie_ids]
+    tonight = min(2, sum((g, d) in s.g_points for g in goalies))
+    need = MIN_GOALIE_GAMES_PER_WEEK - banked - tonight
+    if need <= 0 or tonight >= 2:
+        return None
+    probs = []
+    for i in range(offset + 1, 7):
+        day = m + dt.timedelta(days=i)
+        probs += sorted((s.share(g, m) for g in goalies if day in s.team_days[s.team(g, m)]), reverse=True)[:2]
+    if at_least(probs, need) >= below:
+        return None
+    gx = s.proj(m)[1]
+    free = [q for q in s.goalie_ids if q not in taken and q not in roster and (q, d) in s.g_points
+            and random.Random(f"{league_key}|{d}|{q}").random() >= contested]
+    return max(free, key=lambda q: gx.get(q, 0.0), default=None)
+
+
 def run_league(args: tuple) -> dict:
     """One league: every team managed under every variant. Returns wins, points and adds per (team,
     variant), and with `audit` each move's predicted parts and what it brought (realized)."""
@@ -524,6 +593,7 @@ def run_league(args: tuple) -> dict:
             picks, prices, tops = [], [], []  # the live price's simulated Monday pools; each Monday's price; best two
             exits = {}  # add -> the Monday his planned exit is due
             mine_taken = set(drafted)
+            owed, streams = [], 0  # STREAM_TWO: positions to refill on Monday; streams made
             made, by_week, scores = [], [], []  # the audit's moves, rosters and scores by week
             for w, m in enumerate(mondays):
                 if w:  # forced like the lazy managers: a goalie who lost his role
@@ -536,6 +606,24 @@ def run_league(args: tuple) -> dict:
                 cap = math.ceil(REGULAR_ADDS * (w + 1) / n_weeks) if fixed else REGULAR_ADDS
                 price = rule if fixed else None
                 week_adds = 0
+                if name in STREAM_TWO and used < cap:  # back to two goalies: week 1, and after a stream
+                    two = skater_for_goalie(s, roster, m, mine_taken, owed.pop(0) if owed else None)
+                    if two:
+                        mine_taken |= set(two) - set(roster)
+                        roster = two
+                        used += 1
+                        week_adds += 1
+                    if used < cap and week_adds < 2:
+                        add = minimum_stream(s, roster, roster, [], m, 0, mine_taken, *STREAM_TWO[name],
+                                             f"{seed}|{league_no}")
+                        if add:
+                            out_ = spare_skater(s, roster, m)
+                            owed.append(s.position[out_])
+                            roster[roster.index(out_)] = add
+                            mine_taken.add(add)
+                            used += 1
+                            week_adds += 1
+                            streams += 1
                 for _ in range(2):
                     if used >= cap or price == math.inf:
                         break
@@ -544,7 +632,8 @@ def run_league(args: tuple) -> dict:
                     parts = {} if audit else None
                     move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken, keep_rule, spots,
                                      discount, n_weeks, used, EXITS.get(name), price if price is not None else PRICE,
-                                     leaving, name not in SKATERS_ONLY, collect, parts, name in WHOLE_SCHEDULE)
+                                     leaving, name not in SKATERS_ONLY, collect, parts, name in WHOLE_SCHEDULE,
+                                     two_goalies=name in STREAM_TWO)
                     if price is None:  # the Monday's price, before its first move
                         tops.append((w, *collect.get("top", (None, None))))
                         price = monday_price(rule, used, w, n_weeks, picks, collect if rule[0] == "live" else None)
@@ -569,6 +658,21 @@ def run_league(args: tuple) -> dict:
                     if week_adds >= 2 or used >= cap:
                         break
                     day = m + dt.timedelta(days=offset)
+                    if name in STREAM_TWO:
+                        add = minimum_stream(s, roster, first, later, m, offset, mine_taken | this_week,
+                                             *STREAM_TWO[name], f"{seed}|{league_no}")
+                        if add:
+                            out_ = spare_skater(s, roster, day)
+                            owed.append(s.position[out_])
+                            roster[roster.index(out_)] = add
+                            mine_taken.add(add)
+                            this_week.add(add)
+                            used += 1
+                            week_adds += 1
+                            streams += 1
+                            later.append((day, list(roster)))
+                            if week_adds >= 2 or used >= cap:
+                                break
                     opp_roster = lazy_by_week[w][pairs[w][t]]
                     banked = (actual(s, first, m, later, days=offset, minimum=False),
                               actual(s, opp_roster, m, days=offset, minimum=False))
@@ -584,7 +688,7 @@ def run_league(args: tuple) -> dict:
                         move = best_move(s, roster, m, w, t, pairs, lazy_by_week, mine_taken | this_week, keep_rule,
                                          spots, discount, n_weeks, used, None, price, (), name not in SKATERS_ONLY,
                                          None, parts, True, day=day, banked=banked,
-                                         realizes=realizes)
+                                         realizes=realizes, two_goalies=name in STREAM_TWO)
                         if move is None or move[0] < price:
                             break
                         _, add, drop, _ = move
@@ -605,6 +709,8 @@ def run_league(args: tuple) -> dict:
                 scores.append(score)
             moves = realized(s, made, by_week, mondays, scores, [lazy_score[w][pairs[w][t]] for w in range(n_weeks)]) \
                 if audit else None
+            if name in STREAM_TWO:  # reported in the planned exits' column
+                planned = streams
             out[(t, name)] = (wins, pts / n_weeks, used, planned, done, prices, tops, moves)
         print(f"league {league_no + 1}: team {t + 1}/{managed} done", flush=True)
     return out
@@ -889,7 +995,7 @@ GOALIE_SHORTLIST = (4, 3)  # free agent goalies tried: the best by this week's p
 
 def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, discount, n_weeks, used,
               exit_rule=None, price=PRICE, leaving=(), goalie_moves=True, collect=None, parts=None,
-              whole=False, table=None, day=None, banked=(0.0, 0.0), realizes=None):
+              whole=False, table=None, day=None, banked=(0.0, 0.0), realizes=None, two_goalies=False):
     """(value, add, drop, exit Monday or None) of the best swap this Monday, valued as
     matchup.candidate_moves does. `exit_rule`: EXITS; `leaving`: players whose planned exit is due,
     offered as drops too; `goalie_moves`: goalies added and dropped too, never below MIN_GOALIES.
@@ -900,7 +1006,8 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
     over the whole season left (WHOLE_SCHEDULE); `table`: the tenure curves for keep rule
     "tenure" (default engine.tenure.SURVIVAL). `day`: a mid-week decision (MIDWEEK): projected
     from that day over the week's days left, with `banked` (mine, the opponent's) points so far.
-    `realizes`: this week's margin of the days left read at this share (SHRINK; default MARGIN_REALIZES)."""
+    `realizes`: this week's margin of the days left read at this share (SHRINK; default MARGIN_REALIZES).
+    `two_goalies`: a free-agent goalie only replaces my weakest goalie, never a skater (STREAM_TWO)."""
     at = day or m
     xfp = s.proj(at)[0]
     this = [at + dt.timedelta(days=i) for i in range((m + dt.timedelta(days=7) - at).days)]
@@ -971,7 +1078,7 @@ def best_move(s, roster, m, w, t, pairs, lazy_by_week, taken, keep_rule, spots, 
             picked |= set(sorted(free, key=lambda q: s.share(q, at) * gx.get(q, 0.0), reverse=True)[:GOALIE_SHORTLIST[1]])
             for q in picked:
                 a = RosterPlayer(q, str(q), s.team(q, m), ["G"])
-                pairs_tried += [(a, d) for d in drops + [g_rp]]
+                pairs_tried += [(a, d) for d in ([] if two_goalies else drops) + [g_rp]]
         best, pool, detail = None, [], None
         bins = TenureBins(s, at, roster, mine_rp, levels, ctx)
         for a, d in pairs_tried:
@@ -1047,7 +1154,7 @@ def main() -> None:
     print(f"\n{args.leagues} leagues x 16 teams, 2025-26 replayed; each team managed alone, the others lazily; "
           f"price {PRICE if args.price is None else args.price}")
     print(f"{'variant':16}{'wins':>7}{'vs ' + reference:>16}{'+/- SE':>9}{'pts/wk':>9}{'adds':>7}"
-          f"{'exits planned':>15}{'made':>6}")
+          f"{'exits/streams':>15}{'made':>6}")
     ref = [results[(k, t, reference)] for k, t in teams]
     for name in names:
         rows = [results[(k, t, name)] for k, t in teams]

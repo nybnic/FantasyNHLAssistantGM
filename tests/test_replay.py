@@ -285,3 +285,35 @@ def test_last_day_variants_lower_only_that_days_price():
     assert replay.day_price("tenure daily", 6, 0.12) == 0.12
     assert all(replay.DECISION_DAYS[v] == (1, 2, 3, 4, 5, 6) for v in replay.LAST_DAY_PRICE)
     assert set(replay.LAST_DAY_PRICE) <= set(replay.VARIANTS) and set(replay.LAST_DAY_PRICE) <= replay.WHOLE_SCHEDULE
+
+
+def _two_goalie_season(share=0.5, my_days=None):
+    """Goalies 10 (team G1) and 11 (G2) are mine; 20 (G3) and 21 (G4) free agents who start Monday."""
+    days = [MON + dt.timedelta(days=i) for i in range(7)]
+    team = {1: "A", 2: "A", 3: "A", 4: "B", 10: "G1", 11: "G2", 20: "G3", 21: "G4"}
+    s = _season({1: 5.0, 2: 3.0, 3: 2.0, 4: 1.0}, {1: "C", 2: "C", 3: "C", 4: "D"},
+                {"G1": my_days or {days[2]}, "G2": my_days or {days[4]}, "G3": {MON}, "G4": {MON}},
+                g_points={(20, MON): 8.0, (21, MON): 6.0}, goalies=(10, 11, 20, 21))
+    s._proj[MON] = (s._proj[MON][0], {10: 9.0, 11: 9.0, 20: 8.0, 21: 10.0})
+    s.team = lambda pid, m: team[pid]
+    s.share = lambda pid, m: share
+    return s, days
+
+
+def test_a_goalie_is_streamed_for_the_minimum_only_when_it_is_at_risk():
+    roster = [1, 2, 3, 4, 10, 11]
+    s, days = _two_goalie_season()
+    # Two games left for my goalies at 50%: 3 starts can't happen; the best free agent starting tonight.
+    assert replay.minimum_stream(s, roster, roster, [], MON, 0, set(), 0.9, 0.0, "k") == 21
+    assert replay.minimum_stream(s, roster, roster, [], MON, 0, {21}, 0.9, 0.0, "k") == 20  # 21 taken
+    assert replay.minimum_stream(s, roster, roster, [], MON, 0, set(), 0.9, 1.0, "k") is None  # all contested
+    # Both my goalies' teams play every day after Monday at 90%: the minimum is safe, no stream.
+    s, days = _two_goalie_season(0.9, set(days[1:]))
+    assert replay.minimum_stream(s, roster, roster, [], MON, 0, set(), 0.9, 0.0, "k") is None
+
+
+def test_a_streamed_goalie_replaces_a_skater_from_a_position_with_a_spare():
+    s, _ = _two_goalie_season()
+    # Three Cs for two C slots, one D for four: the weakest C goes, not the weaker D.
+    assert replay.spare_skater(s, [1, 2, 3, 4, 10, 11], MON) == 3
+    assert replay.spare_skater(s, [1, 2, 4, 10, 11], MON) == 4  # no spare: the weakest of all
