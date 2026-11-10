@@ -698,7 +698,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-10T06:23+00:00",
+    "at": "2026-11-10T08:47+00:00",
     "moves": [],
     "week": 7
   },
@@ -869,7 +869,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784886,
+  "telegram_offset": 929784887,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1126,6 +1126,7 @@
       "8484160:ice time": "2026-10-23",
       "8484197:promoted": "2026-11-04",
       "8484210:ice time": "2026-10-14",
+      "8484227:ice time": "2026-11-10",
       "8484234:promoted": "2026-10-22",
       "8484241:promoted": "2026-11-04",
       "8484386:ice time": "2026-11-08",
@@ -2126,16 +2127,6 @@
         ],
         "since": {}
       },
-      "8478414": {
-        "groups": [
-          "f1",
-          "pk2",
-          "pp2"
-        ],
-        "since": {
-          "f1": null
-        }
-      },
       "8478416": {
         "groups": [
           "d1",
@@ -2294,6 +2285,15 @@
           "pk1"
         ],
         "since": {}
+      },
+      "8478882": {
+        "groups": [
+          "d1",
+          "pk1"
+        ],
+        "since": {
+          "d1": null
+        }
       },
       "8478904": {
         "groups": [
@@ -3704,6 +3704,17 @@
           "pp2"
         ],
         "since": {}
+      },
+      "8483678": {
+        "groups": [
+          "f1",
+          "pk1",
+          "pp1"
+        ],
+        "since": {
+          "f1": null,
+          "pp1": null
+        }
       },
       "8483679": {
         "groups": [
@@ -6484,6 +6495,21 @@
         "value": -0.0362,
         "verdict": "-4 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line and the first power play, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-10",
+        "id": 8484227,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Will Smith",
+        "positions": "LW/RW",
+        "price": 0.1115,
+        "sent": true,
+        "team": "SJS",
+        "value": -0.0304,
+        "verdict": "-3 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 22:56 a game in his last 3, up from 19:22. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
