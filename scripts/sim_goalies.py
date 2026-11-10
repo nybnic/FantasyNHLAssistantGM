@@ -1,4 +1,4 @@
-"""Two goalies or three? The 2025-26 season replayed under three policies.
+"""Two goalies or three? The 2025-26 season replayed under goalie policies.
 
 Leagues of 16 teams snake-drafted on preseason projections (scripts/check_sigma.py:
 3 C, 2 LW, 2 RW, 4 D, 3 G). Each team plays the season three times:
@@ -8,11 +8,19 @@ Leagues of 16 teams snake-drafted on preseason projections (scripts/check_sigma.
   run: the goalie minimum each week, a goalie lost for a week per
   availability.GOALIE_KEEP) compares its roster with one goalie more or one
   fewer over the next 4 weeks, and switches when the gain beats an add.
+- 2 + stream: always-2, and on any day the goalie minimum is at risk (P(3 starts
+  by Sunday) under STREAM_BELOW, from the starts banked, my goalies' confirmed
+  starts tonight and their start shares on the days left), a free agent
+  confirmed to start tonight is added for my weakest skater, while a G slot is
+  open tonight. Next Monday always-2 drops a goalie again (one more add), so a
+  stream costs two adds (Nico, 2026-11-10: "I can always stream a starting
+  goalie from FA if I risk missing the 3-game minimum").
 Controls with the same weekly like-for-like swaps (+ swaps: the weakest
 skater or goalie for the best free agent at his position, when the gain beats
 an add) separate the
 goalie decision from simply using adds well: compare by-value + swaps with
-always-3 + swaps. Moves are capped at 2 a week.
+always-3 + swaps. Moves are capped at 2 a week, and with --budget at that many adds a season
+(the live budget leaves 30 of 36 for the regular season).
 All replace a goalie who has lost his role (under 15% of his team's
 last 10 starts) with the free agent with the most recent starts; every move
 is an add. Each week a team's real score (box scores, the best projected
@@ -26,6 +34,7 @@ confirms most by briefing time).
 
     python -m scripts.sim_goalies               # 4 leagues
     python -m scripts.sim_goalies --leagues 8
+    python -m scripts.sim_goalies --leagues 8 --budget 30
 """
 from __future__ import annotations
 
@@ -46,6 +55,18 @@ from scripts.check_sigma import POS, draft, load
 HORIZON_WEEKS = 4
 SWITCH_COST = 9.0  # points over the horizon an add must buy (judgment call, see docstring)
 LOST_SHARE = 0.15
+STREAM_BELOW = (0.9, 0.6)  # the 2 + stream variants' risk thresholds (judgment calls, both replayed)
+
+
+def at_least(need: int, probs: list[float]) -> float:
+    """P(at least `need` of the independent events with these odds happen)."""
+    if need <= 0:
+        return 1.0
+    dist = [1.0]
+    for p in probs:
+        dist = [(dist[k] if k < len(dist) else 0.0) * (1 - p) + (dist[k - 1] * p if k else 0.0)
+                for k in range(len(dist) + 1)]
+    return sum(dist[need:])
 
 
 class ReplayContext:
@@ -77,7 +98,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--leagues", type=int, default=4)
     parser.add_argument("--seed", type=int, default=11)
+    parser.add_argument("--budget", type=int, help="adds a season per team (default: no season cap)")
     args = parser.parse_args()
+    budget = args.budget if args.budget is not None else 10 ** 6
     s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load()
 
     by_skater, by_goalie = defaultdict(list), defaultdict(list)
@@ -147,14 +170,38 @@ def main() -> None:
                                      long_run=True).expected
         return total
 
-    def actual(roster_ids, m):
-        """The week's real score: the best projected lineup each day, starters known."""
+    def is_goalie(pid):
+        return pid in by_goalie and pid not in by_skater
+
+    def actual(roster_ids, m, stream=None):
+        """The week's real score: the best projected lineup each day, starters known.
+        With `stream` ({"below", "left", "taken"}), a free agent confirmed to start
+        tonight replaces the weakest skater on a day the goalie minimum is at risk.
+        Returns (score, minimum made, the roster at the week's end, streams)."""
         s_proj, g_proj = projections(m)
+        roster_ids = list(roster_ids)
         total_s = total_g = 0.0
-        starts = 0
+        starts = streams = 0
+        plays_on = {i: {t for gm in games.get(m + dt.timedelta(days=i), {}).values() for t in (gm.home, gm.away)}
+                    for i in range(7)}
         for i in range(7):
             d = m + dt.timedelta(days=i)
-            playing = {t for gm in games.get(d, {}).values() for t in (gm.home, gm.away)}
+            playing = plays_on[i]
+            while stream and stream["left"] > 0:
+                g_ids = [pid for pid in roster_ids if is_goalie(pid)]
+                tonight = sum(1 for pid in g_ids if (pid, d) in g_points)
+                later = [share(pid, m) for j in range(i + 1, 7) for pid in g_ids if team_of[pid] in plays_on[j]]
+                if tonight >= 2 or at_least(MIN_GOALIE_GAMES_PER_WEEK - starts - tonight, later) >= stream["below"]:
+                    break
+                taken = stream["taken"] | set(roster_ids)
+                cands = [(g_proj.get(pid, 0), pid) for pid in by_goalie
+                         if is_goalie(pid) and pid not in taken and (pid, d) in g_points]
+                if not cands:
+                    break
+                out = min((pid for pid in roster_ids if not is_goalie(pid)), key=lambda p: s_proj.get(p, 0))
+                roster_ids[roster_ids.index(out)] = max(cands)[1]
+                stream["left"] -= 1
+                streams += 1
             cands = []
             for pid in roster_ids:
                 if team_of[pid] not in playing:
@@ -172,13 +219,18 @@ def main() -> None:
                         starts += 1
                 else:
                     total_s += points.get((pid, d), 0.0)
-        return total_s + (total_g if starts >= MIN_GOALIE_GAMES_PER_WEEK else 0.0), starts >= MIN_GOALIE_GAMES_PER_WEEK
+        made = starts >= MIN_GOALIE_GAMES_PER_WEEK
+        return total_s + (total_g if made else 0.0), made, roster_ids, streams
 
     rng = random.Random(args.seed)
     POLICIES = {"always-3": (3, False), "always-2": (2, False), "always-3 + swaps": (3, True),
                 "always-2 + swaps": (2, True), "by-value + swaps": ("value", True)}
+    for below in STREAM_BELOW:  # (goalie rule, swaps, stream below)
+        POLICIES[f"2 + stream {below:.0%}"] = (2, False, below)
+        POLICIES[f"2 + stream {below:.0%} + swaps"] = (2, True, below)
     results = {p: [] for p in POLICIES}
     adds = {p: [] for p in results}
+    streamed = {p: [] for p in results}
     zeroed = {p: [] for p in results}
     mean_goalies = []
     counts = {}  # (league, team, policy) -> goalies carried each week
@@ -199,16 +251,16 @@ def main() -> None:
         trajectories = {}
         for t, r in enumerate(rosters):
             base = [pid for ids in r.values() for pid in ids]
-            for policy, (goalie_rule, swaps) in POLICIES.items():
-                roster, n_adds, week_scores, misses, g_count = list(base), 0, [], 0, []
+            for policy, (goalie_rule, swaps, *stream_below) in POLICIES.items():
+                roster, n_adds, week_scores, misses, g_count, n_streams = list(base), 0, [], 0, [], 0
                 for w, m in enumerate(mondays):
-                    moves = 0
+                    moves = 0 if n_adds < budget else 2  # the season budget spent: no more moves
                     taken = drafted | set(roster)
                     g_ids = [pid for pid in roster if pid in by_goalie and pid not in by_skater]
                     for pid in g_ids:  # a goalie who lost his role is replaced
                         if share(pid, m) < LOST_SHARE and [d for d, _ in starts_by_team[team_of[pid]] if d < m][-10:]:
                             new = free(m, taken, True)
-                            if new and moves < 2:
+                            if new and moves < 2 and n_adds < budget:
                                 roster[roster.index(pid)] = new
                                 taken.add(new)
                                 n_adds += 1
@@ -216,13 +268,13 @@ def main() -> None:
                     g_ids = [pid for pid in roster if pid in by_goalie and pid not in by_skater]
                     s_proj, g_proj = projections(m)
                     weakest_g = min(g_ids, key=lambda p: share(p, m) * g_proj.get(p, 0))
-                    if goalie_rule == 2 and len(g_ids) > 2 and moves < 2:
+                    if goalie_rule == 2 and len(g_ids) > 2 and moves < 2 and n_adds < budget:
                         sk = free(m, taken, False)
                         roster[roster.index(weakest_g)] = sk
                         taken.add(sk)
                         n_adds += 1
                         moves += 1
-                    elif goalie_rule == 3 and len(g_ids) < 3 and moves < 2:  # back to three if one was lost
+                    elif goalie_rule == 3 and len(g_ids) < 3 and moves < 2 and n_adds < budget:  # back to three if one was lost
                         new = free(m, taken, True)
                         if new:
                             skaters_mine = [pid for pid in roster if pid not in g_ids]
@@ -230,7 +282,7 @@ def main() -> None:
                             taken.add(new)
                             n_adds += 1
                             moves += 1
-                    elif goalie_rule == "value" and moves < 2:
+                    elif goalie_rule == "value" and moves < 2 and n_adds < budget:
                         if len(g_ids) > 2:
                             alt = list(roster)
                             sk = free(m, taken, False)
@@ -245,7 +297,7 @@ def main() -> None:
                             taken |= set(roster)
                             n_adds += 1
                             moves += 1
-                    if swaps and moves < 2:  # like for like: a skater for a skater, a goalie for a goalie
+                    if swaps and moves < 2 and n_adds < budget:  # like for like: a skater for a skater, a goalie for a goalie
                         g_now = [pid for pid in roster if pid in by_goalie and pid not in by_skater]
                         skaters_mine = [pid for pid in roster if pid not in g_now]
                         options = []
@@ -260,13 +312,21 @@ def main() -> None:
                         if alt and gain > SWITCH_COST:
                             roster = alt
                             n_adds += 1
-                    score, made = actual(roster, m)
+                            moves += 1
+                    stream = None
+                    if stream_below:
+                        stream = {"below": stream_below[0], "taken": drafted | set(roster),
+                                  "left": max(0, min(2 - moves, budget - n_adds))}
+                    score, made, roster, n = actual(roster, m, stream)
+                    n_adds += n
+                    n_streams += n
                     week_scores.append(score)
                     misses += not made
                     g_count.append(sum(1 for pid in roster if pid in by_goalie and pid not in by_skater))
                 trajectories[(t, policy)] = week_scores
                 counts[(league_no, t, policy)] = g_count
                 adds[policy].append(n_adds)
+                streamed[policy].append(n_streams)
                 zeroed[policy].append(misses)
                 if goalie_rule == "value":
                     mean_goalies.append(mean(g_count))
@@ -287,14 +347,16 @@ def main() -> None:
         print(f"league {league_no + 1}/{args.leagues} done")
 
     n = len(results["always-3"])
-    print(f"\n{args.leagues} leagues x 16 teams, {len(mondays)} weeks of 2025-26; opponents play always-3")
+    print(f"\n{args.leagues} leagues x 16 teams, {len(mondays)} weeks of 2025-26; opponents play always-3; "
+          f"budget {args.budget or 'none'} adds a season")
     for policy in results:
         baseline = "always-3 + swaps" if POLICIES[policy][1] else "always-3"
         diff = [a - b for a, b in zip(results[policy], results[baseline])]
         se = (sum((d - mean(diff)) ** 2 for d in diff) / (n - 1)) ** 0.5 / math.sqrt(n)
-        print(f"  {policy:16}: {mean(results[policy]):5.2f} wins a season, {mean(diff):+.2f} vs {baseline} "
+        print(f"  {policy:24}: {mean(results[policy]):5.2f} wins a season, {mean(diff):+.2f} vs {baseline} "
               f"(+/- {se:.2f}), "
-              f"{mean(adds[policy]):4.1f} adds, {mean(zeroed[policy]):4.2f} weeks with goalie points zeroed")
+              f"{mean(adds[policy]):4.1f} adds ({mean(streamed[policy]):4.1f} goalie streams), "
+              f"{mean(zeroed[policy]):4.2f} weeks with goalie points zeroed")
     print(f"  by-value carried {mean(mean_goalies):.2f} goalies on average")
     for n_g, diffs in split.items():
         if diffs:

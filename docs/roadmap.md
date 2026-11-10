@@ -112,6 +112,14 @@ one recommendation land here and are tested in batches:
   the price). Guhle +3.3 / +0.4, Kantserov +1.6 / -0.4, Pospisil +0.5 / -3.1 (a forward for my 4th D
   leaves a D slot empty: D -12.6 a week, benched points 4.0 -> 7.7). Test: the long run from the whole
   remaining schedule (or each team's games left) against the 6-week rate.
+- Two goalies + streaming a confirmed starter when the minimum is at risk, against keeping three (Nico,
+  2026-11-10: "the alternative cost of 3 G is too high"; "I can always stream a starting goalie from FA if
+  I risk missing the 3-game minimum"). The Nov 9 Board already nets it: X for Vejmelka -9 win-pts (+3.9
+  pts this week, -9.4 later), X for Knight -14, Meriläinen not among the 6 cheapest to lose. Live record so far:
+  Meriläinen for Pinto forecast +12.1 pts, came out -16.9 (first 3 weeks); Lindell for Murashov -9.8.
+  Test: `scripts/sim_goalies.py --budget 30` (Check workflow, `sim-goalies`): "2 + stream 90% / 60%"
+  (+ swaps) against always-3 (+ swaps), every add (the stream and the Monday drop back) out of the same
+  budget. Optimistic for streaming: starters known, free-agent goalies not contested.
 - (Answered by tenure, live 2026-10-23: a swap's later days now count its own gain, negative too.)
   The keep share was per player, not per lineup (same question): a forward under his position's waiver
   level gets no season weight, whatever the swap does to my lineup's shape. For Pospisil for Larsson that

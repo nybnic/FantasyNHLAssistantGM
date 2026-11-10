@@ -28,6 +28,7 @@ on:
           - goalie-shares
           - goalie-form
           - third-goalie
+          - sim-goalies
           - depth
           - trade
           - scoreboard
@@ -57,11 +58,11 @@ on:
         type: string
         required: false
       leagues:
-        description: Optional number of replay leagues (default 8)
+        description: Optional number of replay (and sim-goalies) leagues (default 8)
         type: string
         required: false
       price:
-        description: Optional replay add price for every variant (0 = spend at the budget's pace)
+        description: Optional replay add price for every variant (0 = spend at the budget's pace); for sim-goalies the adds a season per team (default 30)
         type: string
         required: false
       reference:
@@ -170,6 +171,7 @@ jobs:
             goalie-shares) python -m scripts.goalie_shares ;;
             goalie-form) time python -m scripts.fit_goalie_form ;;
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
+            sim-goalies) time python -m scripts.sim_goalies --leagues "${LEAGUES:-8}" --budget "${PRICE:-30}" ;;
             depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ${MOVES:+--try "$MOVES"} ;;
             trade) time python main.py --dry-run --trade "$PLAYERS" ;;
             scoreboard) python -m scripts.scorecard ;;
