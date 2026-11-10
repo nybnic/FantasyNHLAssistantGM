@@ -46,7 +46,7 @@ on:
         type: string
         required: false
       weeks:
-        description: Optional fantasy weeks for schedule, space-separated, e.g. 24 25 26 (default this week and next); for depth the first and last (default now to week 26); for replay and replay-audit the leagues' seed (default 11)
+        description: Optional fantasy weeks for schedule, space-separated, e.g. 24 25 26 (default this week and next); for depth the first and last (default now to week 26); for replay and replay-audit the leagues' seed (default 11); for sim-goalies the points a swap must buy (default 9)
         type: string
         required: false
       moves:
@@ -171,7 +171,7 @@ jobs:
             goalie-shares) python -m scripts.goalie_shares ;;
             goalie-form) time python -m scripts.fit_goalie_form ;;
             third-goalie) python -m scripts.third_goalie "${goalies[@]}" ;;
-            sim-goalies) time python -m scripts.sim_goalies --leagues "${LEAGUES:-8}" --budget "${PRICE:-30}" ;;
+            sim-goalies) time python -m scripts.sim_goalies --leagues "${LEAGUES:-8}" --budget "${PRICE:-30}" ${WEEKS:+--switch-cost "$WEEKS"} ;;
             depth) time python -m scripts.depth ${WEEKS:+--weeks "$WEEKS"} ${MOVES:+--try "$MOVES"} ;;
             trade) time python main.py --dry-run --trade "$PLAYERS" ;;
             scoreboard) python -m scripts.scorecard ;;

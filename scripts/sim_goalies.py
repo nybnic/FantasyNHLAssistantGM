@@ -36,6 +36,7 @@ confirms most by briefing time).
     python -m scripts.sim_goalies               # 4 leagues
     python -m scripts.sim_goalies --leagues 8
     python -m scripts.sim_goalies --leagues 8 --budget 30
+    python -m scripts.sim_goalies --leagues 8 --budget 30 --switch-cost 3   # swaps spend more adds
 """
 from __future__ import annotations
 
@@ -100,8 +101,11 @@ def main() -> None:
     parser.add_argument("--leagues", type=int, default=4)
     parser.add_argument("--seed", type=int, default=11)
     parser.add_argument("--budget", type=int, help="adds a season per team (default: no season cap)")
+    parser.add_argument("--switch-cost", type=float, default=SWITCH_COST,
+                        help="points over 4 weeks a swap must buy (lower: more adds spent)")
     args = parser.parse_args()
     budget = args.budget if args.budget is not None else 10 ** 6
+    switch_cost = args.switch_cost
     s_priors, s_fallback, g_priors, g_fallback, skaters, goalies = load()
 
     by_skater, by_goalie = defaultdict(list), defaultdict(list)
@@ -307,7 +311,7 @@ def main() -> None:
                             weakest_s = min(skaters_mine, key=lambda p: s_proj.get(p, 0))
                             alt = list(roster)
                             alt[alt.index(weakest_s)] = free(m, taken, True) or weakest_s
-                        if alt != roster and expected(alt, m) - expected(roster, m) > SWITCH_COST:
+                        if alt != roster and expected(alt, m) - expected(roster, m) > switch_cost:
                             roster = alt
                             taken |= set(roster)
                             n_adds += 1
@@ -324,7 +328,7 @@ def main() -> None:
                                 alt[alt.index(out)] = new
                                 options.append((expected(alt, m) - expected(roster, m), alt))
                         gain, alt = max(options, key=lambda o: o[0], default=(0, None))
-                        if alt and gain > SWITCH_COST:
+                        if alt and gain > switch_cost:
                             roster = alt
                             n_adds += 1
                             moves += 1
@@ -363,7 +367,7 @@ def main() -> None:
 
     n = len(results["always-3"])
     print(f"\n{args.leagues} leagues x 16 teams, {len(mondays)} weeks of 2025-26; opponents play always-3; "
-          f"budget {args.budget or 'none'} adds a season")
+          f"budget {args.budget or 'none'} adds a season, a swap must buy {switch_cost:g} pts over 4 weeks")
     for policy in results:
         baseline = "always-3 + swaps" if POLICIES[policy][1] else "always-3"
         diff = [a - b for a, b in zip(results[policy], results[baseline])]
