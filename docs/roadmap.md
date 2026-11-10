@@ -112,7 +112,7 @@ one recommendation land here and are tested in batches:
   the price). Guhle +3.3 / +0.4, Kantserov +1.6 / -0.4, Pospisil +0.5 / -3.1 (a forward for my 4th D
   leaves a D slot empty: D -12.6 a week, benched points 4.0 -> 7.7). Test: the long run from the whole
   remaining schedule (or each team's games left) against the 6-week rate.
-- Two goalies + streaming a confirmed starter when the minimum is at risk, against keeping three (Nico,
+- (Tested 2026-11-10, no change: the full replay below.) Two goalies + streaming a confirmed starter when the minimum is at risk, against keeping three (Nico,
   2026-11-10: "the alternative cost of 3 G is too high"; "I can always stream a starting goalie from FA if
   I risk missing the 3-game minimum"). The Nov 9 Board already nets it: X for Vejmelka -9 win-pts (+3.9
   pts this week, -9.4 later), X for Knight -14, Meriläinen not among the 6 cheapest to lose. Live record so far:
@@ -131,6 +131,13 @@ one recommendation land here and are tested in batches:
   pays only with eager streaming (at 90%, ~0.45 streams a week, two adds each); the gain partly comes from
   churning to the best confirmed starter. Not live: a rule change for Nico, and the bot has no
   mid-week minimum stream today; the uncontested free-agent pool is untested (other managers stream).
+  **Full replay** (Nico: "Test in full"; `scripts/replay.py`, 16 leagues, seeds 11 + 23, against "tenure
+  daily", the live rule, which keeps goalies by value): "2g stream 90" -1.07 (0.13) wins a season,
+  "2g stream 90 contested" (half of tonight's free-agent starters taken) -0.92 (0.13), "2g stream 60
+  contested" -0.79 (0.13); -4 to -5.5 pts a week. 6-7 streams (13 adds) at 90%, 2.7 at 60%; the same
+  ~30 adds, so the streams' adds are missing from skater moves, and the pacing price runs away in the
+  last third (1.2-1.6 vs 0.11). sim_goalies' gain was its control's (swaps at a fixed bar, adds unspent);
+  against the live rule's use of the budget, a third goalie is worth more than a stream's two adds.
 - (Answered by tenure, live 2026-10-23: a swap's later days now count its own gain, negative too.)
   The keep share was per player, not per lineup (same question): a forward under his position's waiver
   level gets no season weight, whatever the swap does to my lineup's shape. For Pospisil for Larsson that
@@ -419,3 +426,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-11-07 | Weekend add lists fixed (Nico: "Why is the potential add targets list so bad now?", then "Bug fix"). Saturday's Board had 3 adds over 0 win-pts (Thursday 10: Olivier 11.9, Talbot 7.4, Kantserov 6.5), and 31 of its 63 free agents came from the five teams playing Sat and Sun (FLA, NJD, PIT, TBL, TOR). Two causes, besides Talbot and Benson being claimed: `matchup.shortlist` ranked each position's 8 by points on this week's days left only, and a swap costing over 1 pt this week (`MAX_WEEK_COST`) was left out, not waited: forced in by a Check run, Olivier and Knies (CBJ idle that weekend) came back with goalie drops only, never McBain. Now the shortlist ranks by this week's days left plus the next two weeks (`ahead_schedule`), and such a swap is valued as made after the drop's games: the day after one this week if that costs at most 1 pt, else next Monday with a Monday add (`Move.monday`, `_after_drop_games`; `plan.compose` gives it a Monday slot only; the message says the drop plays his games first). The replay keeps the old filter. Checked live (Check `explain-week` on the branch, Sat 7 Nov): 361 moves (251 before), Olivier for McBain first at 10.4 win-pts (Olivier for Rakell 9.1, Kantserov for McBain 4.4), Dach, Kapanen, Boeser, Newhook and Anderson back in the pool; still no add (price 12.5); the explain step took 44 s (20 s before). Decision log entry | (this commit) |
 | 2026-11-07 | A "could stream" add's sheet showed no games in the grid's third week (Nico: "There seems to be something wrong in the lineups?", Dach for Rakell: EDM's four week-8 games blank, Rakell's three shown). The rows took their nights from trial lineups of this week and next only; plan rows had the third. `matchup.streamers` now projects the week after next too (`third_schedule`). Display only. Dach's week 6 is blank by design: Rakell plays Sat and Sun, so the swap is a Monday move | (this commit) |
 | 2026-11-09 | A player's sheet shows his share of his team's PP time this season, with an arrow when his last 5 games differ by 5 points or more (`report.pp_share`; team PP = teammates' PP time / 5); Check `pp-share` prints it game by game (Meier: 32% of NJD's PP, 38% the last 5) | (this commit) |
+| 2026-11-10 | Two goalies + streaming for the minimum, tested (Nico: "the alternative cost of 3 G is too high", "I can always stream a starting goalie from FA if I risk missing the 3-game minimum", "Test in full"). `sim_goalies` policies "2 + stream 90% / 60%" with `--budget` and `--switch-cost`: +0.45 (0.18) wins vs always-3 + swaps, but against a weak control. Full replay variants "2g stream 90 / 90 contested / 60 contested" (`replay.STREAM_TWO`), 16 leagues vs "tenure daily": -1.07 / -0.92 / -0.79 (0.13) wins a season. No change: keep goalies by value (decision log 2026-10-02) | |
