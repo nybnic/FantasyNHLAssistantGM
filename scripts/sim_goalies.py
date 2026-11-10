@@ -11,9 +11,10 @@ Leagues of 16 teams snake-drafted on preseason projections (scripts/check_sigma.
 - 2 + stream: always-2, and on any day the goalie minimum is at risk (P(3 starts
   by Sunday) under STREAM_BELOW, from the starts banked, my goalies' confirmed
   starts tonight and their start shares on the days left), a free agent
-  confirmed to start tonight is added for my weakest skater, while a G slot is
-  open tonight. Next Monday always-2 drops a goalie again (one more add), so a
-  stream costs two adds (Nico, 2026-11-10: "I can always stream a starting
+  confirmed to start tonight is added for my weakest skater at a position I
+  have a spare at (a bench player), while a G slot is open tonight. Next Monday
+  a goalie is dropped for the best free agent at that skater's position (one
+  more add), so a stream costs two adds and leaves the skater slots as they were (Nico, 2026-11-10: "I can always stream a starting
   goalie from FA if I risk missing the 3-game minimum").
 Controls with the same weekly like-for-like swaps (+ swaps: the weakest
 skater or goalie for the best free agent at his position, when the gain beats
@@ -46,7 +47,7 @@ from collections import defaultdict
 from statistics import mean
 
 from clients.nhl_client import ScheduledGame
-from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, fantasy_points
+from config.league import GOALIE_WEIGHTS, MIN_GOALIE_GAMES_PER_WEEK, SKATER_WEIGHTS, STARTERS, fantasy_points
 from engine import lineup, matchup
 from league.roster import RosterPlayer
 from model.projections import project_goalie, project_skater
@@ -173,10 +174,21 @@ def main() -> None:
     def is_goalie(pid):
         return pid in by_goalie and pid not in by_skater
 
+    def spare_skater(roster_ids, s_proj):
+        """The weakest skater at a position I have more of than its starting slots
+        (the weakest of all if none)."""
+        skaters_mine = [pid for pid in roster_ids if not is_goalie(pid)]
+        count = defaultdict(int)
+        for pid in skaters_mine:
+            count[position[pid]] += 1
+        spare = [pid for pid in skaters_mine if count[position[pid]] > STARTERS.get(position[pid], 0)]
+        return min(spare or skaters_mine, key=lambda p: s_proj.get(p, 0))
+
     def actual(roster_ids, m, stream=None):
         """The week's real score: the best projected lineup each day, starters known.
-        With `stream` ({"below", "left", "taken"}), a free agent confirmed to start
-        tonight replaces the weakest skater on a day the goalie minimum is at risk.
+        With `stream` ({"below", "left", "taken", "owed"}), a free agent confirmed to
+        start tonight replaces the weakest spare skater on a day the goalie minimum
+        is at risk; his position goes on "owed", to be filled back on Monday.
         Returns (score, minimum made, the roster at the week's end, streams)."""
         s_proj, g_proj = projections(m)
         roster_ids = list(roster_ids)
@@ -198,7 +210,8 @@ def main() -> None:
                          if is_goalie(pid) and pid not in taken and (pid, d) in g_points]
                 if not cands:
                     break
-                out = min((pid for pid in roster_ids if not is_goalie(pid)), key=lambda p: s_proj.get(p, 0))
+                out = spare_skater(roster_ids, s_proj)
+                stream["owed"].append(position[out])
                 roster_ids[roster_ids.index(out)] = max(cands)[1]
                 stream["left"] -= 1
                 streams += 1
@@ -239,13 +252,14 @@ def main() -> None:
         rosters = draft(pool, 16, rng)
         drafted = {pid for r in rosters for ids in r.values() for pid in ids}
 
-        def free(m, taken, goalie):
+        def free(m, taken, goalie, pos=None):
             if goalie:
                 cands = [(share(pid, m) * projections(m)[1].get(pid, 0), pid) for pid in by_goalie
                          if pid not in taken and pid not in by_skater and share(pid, m) >= 0.3]
             else:
                 cands = [(projections(m)[0].get(pid, 0), pid) for pid in by_skater
-                         if pid not in taken and len([g for g in by_skater[pid] if g.date < m]) >= 3]
+                         if pid not in taken and len([g for g in by_skater[pid] if g.date < m]) >= 3
+                         and pos in (None, position[pid])]
             return max(cands, default=(0, None))[1]
 
         trajectories = {}
@@ -253,6 +267,7 @@ def main() -> None:
             base = [pid for ids in r.values() for pid in ids]
             for policy, (goalie_rule, swaps, *stream_below) in POLICIES.items():
                 roster, n_adds, week_scores, misses, g_count, n_streams = list(base), 0, [], 0, [], 0
+                owed = []  # positions of skaters dropped for a streamed goalie, filled back on Monday
                 for w, m in enumerate(mondays):
                     moves = 0 if n_adds < budget else 2  # the season budget spent: no more moves
                     taken = drafted | set(roster)
@@ -269,7 +284,7 @@ def main() -> None:
                     s_proj, g_proj = projections(m)
                     weakest_g = min(g_ids, key=lambda p: share(p, m) * g_proj.get(p, 0))
                     if goalie_rule == 2 and len(g_ids) > 2 and moves < 2 and n_adds < budget:
-                        sk = free(m, taken, False)
+                        sk = free(m, taken, False, owed.pop(0) if owed else None) or free(m, taken, False)
                         roster[roster.index(weakest_g)] = sk
                         taken.add(sk)
                         n_adds += 1
@@ -315,7 +330,7 @@ def main() -> None:
                             moves += 1
                     stream = None
                     if stream_below:
-                        stream = {"below": stream_below[0], "taken": drafted | set(roster),
+                        stream = {"below": stream_below[0], "taken": drafted | set(roster), "owed": owed,
                                   "left": max(0, min(2 - moves, budget - n_adds))}
                     score, made, roster, n = actual(roster, m, stream)
                     n_adds += n
