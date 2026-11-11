@@ -1227,6 +1227,30 @@ def test_the_plan_gives_the_season_odds_and_how_old_the_standings_are():
     state["standings"]["week"] = 2
     assert weekly.season_odds(state, wk, 3)[1] == ""
     assert weekly.season_odds(state, SimpleNamespace(strengths={}, me=team, them=team), 3)[0] is None
+    # The season's strengths, when given, stand in for the one week's
+    strong = {t: (200.0, 30.0) for t in [*set(SCHEDULE), MY_TEAM]} | {MY_TEAM: (260.0, 30.0)}
+    odds = weekly.season_odds(state, wk, 3, strong)[0]
+    assert odds.strengths[MY_TEAM] == (260.0, 30.0) and odds.playoffs > 0.9
+
+
+def test_season_strengths_average_the_weeks_ahead(monkeypatch):
+    from config.league import MY_TEAM
+    days = [dt.date(2026, 11, 16) + dt.timedelta(days=i) for i in range(21)]
+    seen = []
+
+    def project(team, roster, ctx, span, lines, starters, long_run):
+        seen.append(len(span))
+        return matchup.TeamWeek(team, 0, 600.0, 2700.0, 0, 0, 0, 1.0)
+    monkeypatch.setattr(weekly.matchup, "project", project)
+    monkeypatch.setattr(weekly.roster_mod, "active", lambda roster: roster)
+    roster = [object()] * weekly.MIN_KNOWN_ROSTER
+    league = {"teams": {}}
+    future = {d: [] for d in days}
+    three = weekly.team_strengths(roster, league, None, future, {}, {}, 3)
+    assert three[MY_TEAM] == (pytest.approx(200.0), pytest.approx(30.0)) and seen == [21]
+    one = weekly.team_strengths(roster, league, None, future, {}, {})
+    assert one[MY_TEAM] == (pytest.approx(600.0), pytest.approx(2700.0 ** 0.5)) and seen == [21, 7]
+    assert weekly.team_strengths(roster, league, None, dict(list(future.items())[:20]), {}, {}, 3) == {}
 
 
 def _league_shots(monkeypatch, tmp_path, shots):

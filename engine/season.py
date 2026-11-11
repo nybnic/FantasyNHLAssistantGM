@@ -10,7 +10,9 @@ locked-in team's.
 
 `simulate` plays out the rest of the season many times:
 - each team scores a normal week around its projected weekly mean
-  (`team_strengths`: the best lineup over a typical week), with its spread;
+  (`bot/weekly.team_strengths` over the next `bot/weekly.SEASON_WEEKS` full
+  weeks, averaged), with its spread, the gaps between teams' means read at
+  `GAPS_REALIZE` (see there);
 - my opponents are the real schedule (config.league.SCHEDULE), the other 14
   teams are paired at random each week (the league's full schedule isn't
   recorded: a judgment call that blurs who-plays-whom, not team strength);
@@ -28,6 +30,22 @@ numbers are only as good as the team projections, which run a little high
 (model/CLAUDE.md). Known bias: this week's result is forced without its
 points, so its leverage leaves out the points-for tiebreak and reads ~10% low
 next to later weeks' (even teams: 0.91x where 1x is due).
+
+Until 2026-11-11 the strengths were one week's projection at face value: on
+Nov 11 (2-4, points for +5 a week over the league's average) the odds read
+playoffs 97%, title 34%, as if I were ~+33 a week over an average team; the
+weekly forecasts of weeks 1-6 had me +12. One week's schedule swings a team's
+projection ~14 pts against the league's (weeks 2-7, sd per team), and gaps
+weeks ahead come true smaller (`GAPS_REALIZE`). Re-read from the logged
+forecasts, the same day: playoffs ~73-81%, title ~11-13%.
+
+What a seed is worth (same re-read, 2026-11-11): a tied playoff week goes to
+the higher seed, but scores come in 0.05s against a margin sd of ~45, so a tie
+is ~1 week in 2,000; reseeding is what counts, the best seed left meeting the
+worst: the same team's title odds against the same field ran ~16% as the 1
+seed to ~12% as the 8. 1st place itself is 25% of the pool
+(`config.league.PRIZE_SHARES`). Both follow from wins, which the moves are
+valued on already.
 """
 from __future__ import annotations
 
@@ -38,6 +56,12 @@ import numpy as np
 from config.league import LEAGUE_TEAMS, PLAYOFF_TEAMS, PLAYOFF_WEEKS, REGULAR_SEASON_WEEKS, SCHEDULE
 
 SIMS = 10000
+# How much of a projected gap between two teams' weekly means comes true in
+# the weeks ahead: 0.70, team margins two weeks ahead (`check_sigma --ahead 2`,
+# 0.67 / 0.73 by season), the furthest calibrated. Weeks further out likely
+# realize less (fringe gaps: 0.84 weeks 3-6, ~0.75 by week 20, `check_gaps`):
+# untested for whole teams. Odds only: no move's value reads it.
+GAPS_REALIZE = 0.70
 
 
 @dataclass
@@ -48,6 +72,7 @@ class SeasonOdds:
     typical: float  # the average leverage of the regular-season weeks left after this one
     seed: float  # expected seed when making the playoffs
     by_week: dict[int, float] = field(default_factory=dict)  # regular-season week -> leverage
+    strengths: dict[str, tuple[float, float]] = field(default_factory=dict)  # team -> (mean, sd) a week, as given
 
     @property
     def weight(self) -> float:
@@ -80,8 +105,10 @@ def simulate(strengths: dict[str, tuple[float, float]], me: str, week: int, p_wi
     covered = {i for pair in fixed for i in pair}
     fixed = fixed if len(covered) == len(names) - 2 and len(fixed) * 2 == len(covered) else None
 
+    played = realized(strengths)
+
     def run(p: float):
-        return _season(names, strengths, standings or {}, weeks_left, schedule, p, sims, seed, fixed)
+        return _season(names, played, standings or {}, weeks_left, schedule, p, sims, seed, fixed)
 
     made, title, my_seed, my_won = run(p_win)
     by_week = {}
@@ -94,7 +121,15 @@ def simulate(strengths: dict[str, tuple[float, float]], me: str, week: int, p_wi
         playoffs=float(made.mean()), title=float(title.mean()), leverage=leverage,
         typical=float(np.mean(list(by_week.values()))) if by_week else leverage,
         seed=float(my_seed[made].mean()) if made.any() else 0.0, by_week={week: leverage, **by_week},
+        strengths=dict(strengths),
     )
+
+
+def realized(strengths: dict[str, tuple[float, float]], k: float = GAPS_REALIZE) -> dict[str, tuple[float, float]]:
+    """Each team's weekly mean moved toward the league's average, so the gaps
+    between teams are read at `k` of their projected size; spreads as they are."""
+    avg = sum(mean for mean, _ in strengths.values()) / len(strengths)
+    return {t: (avg + k * (mean - avg), sd) for t, (mean, sd) in strengths.items()}
 
 
 def _season(names, strengths, standings, weeks_left, schedule, p_win, sims, seed, fixed=None):

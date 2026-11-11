@@ -206,20 +206,31 @@ def after_this_week(available_from: dict, pool: list, days: list[dt.date]) -> di
     return {p.id: max(available_from.get(p.id, monday), monday) for p in pool}
 
 
-def team_strengths(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict
-                   ) -> dict[str, tuple[float, float]]:
-    """Team -> (mean, sd) of its points in a typical week: its best lineup over
-    the next full week (long run: durability in), for every team whose roster
-    is known (MIN_KNOWN_ROSTER players), mine included."""
-    week = {d: future[d] for d in sorted(future)[:7]}
-    if len(week) < 7:
+# The season odds' team strengths: each team's weekly mean over this many full
+# weeks after this one. One week's schedule swings a team's projection ~14 pts
+# against the league's (sd per team, logged forecasts of weeks 2-7), and that
+# week stood for the whole season (playoffs 97%, title 34% at 2-4 on
+# 2026-11-11); 3 weeks cut the swing to ~8. The count is a judgment call (the
+# weeks ahead the plan plays, plus one; the run's time grows with it).
+SEASON_WEEKS = 3
+
+
+def team_strengths(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict,
+                   n_weeks: int = 1) -> dict[str, tuple[float, float]]:
+    """Team -> (mean, sd) of its points in a week: its best lineup over the
+    next `n_weeks` full weeks (long run: durability in), a week's share, for
+    every team whose roster is known (MIN_KNOWN_ROSTER players), mine included.
+    One week (the league's matchup spread, `league_tau`, and `typical_sigma`)
+    keeps that week's schedule in; the season odds take `SEASON_WEEKS`."""
+    span = {d: future[d] for d in sorted(future)[:7 * n_weeks]}
+    if len(span) < 7 * n_weeks:
         return {}
     rosters = {MY_TEAM: players} | {t: teams.players(league, t) for t in league["teams"]}
     out = {}
     for team, roster in rosters.items():
         if len(roster_mod.active(roster)) >= MIN_KNOWN_ROSTER:
-            projected = matchup.project(team, roster, ctx, week, lines, starters, True)
-            out[team] = (projected.expected, math.sqrt(projected.variance))
+            projected = matchup.project(team, roster, ctx, span, lines, starters, True)
+            out[team] = (projected.expected / n_weeks, math.sqrt(projected.variance / n_weeks))
     return out
 
 
@@ -248,12 +259,15 @@ def typical_sigma(strengths: dict[str, tuple[float, float]], fallback: float) ->
     return math.sqrt(strengths[MY_TEAM][1] ** 2 + sum(others) / len(others))
 
 
-def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOdds | None, str]:
+def season_odds(state: dict, wk: WeekInputs, week: int, strengths: dict | None = None
+                ) -> tuple[season.SeasonOdds | None, str]:
     """Playoff and title odds and this week's leverage (engine/season.py),
     from the latest standings (state["standings"], League > Standings
     screenshots), else from an even start, with this week's pairings when an
-    All Matchups screenshot gave them; and a note on the standings' age."""
-    odds = season.simulate(wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
+    All Matchups screenshot gave them; and a note on the standings' age.
+    `strengths`: the teams' weekly means over `SEASON_WEEKS` (team_strengths),
+    else the one week's (`wk.strengths`)."""
+    odds = season.simulate(strengths or wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
                            (state.get("standings") or {}).get("teams"),
                            pairs=state.get("league_weeks", {}).get(str(week), {}).get("pairs"))
     through = (state.get("standings") or {}).get("week")
@@ -1060,7 +1074,9 @@ def run_plan(state: dict, players: list, league: dict, now: dt.datetime, outbox:
                          for o in old_open), key=lambda q: q.when)
     by_key = {o["key"]: o for o in old_open}
     changed = verdict.reason if not verdict.keep and old_open else ""
-    odds_note = _safe(season_odds, state, wk, week)
+    season_strengths = _safe(lambda: team_strengths(players, league, wk.ctx, wk.future, wk.lines, wk.starters,
+                                                    SEASON_WEEKS))
+    odds_note = _safe(season_odds, state, wk, week, season_strengths)
     details = _safe(player_details, p, players, league, opponent)
     b = _safe(save_board, p, week, opponent, now, date, odds_note, outbox.settings.dry_run, changed, details)
     if b:

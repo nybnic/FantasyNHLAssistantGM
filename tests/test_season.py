@@ -22,7 +22,20 @@ def test_a_stronger_team_is_likelier_to_make_it_and_to_win():
     strengths = _even()
     strengths[MY_TEAM] = (230.0, 30.0)
     odds = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=3000)
-    assert odds.playoffs > 0.9 and odds.title > 0.25
+    assert odds.playoffs > 0.85 and odds.title > 0.15
+    assert odds.strengths[MY_TEAM] == (230.0, 30.0)  # kept as given, for the Board
+
+
+def test_projected_gaps_count_at_the_size_they_come_true():
+    strengths = _even()
+    strengths[MY_TEAM] = (240.0, 30.0)
+    played = season.realized(strengths)
+    avg = (200.0 * 15 + 240.0) / 16
+    assert played[MY_TEAM] == (pytest.approx(avg + season.GAPS_REALIZE * (240.0 - avg)), 30.0)
+    assert sum(m for m, _ in played.values()) == pytest.approx(sum(m for m, _ in strengths.values()))
+    full = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=3000)
+    shrunk = season.simulate(season.realized(strengths, 1 / season.GAPS_REALIZE), MY_TEAM, 2, 0.5, sims=3000)
+    assert full.title < shrunk.title  # read at full size, a +40 team would win far more often
 
 
 def test_standings_decide_how_much_a_late_week_matters():
