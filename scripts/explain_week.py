@@ -18,7 +18,7 @@ import argparse
 import datetime as dt
 
 from bot import board, common, weekly
-from engine import addprice
+from engine import addprice, season
 from clients.names import normalize_name
 from league import roster as roster_mod
 from league import teams, weeks
@@ -79,6 +79,7 @@ def main_() -> None:
     print("\n  Every team's week, as the first plan logs it (expected +/- sd):")
     for team, t in sorted(copy["league_weeks"][str(week)]["ours"]["teams"].items(), key=lambda kv: -kv[1]["expected"]):
         print(f"    {team[:24]:24} {t['expected']:6.1f} +/- {t['sd']:4.1f}")
+    print("\n".join(season_lines(state, players, league, wk, week)))
     h = b["header"]
     print(f"\n  P(win) {h['win']:.0%}   adds used {wk.season_used} season / {wk.week_used} week, "
           f"{h['adds_left']['week']} allowed now; matchup spread tau {h['tau']:.1f} pts, a later point = "
@@ -100,6 +101,33 @@ def main_() -> None:
     print(f"\n{len(b['moves'])} moves (value = this week's win-pts + the next weeks' (+1/+2) + later win-pts; "
           "plan: in the plan, passes: worth an add but not in it, fails: under the price):")
     print("\n".join(board.table(b, args.top, args.position)))
+
+
+def season_lines(state: dict, players: list, league: dict, wk, week: int) -> list[str]:
+    """The season odds' inputs: each team's weekly mean as the odds read it
+    (weekly.SEASON_WEEKS, before season.GAPS_REALIZE), next to the one week's
+    (tau's) and its points for a week so far (the standings)."""
+    three = weekly.team_strengths(players, league, wk.ctx, wk.future, wk.lines, wk.starters, weekly.SEASON_WEEKS)
+    odds, _ = weekly.season_odds(state, wk, week, three)
+    standings = (state.get("standings") or {})
+    played = standings.get("week") or 0
+    rows = standings.get("teams") or {}
+    out = [f"\n  Season odds: " + (f"playoffs {odds.playoffs:.0%}, title {odds.title:.0%}, seed ~{odds.seed:.1f}"
+                                    if odds else "none")
+           + f" (each team over {weekly.SEASON_WEEKS} weeks, gaps x{season.GAPS_REALIZE})",
+           f"    {'team':24} {weekly.SEASON_WEEKS}-wk mean   1-wk mean   pts for a week   W-L"]
+    avg3 = sum(m for m, _ in three.values()) / len(three) if three else 0.0
+    avg1 = sum(m for m, _ in wk.strengths.values()) / len(wk.strengths) if wk.strengths else 0.0
+    pfs = [r["pf"] / played for r in rows.values()] if played else []
+    avg_pf = sum(pfs) / len(pfs) if pfs else 0.0
+    for team, (mean, _) in sorted(three.items(), key=lambda kv: -kv[1][0]):
+        r = rows.get(team)
+        one = wk.strengths.get(team, (avg1, 0))[0]
+        pf = f"{r['pf'] / played - avg_pf:+6.1f}" if r and played else "     -"
+        out.append(f"    {team[:24]:24} {mean - avg3:+7.1f}   {one - avg1:+9.1f}   {pf:>14}   "
+                   + (f"{r['w']}-{r['l']}" if r else "-"))
+    out.append("    (each column vs the league's average)")
+    return out
 
 
 def _label(b: dict, key: str) -> str:
