@@ -718,8 +718,29 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-10T20:01+00:00",
-    "moves": [],
+    "at": "2026-11-11T06:21+00:00",
+    "moves": [
+      {
+        "add": {
+          "id": 8479671,
+          "name": "Mathieu Olivier",
+          "positions": [
+            "RW"
+          ],
+          "team": "CBJ"
+        },
+        "drop": {
+          "id": 8480855,
+          "name": "Jack McBain"
+        },
+        "key": "8479671:8480855",
+        "message_id": null,
+        "rec_id": null,
+        "value": 0.1141,
+        "when": "2026-11-12",
+        "why": "spare"
+      }
+    ],
     "week": 7
   },
   "plan_check": false,
@@ -889,7 +910,7 @@
     "team": "Nico's Groovy Team"
   },
   "standings_rows": [],
-  "telegram_offset": 929784891,
+  "telegram_offset": 929784893,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -898,7 +919,7 @@
       "8470621:promoted": "2026-10-30",
       "8471214:promoted": "2026-10-13",
       "8473512:promoted": "2026-11-05",
-      "8473986:promoted": "2026-10-28",
+      "8473986:promoted": "2026-11-11",
       "8473994:promoted": "2026-11-02",
       "8474013:ice time": "2026-11-02",
       "8474013:promoted": "2026-11-02",
@@ -933,10 +954,12 @@
       "8476448:promoted": "2026-11-09",
       "8476458:promoted": "2026-10-31",
       "8476461:promoted": "2026-10-22",
+      "8476463:ice time": "2026-11-11",
       "8476463:promoted": "2026-10-14",
       "8476467:promoted": "2026-10-21",
       "8476479:ice time": "2026-10-30",
       "8476539:promoted": "2026-10-28",
+      "8476826:promoted": "2026-11-11",
       "8476854:ice time": "2026-10-18",
       "8476873:ice time": "2026-11-02",
       "8476882:promoted": "2026-10-29",
@@ -964,7 +987,7 @@
       "8477484:goalie": "2026-10-13",
       "8477496:promoted": "2026-10-18",
       "8477497:promoted": "2026-11-06",
-      "8477501:promoted": "2026-10-28",
+      "8477501:promoted": "2026-11-11",
       "8477505:promoted": "2026-10-14",
       "8477919:promoted": "2026-10-29",
       "8477950:ice time": "2026-11-01",
@@ -1103,7 +1126,7 @@
       "8482408:promoted": "2026-10-21",
       "8482475:promoted": "2026-11-02",
       "8482476:promoted": "2026-11-02",
-      "8482482:promoted": "2026-10-28",
+      "8482482:promoted": "2026-11-11",
       "8482655:ice time": "2026-10-18",
       "8482659:promoted": "2026-11-10",
       "8482660:promoted": "2026-10-24",
@@ -4138,246 +4161,6 @@
     },
     "log": [
       {
-        "date": "2026-10-28",
-        "id": 8478133,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Jake Evans",
-        "positions": "C",
-        "price": null,
-        "sent": true,
-        "team": "MTL",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "Ice time 16:54 a game in his last 3, up from 13:33. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8477501,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Valeri Nichushkin",
-        "positions": "RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "CBJ",
-        "value": -0.0192,
-        "verdict": "-2 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line and the first power play, and it has held for 4 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8475794,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Tyler Seguin",
-        "positions": "C/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "DAL",
-        "value": -0.0488,
-        "verdict": "-5 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 9 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8481721,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Arseny Gritsyuk",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "NJD",
-        "value": -0.0314,
-        "verdict": "-3 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 15 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8476539,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jonathan Marchessault",
-        "positions": "LW/RW",
-        "price": null,
-        "sent": false,
-        "team": "NSH",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first power play, and it has held for 14 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8482482,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Adam Wilsby",
-        "positions": "D",
-        "price": null,
-        "sent": false,
-        "team": "NSH",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the top D pair, and it has held for 10 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8483676,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Stephen Halliday",
-        "positions": "C/LW",
-        "price": 0.128,
-        "sent": false,
-        "team": "OTT",
-        "value": -0.0934,
-        "verdict": "-9 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play, and it has held for 14 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8477989,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Christian Dvorak",
-        "positions": "C",
-        "price": 0.128,
-        "sent": false,
-        "team": "PHI",
-        "value": -0.0653,
-        "verdict": "-7 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 2 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8483787,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Cole Knuble",
-        "positions": "RW",
-        "price": null,
-        "sent": false,
-        "team": "PHI",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line, and it has held for 1 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8482142,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jamie Drysdale",
-        "positions": "D",
-        "price": 0.128,
-        "sent": false,
-        "team": "PHI",
-        "value": -0.1559,
-        "verdict": "-16 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play, and it has held for 8 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8482713,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Mackie Samoskevich",
-        "positions": "RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "SEA",
-        "value": -0.0824,
-        "verdict": "-8 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 9 days."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8481618,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Alex Newhook",
-        "positions": "C/LW",
-        "price": null,
-        "sent": false,
-        "team": "MTL",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8486067,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Gavin McKenna",
-        "positions": "LW",
-        "price": null,
-        "sent": false,
-        "team": "TOR",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8473986,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Alex Killorn",
-        "positions": "LW/RW",
-        "price": null,
-        "sent": false,
-        "team": "ANA",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8481523,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Kirby Dach",
-        "positions": "C/RW",
-        "price": null,
-        "sent": false,
-        "team": "MTL",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-28",
-        "id": 8484806,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Sam Dickinson",
-        "positions": "D",
-        "price": null,
-        "sent": false,
-        "team": "SJS",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the top D pair."
-      },
-      {
         "date": "2026-10-29",
         "id": 8484860,
         "kinds": [
@@ -6617,6 +6400,81 @@
         "value": -0.0918,
         "verdict": "-9 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8476463,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Jonas Brodin",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": true,
+        "team": "MIN",
+        "value": -0.1318,
+        "verdict": "-13 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 25:36 a game in his last 3, up from 22:25. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8473986,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Alex Killorn",
+        "positions": "LW/RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "ANA",
+        "value": -0.0485,
+        "verdict": "-5 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 14 days."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8477501,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Valeri Nichushkin",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CBJ",
+        "value": 0.0217,
+        "verdict": "+2 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 9 days."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8482482,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Adam Wilsby",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.1002,
+        "verdict": "-10 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 24 days."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8476826,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Yanni Gourde",
+        "positions": "C",
+        "price": 0.1115,
+        "sent": false,
+        "team": "TBL",
+        "value": -0.0964,
+        "verdict": "-10 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 1 days."
       }
     ]
   },
