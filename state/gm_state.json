@@ -308,6 +308,10 @@
   "goalie_news": {
     "date": "2026-11-11",
     "starters": {
+      "ANA": {
+        "confirmed": true,
+        "goalie_name": "Laurent Brossoit"
+      },
       "BUF": {
         "confirmed": false,
         "goalie_name": "Ukko-Pekka Luukkonen"
@@ -323,6 +327,10 @@
       "PHI": {
         "confirmed": false,
         "goalie_name": "Dan Vladar"
+      },
+      "SJS": {
+        "confirmed": true,
+        "goalie_name": "Yaroslav Askarov"
       },
       "TBL": {
         "confirmed": false,
@@ -735,7 +743,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-11T18:19+00:00",
+    "at": "2026-11-11T19:01+00:00",
     "moves": [
       {
         "add": {
@@ -753,7 +761,7 @@
         "key": "8479671:8480855",
         "message_id": null,
         "rec_id": null,
-        "value": 0.1121,
+        "value": 0.1122,
         "when": "2026-11-12",
         "why": "spare"
       }
@@ -1190,6 +1198,7 @@
       "8484471:promoted": "2026-11-02",
       "8484759:promoted": "2026-10-14",
       "8484768:ice time": "2026-11-09",
+      "8484770:promoted": "2026-11-11",
       "8484783:promoted": "2026-11-04",
       "8484790:ice time": "2026-11-04",
       "8484790:promoted": "2026-10-18",
@@ -1851,6 +1860,12 @@
         ],
         "since": {}
       },
+      "8477149": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8477220": {
         "groups": [
           "ir"
@@ -2156,12 +2171,6 @@
         "since": {
           "f2": null
         }
-      },
-      "8478366": {
-        "groups": [
-          "f3"
-        ],
-        "since": {}
       },
       "8478399": {
         "groups": [
@@ -2892,12 +2901,6 @@
           "f2": "2026-11-10"
         }
       },
-      "8481122": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8481186": {
         "groups": [
           "f4",
@@ -3108,7 +3111,7 @@
       },
       "8481754": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
         ],
         "since": {}
@@ -3222,6 +3225,12 @@
         ],
         "since": {}
       },
+      "8482118": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8482124": {
         "groups": [
           "f2",
@@ -3306,14 +3315,6 @@
           "pk1"
         ],
         "since": {}
-      },
-      "8482201": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": null
-        }
       },
       "8482245": {
         "groups": [
@@ -3983,10 +3984,12 @@
       },
       "8484770": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-11"
+        }
       },
       "8484783": {
         "groups": [
@@ -6506,6 +6509,21 @@
         "value": -0.0964,
         "verdict": "-10 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-11",
+        "id": 8484770,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Sam O'Reilly",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "TBL",
+        "value": -0.0933,
+        "verdict": "-9 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
