@@ -73,3 +73,34 @@ def test_this_weeks_known_pairings_are_played_when_they_cover_everyone():
     assert partial == plain  # incomplete: random pairings as before
     known = season.simulate(strengths, MY_TEAM, 2, 0.5, sims=2000, pairs=pairs)
     assert known != plain and 0.4 < known.playoffs < 0.6
+
+
+def test_a_projection_is_weighed_against_the_points_scored():
+    import numpy as np
+    rng = np.random.default_rng(3)
+    strengths = {t: (200.0 + g, 30.0) for t, g in zip(TEAMS, rng.normal(0, 12, len(TEAMS)))}
+    standings = {t: {"w": 3, "l": 3, "t": 0, "pf": 6 * (220.0 + g)}
+                 for t, g in zip(TEAMS, rng.normal(0, 18, len(TEAMS)))}
+    strengths[MY_TEAM] = (245.0, 30.0)  # projected far ahead...
+    standings[MY_TEAM]["pf"] = 6 * 222.0  # ...scoring about average
+    read = season.estimated(strengths, standings)
+    avg = sum(m for m, _ in strengths.values()) / len(strengths)
+    assert sum(m for m, _ in read.values()) / len(read) == pytest.approx(avg)
+    assert 0 < read[MY_TEAM][0] - avg < 0.7 * (245.0 - avg)  # pulled toward what he scored
+    assert read[MY_TEAM][1] == 30.0
+    a, b = [t for t in TEAMS if t != MY_TEAM][:2]
+    strengths[a] = strengths[b] = (205.0, 30.0)  # projected alike, one scoring more
+    standings[a]["pf"], standings[b]["pf"] = 6 * 240.0, 6 * 200.0
+    read = season.estimated(strengths, standings)
+    assert read[a][0] > read[b][0]
+    odds = season.simulate(strengths, MY_TEAM, 7, 0.5, standings, sims=2000)
+    assert odds.read == read and odds.read[MY_TEAM][0] - avg < 0.7 * (245.0 - avg) and odds.strengths[MY_TEAM] == (245.0, 30.0)
+
+
+def test_without_standings_for_everyone_the_projection_is_read_at_its_realized_size():
+    strengths = _even()
+    strengths[MY_TEAM] = (240.0, 30.0)
+    assert season.estimated(strengths, {}) == season.realized(strengths)
+    assert season.estimated(strengths, {MY_TEAM: {"w": 2, "l": 4, "pf": 1300.0}}) == season.realized(strengths)
+    even = {t: {"w": 3, "l": 3, "pf": 1300.0} for t in TEAMS}  # points that vary no more than their error
+    assert season.estimated(strengths, even) == season.realized(strengths)

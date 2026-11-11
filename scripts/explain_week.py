@@ -105,7 +105,7 @@ def main_() -> None:
 
 def season_lines(state: dict, players: list, league: dict, wk, week: int) -> list[str]:
     """The season odds' inputs: each team's weekly mean as the odds read it
-    (weekly.SEASON_WEEKS, before season.GAPS_REALIZE), next to the one week's
+    (weekly.SEASON_WEEKS), as played (season.estimated), next to the one week's
     (tau's) and its points for a week so far (the standings)."""
     three = weekly.team_strengths(players, league, wk.ctx, wk.future, wk.lines, wk.starters, weekly.SEASON_WEEKS)
     odds, _ = weekly.season_odds(state, wk, week, three)
@@ -114,9 +114,11 @@ def season_lines(state: dict, players: list, league: dict, wk, week: int) -> lis
     rows = standings.get("teams") or {}
     out = [f"\n  Season odds: " + (f"playoffs {odds.playoffs:.0%}, title {odds.title:.0%}, seed ~{odds.seed:.1f}"
                                     if odds else "none")
-           + f" (each team over {weekly.SEASON_WEEKS} weeks, gaps x{season.GAPS_REALIZE})",
-           f"    {'team':24} {weekly.SEASON_WEEKS}-wk mean   1-wk mean   pts for a week   W-L"]
+           + f" (each team over {weekly.SEASON_WEEKS} weeks, weighed against its points: season.estimated)",
+           f"    {'team':24} as played   {weekly.SEASON_WEEKS}-wk mean   1-wk mean   pts for a week   W-L"]
     avg3 = sum(m for m, _ in three.values()) / len(three) if three else 0.0
+    read = odds.read if odds else {}
+    avg_read = sum(m for m, _ in read.values()) / len(read) if read else 0.0
     avg1 = sum(m for m, _ in wk.strengths.values()) / len(wk.strengths) if wk.strengths else 0.0
     pfs = [r["pf"] / played for r in rows.values()] if played else []
     avg_pf = sum(pfs) / len(pfs) if pfs else 0.0
@@ -124,7 +126,8 @@ def season_lines(state: dict, players: list, league: dict, wk, week: int) -> lis
         r = rows.get(team)
         one = wk.strengths.get(team, (avg1, 0))[0]
         pf = f"{r['pf'] / played - avg_pf:+6.1f}" if r and played else "     -"
-        out.append(f"    {team[:24]:24} {mean - avg3:+7.1f}   {one - avg1:+9.1f}   {pf:>14}   "
+        played_gap = f"{read[team][0] - avg_read:+9.1f}" if team in read else "        -"
+        out.append(f"    {team[:24]:24} {played_gap}   {mean - avg3:+7.1f}   {one - avg1:+9.1f}   {pf:>14}   "
                    + (f"{r['w']}-{r['l']}" if r else "-"))
     out.append("    (each column vs the league's average)")
     return out

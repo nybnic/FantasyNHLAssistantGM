@@ -140,11 +140,11 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             # weeks x the odds the add is still mine then (a move's "stays", at these weeks).
             "long_run": {"weeks": max(getattr(wk, "weeks_after", 0) - len(getattr(wk, "ahead", [])), 0),
                          "stays_at": list(matchup.STAYS_AT)},
-            "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k not in ("by_week", "strengths")},
+            "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k not in ("by_week", "strengths", "read")},
                         "note": odds_note,
-                        # each team's weekly (mean, sd) as projected, before season.GAPS_REALIZE
-                        "strengths": {t: [_r(m, 1), _r(sd, 1)] for t, (m, sd) in sorted(odds.strengths.items(),
-                                                                                      key=lambda x: -x[1][0])}}
+                        # each team's weekly mean as projected, as played (season.estimated), its sd
+                        "strengths": {t: [_r(m, 1), _r(odds.read.get(t, (m,))[0], 1), _r(sd, 1)]
+                                      for t, (m, sd) in sorted(odds.strengths.items(), key=lambda x: -x[1][0])}}
                        if odds else None),
         },
         "plan": {

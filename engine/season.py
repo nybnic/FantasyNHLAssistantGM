@@ -9,10 +9,11 @@ title odds, and that varies: a bubble team's late weeks matter more than a
 locked-in team's.
 
 `simulate` plays out the rest of the season many times:
-- each team scores a normal week around its projected weekly mean
-  (`bot/weekly.team_strengths` over the next `bot/weekly.SEASON_WEEKS` full
-  weeks, averaged), with its spread, the gaps between teams' means read at
-  `GAPS_REALIZE` (see there);
+- each team scores a normal week around its strength, with its spread: its
+  projected weekly mean (`bot/weekly.team_strengths` over the next
+  `bot/weekly.SEASON_WEEKS` full weeks) weighed against its points for a week
+  so far (`estimated`), else, without standings, the projection with the gaps
+  between teams read at `GAPS_REALIZE`;
 - my opponents are the real schedule (config.league.SCHEDULE), the other 14
   teams are paired at random each week (the league's full schedule isn't
   recorded: a judgment call that blurs who-plays-whom, not team strength);
@@ -34,10 +35,12 @@ next to later weeks' (even teams: 0.91x where 1x is due).
 Until 2026-11-11 the strengths were one week's projection at face value: on
 Nov 11 (2-4, points for +5 a week over the league's average) the odds read
 playoffs 97%, title 34%, as if I were ~+33 a week over an average team; the
-weekly forecasts of weeks 1-6 had me +12. One week's schedule swings a team's
-projection ~14 pts against the league's (weeks 2-7, sd per team), and gaps
-weeks ahead come true smaller (`GAPS_REALIZE`). Re-read from the logged
-forecasts, the same day: playoffs ~73-81%, title ~11-13%.
+weekly forecasts of weeks 1-6 had me +12. Over 3 weeks with gaps at 0.70 they
+still read 96% / 30%: the projection had my roster +40 a week over average (the
+next best +24), the real outlier, while teams scoring +25 a week projected ~0.
+Every add of mine was picked by this model, so it rates my roster highest by
+its own errors too. Weighing each projection against the points scored
+(`estimated`): +18, playoffs 89%, title 19%.
 
 What a seed is worth (same re-read, 2026-11-11): a tied playoff week goes to
 the higher seed, but scores come in 0.05s against a margin sd of ~45, so a tie
@@ -56,11 +59,10 @@ import numpy as np
 from config.league import LEAGUE_TEAMS, PLAYOFF_TEAMS, PLAYOFF_WEEKS, REGULAR_SEASON_WEEKS, SCHEDULE
 
 SIMS = 10000
-# How much of a projected gap between two teams' weekly means comes true in
-# the weeks ahead: 0.70, team margins two weeks ahead (`check_sigma --ahead 2`,
-# 0.67 / 0.73 by season), the furthest calibrated. Weeks further out likely
-# realize less (fringe gaps: 0.84 weeks 3-6, ~0.75 by week 20, `check_gaps`):
-# untested for whole teams. Odds only: no move's value reads it.
+# Without standings to weigh them against (`estimated`): how much of a
+# projected gap between two teams' weekly means comes true in the weeks ahead,
+# 0.70, team margins two weeks ahead (`check_sigma --ahead 2`, 0.67 / 0.73 by
+# season), the furthest calibrated. Odds only: no move's value reads it.
 GAPS_REALIZE = 0.70
 
 
@@ -73,6 +75,7 @@ class SeasonOdds:
     seed: float  # expected seed when making the playoffs
     by_week: dict[int, float] = field(default_factory=dict)  # regular-season week -> leverage
     strengths: dict[str, tuple[float, float]] = field(default_factory=dict)  # team -> (mean, sd) a week, as given
+    read: dict[str, tuple[float, float]] = field(default_factory=dict)  # ... as played (`estimated`)
 
     @property
     def weight(self) -> float:
@@ -105,7 +108,7 @@ def simulate(strengths: dict[str, tuple[float, float]], me: str, week: int, p_wi
     covered = {i for pair in fixed for i in pair}
     fixed = fixed if len(covered) == len(names) - 2 and len(fixed) * 2 == len(covered) else None
 
-    played = realized(strengths)
+    played = estimated(strengths, standings or {})
 
     def run(p: float):
         return _season(names, played, standings or {}, weeks_left, schedule, p, sims, seed, fixed)
@@ -121,8 +124,40 @@ def simulate(strengths: dict[str, tuple[float, float]], me: str, week: int, p_wi
         playoffs=float(made.mean()), title=float(title.mean()), leverage=leverage,
         typical=float(np.mean(list(by_week.values()))) if by_week else leverage,
         seed=float(my_seed[made].mean()) if made.any() else 0.0, by_week={week: leverage, **by_week},
-        strengths=dict(strengths),
+        strengths=dict(strengths), read=played,
     )
+
+
+def estimated(strengths: dict[str, tuple[float, float]], standings: dict[str, dict]
+              ) -> dict[str, tuple[float, float]]:
+    """Each team's weekly mean as two noisy readings of its strength weighed
+    together: the projection's gap over the league's average and its points
+    for a week so far (standings: "pf" over "w" + "l" + "t" weeks), each by how
+    much it varies beyond its own error (a normal prior on the gaps). The
+    league itself gives the variances: the points' error is a week's sd^2 over
+    the weeks played, the true gaps' variance what the points vary beyond that,
+    the projection's error what it varies beyond the true gaps. Spreads as
+    they are. Without standings for every team (or with points that vary no
+    more than their error), the projection's gaps at `GAPS_REALIZE`.
+    Untested on outcomes (no standings history yet); it assumes the true gaps
+    spread as much now as over the weeks played, and every team's projection
+    errs alike, while mine is the roster the model picked."""
+    rows = {t: standings.get(t) or {} for t in strengths}
+    games = {t: r.get("w", 0) + r.get("l", 0) + r.get("t", 0) for t, r in rows.items()}
+    if len(strengths) < 4 or min(games.values()) < 1:
+        return realized(strengths)
+    teams = list(strengths)
+    mean = np.array([strengths[t][0] for t in teams])
+    sd = np.array([strengths[t][1] for t in teams])
+    rate = np.array([rows[t]["pf"] / games[t] for t in teams])
+    noise = sd ** 2 / np.array([games[t] for t in teams])  # the points' error, per team
+    proj, pts = mean - mean.mean(), rate - rate.mean()
+    true_var = pts.var(ddof=1) - noise.mean()
+    if true_var <= 0:
+        return realized(strengths)
+    proj_err = max(proj.var(ddof=1) - true_var, 1.0)
+    gap = (proj / proj_err + pts / noise) / (1 / true_var + 1 / proj_err + 1 / noise)
+    return {t: (float(mean.mean() + g), float(d)) for t, g, d in zip(teams, gap, sd)}
 
 
 def realized(strengths: dict[str, tuple[float, float]], k: float = GAPS_REALIZE) -> dict[str, tuple[float, float]]:
