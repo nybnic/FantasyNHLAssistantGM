@@ -1023,7 +1023,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-12T06:14+00:00",
+    "at": "2026-11-12T09:01+00:00",
     "moves": [],
     "week": 7
   },
@@ -1428,6 +1428,7 @@
       "8483468:promoted": "2026-10-19",
       "8483476:promoted": "2026-11-10",
       "8483489:ice time": "2026-10-20",
+      "8483490:ice time": "2026-11-12",
       "8483493:promoted": "2026-11-10",
       "8483497:promoted": "2026-11-12",
       "8483499:promoted": "2026-10-31",
@@ -6702,6 +6703,21 @@
         "value": -0.0646,
         "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 7 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8483490,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Pavel Mintyukov",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": true,
+        "team": "ANA",
+        "value": -0.05,
+        "verdict": "-5 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 21:57 a game in his last 3, up from 18:14. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
