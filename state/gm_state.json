@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-10-28": {
-      "recommended": {
-        "8474564": "RW",
-        "8476455": "LW",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482087": "D",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-10-29": {
       "recommended": {
         "8474564": "RW",
@@ -357,27 +337,336 @@
   },
   "ir_noted": [],
   "last_error": "2026-11-04",
-  "matchup_shots": null,
+  "matchup_shots": {
+    "at": "2026-11-12T06:13:31+00:00",
+    "first_at": "2026-11-12T06:13:31+00:00",
+    "labels": [
+      "4G",
+      "65",
+      "Players",
+      "League",
+      "HAN-NES",
+      "76.95",
+      "214.79",
+      "13/38",
+      "AllMatchups",
+      "4G",
+      "65",
+      "Players",
+      "League",
+      "RVCOL",
+      "NoGame"
+    ],
+    "projected": [
+      257.64,
+      214.79
+    ],
+    "rows": [
+      {
+        "mine": {
+          "name": "M. CELEBRINI",
+          "points": 10.75,
+          "positions": [
+            "C"
+          ],
+          "projected": 9.51,
+          "status": "Final(L)2-3vsPIT",
+          "team": "SJ"
+        },
+        "slot": "C",
+        "theirs": {
+          "name": "B. HORVAT",
+          "points": 0.0,
+          "positions": [
+            "C"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "NYI"
+        }
+      },
+      {
+        "mine": {
+          "name": "J. MCBAIN",
+          "points": 16.2,
+          "positions": [
+            "C",
+            "LW"
+          ],
+          "projected": 5.84,
+          "status": "Final(L)3-5@VGK",
+          "team": "UTA"
+        },
+        "slot": "C",
+        "theirs": {
+          "name": "N. SCHMALTZ",
+          "points": 0.1,
+          "positions": [
+            "C",
+            "RW"
+          ],
+          "projected": 5.75,
+          "status": "Final (L)3-5@VGK",
+          "team": "UTA"
+        }
+      },
+      {
+        "mine": {
+          "name": "F. FORSBERG",
+          "points": 3.1,
+          "positions": [
+            "LW"
+          ],
+          "projected": 8.01,
+          "status": "Final(W)4-2@ANA",
+          "team": "NSH"
+        },
+        "slot": "LW",
+        "theirs": {
+          "name": "T. KONECNY",
+          "points": 6.6,
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "projected": 5.27,
+          "status": "Final(L)2-3@EDM",
+          "team": "PHI"
+        }
+      },
+      {
+        "mine": {
+          "name": "R. RAKELL",
+          "points": 6.55,
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "projected": 5.45,
+          "status": "Final (W)3-2@SJ",
+          "team": "PIT"
+        },
+        "slot": "LW",
+        "theirs": {
+          "name": "J. ROBERTSON",
+          "points": 0.0,
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "DAL"
+        }
+      },
+      {
+        "mine": {
+          "name": "S. STAMKOS",
+          "points": 6.7,
+          "positions": [],
+          "projected": 7.3,
+          "status": "Final(W)4-2@ANA",
+          "team": ""
+        },
+        "slot": "RW",
+        "theirs": {
+          "name": "N. KUCHEROV",
+          "points": 19.5,
+          "positions": [
+            "RW"
+          ],
+          "projected": 9.19,
+          "status": "Final(W)8-3@BUF",
+          "team": "TB"
+        }
+      },
+      {
+        "mine": {
+          "name": "A. TUCH",
+          "points": 0.0,
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "WSH"
+        },
+        "slot": "RW",
+        "theirs": {
+          "name": "M. NECAS",
+          "points": 0.0,
+          "positions": [
+            "RW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "COL"
+        }
+      },
+      {
+        "mine": {
+          "name": "M. SAMUELSSON",
+          "points": 3.95,
+          "positions": [
+            "D"
+          ],
+          "projected": 5.32,
+          "status": "Final (L)3-8vsTB",
+          "team": "BUF"
+        },
+        "slot": "D",
+        "theirs": {
+          "name": "B. MCNABB",
+          "points": 4.6,
+          "positions": [
+            "D"
+          ],
+          "projected": 4.91,
+          "status": "Final (W)5-3vsUTA",
+          "team": "VGK"
+        }
+      },
+      {
+        "mine": {
+          "name": "N. DOBSON",
+          "points": 0.0,
+          "positions": [
+            "D"
+          ],
+          "projected": 0.0,
+          "status": "NoGame",
+          "team": "MTL"
+        },
+        "slot": "D",
+        "theirs": {
+          "name": "N. SEELER",
+          "points": 2.9,
+          "positions": [
+            "D"
+          ],
+          "projected": 3.2,
+          "status": "Final(L)2-3@EDM",
+          "team": "PHI"
+        }
+      },
+      {
+        "mine": {
+          "name": "N. PIONK",
+          "points": 0.0,
+          "positions": [
+            "D"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "WPG"
+        },
+        "slot": "D",
+        "theirs": {
+          "name": "M. FEHERVARY",
+          "points": 0.0,
+          "positions": [
+            "D"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "WSH"
+        }
+      },
+      {
+        "mine": {
+          "name": "K. GUHLE",
+          "points": 0.0,
+          "positions": [
+            "D"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "MTL"
+        },
+        "slot": "D",
+        "theirs": {
+          "name": "N. ZADOROV",
+          "points": 0.0,
+          "positions": [
+            "D"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "BOS"
+        }
+      },
+      {
+        "mine": {
+          "name": "S. KNIGHT",
+          "points": 0.0,
+          "positions": [
+            "G"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "CHI"
+        },
+        "slot": "G",
+        "theirs": {
+          "name": "D. LEVI",
+          "points": 0.0,
+          "positions": [
+            "G"
+          ],
+          "projected": 0.32,
+          "status": "Final(W)3-2vsPHI",
+          "team": "EDM"
+        }
+      },
+      {
+        "mine": {
+          "name": "K. VEJMELKA",
+          "points": 0.0,
+          "positions": [
+            "G"
+          ],
+          "projected": 0.29,
+          "status": "Final(L)3-5@VGK",
+          "team": "UTA"
+        },
+        "slot": "G",
+        "theirs": {
+          "name": "D. WOLF",
+          "points": 0.0,
+          "positions": [
+            "G"
+          ],
+          "projected": 0.25,
+          "status": "Final (L)1-3VsNYR",
+          "team": "CGY"
+        }
+      },
+      {
+        "mine": null,
+        "slot": "IR",
+        "theirs": {
+          "name": "K. FIALA",
+          "points": 0.0,
+          "positions": [
+            "LW"
+          ],
+          "projected": 0.0,
+          "status": "No Game",
+          "team": "LA"
+        }
+      }
+    ],
+    "score": [
+      85.0,
+      76.95
+    ],
+    "totals": false,
+    "week": 7
+  },
   "news_checked": "2026-11-11",
   "pending": {
-    "add-2026-10-28-0535-8484390": {
-      "add": {
-        "id": 8484390,
-        "name": "Roman Kantserov",
-        "positions": [
-          "RW"
-        ],
-        "slot": null,
-        "team": "CHI"
-      },
-      "add_slot": null,
-      "date": "2026-10-28",
-      "drop": 8480855,
-      "drop_name": "Jack McBain",
-      "ir": {},
-      "message_id": 750,
-      "type": "add"
-    },
     "add-2026-10-29-0413-8484390": {
       "add": {
         "id": 8484390,
@@ -415,27 +704,6 @@
       "ir": {},
       "message_id": 875,
       "type": "add"
-    },
-    "lineup-2026-10-28-1730": {
-      "assignment": {
-        "8474564": "RW",
-        "8476455": "LW",
-        "8476460": "C",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482087": "D",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "date": "2026-10-28",
-      "message_id": 769,
-      "type": "lineup"
     },
     "lineup-2026-10-29-1731": {
       "assignment": {
@@ -755,29 +1023,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-11T19:30+00:00",
-    "moves": [
-      {
-        "add": {
-          "id": 8479671,
-          "name": "Mathieu Olivier",
-          "positions": [
-            "RW"
-          ],
-          "team": "CBJ"
-        },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8479671:8480855",
-        "message_id": null,
-        "rec_id": null,
-        "value": 0.1117,
-        "when": "2026-11-12",
-        "why": "spare"
-      }
-    ],
+    "at": "2026-11-12T06:14+00:00",
+    "moves": [],
     "week": 7
   },
   "plan_check": false,
@@ -940,7 +1187,7 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784900,
+  "telegram_offset": 929784902,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -968,6 +1215,7 @@
       "8475314:promoted": "2026-11-04",
       "8475343:ice time": "2026-10-18",
       "8475660:no1": "2026-10-13",
+      "8475692:promoted": "2026-11-12",
       "8475722:promoted": "2026-10-23",
       "8475726:promoted": "2026-11-02",
       "8475745:ice time": "2026-10-21",
@@ -992,7 +1240,7 @@
       "8476826:promoted": "2026-11-11",
       "8476854:ice time": "2026-10-18",
       "8476873:ice time": "2026-11-02",
-      "8476882:promoted": "2026-10-29",
+      "8476882:promoted": "2026-11-12",
       "8476892:promoted": "2026-11-05",
       "8476902:ice time": "2026-11-06",
       "8476905:promoted": "2026-11-01",
@@ -1013,7 +1261,7 @@
       "8477444:promoted": "2026-10-29",
       "8477446:promoted": "2026-10-25",
       "8477451:promoted": "2026-11-08",
-      "8477479:promoted": "2026-10-29",
+      "8477479:promoted": "2026-11-12",
       "8477484:goalie": "2026-10-13",
       "8477496:promoted": "2026-10-18",
       "8477497:promoted": "2026-11-06",
@@ -1049,6 +1297,7 @@
       "8478474:promoted": "2026-11-09",
       "8478498:promoted": "2026-11-07",
       "8478499:goalie": "2026-10-27",
+      "8478519:promoted": "2026-11-12",
       "8478542:promoted": "2026-10-14",
       "8478569:promoted": "2026-10-20",
       "8478851:ice time": "2026-10-18",
@@ -1062,7 +1311,7 @@
       "8479365:promoted": "2026-10-15",
       "8479369:ice time": "2026-11-06",
       "8479378:promoted": "2026-11-10",
-      "8479385:promoted": "2026-10-29",
+      "8479385:promoted": "2026-11-12",
       "8479398:promoted": "2026-11-04",
       "8479442:ice time": "2026-10-21",
       "8479525:promoted": "2026-10-19",
@@ -1101,7 +1350,8 @@
       "8481064:goalie": "2026-10-26",
       "8481068:promoted": "2026-11-10",
       "8481161:ice time": "2026-10-25",
-      "8481522:promoted": "2026-10-29",
+      "8481522:ice time": "2026-11-12",
+      "8481522:promoted": "2026-11-12",
       "8481523:promoted": "2026-10-28",
       "8481527:ice time": "2026-10-18",
       "8481527:promoted": "2026-11-07",
@@ -1137,11 +1387,11 @@
       "8482111:promoted": "2026-10-19",
       "8482113:promoted": "2026-11-08",
       "8482118:promoted": "2026-10-13",
-      "8482124:promoted": "2026-10-29",
+      "8482124:promoted": "2026-11-12",
       "8482142:ice time": "2026-10-14",
       "8482142:promoted": "2026-10-28",
       "8482145:promoted": "2026-11-07",
-      "8482146:promoted": "2026-10-29",
+      "8482146:promoted": "2026-11-12",
       "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-11-02",
       "8482160:promoted": "2026-10-31",
@@ -1164,7 +1414,7 @@
       "8482679:promoted": "2026-10-31",
       "8482703:promoted": "2026-10-27",
       "8482705:promoted": "2026-10-21",
-      "8482713:promoted": "2026-10-28",
+      "8482713:promoted": "2026-11-12",
       "8482720:promoted": "2026-10-30",
       "8482731:ice time": "2026-10-21",
       "8482758:promoted": "2026-11-03",
@@ -1179,6 +1429,7 @@
       "8483476:promoted": "2026-11-10",
       "8483489:ice time": "2026-10-20",
       "8483493:promoted": "2026-11-10",
+      "8483497:promoted": "2026-11-12",
       "8483499:promoted": "2026-10-31",
       "8483500:promoted": "2026-11-10",
       "8483505:promoted": "2026-10-18",
@@ -1227,7 +1478,7 @@
       "8484938:promoted": "2026-11-02",
       "8484999:promoted": "2026-10-13",
       "8485388:promoted": "2026-11-06",
-      "8485391:promoted": "2026-10-29",
+      "8485391:promoted": "2026-11-12",
       "8485395:promoted": "2026-10-18",
       "8485402:promoted": "2026-11-02",
       "8485406:promoted": "2026-11-05",
@@ -1247,12 +1498,10 @@
       },
       "8470621": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-10-30"
-        }
+        "since": {}
       },
       "8471214": {
         "groups": [
@@ -1434,11 +1683,11 @@
       },
       "8475314": {
         "groups": [
-          "f1",
-          "pp2"
+          "f3",
+          "pp1"
         ],
         "since": {
-          "f1": "2026-11-04"
+          "pp1": "2026-11-12"
         }
       },
       "8475343": {
@@ -1468,10 +1717,12 @@
       },
       "8475692": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-12"
+        }
       },
       "8475722": {
         "groups": [
@@ -1655,13 +1906,6 @@
         ],
         "since": {}
       },
-      "8476469": {
-        "groups": [
-          "f4",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8476473": {
         "groups": [
           "d2",
@@ -1719,12 +1963,6 @@
           "d2",
           "pk1",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8476872": {
-        "groups": [
-          "f3"
         ],
         "since": {}
       },
@@ -1878,12 +2116,6 @@
         ],
         "since": {}
       },
-      "8477220": {
-        "groups": [
-          "ir"
-        ],
-        "since": {}
-      },
       "8477402": {
         "groups": [
           "f3",
@@ -1999,6 +2231,13 @@
           "pp1": "2026-11-09"
         }
       },
+      "8477499": {
+        "groups": [
+          "d3",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8477501": {
         "groups": [
           "f2",
@@ -2057,12 +2296,10 @@
       },
       "8477919": {
         "groups": [
-          "f2",
+          "f4",
           "pk1"
         ],
-        "since": {
-          "f2": "2026-10-29"
-        }
+        "since": {}
       },
       "8477932": {
         "groups": [
@@ -2235,6 +2472,13 @@
         ],
         "since": {}
       },
+      "8478450": {
+        "groups": [
+          "d3",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8478454": {
         "groups": [
           "d3"
@@ -2265,7 +2509,7 @@
       },
       "8478472": {
         "groups": [
-          "f4",
+          "f3",
           "pk2"
         ],
         "since": {}
@@ -2365,6 +2609,13 @@
         ],
         "since": {}
       },
+      "8478873": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8478882": {
         "groups": [
           "d1",
@@ -2426,7 +2677,7 @@
       },
       "8479365": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -2464,11 +2715,9 @@
       },
       "8479398": {
         "groups": [
-          "d1"
+          "d2"
         ],
-        "since": {
-          "d1": "2026-11-03"
-        }
+        "since": {}
       },
       "8479442": {
         "groups": [
@@ -2533,13 +2782,10 @@
       },
       "8479675": {
         "groups": [
-          "f2",
-          "pk1",
-          "pp2"
+          "f3",
+          "pk1"
         ],
-        "since": {
-          "f2": "2026-11-10"
-        }
+        "since": {}
       },
       "8479705": {
         "groups": [
@@ -2555,7 +2801,8 @@
       },
       "8479977": {
         "groups": [
-          "ir"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -2822,12 +3069,10 @@
       },
       "8480849": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-04"
-        }
+        "since": {}
       },
       "8480878": {
         "groups": [
@@ -2898,10 +3143,12 @@
       },
       "8481056": {
         "groups": [
-          "d2",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-12"
+        }
       },
       "8481068": {
         "groups": [
@@ -2955,12 +3202,17 @@
       },
       "8481527": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-11-07"
-        }
+        "since": {}
+      },
+      "8481532": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
       },
       "8481535": {
         "groups": [
@@ -3117,7 +3369,8 @@
       },
       "8481732": {
         "groups": [
-          "f3"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -3466,10 +3719,12 @@
       },
       "8482713": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-12"
+        }
       },
       "8482720": {
         "groups": [
@@ -3480,6 +3735,12 @@
           "f1": "2026-11-02",
           "pp1": "2026-10-30"
         }
+      },
+      "8482726": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8482733": {
         "groups": [
@@ -3713,9 +3974,11 @@
       },
       "8483497": {
         "groups": [
-          "f4"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-12"
+        }
       },
       "8483499": {
         "groups": [
@@ -3790,12 +4053,6 @@
         "groups": [
           "f4",
           "pk1"
-        ],
-        "since": {}
-      },
-      "8483675": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3910,12 +4167,10 @@
       },
       "8484241": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-11-03"
-        }
+        "since": {}
       },
       "8484242": {
         "groups": [
@@ -4207,262 +4462,6 @@
       }
     },
     "log": [
-      {
-        "date": "2026-10-29",
-        "id": 8484860,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Matvei Gridin",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": true,
-        "team": "CGY",
-        "value": 0.0186,
-        "verdict": "+2 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "Ice time 18:52 a game in his last 3, up from 14:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8476979,
-        "kinds": [
-          "promoted",
-          "ice time"
-        ],
-        "name": "Erik Gustafsson",
-        "positions": "D",
-        "price": null,
-        "sent": true,
-        "team": "LAK",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the top D pair and the first power play, and it has held for 3 days. Ice time 21:25 a game in his last 3, up from 18:08. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8476882,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Teuvo Teravainen",
-        "positions": "LW/RW",
-        "price": null,
-        "sent": false,
-        "team": "CHI",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first power play, and it has held for 14 days."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8482124,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Quinton Byfield",
-        "positions": "C",
-        "price": 0.128,
-        "sent": false,
-        "team": "LAK",
-        "value": -0.0853,
-        "verdict": "-9 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line and the first power play, and it has held for 3 days."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8479675,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Trevor Moore",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "LAK",
-        "value": -0.0849,
-        "verdict": "-8 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 3 days."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8482146,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Luke Evangelista",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "NJD",
-        "value": -0.0115,
-        "verdict": "-1 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477426,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Nick Paul",
-        "positions": "LW",
-        "price": 0.128,
-        "sent": false,
-        "team": "TOR",
-        "value": -0.0449,
-        "verdict": "-4 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 14 days."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8479385,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jordan Kyrou",
-        "positions": "RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "WSH",
-        "value": -0.067,
-        "verdict": "-7 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line and the first power play, and it has held for 6 days."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477953,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Kasperi Kapanen",
-        "positions": "RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "EDM",
-        "value": -0.0024,
-        "verdict": "-0 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477919,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Frederick Gaudreau",
-        "positions": "C",
-        "price": 0.128,
-        "sent": false,
-        "team": "SEA",
-        "value": -0.1452,
-        "verdict": "-15 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477479,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Tyler Bertuzzi",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "CHI",
-        "value": -0.0442,
-        "verdict": "-4 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477987,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Ryan Donato",
-        "positions": "C/LW/RW",
-        "price": null,
-        "sent": false,
-        "team": "CHI",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8485391,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Anton Frondell",
-        "positions": "C",
-        "price": 0.128,
-        "sent": false,
-        "team": "CHI",
-        "value": -0.0503,
-        "verdict": "-5 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8479351,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Sam Steel",
-        "positions": "C/LW",
-        "price": null,
-        "sent": false,
-        "team": "DAL",
-        "value": null,
-        "verdict": "No move with him passes the plan's checks this week (waivers, or he'd cost points now).",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8483510,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Elias Salomonsson",
-        "positions": "D",
-        "price": 0.128,
-        "sent": false,
-        "team": "WPG",
-        "value": -0.098,
-        "verdict": "-10 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8481522,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Peyton Krebs",
-        "positions": "C/LW",
-        "price": 0.128,
-        "sent": false,
-        "team": "BUF",
-        "value": -0.0805,
-        "verdict": "-8 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line."
-      },
-      {
-        "date": "2026-10-29",
-        "id": 8477444,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Andre Burakovsky",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "OTT",
-        "value": -0.1564,
-        "verdict": "-16 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
       {
         "date": "2026-10-30",
         "id": 8479359,
@@ -6537,6 +6536,172 @@
         "value": -0.0933,
         "verdict": "-9 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8481522,
+        "kinds": [
+          "promoted",
+          "ice time"
+        ],
+        "name": "Peyton Krebs",
+        "positions": "C/LW",
+        "price": 0.1115,
+        "sent": true,
+        "team": "BUF",
+        "value": -0.0969,
+        "verdict": "-10 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 2 days. Ice time 16:38 a game in his last 3, up from 13:12. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8477479,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Tyler Bertuzzi",
+        "positions": "LW/RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.0704,
+        "verdict": "-7 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 8 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8485391,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Anton Frondell",
+        "positions": "C",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.0588,
+        "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line and the first power play, and it has held for 5 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8476882,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Teuvo Teravainen",
+        "positions": "LW/RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.1089,
+        "verdict": "-11 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 3 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8482124,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Quinton Byfield",
+        "positions": "C",
+        "price": 0.1115,
+        "sent": false,
+        "team": "LAK",
+        "value": -0.0852,
+        "verdict": "-9 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line and the first power play, and it has held for 17 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8475692,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mats Zuccarello",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "LAK",
+        "value": -0.0706,
+        "verdict": "-7 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8482146,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Luke Evangelista",
+        "positions": "LW/RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "NJD",
+        "value": -0.0564,
+        "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 14 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8483497,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jani Nyman",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "SEA",
+        "value": -0.1305,
+        "verdict": "-13 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8482713,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mackie Samoskevich",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "SEA",
+        "value": -0.0388,
+        "verdict": "-4 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8478519,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Anthony Cirelli",
+        "positions": "C",
+        "price": 0.1115,
+        "sent": false,
+        "team": "TBL",
+        "value": -0.0575,
+        "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8479385,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jordan Kyrou",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "WSH",
+        "value": -0.0646,
+        "verdict": "-6 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 7 days."
       }
     ]
   },
