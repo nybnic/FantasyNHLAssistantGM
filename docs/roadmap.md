@@ -112,6 +112,17 @@ one recommendation land here and are tested in batches:
   the price). Guhle +3.3 / +0.4, Kantserov +1.6 / -0.4, Pospisil +0.5 / -3.1 (a forward for my 4th D
   leaves a D slot empty: D -12.6 a week, benched points 4.0 -> 7.7). Test: the long run from the whole
   remaining schedule (or each team's games left) against the 6-week rate.
+- A goalie back from injury, and goalies not on the NHL roster (Nico 2026-11-12: "Korpisalo should
+  start way more", Randy offering him for a D). The engine had him at 25% of NYR's starts (Check,
+  goalie-shares), Garand 65%, with Shesterkin out for the season. Three reasons it may run low: (1) the
+  last-10 window counts the games he missed on IR+ as starts he lost, so Garand's 60% recent share comes
+  from a stretch when Korpisalo couldn't play; (2) Reimer (17%) and Martin (9%), not on DFO's chart,
+  keep their shares and take part of Shesterkin's absent starts, so NYR's healthy shares add up to 116%;
+  (3) only 45% of an injured starter's share is passed on (`ABSENT_TO_TEAMMATES_KNOWN`, fit 2023-25).
+  Test: refit the shares with the last 10 counted over the games he was available and goalies off the
+  chart left out, on the fit_goalie_starts data (next-game log loss). The `start_share` column in
+  `state/xfp_log.csv` leaves injuries out entirely (16% for him that day): label it, or log the engine's.
+  For the trade itself, at 40-65% he still doesn't beat Samuelsson (`depth --try` with his share raised).
 - (Answered by tenure, live 2026-10-23: a swap's later days now count its own gain, negative too.)
   The keep share was per player, not per lineup (same question): a forward under his position's waiver
   level gets no season weight, whatever the swap does to my lineup's shape. For Pospisil for Larsson that
