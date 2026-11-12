@@ -1023,7 +1023,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-12T09:01+00:00",
+    "at": "2026-11-12T15:01+00:00",
     "moves": [],
     "week": 7
   },
@@ -1412,7 +1412,7 @@
       "8482660:promoted": "2026-10-24",
       "8482665:promoted": "2026-11-08",
       "8482679:promoted": "2026-10-31",
-      "8482703:promoted": "2026-10-27",
+      "8482703:promoted": "2026-11-12",
       "8482705:promoted": "2026-10-21",
       "8482713:promoted": "2026-11-12",
       "8482720:promoted": "2026-10-30",
@@ -1685,11 +1685,9 @@
       "8475314": {
         "groups": [
           "f3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": "2026-11-12"
-        }
+        "since": {}
       },
       "8475343": {
         "groups": [
@@ -2321,12 +2319,10 @@
       },
       "8477953": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8477964": {
         "groups": [
@@ -2510,7 +2506,7 @@
       },
       "8478472": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -2678,7 +2674,7 @@
       },
       "8479365": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -3078,9 +3074,11 @@
       "8480849": {
         "groups": [
           "f3",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-12"
+        }
       },
       "8480878": {
         "groups": [
@@ -3697,8 +3695,7 @@
       },
       "8482666": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -3714,10 +3711,12 @@
       },
       "8482703": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-12"
+        }
       },
       "8482705": {
         "groups": [
@@ -6734,6 +6733,21 @@
         "value": -0.05,
         "verdict": "-5 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "Ice time 21:57 a game in his last 3, up from 18:14. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-12",
+        "id": 8482703,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Colton Dach",
+        "positions": "C/LW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.0308,
+        "verdict": "-3 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
