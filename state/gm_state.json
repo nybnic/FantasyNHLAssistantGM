@@ -281,52 +281,36 @@
       },
       "sent": true,
       "updates": 0
+    },
+    "2026-11-13": {
+      "recommended": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "LW",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "BN",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "C"
+      },
+      "sent": true,
+      "updates": 0
     }
   },
   "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-12",
   "goalie_news": {
-    "date": "2026-11-11",
+    "date": "2026-11-13",
     "starters": {
-      "ANA": {
-        "confirmed": true,
-        "goalie_name": "Laurent Brossoit"
-      },
-      "BUF": {
+      "VAN": {
         "confirmed": false,
-        "goalie_name": "Ukko-Pekka Luukkonen"
-      },
-      "CGY": {
-        "confirmed": true,
-        "goalie_name": "Devin Cooley"
-      },
-      "EDM": {
-        "confirmed": true,
-        "goalie_name": "Tristan Jarry"
-      },
-      "NYR": {
-        "confirmed": false,
-        "goalie_name": "Joonas Korpisalo"
-      },
-      "PHI": {
-        "confirmed": false,
-        "goalie_name": "Dan Vladar"
-      },
-      "PIT": {
-        "confirmed": false,
-        "goalie_name": "Sergei Murashov"
-      },
-      "SJS": {
-        "confirmed": true,
-        "goalie_name": "Yaroslav Askarov"
-      },
-      "TBL": {
-        "confirmed": false,
-        "goalie_name": "Andrei Vasilevskiy"
-      },
-      "VGK": {
-        "confirmed": true,
-        "goalie_name": "Carter Hart"
+        "goalie_name": "Leevi Merilainen"
       }
     }
   },
@@ -338,7 +322,7 @@
   "ir_noted": [],
   "last_error": "2026-11-04",
   "matchup_shots": null,
-  "news_checked": "2026-11-12",
+  "news_checked": "2026-11-13",
   "pending": {
     "add-2026-11-03-0451-8476483": {
       "add": {
@@ -674,11 +658,32 @@
       "date": "2026-11-12",
       "message_id": 1073,
       "type": "lineup"
+    },
+    "lineup-2026-11-13-1731": {
+      "assignment": {
+        "8474564": "RW",
+        "8476460": "C",
+        "8476483": "LW",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480855": "BN",
+        "8480865": "D",
+        "8481519": "BN",
+        "8482087": "D",
+        "8482447": "G",
+        "8484801": "C"
+      },
+      "date": "2026-11-13",
+      "message_id": 1088,
+      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-13T15:31+00:00",
+    "at": "2026-11-13T17:31+00:00",
     "moves": [],
     "week": 7
   },
@@ -928,7 +933,7 @@
       "8477505:promoted": "2026-10-14",
       "8477919:promoted": "2026-10-29",
       "8477950:ice time": "2026-11-01",
-      "8477953:promoted": "2026-10-29",
+      "8477953:promoted": "2026-11-13",
       "8477955:promoted": "2026-10-18",
       "8477964:promoted": "2026-11-04",
       "8477971:ice time": "2026-11-03",
@@ -1985,10 +1990,12 @@
       },
       "8477953": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-13"
+        }
       },
       "8477964": {
         "groups": [
@@ -2822,6 +2829,12 @@
         ],
         "since": {}
       },
+      "8481219": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8481481": {
         "groups": [
           "f4",
@@ -3366,12 +3379,10 @@
       },
       "8482703": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-11-12"
-        }
+        "since": {}
       },
       "8482705": {
         "groups": [
@@ -3520,12 +3531,6 @@
         "groups": [
           "d3",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8483017": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -6531,6 +6536,21 @@
         "value": -0.1195,
         "verdict": "-12 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-13",
+        "id": 8477953,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Kasperi Kapanen",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.038,
+        "verdict": "-4 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
