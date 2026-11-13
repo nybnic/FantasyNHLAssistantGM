@@ -678,7 +678,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-13T06:23+00:00",
+    "at": "2026-11-13T06:25+00:00",
     "moves": [],
     "week": 7
   },
@@ -857,6 +857,7 @@
       "8474013:promoted": "2026-11-02",
       "8474141:promoted": "2026-10-27",
       "8474150:promoted": "2026-11-09",
+      "8474151:ice time": "2026-11-13",
       "8474151:promoted": "2026-10-30",
       "8474189:promoted": "2026-11-08",
       "8474563:promoted": "2026-10-14",
@@ -6470,6 +6471,21 @@
         "value": -0.0733,
         "verdict": "-7 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line, and it has held for 10 days."
+      },
+      {
+        "date": "2026-11-13",
+        "id": 8474151,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Ryan McDonagh",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": true,
+        "team": "TBL",
+        "value": -0.1398,
+        "verdict": "-14 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 20:16 a game in his last 3, up from 16:58. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
