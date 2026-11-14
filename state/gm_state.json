@@ -304,7 +304,7 @@
     }
   },
   "daily_plan": "2026-11-06",
-  "dfo_archived": "2026-11-13",
+  "dfo_archived": "2026-11-14",
   "goalie_news": {
     "date": "2026-11-14",
     "starters": {
@@ -320,8 +320,12 @@
         "confirmed": true,
         "goalie_name": "Jet Greaves"
       },
+      "COL": {
+        "confirmed": true,
+        "goalie_name": "Mackenzie Blackwood"
+      },
       "DAL": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Jake Oettinger"
       },
       "DET": {
@@ -361,7 +365,7 @@
         "goalie_name": "Joey Daccord"
       },
       "STL": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Joel Hofer"
       },
       "TBL": {
@@ -747,7 +751,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-14T17:00+00:00",
+    "at": "2026-11-14T17:30+00:00",
     "moves": [],
     "week": 7
   },
@@ -1279,11 +1283,11 @@
       },
       "8473994": {
         "groups": [
-          "f1",
+          "f2",
           "pp2"
         ],
         "since": {
-          "f1": "2026-11-02"
+          "f2": "2026-11-14"
         }
       },
       "8474013": {
@@ -1338,14 +1342,13 @@
       },
       "8474567": {
         "groups": [
-          "d3",
-          "pk2"
+          "d3"
         ],
         "since": {}
       },
       "8474574": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -1627,12 +1630,10 @@
       },
       "8476463": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-11-11"
-        }
+        "since": {}
       },
       "8476467": {
         "groups": [
@@ -1728,7 +1729,7 @@
       },
       "8476874": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
@@ -2380,13 +2381,6 @@
           "d1": null
         }
       },
-      "8478891": {
-        "groups": [
-          "f4",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8478904": {
         "groups": [
           "f4"
@@ -2602,6 +2596,13 @@
       "8479985": {
         "groups": [
           "d3"
+        ],
+        "since": {}
+      },
+      "8479992": {
+        "groups": [
+          "f4",
+          "pk1"
         ],
         "since": {}
       },
@@ -3074,7 +3075,8 @@
       },
       "8481606": {
         "groups": [
-          "d2"
+          "d2",
+          "pk2"
         ],
         "since": {}
       },
@@ -3440,12 +3442,6 @@
           "f2": null
         }
       },
-      "8482641": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8482655": {
         "groups": [
           "d2",
@@ -3641,13 +3637,6 @@
         "groups": [
           "d3",
           "pk1"
-        ],
-        "since": {}
-      },
-      "8483425": {
-        "groups": [
-          "d2",
-          "ir"
         ],
         "since": {}
       },
@@ -3958,13 +3947,6 @@
         ],
         "since": {}
       },
-      "8484321": {
-        "groups": [
-          "d3",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8484386": {
         "groups": [
           "d2",
@@ -4013,6 +3995,13 @@
           "f1": null,
           "pp1": null
         }
+      },
+      "8484759": {
+        "groups": [
+          "d3",
+          "pp2"
+        ],
+        "since": {}
       },
       "8484768": {
         "groups": [
@@ -4111,11 +4100,11 @@
       },
       "8484938": {
         "groups": [
-          "f2",
+          "f1",
           "pk1"
         ],
         "since": {
-          "f2": "2026-11-02"
+          "f1": "2026-11-14"
         }
       },
       "8484999": {
