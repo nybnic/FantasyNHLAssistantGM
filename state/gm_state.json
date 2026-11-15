@@ -710,7 +710,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-14T17:30+00:00",
+    "at": "2026-11-15T07:17+00:00",
     "moves": [],
     "week": 7
   },
@@ -874,7 +874,7 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784919,
+  "telegram_offset": 929784921,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -894,6 +894,7 @@
       "8474189:promoted": "2026-11-08",
       "8474563:promoted": "2026-10-14",
       "8474574:ice time": "2026-11-09",
+      "8474716:promoted": "2026-11-15",
       "8475151:promoted": "2026-11-02",
       "8475167:promoted": "2026-11-06",
       "8475172:promoted": "2026-11-03",
@@ -908,7 +909,7 @@
       "8475726:promoted": "2026-11-02",
       "8475745:ice time": "2026-10-21",
       "8475745:promoted": "2026-11-04",
-      "8475768:promoted": "2026-10-16",
+      "8475768:promoted": "2026-11-15",
       "8475794:promoted": "2026-10-28",
       "8475831:no1": "2026-10-13",
       "8475848:promoted": "2026-10-24",
@@ -934,7 +935,7 @@
       "8476882:promoted": "2026-11-12",
       "8476892:promoted": "2026-11-05",
       "8476902:ice time": "2026-11-06",
-      "8476905:promoted": "2026-11-01",
+      "8476905:promoted": "2026-11-15",
       "8476917:promoted": "2026-10-31",
       "8476923:promoted": "2026-10-24",
       "8476925:promoted": "2026-11-09",
@@ -971,7 +972,7 @@
       "8478010:promoted": "2026-10-15",
       "8478020:promoted": "2026-11-08",
       "8478042:promoted": "2026-11-04",
-      "8478047:promoted": "2026-10-18",
+      "8478047:promoted": "2026-11-15",
       "8478057:promoted": "2026-11-02",
       "8478133:ice time": "2026-10-28",
       "8478366:promoted": "2026-10-17",
@@ -1018,7 +1019,7 @@
       "8479998:ice time": "2026-10-25",
       "8479998:promoted": "2026-11-10",
       "8479999:promoted": "2026-10-18",
-      "8480014:promoted": "2026-11-01",
+      "8480014:promoted": "2026-11-15",
       "8480028:promoted": "2026-11-10",
       "8480049:promoted": "2026-10-30",
       "8480064:promoted": "2026-11-10",
@@ -1091,8 +1092,10 @@
       "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-11-02",
       "8482160:promoted": "2026-10-31",
+      "8482165:promoted": "2026-11-15",
       "8482166:promoted": "2026-10-26",
       "8482171:ice time": "2026-11-01",
+      "8482171:promoted": "2026-11-15",
       "8482175:ice time": "2026-11-02",
       "8482175:promoted": "2026-11-02",
       "8482176:ice time": "2026-11-01",
@@ -1116,6 +1119,7 @@
       "8482758:promoted": "2026-11-03",
       "8482765:promoted": "2026-10-27",
       "8482775:promoted": "2026-10-22",
+      "8482802:ice time": "2026-11-15",
       "8482803:promoted": "2026-10-14",
       "8483395:promoted": "2026-11-09",
       "8483406:promoted": "2026-10-27",
@@ -1170,6 +1174,7 @@
       "8484800:promoted": "2026-11-12",
       "8484803:ice time": "2026-10-14",
       "8484803:promoted": "2026-11-14",
+      "8484806:ice time": "2026-11-15",
       "8484806:promoted": "2026-10-28",
       "8484829:promoted": "2026-10-14",
       "8484860:ice time": "2026-10-29",
@@ -1186,7 +1191,8 @@
       "8485702:promoted": "2026-11-08",
       "8486025:promoted": "2026-10-30",
       "8486067:promoted": "2026-10-28",
-      "8486103:promoted": "2026-11-09"
+      "8486103:promoted": "2026-11-09",
+      "8486171:promoted": "2026-11-15"
     },
     "groups": {
       "8470613": {
@@ -1374,7 +1380,7 @@
       },
       "8475231": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -1851,8 +1857,7 @@
       },
       "8477407": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -1993,12 +1998,10 @@
       },
       "8477810": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8477903": {
         "groups": [
@@ -2048,9 +2051,11 @@
       },
       "8477964": {
         "groups": [
-          "f3"
+          "f1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-15"
+        }
       },
       "8477969": {
         "groups": [
@@ -2133,12 +2138,6 @@
         "since": {}
       },
       "8478233": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
-      "8478366": {
         "groups": [
           "f4"
         ],
@@ -2415,6 +2414,7 @@
       "8479378": {
         "groups": [
           "d1",
+          "ir",
           "pk1"
         ],
         "since": {
@@ -2741,7 +2741,7 @@
       },
       "8480727": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
@@ -2938,6 +2938,12 @@
           "f1": null
         }
       },
+      "8481534": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8481535": {
         "groups": [
           "f2",
@@ -3113,6 +3119,12 @@
         ],
         "since": {}
       },
+      "8481754": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8481789": {
         "groups": [
           "f2",
@@ -3122,6 +3134,12 @@
         "since": {
           "f2": null
         }
+      },
+      "8481806": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
       },
       "8482055": {
         "groups": [
@@ -3279,10 +3297,12 @@
       },
       "8482165": {
         "groups": [
-          "d3",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-15"
+        }
       },
       "8482166": {
         "groups": [
@@ -3380,12 +3400,6 @@
         "since": {
           "d1": "2026-10-18"
         }
-      },
-      "8482516": {
-        "groups": [
-          "d4"
-        ],
-        "since": {}
       },
       "8482525": {
         "groups": [
@@ -3700,12 +3714,10 @@
       },
       "8483495": {
         "groups": [
-          "d1",
+          "d2",
           "pp2"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8483499": {
         "groups": [
@@ -3768,12 +3780,6 @@
         "groups": [
           "f3",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8483553": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3920,12 +3926,6 @@
           "f2": null
         }
       },
-      "8484305": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8484386": {
         "groups": [
           "d2",
@@ -3984,10 +3984,11 @@
       },
       "8484768": {
         "groups": [
-          "d3",
+          "d1",
           "pp1"
         ],
         "since": {
+          "d1": "2026-11-15",
           "pp1": null
         }
       },
@@ -4034,12 +4035,10 @@
       },
       "8484803": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-08"
-        }
+        "since": {}
       },
       "8484806": {
         "groups": [
@@ -4209,111 +4208,6 @@
       }
     },
     "log": [
-      {
-        "date": "2026-11-01",
-        "id": 8482171,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "William Wallinder",
-        "positions": "D",
-        "price": 0.128,
-        "sent": true,
-        "team": "DET",
-        "value": -0.0919,
-        "verdict": "-9 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "Ice time 18:28 a game in his last 3, up from 13:58. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8482176,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Wyatt Kaiser",
-        "positions": "D",
-        "price": 0.128,
-        "sent": true,
-        "team": "CHI",
-        "value": -0.1145,
-        "verdict": "-11 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "Ice time 21:55 a game in his last 3, up from 18:52. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8477950,
-        "kinds": [
-          "ice time"
-        ],
-        "name": "Tony DeAngelo",
-        "positions": "D",
-        "price": 0.128,
-        "sent": true,
-        "team": "NYI",
-        "value": -0.1318,
-        "verdict": "-13 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "Ice time 19:39 a game in his last 3, up from 16:20. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8476905,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Chandler Stephenson",
-        "positions": "C",
-        "price": 0.128,
-        "sent": false,
-        "team": "SEA",
-        "value": -0.1177,
-        "verdict": "-12 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first power play, and it has held for 15 days."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8477402,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Pavel Buchnevich",
-        "positions": "C/LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "STL",
-        "value": -0.0502,
-        "verdict": "-5 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 4 days."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8478444,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Brock Boeser",
-        "positions": "LW/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "VAN",
-        "value": -0.0005,
-        "verdict": "-0 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 8 days."
-      },
-      {
-        "date": "2026-11-01",
-        "id": 8480014,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Gabriel Vilardi",
-        "positions": "C/RW",
-        "price": 0.128,
-        "sent": false,
-        "team": "WPG",
-        "value": 0.0048,
-        "verdict": "+0 win-pts against the 12.8 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line."
-      },
       {
         "date": "2026-11-02",
         "id": 8478438,
@@ -6585,6 +6479,156 @@
         "value": -0.0812,
         "verdict": "-8 win-pts against the 11.2 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 6 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8484806,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Sam Dickinson",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": true,
+        "team": "SJS",
+        "value": -0.1292,
+        "verdict": "-13 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 23:02 a game in his last 3, up from 18:13. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8482802,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Carter Mazur",
+        "positions": "LW",
+        "price": 0.1115,
+        "sent": true,
+        "team": "DET",
+        "value": -0.1657,
+        "verdict": "-17 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "Ice time 12:42 a game in his last 3, up from 8:37. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8482165,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Yan Kuznetsov",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": false,
+        "team": "CGY",
+        "value": -0.1143,
+        "verdict": "-11 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8486171,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "T.J. Hughes",
+        "positions": "RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "COL",
+        "value": -0.0852,
+        "verdict": "-9 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8475768,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jaden Schwartz",
+        "positions": "C/LW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "COL",
+        "value": -0.1042,
+        "verdict": "-10 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8482171,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "William Wallinder",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": false,
+        "team": "DET",
+        "value": -0.1161,
+        "verdict": "-12 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 5 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8474716,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jared Spurgeon",
+        "positions": "D",
+        "price": 0.1115,
+        "sent": false,
+        "team": "MIN",
+        "value": -0.1333,
+        "verdict": "-13 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8478047,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Michael Bunting",
+        "positions": "LW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "PHI",
+        "value": -0.1473,
+        "verdict": "-15 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8476905,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Chandler Stephenson",
+        "positions": "C",
+        "price": 0.1115,
+        "sent": false,
+        "team": "SEA",
+        "value": -0.1205,
+        "verdict": "-12 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play, and it has held for 29 days."
+      },
+      {
+        "date": "2026-11-15",
+        "id": 8480014,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Gabriel Vilardi",
+        "positions": "C/RW",
+        "price": 0.1115,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.014,
+        "verdict": "-1 win-pts against the 11.2 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 13 days."
       }
     ]
   },
