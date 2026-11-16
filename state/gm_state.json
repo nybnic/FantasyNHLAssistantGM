@@ -304,10 +304,14 @@
     }
   },
   "daily_plan": "2026-11-06",
-  "dfo_archived": "2026-11-15",
+  "dfo_archived": "2026-11-16",
   "goalie_news": {
     "date": "2026-11-16",
     "starters": {
+      "MTL": {
+        "confirmed": true,
+        "goalie_name": "Jacob Fowler"
+      },
       "NYR": {
         "confirmed": true,
         "goalie_name": "Joonas Korpisalo"
@@ -323,7 +327,7 @@
   "ir_noted": [],
   "last_error": "2026-11-04",
   "matchup_shots": null,
-  "news_checked": "2026-11-15",
+  "news_checked": "2026-11-16",
   "pending": {
     "add-2026-11-03-0451-8476483": {
       "add": {
@@ -684,7 +688,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-16T17:01+00:00",
+    "at": "2026-11-16T18:01+00:00",
     "moves": [],
     "week": 8
   },
@@ -1336,8 +1340,7 @@
       "8475171": {
         "groups": [
           "d2",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -1648,7 +1651,9 @@
       },
       "8476853": {
         "groups": [
-          "ir"
+          "d3",
+          "ir",
+          "pp2"
         ],
         "since": {}
       },
@@ -1976,12 +1981,6 @@
       "8477527": {
         "groups": [
           "f4"
-        ],
-        "since": {}
-      },
-      "8477541": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
