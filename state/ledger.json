@@ -4544,6 +4544,15 @@
           "team": "SJS"
         },
         {
+          "id": 8476887,
+          "name": "Filip Forsberg",
+          "positions": [
+            "LW"
+          ],
+          "slot": "LW",
+          "team": "NSH"
+        },
+        {
           "id": 8480855,
           "name": "Jack McBain",
           "positions": [
@@ -4552,17 +4561,6 @@
           ],
           "slot": "LW",
           "team": "UTA"
-        },
-        {
-          "id": 8476483,
-          "name": "Rickard Rakell",
-          "positions": [
-            "C",
-            "LW",
-            "RW"
-          ],
-          "slot": "LW",
-          "team": "PIT"
         },
         {
           "id": 8474564,
@@ -4622,6 +4620,15 @@
           "team": "MTL"
         },
         {
+          "id": 8482447,
+          "name": "Leevi Meril\u00e4inen",
+          "positions": [
+            "G"
+          ],
+          "slot": "G",
+          "team": "VAN"
+        },
+        {
           "id": 8478872,
           "name": "Karel Vejmelka",
           "positions": [
@@ -4631,44 +4638,28 @@
           "team": "UTA"
         },
         {
+          "id": 8476483,
+          "name": "Rickard Rakell",
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "slot": "BN",
+          "team": "PIT"
+        },
+        {
           "id": 8481519,
           "name": "Spencer Knight",
           "positions": [
             "G"
           ],
-          "slot": "G",
+          "slot": "BN",
           "team": "CHI"
-        },
-        {
-          "id": 8476887,
-          "name": "Filip Forsberg",
-          "positions": [
-            "LW"
-          ],
-          "slot": "BN",
-          "team": "NSH"
-        },
-        {
-          "id": 8482447,
-          "name": "Leevi Meril\u00e4inen",
-          "positions": [
-            "G"
-          ],
-          "slot": "BN",
-          "team": "VAN"
         }
       ],
       "them": {
         "players": [
-          {
-            "id": 8478864,
-            "name": "Kirill Kaprizov",
-            "positions": [
-              "LW"
-            ],
-            "slot": null,
-            "team": "MIN"
-          },
           {
             "id": 8478403,
             "name": "Jack Eichel",
@@ -4679,22 +4670,41 @@
             "team": "VGK"
           },
           {
-            "id": 8474593,
-            "name": "Jacob Markstrom",
+            "id": 8481596,
+            "name": "Shane Pinto",
             "positions": [
-              "G"
+              "C"
             ],
             "slot": null,
-            "team": "FLA"
+            "team": "OTT"
           },
           {
-            "id": 8479394,
-            "name": "Carter Hart",
+            "id": 8478864,
+            "name": "Kirill Kaprizov",
             "positions": [
-              "G"
+              "LW"
             ],
             "slot": null,
-            "team": "VGK"
+            "team": "MIN"
+          },
+          {
+            "id": 8483516,
+            "name": "Jimmy Snuggerud",
+            "positions": [
+              "RW"
+            ],
+            "slot": null,
+            "team": "STL"
+          },
+          {
+            "id": 8478444,
+            "name": "Brock Boeser",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "VAN"
           },
           {
             "id": 8474600,
@@ -4724,25 +4734,6 @@
             "team": "VGK"
           },
           {
-            "id": 8483516,
-            "name": "Jimmy Snuggerud",
-            "positions": [
-              "RW"
-            ],
-            "slot": null,
-            "team": "STL"
-          },
-          {
-            "id": 8476454,
-            "name": "Ryan Nugent-Hopkins",
-            "positions": [
-              "C",
-              "LW"
-            ],
-            "slot": null,
-            "team": "EDM"
-          },
-          {
             "id": 8478055,
             "name": "Gustav Forsling",
             "positions": [
@@ -4752,13 +4743,22 @@
             "team": "FLA"
           },
           {
-            "id": 8475831,
-            "name": "Philipp Grubauer",
+            "id": 8474593,
+            "name": "Jacob Markstrom",
             "positions": [
               "G"
             ],
             "slot": null,
-            "team": "SEA"
+            "team": "FLA"
+          },
+          {
+            "id": 8479394,
+            "name": "Carter Hart",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "VGK"
           },
           {
             "id": 8484144,
@@ -4771,23 +4771,23 @@
             "team": "CHI"
           },
           {
-            "id": 8478444,
-            "name": "Brock Boeser",
+            "id": 8475831,
+            "name": "Philipp Grubauer",
             "positions": [
-              "LW",
-              "RW"
+              "G"
             ],
             "slot": null,
-            "team": "VAN"
+            "team": "SEA"
           },
           {
-            "id": 8481596,
-            "name": "Shane Pinto",
+            "id": 8476454,
+            "name": "Ryan Nugent-Hopkins",
             "positions": [
-              "C"
+              "C",
+              "LW"
             ],
             "slot": null,
-            "team": "OTT"
+            "team": "EDM"
           }
         ],
         "team": "Bottom three"
@@ -6528,22 +6528,22 @@
     }
   },
   "live_score": {
-    "at": "2026-11-15T07:17:23+00:00",
+    "at": "2026-11-17T06:36:01+00:00",
     "goalies": [
-      32.1,
-      43.6
+      5.35,
+      0.0
     ],
-    "opponent": "HAN-NES",
+    "opponent": "Bottom three",
     "projected": [
-      256.5,
-      208.03
+      234.01,
+      230.07
     ],
     "score": [
-      225.8,
-      192.85
+      14.5,
+      15.55
     ],
-    "through": "2026-11-15",
-    "week": 7
+    "through": "2026-11-17",
+    "week": 8
   },
   "move_forecasts": {
     "8476455:8485406": {
@@ -7631,18 +7631,18 @@
     "2026-11-17": [
       8476460,
       8484801,
+      8476887,
       8480855,
-      8476483,
       8474564,
       8477949,
       8480807,
       8480865,
       8480145,
       8482087,
+      8482447,
       8478872,
-      8481519,
-      8476887,
-      8482447
+      8476483,
+      8481519
     ]
   },
   "my_players": {
@@ -9086,26 +9086,55 @@
         ],
         "win": 0.7127
       },
-      "opponent": "Bottom three"
+      "live": [
+        {
+          "box": [
+            14.499999999999998,
+            15.55
+          ],
+          "through": "2026-11-17",
+          "yahoo": [
+            14.5,
+            15.55
+          ],
+          "yahoo_projected": [
+            234.01,
+            230.07
+          ]
+        }
+      ],
+      "opponent": "Bottom three",
+      "yahoo_first": {
+        "at": "2026-11-17T06:36:01+00:00",
+        "projected": [
+          234.01,
+          230.07
+        ],
+        "score": [
+          14.5,
+          15.55
+        ],
+        "through": "2026-11-17"
+      }
     }
   },
   "seen_mine": {
-    "8474564": "2026-11-16",
+    "8474564": "2026-11-17",
     "8476455": "2026-11-03",
     "8476457": "2026-10-25",
-    "8476460": "2026-11-16",
-    "8476483": "2026-11-16",
-    "8476887": "2026-11-16",
-    "8477949": "2026-11-16",
-    "8478872": "2026-11-16",
-    "8480145": "2026-11-16",
-    "8480807": "2026-11-16",
-    "8480855": "2026-11-16",
-    "8480865": "2026-11-16",
-    "8481519": "2026-11-16",
-    "8482087": "2026-11-16",
-    "8482447": "2026-11-16",
-    "8484801": "2026-11-16",
+    "8476460": "2026-11-17",
+    "8476483": "2026-11-17",
+    "8476887": "2026-11-17",
+    "8477949": "2026-11-17",
+    "8478872": "2026-11-17",
+    "8480145": "2026-11-17",
+    "8480807": "2026-11-17",
+    "8480855": "2026-11-17",
+    "8480865": "2026-11-17",
+    "8481519": "2026-11-17",
+    "8482087": "2026-11-17",
+    "8482447": "2026-11-17",
+    "8484801": "2026-11-17",
     "8485406": "2026-10-16"
   },
   "standings": {
