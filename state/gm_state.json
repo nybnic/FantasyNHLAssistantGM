@@ -304,7 +304,7 @@
     }
   },
   "daily_plan": "2026-11-06",
-  "dfo_archived": "2026-11-16",
+  "dfo_archived": "2026-11-17",
   "goalie_news": {
     "date": "2026-11-17",
     "starters": {
@@ -321,7 +321,7 @@
         "goalie_name": "Cam Talbot"
       },
       "CHI": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Spencer Knight"
       },
       "EDM": {
@@ -357,7 +357,7 @@
         "goalie_name": "Andrei Vasilevskiy"
       },
       "TOR": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Sergei Bobrovsky"
       },
       "WPG": {
@@ -736,7 +736,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-17T17:31+00:00",
+    "at": "2026-11-17T18:01+00:00",
     "moves": [],
     "week": 8
   },
@@ -953,7 +953,7 @@
       "8476467:promoted": "2026-10-21",
       "8476479:ice time": "2026-10-30",
       "8476479:promoted": "2026-11-13",
-      "8476539:promoted": "2026-10-28",
+      "8476539:promoted": "2026-11-17",
       "8476826:promoted": "2026-11-11",
       "8476854:ice time": "2026-10-18",
       "8476873:ice time": "2026-11-02",
@@ -983,6 +983,7 @@
       "8477451:promoted": "2026-11-08",
       "8477479:promoted": "2026-11-12",
       "8477484:goalie": "2026-10-13",
+      "8477488:promoted": "2026-11-17",
       "8477496:promoted": "2026-10-18",
       "8477497:promoted": "2026-11-06",
       "8477499:promoted": "2026-11-16",
@@ -1525,6 +1526,12 @@
           "f2": "2026-11-14"
         }
       },
+      "8475790": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8475791": {
         "groups": [
           "f4",
@@ -1682,9 +1689,12 @@
       },
       "8476539": {
         "groups": [
-          "ir"
+          "f3",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-17"
+        }
       },
       "8476624": {
         "groups": [
@@ -1969,9 +1979,12 @@
       },
       "8477488": {
         "groups": [
-          "ir"
+          "d1",
+          "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-17"
+        }
       },
       "8477497": {
         "groups": [
@@ -2157,12 +2170,10 @@
       },
       "8478399": {
         "groups": [
-          "d1",
+          "d2",
           "pk1"
         ],
-        "since": {
-          "d1": "2026-11-12"
-        }
+        "since": {}
       },
       "8478416": {
         "groups": [
@@ -2468,7 +2479,7 @@
       },
       "8479525": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -2534,6 +2545,12 @@
         "since": {
           "f2": "2026-11-12"
         }
+      },
+      "8479980": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
       },
       "8479982": {
         "groups": [
@@ -2800,7 +2817,7 @@
       },
       "8480835": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -2855,8 +2872,7 @@
       },
       "8480990": {
         "groups": [
-          "d2",
-          "pk2"
+          "d3"
         ],
         "since": {}
       },
@@ -2914,12 +2930,6 @@
           "f3",
           "pk1",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8481161": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -2981,8 +2991,7 @@
       },
       "8481535": {
         "groups": [
-          "f2",
-          "pp2"
+          "f2"
         ],
         "since": {
           "f2": "2026-10-30"
@@ -3134,10 +3143,11 @@
         "groups": [
           "f1",
           "pk2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f1": "2026-11-12"
+          "f1": "2026-11-12",
+          "pp1": "2026-11-17"
         }
       },
       "8481732": {
@@ -3152,12 +3162,6 @@
           "f4",
           "pk2",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8481806": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -3221,12 +3225,6 @@
         ],
         "since": {}
       },
-      "8482094": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8482095": {
         "groups": [
           "d3"
@@ -3263,11 +3261,10 @@
       "8482145": {
         "groups": [
           "f1",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f1": "2026-10-30",
-          "pp1": "2026-11-04"
+          "f1": "2026-10-30"
         }
       },
       "8482146": {
@@ -3660,13 +3657,6 @@
         ],
         "since": {}
       },
-      "8483447": {
-        "groups": [
-          "f3",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8483450": {
         "groups": [
           "f4"
@@ -3766,12 +3756,6 @@
           "f3",
           "pk2",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8483513": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3941,6 +3925,12 @@
         }
       },
       "8484304": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
+      "8484305": {
         "groups": [
           "d3"
         ],
@@ -4228,7 +4218,7 @@
       },
       "8486189": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
         ],
         "since": {}
@@ -6759,6 +6749,36 @@
         "value": -0.1014,
         "verdict": "-10 win-pts against the 9.9 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-17",
+        "id": 8477488,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Brett Pesce",
+        "positions": "D",
+        "price": 0.0988,
+        "sent": false,
+        "team": "NJD",
+        "value": -0.0531,
+        "verdict": "-5 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-17",
+        "id": 8476539,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jonathan Marchessault",
+        "positions": "LW/RW",
+        "price": 0.0988,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.0658,
+        "verdict": "-7 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
       }
     ]
   },
