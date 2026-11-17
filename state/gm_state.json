@@ -286,23 +286,63 @@
   "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-16",
   "goalie_news": {
-    "date": "2026-11-16",
+    "date": "2026-11-17",
     "starters": {
-      "MTL": {
+      "BOS": {
         "confirmed": true,
-        "goalie_name": "Jacob Fowler"
+        "goalie_name": "Michael DiPietro"
       },
-      "NYR": {
-        "confirmed": true,
-        "goalie_name": "Joonas Korpisalo"
-      },
-      "UTA": {
-        "confirmed": true,
-        "goalie_name": "Karel Vejmelka"
-      },
-      "VAN": {
+      "BUF": {
         "confirmed": false,
-        "goalie_name": "Nikita Tolopilo"
+        "goalie_name": "Alex Lyon"
+      },
+      "CBJ": {
+        "confirmed": true,
+        "goalie_name": "Cam Talbot"
+      },
+      "CHI": {
+        "confirmed": false,
+        "goalie_name": "Spencer Knight"
+      },
+      "EDM": {
+        "confirmed": true,
+        "goalie_name": "Devon Levi"
+      },
+      "FLA": {
+        "confirmed": true,
+        "goalie_name": "Jacob Markstrom"
+      },
+      "MIN": {
+        "confirmed": true,
+        "goalie_name": "Jesper Wallstedt"
+      },
+      "NYI": {
+        "confirmed": true,
+        "goalie_name": "Ilya Sorokin"
+      },
+      "OTT": {
+        "confirmed": true,
+        "goalie_name": "Linus Ullmark"
+      },
+      "PHI": {
+        "confirmed": true,
+        "goalie_name": "Joseph Woll"
+      },
+      "STL": {
+        "confirmed": true,
+        "goalie_name": "Jordan Binnington"
+      },
+      "TBL": {
+        "confirmed": false,
+        "goalie_name": "Andrei Vasilevskiy"
+      },
+      "TOR": {
+        "confirmed": false,
+        "goalie_name": "Sergei Bobrovsky"
+      },
+      "WPG": {
+        "confirmed": true,
+        "goalie_name": "Stuart Skinner"
       }
     }
   },
@@ -655,7 +695,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-17T15:31+00:00",
+    "at": "2026-11-17T17:01+00:00",
     "moves": [],
     "week": 8
   },
@@ -1098,6 +1138,7 @@
       "8483553:ice time": "2026-10-18",
       "8483676:promoted": "2026-11-15",
       "8483678:ice time": "2026-11-17",
+      "8483679:promoted": "2026-11-17",
       "8483731:promoted": "2026-10-22",
       "8483787:promoted": "2026-10-28",
       "8483808:promoted": "2026-11-03",
@@ -1829,7 +1870,8 @@
       "8477429": {
         "groups": [
           "f2",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {
           "f2": "2026-10-29"
@@ -1907,11 +1949,10 @@
       },
       "8477499": {
         "groups": [
-          "d1"
+          "d2",
+          "pk2"
         ],
-        "since": {
-          "d1": "2026-11-16"
-        }
+        "since": {}
       },
       "8477501": {
         "groups": [
@@ -1937,6 +1978,12 @@
         "since": {
           "d1": "2026-11-16"
         }
+      },
+      "8477527": {
+        "groups": [
+          "ir"
+        ],
+        "since": {}
       },
       "8477810": {
         "groups": [
@@ -1967,12 +2014,6 @@
         "since": {
           "d1": null
         }
-      },
-      "8477938": {
-        "groups": [
-          "d4"
-        ],
-        "since": {}
       },
       "8477950": {
         "groups": [
@@ -2037,14 +2078,6 @@
         ],
         "since": {
           "pp1": "2026-10-21"
-        }
-      },
-      "8478047": {
-        "groups": [
-          "f2"
-        ],
-        "since": {
-          "f2": "2026-11-14"
         }
       },
       "8478057": {
@@ -2633,12 +2666,9 @@
       "8480220": {
         "groups": [
           "f3",
-          "pk2",
-          "pp1"
+          "pk2"
         ],
-        "since": {
-          "pp1": "2026-11-15"
-        }
+        "since": {}
       },
       "8480246": {
         "groups": [
@@ -2695,6 +2725,12 @@
         ],
         "since": {}
       },
+      "8480762": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8480796": {
         "groups": [
           "d2",
@@ -2712,12 +2748,6 @@
         "groups": [
           "d2",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8480829": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -2846,13 +2876,6 @@
         ],
         "since": {}
       },
-      "8481122": {
-        "groups": [
-          "d2",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8481161": {
         "groups": [
           "d3"
@@ -2961,6 +2984,12 @@
         }
       },
       "8481563": {
+        "groups": [
+          "d4"
+        ],
+        "since": {}
+      },
+      "8481567": {
         "groups": [
           "d4"
         ],
@@ -3241,14 +3270,6 @@
         ],
         "since": {}
       },
-      "8482171": {
-        "groups": [
-          "d1"
-        ],
-        "since": {
-          "d1": "2026-11-10"
-        }
-      },
       "8482176": {
         "groups": [
           "d3",
@@ -3509,8 +3530,7 @@
       },
       "8482802": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3765,9 +3785,11 @@
       },
       "8483679": {
         "groups": [
-          "d3"
+          "d1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-17"
+        }
       },
       "8483686": {
         "groups": [
@@ -3806,6 +3828,12 @@
       "8484136": {
         "groups": [
           "f4"
+        ],
+        "since": {}
+      },
+      "8484148": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -6675,6 +6703,21 @@
         "value": -0.0946,
         "verdict": "-9 win-pts against the 9.9 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair and the first power play."
+      },
+      {
+        "date": "2026-11-17",
+        "id": 8483679,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Anton Johansson",
+        "positions": "D",
+        "price": 0.0988,
+        "sent": false,
+        "team": "DET",
+        "value": -0.1014,
+        "verdict": "-10 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
