@@ -319,6 +319,10 @@
       "NJD": {
         "confirmed": true,
         "goalie_name": "Connor Hellebuyck"
+      },
+      "UTA": {
+        "confirmed": false,
+        "goalie_name": "Sebastian Cossa"
       }
     }
   },
@@ -680,7 +684,7 @@
     "totals": false,
     "week": 8
   },
-  "news_checked": "2026-11-17",
+  "news_checked": "2026-11-18",
   "pending": {
     "lineup-2026-11-04-1731": {
       "assignment": {
@@ -1021,7 +1025,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-18T17:00+00:00",
+    "at": "2026-11-18T19:00+00:00",
     "moves": [],
     "week": 8
   },
@@ -1198,7 +1202,7 @@
       "8473994:promoted": "2026-11-16",
       "8474013:ice time": "2026-11-16",
       "8474013:promoted": "2026-11-02",
-      "8474141:promoted": "2026-10-27",
+      "8474141:promoted": "2026-11-18",
       "8474150:promoted": "2026-11-09",
       "8474151:ice time": "2026-11-13",
       "8474151:promoted": "2026-10-30",
@@ -1484,7 +1488,7 @@
       "8484154:ice time": "2026-10-27",
       "8484158:promoted": "2026-10-17",
       "8484160:ice time": "2026-10-23",
-      "8484197:promoted": "2026-11-04",
+      "8484197:promoted": "2026-11-18",
       "8484210:ice time": "2026-10-14",
       "8484227:ice time": "2026-11-10",
       "8484234:promoted": "2026-11-10",
@@ -1553,6 +1557,7 @@
       "8471724": {
         "groups": [
           "d3",
+          "pk1",
           "pp2"
         ],
         "since": {}
@@ -1596,12 +1601,10 @@
       },
       "8474013": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": "2026-11-18"
-        }
+        "since": {}
       },
       "8474102": {
         "groups": [
@@ -1612,10 +1615,11 @@
       },
       "8474141": {
         "groups": [
-          "f3",
+          "f2",
           "pp1"
         ],
         "since": {
+          "f2": "2026-11-18",
           "pp1": null
         }
       },
@@ -2008,7 +2012,8 @@
       },
       "8476826": {
         "groups": [
-          "f3"
+          "f3",
+          "pk1"
         ],
         "since": {}
       },
@@ -2052,21 +2057,17 @@
       },
       "8476878": {
         "groups": [
-          "f4",
-          "ir",
-          "pk1"
+          "ir"
         ],
         "since": {}
       },
       "8476882": {
         "groups": [
-          "f2",
+          "f3",
           "pk2",
           "pp2"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8476889": {
         "groups": [
@@ -2355,6 +2356,12 @@
         ],
         "since": {}
       },
+      "8477845": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8477903": {
         "groups": [
           "f4",
@@ -2486,7 +2493,7 @@
       },
       "8478413": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -2808,13 +2815,6 @@
         }
       },
       "8479619": {
-        "groups": [
-          "f3",
-          "pp2"
-        ],
-        "since": {}
-      },
-      "8479638": {
         "groups": [
           "f3",
           "pp2"
@@ -3505,12 +3505,10 @@
       },
       "8482062": {
         "groups": [
-          "f2",
+          "f4",
           "pk1"
         ],
-        "since": {
-          "f2": "2026-11-17"
-        }
+        "since": {}
       },
       "8482070": {
         "groups": [
@@ -3655,7 +3653,7 @@
       },
       "8482176": {
         "groups": [
-          "d2",
+          "d3",
           "pk1"
         ],
         "since": {}
@@ -3898,6 +3896,13 @@
         ],
         "since": {}
       },
+      "8482758": {
+        "groups": [
+          "f3",
+          "pp2"
+        ],
+        "since": {}
+      },
       "8482768": {
         "groups": [
           "f4"
@@ -3962,13 +3967,6 @@
         ],
         "since": {}
       },
-      "8483398": {
-        "groups": [
-          "d3",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8483424": {
         "groups": [
           "f4"
@@ -3999,12 +3997,10 @@
       },
       "8483450": {
         "groups": [
-          "f1",
+          "f3",
           "pk2"
         ],
-        "since": {
-          "f1": "2026-11-18"
-        }
+        "since": {}
       },
       "8483463": {
         "groups": [
@@ -4049,7 +4045,7 @@
       },
       "8483487": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -4071,11 +4067,12 @@
       },
       "8483493": {
         "groups": [
-          "f3",
+          "f2",
           "pk1",
           "pp1"
         ],
         "since": {
+          "f2": "2026-11-18",
           "pp1": "2026-11-13"
         }
       },
@@ -4253,10 +4250,12 @@
       },
       "8484197": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-18"
+        }
       },
       "8484234": {
         "groups": [
@@ -4372,7 +4371,7 @@
       },
       "8484783": {
         "groups": [
-          "d3",
+          "d2",
           "pk1",
           "pp2"
         ],
@@ -4474,11 +4473,11 @@
       },
       "8485391": {
         "groups": [
-          "f2",
+          "f1",
           "pp2"
         ],
         "since": {
-          "f2": "2026-11-07"
+          "f1": "2026-11-18"
         }
       },
       "8485400": {
@@ -7166,6 +7165,36 @@
         "value": -0.1158,
         "verdict": "-12 win-pts against the 9.9 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-18",
+        "id": 8474141,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Patrick Kane",
+        "positions": "RW",
+        "price": 0.0988,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.026,
+        "verdict": "-3 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-18",
+        "id": 8484197,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Oliver Moore",
+        "positions": "C/RW",
+        "price": 0.0988,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.1125,
+        "verdict": "-11 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
