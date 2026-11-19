@@ -938,3 +938,16 @@ def test_a_could_stream_row_has_his_nights_in_all_three_weeks_of_the_grid():
     found = matchup.streamers(roster, ranked, ctx, schedule, nxt, {}, {}, third_schedule=third)
     days = [{"date": d.isoformat()} for d in sorted(schedule | nxt | third)]
     assert report._add_row(found[0], days)["cells"] == ["start", "start", "start"]
+
+
+def test_a_move_keeps_the_adds_nights_as_its_lineups_were_solved():
+    """The dashboard's move sheet draws these: a night with no slot free is "bench" (2026-11-19:
+    Letang's grey dots read as three starts; Saturday's game sits behind four defensemen)."""
+    roster = [RosterPlayer(1, "C1", "BOS", ["C"], "C"), RosterPlayer(11, "C2", "BOS", ["C"], "C")]
+    schedule = {MON: [_game(MON, "BOS", "NYR")], TUE: [_game(TUE, "NYR", "PHI")]}
+    opponent = matchup.TeamWeek("them", 0, 5.0, 10.0, 2, 3, 0, 1.0)
+    moves = matchup.candidate_moves(roster, opponent, [RosterPlayer(9, "Streamer", "NYR", ["C"])], FakeContext(),
+                                    schedule, {}, {}, {}, 0)
+    nights = moves[0].nights
+    assert nights[MON][0] == matchup.BENCH  # both C slots go to the better centers
+    assert nights[TUE][0] == "C" and set(nights) == {MON, TUE}

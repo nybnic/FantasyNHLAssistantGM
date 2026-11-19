@@ -23,7 +23,7 @@ Telegram text, the Telegram cards and the dashboard. The decision log entry: `en
 | Ring | He plays but sits: no slot free |
 | Pie | A goalie's game, filled by his chance to start |
 | Dashed aqua ring | A free agent who'd dress |
-| Grey dot | A game whose lineup spot isn't solved (moves outside the plan) |
+| Grey dot | A game whose lineup spot isn't worked out (an IR stash's sheet; every other move's sheet shows the lineup its valuation solved) |
 | Solid / dark bar | Banked so far / still to come |
 | White line | The add price ("an add costs 13") |
 | Day chip | `TODAY · THU 22` in aqua; a later day `MON 26` in light blue |

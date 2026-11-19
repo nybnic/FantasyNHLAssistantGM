@@ -1716,14 +1716,19 @@ function moveCard(key = CARD_KEY) {
   // When they play: each game a dot, by week, from the move's day.
   const s = data.schedule, from = r.when || data.date;
   const dropRow = d ? s.rows.find(q => q.id === d.id) : null;
-  // The add's nights: the plan's adds (and the best streamer per position) are solved into my lineup;
-  // any other move shows just his team's games.
+  // The add's nights: the plan's adds (and the best streamers) as the grid shows them; any other move
+  // as its valuation solved my lineup with him in (r.nights: "s" in, a digit a goalie's start odds in
+  // tenths, "b" no slot free); a move without them (an IR stash) shows just his team's games.
   const addRow = (s.plan || []).find(q => q.key === r.key) || (s.streamers || []).find(q => q.key === r.key);
+  const own = !addRow && r.nights ? s.days.map(x => r.nights.cells[Math.round((Date.parse(x.date) - Date.parse(r.nights.from)) / 864e5)] || ".") : null;
   const G = data.games, theirGames = G && a.team ? G.teams[a.team] || [] : [];
-  const addCells = addRow ? addRow.cells : G ? s.days.map(x => { const i = G.days.findIndex(y => y.date === x.date);
-                                                              return i >= 0 && theirGames[i] ? "game" : null; }) : null;
+  const addCells = addRow ? addRow.cells
+    : own ? own.map(c => c === "b" ? "bench" : c === "." ? null : "start")
+    : G ? s.days.map(x => { const i = G.days.findIndex(y => y.date === x.date);
+                            return i >= 0 && theirGames[i] ? "game" : null; }) : null;
+  const addProbs = own && a.goalie ? own.map(c => /\d/.test(c) ? Number(c) / 10 : c === "s" ? 1 : null) : null;
   if (addCells) {
-    const sides = [[a, gameDots(addCells, null, "#4D9BF0", from)]]
+    const sides = [[a, gameDots(addCells, addProbs, "#4D9BF0", from)]]
       .concat(dropRow ? [[d, gameDots(dropRow.cells, dropRow.probs, "#F07A45", from)]] : []);
     const weeksShown = [...new Set(s.days.filter(x => x.date >= from).map(x => x.week))];
     const box = el("div", { class: "nc-tile" });
@@ -1739,7 +1744,7 @@ function moveCard(key = CARD_KEY) {
     });
     box.append(grid);
     const key = el("div", { class: "nc-dim wrap" });
-    key.textContent = (addRow ? "" : "Grey: his games (only the plan's moves are solved into your lineup) · ")
+    key.textContent = (addRow || own ? "" : "Grey: his games (his lineup spot not worked out) · ")
                       + "Filled: in your best lineup that night · ring: no slot free";
     box.append(key);
     card.append(box);
