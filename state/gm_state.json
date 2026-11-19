@@ -980,29 +980,8 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-19T06:27+00:00",
-    "moves": [
-      {
-        "add": {
-          "id": 8479671,
-          "name": "Mathieu Olivier",
-          "positions": [
-            "RW"
-          ],
-          "team": "CBJ"
-        },
-        "drop": {
-          "id": 8480855,
-          "name": "Jack McBain"
-        },
-        "key": "8479671:8480855",
-        "message_id": 1171,
-        "rec_id": "add-2026-11-19-0627-8479671",
-        "value": 0.1045,
-        "when": "2026-11-19",
-        "why": "now"
-      }
-    ],
+    "at": "2026-11-19T09:00+00:00",
+    "moves": [],
     "week": 8
   },
   "plan_check": false,
@@ -1287,6 +1266,7 @@
       "8478443:promoted": "2026-10-27",
       "8478444:promoted": "2026-11-01",
       "8478454:ice time": "2026-11-04",
+      "8478462:ice time": "2026-11-19",
       "8478462:promoted": "2026-11-03",
       "8478474:promoted": "2026-11-09",
       "8478498:promoted": "2026-11-07",
@@ -7228,6 +7208,21 @@
         "value": -0.0533,
         "verdict": "-5 win-pts against the 9.9 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-19",
+        "id": 8478462,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Nicolas Roy",
+        "positions": "C/RW",
+        "price": 0.0988,
+        "sent": true,
+        "team": "COL",
+        "value": -0.0702,
+        "verdict": "-7 win-pts against the 9.9 an add costs: not yet worth one.",
+        "why": "Ice time 15:02 a game in his last 3, up from 11:42. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
