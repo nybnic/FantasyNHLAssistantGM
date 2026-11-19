@@ -55,6 +55,26 @@ def status(move: matchup.Move, planned: set[str], price) -> str:
     return "passes" if price is not None and not matchup.rejection(move, price) else "fails"
 
 
+def nights(move: matchup.Move) -> dict | None:
+    """The add's nights as the move plays them, compact: from the first date,
+    one character a day: "s" in the lineup, a digit a goalie's start odds in
+    tenths ("7": 70%), "b" on the bench (no slot free), "." no game. None
+    when they weren't worked out (an IR stash)."""
+    if not move.nights:
+        return None
+    first, last = min(move.nights), max(move.nights)
+    cells = []
+    for i in range((last - first).days + 1):
+        slot, prob = move.nights.get(first + dt.timedelta(days=i), (None, None))
+        if slot is None:
+            cells.append(".")
+        elif slot == matchup.BENCH:
+            cells.append("b")
+        else:
+            cells.append("s" if prob >= 0.95 or not move.add.is_goalie else str(min(9, round(10 * prob))))
+    return {"from": first.isoformat(), "cells": "".join(cells)}
+
+
 def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = None) -> dict:
     return {
         "key": report.move_key(move),
@@ -84,6 +104,7 @@ def move_row(move: matchup.Move, state: str, why: str, day: dt.date | None = Non
         "value": _r(move.value, 4),
         "status": state,
         "why": why,
+        "nights": nights(move),  # the dashboard's move sheet: his lineup nights with this move made
     }
 
 

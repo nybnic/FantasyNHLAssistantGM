@@ -220,6 +220,10 @@ class Move:
     # An add into a spot an injured player's IR move opened: who takes it back
     # (his later points count until then, see ir_crunch).
     until_back: str = ""
+    # The add's nights as the move would play them (display only, the dashboard's move sheet):
+    # date -> (slot or BN, start probability), this week and the weeks ahead, from the
+    # lineups solved to value the move.
+    nights: dict[dt.date, tuple[str, float]] = field(default_factory=dict, repr=False, compare=False)
 
     @property
     def later_value(self) -> float:
@@ -939,6 +943,7 @@ def candidate_moves(
     `ahead`: the next weeks against their opponents (week_ahead); the long
     run then covers the weeks after them."""
     ahead = ahead or []
+    ahead_days = {d for w in ahead for d in w.days}
     soon = set(sorted(future)[:7 * STREAM_WEEKS])
     team_games = _team_games(schedule, ctx.today)
     mine = active(roster)
@@ -964,12 +969,12 @@ def candidate_moves(
             trial = _swap(roster, add, drop)
             during, joins, leaves = _deferred(roster, add, drop, plays_from)
             week = project("me", during, ctx, schedule, lines, starters, joins=joins, so_far=so_far, leaves=leaves)
-            gain = {}
+            gain, trial_future = {}, None
             if current_future:
                 trial_future = project("me", trial, ctx, future, lines, starters, True)
                 gain = {d: trial_future.by_day.get(d, 0.0) - current_future.by_day.get(d, 0.0) for d in future}
-            tried.append((drop, week, gain))
-        for drop, week, gain in tried:
+            tried.append((drop, week, gain, trial_future))
+        for drop, week, gain, trial_future in tried:
             monday = False
             if week.expected - current.expected < -MAX_WEEK_COST and drop and plays_from is None:
                 week, monday = _after_drop_games(roster, add, drop, ctx, schedule, lines, starters, so_far, current)
@@ -991,6 +996,7 @@ def candidate_moves(
                 plays_from=plays_from, monday=monday,
                 ahead_wins=ahead_wins, ahead_pts=sum(week_pts), ahead_week_pts=week_pts,
                 held=keep < STREAM_BELOW, keep=keep, bin=bin_,
+                nights=_nights(add.id, week, trial_future, ahead_days),
             ))
             gains[id(moves[-1])] = gain
     moves = ir_returns(moves, gains, roster, ctx, future, lines, starters, ahead, later_weight)
@@ -1002,6 +1008,15 @@ def candidate_moves(
                               keeps, costs)
     # Stable sort: on equal values the earlier (open spot first) wins.
     return sorted(moves, key=lambda m: m.value, reverse=True)
+
+
+def _nights(pid: int, week: TeamWeek, future: TeamWeek | None, ahead_days: set) -> dict[dt.date, tuple[str, float]]:
+    """A player's nights in the lineups a move was valued with: this week's
+    days left, then the weeks ahead (the long-run lineups, as the schedule grid's)."""
+    nights = {d: day[pid] for d, day in week.lineups.items() if pid in day}
+    if future:
+        nights |= {d: day[pid] for d, day in future.lineups.items() if d in ahead_days and pid in day}
+    return dict(sorted(nights.items()))
 
 
 # The moves re-valued with players in IR slots coming back (the best by value

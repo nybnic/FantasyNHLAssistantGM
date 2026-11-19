@@ -364,3 +364,16 @@ def test_the_live_dashboard_shows_mains_data_when_pages_lags():
                 assert page.evaluate("data.generated") == shown["generated"], main[0]
         finally:
             browser.close()
+
+
+def test_a_moves_nights_are_one_character_a_day_for_the_dashboard():
+    letang = _move(8, "Kris Letang", 7.5, -9.0, 0.24)
+    thu = dt.date(2026, 11, 19)
+    letang.nights = {thu: ("D", 1.0), thu + dt.timedelta(days=2): (matchup.BENCH, 1.0),
+                     thu + dt.timedelta(days=3): ("D", 1.0)}
+    assert board.nights(letang) == {"from": "2026-11-19", "cells": "s.bs"}
+    goalie = matchup.Move(RosterPlayer(9, "Laurent Brossoit", "CHI", ["G"]), SAMUELSSON, 1, 0, 0, 1, 0.5, 0.5,
+                          nights={thu: ("G", 0.62), thu + dt.timedelta(days=1): ("G", 1.0)})
+    assert board.nights(goalie)["cells"] == "6s"  # a goalie's start odds in tenths
+    assert board.nights(_move(3, "Stash", 0, 0, 0.16)) is None  # not worked out: his team's games, in grey
+    assert board.move_row(letang, "fails", "")["nights"]["cells"] == "s.bs"
