@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-19T16:02+00:00",
+ "generated": "2026-11-19T17:00+00:00",
  "date": "2026-11-19",
  "week": 8,
  "opponent": "Bottom three",
@@ -62,19 +62,19 @@
    "pace": 1.375
   },
   "later_weight": 0.00773,
-  "tau": 22.97,
+  "tau": 22.96,
   "ahead": [
    {
     "week": 9,
     "opponent": "Bellova",
-    "margin": 6.5,
+    "margin": 6.55,
     "sd": 46.55,
-    "win": 0.5555
+    "win": 0.5559
    },
    {
     "week": 10,
     "opponent": "Lazy Lew",
-    "margin": 37.75,
+    "margin": 37.76,
     "sd": 52.69,
     "win": 0.7632
    }
@@ -88,11 +88,11 @@
    ]
   },
   "season": {
-   "playoffs": 0.8762,
-   "title": 0.1725,
-   "leverage": 0.1188,
+   "playoffs": 0.8759,
+   "title": 0.1722,
+   "leverage": 0.1191,
    "typical": 0.111,
-   "seed": 4.7544,
+   "seed": 4.7528,
    "note": " (Standings through week 6: send a new screenshot.)"
   }
  },
@@ -111,15 +111,15 @@
   {
    "week": 9,
    "opponent": "Bellova",
-   "win": 0.5555,
-   "margin": 6.5,
-   "win_plan": 0.5555
+   "win": 0.5559,
+   "margin": 6.55,
+   "win_plan": 0.5559
   },
   {
    "week": 10,
    "opponent": "Lazy Lew",
    "win": 0.7632,
-   "margin": 37.75,
+   "margin": 37.76,
    "win_plan": 0.7632
   }
  ],
@@ -922,7 +922,7 @@
    ],
    "now_wins": 0.0,
    "ahead_wins": [
-    0.0291,
+    0.029,
     0.0104
    ],
    "ahead_pts": 5.23,
@@ -1140,7 +1140,7 @@
     0.0129,
     -0.0336
    ],
-   "ahead_pts": -4.0,
+   "ahead_pts": -4.01,
    "ahead_week_pts": [
     1.53,
     -5.53
@@ -1652,7 +1652,7 @@
     0.074
    ],
    "later_wins": -0.0567,
-   "value": -0.0116,
+   "value": -0.0117,
    "status": "fails",
    "why": "dropping Jake Neighbours costs about 7 pts later, more than this week's +0 win-pts make up for",
    "nights": {
@@ -1713,6 +1713,61 @@
    "nights": {
     "from": "2026-11-23",
     "cells": "s.b.bb..s.ss.s"
+   }
+  },
+  {
+   "key": "8479361:8478872",
+   "add": {
+    "id": 8479361,
+    "name": "Joseph Woll",
+    "team": "PHI",
+    "positions": [
+     "G"
+    ]
+   },
+   "drop": {
+    "id": 8478872,
+    "name": "Karel Vejmelka"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": false,
+   "when": null,
+   "games": 2,
+   "week_pts": 1.22,
+   "next_two_pts": -6.82,
+   "later_pts": 0.89,
+   "win": [
+    0.7819,
+    0.793
+   ],
+   "now_wins": 0.0111,
+   "ahead_wins": [
+    -0.0232,
+    -0.008
+   ],
+   "ahead_pts": -4.08,
+   "ahead_week_pts": [
+    -2.73,
+    -1.35
+   ],
+   "held": true,
+   "keep": 0.185,
+   "bin": "goalie, the weakest of 3+",
+   "stays": [
+    0.362,
+    0.185,
+    0.111
+   ],
+   "later_wins": 0.0069,
+   "value": -0.0132,
+   "status": "fails",
+   "why": "worth -1.3 win-pts, under the 10.8 an add costs",
+   "nights": {
+    "from": "2026-11-19",
+    "cells": "s.b...b.b5.6..6.5"
    }
   },
   {
@@ -2013,7 +2068,7 @@
    "games": 3,
    "week_pts": 7.47,
    "next_two_pts": -7.76,
-   "later_pts": -5.82,
+   "later_pts": -5.81,
    "win": [
     0.7819,
     0.8384
@@ -2602,61 +2657,6 @@
    }
   },
   {
-   "key": "8479361:8478872",
-   "add": {
-    "id": 8479361,
-    "name": "Joseph Woll",
-    "team": "PHI",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8478872,
-    "name": "Karel Vejmelka"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": false,
-   "when": null,
-   "games": 2,
-   "week_pts": 0.0,
-   "next_two_pts": -6.82,
-   "later_pts": 0.89,
-   "win": [
-    0.7819,
-    0.7819
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    -0.0232,
-    -0.008
-   ],
-   "ahead_pts": -4.08,
-   "ahead_week_pts": [
-    -2.73,
-    -1.35
-   ],
-   "held": true,
-   "keep": 0.185,
-   "bin": "goalie, the weakest of 3+",
-   "stays": [
-    0.362,
-    0.185,
-    0.111
-   ],
-   "later_wins": 0.0069,
-   "value": -0.0244,
-   "status": "fails",
-   "why": "worth -2.4 win-pts, under the 10.8 an add costs",
-   "nights": {
-    "from": "2026-11-19",
-    "cells": "b.b...b.b5.6..6.5"
-   }
-  },
-  {
    "key": "8480796:8478872",
    "add": {
     "id": 8480796,
@@ -3118,7 +3118,7 @@
     0.0174,
     -0.0192
    ],
-   "ahead_pts": -1.15,
+   "ahead_pts": -1.16,
    "ahead_week_pts": [
     2.05,
     -3.21
@@ -3384,7 +3384,7 @@
    "when": null,
    "games": 3,
    "week_pts": 9.78,
-   "next_two_pts": -6.88,
+   "next_two_pts": -6.89,
    "later_pts": -7.99,
    "win": [
     0.7819,
@@ -4477,11 +4477,11 @@
      ],
      "Saves": [
       378.0,
-      358.8
+      358.7
      ],
      "Goals against": [
       49.0,
-      43.2
+      43.1
      ],
      "Shutouts": [
       0.0,
@@ -4535,7 +4535,7 @@
       "date": "2026-10-27",
       "opp": "@ANA",
       "pts": 6.3,
-      "proj": 8.9
+      "proj": 9.0
      },
      {
       "date": "2026-10-25",
@@ -4776,7 +4776,7 @@
      ],
      "Saves": [
       310.0,
-      315.3
+      315.2
      ],
      "Goals against": [
       45.0,
@@ -6641,7 +6641,7 @@
      ],
      "Shutouts": [
       0.0,
-      0.4
+      0.3
      ]
     },
     "last": [
@@ -11301,6 +11301,138 @@
    "kept": 1.0,
    "replacement": 5.362
   },
+  "8479361": {
+   "id": 8479361,
+   "name": "Joseph Woll",
+   "team": "PHI",
+   "positions": "G",
+   "owner": "fa",
+   "goalie": true,
+   "season": {
+    "gp": 12,
+    "pts": 101.8,
+    "proj": 105.0,
+    "pts_projected": 101.8,
+    "stats": {
+     "Wins": [
+      4.0,
+      5.1
+     ],
+     "Saves": [
+      311.0,
+      285.3
+     ],
+     "Goals against": [
+      35.0,
+      30.9
+     ],
+     "Shutouts": [
+      0.0,
+      0.7
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-11-17",
+      "opp": "BUF",
+      "pts": 7.6,
+      "proj": 8.8
+     },
+     {
+      "date": "2026-11-14",
+      "opp": "@CBJ",
+      "pts": 12.1,
+      "proj": 8.7
+     },
+     {
+      "date": "2026-11-09",
+      "opp": "@VAN",
+      "pts": 10.3,
+      "proj": 8.7
+     },
+     {
+      "date": "2026-11-05",
+      "opp": "@NYR",
+      "pts": 7.1,
+      "proj": 8.1
+     },
+     {
+      "date": "2026-10-28",
+      "opp": "@WSH",
+      "pts": 5.8,
+      "proj": 8.7
+     },
+     {
+      "date": "2026-10-24",
+      "opp": "ANA",
+      "pts": 3.3,
+      "proj": 9.0
+     },
+     {
+      "date": "2026-10-19",
+      "opp": "COL",
+      "pts": 11.4,
+      "proj": 9.0
+     },
+     {
+      "date": "2026-10-15",
+      "opp": "@DET",
+      "pts": 7.4,
+      "proj": 8.7
+     },
+     {
+      "date": "2026-10-11",
+      "opp": "CAR",
+      "pts": 6.1,
+      "proj": 9.0
+     },
+     {
+      "date": "2026-10-08",
+      "opp": "@OTT",
+      "pts": 7.4,
+      "proj": 8.5
+     }
+    ],
+    "starts": 12,
+    "relief": 0
+   },
+   "per_game": {
+    "Start": 1.0,
+    "Win": 1.62,
+    "Saves": 7.88,
+    "Goals against": -2.47,
+    "Shutout": 0.32
+   },
+   "stats": {
+    "Wins": 0.41,
+    "Saves": 22.52,
+    "Goals against": 2.47,
+    "Shutouts": 0.06
+   },
+   "xfp": 8.36,
+   "share": 0.497,
+   "starts": [
+    {
+     "date": "2026-11-19",
+     "opp": "@OTT",
+     "prob": 0.97,
+     "xfp": 8.36,
+     "why": "confirmed starter"
+    },
+    {
+     "date": "2026-11-21",
+     "opp": "@MTL",
+     "prob": 0.53,
+     "xfp": 8.48,
+     "why": null
+    }
+   ],
+   "next": {
+    "date": "2026-11-19",
+    "opp": "@OTT"
+   },
+   "gp": 12
+  },
   "8474716": {
    "id": 8474716,
    "name": "Jared Spurgeon",
@@ -12261,138 +12393,6 @@
    "kept": 1.0,
    "replacement": 5.362
   },
-  "8479361": {
-   "id": 8479361,
-   "name": "Joseph Woll",
-   "team": "PHI",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 12,
-    "pts": 101.8,
-    "proj": 105.0,
-    "pts_projected": 101.8,
-    "stats": {
-     "Wins": [
-      4.0,
-      5.1
-     ],
-     "Saves": [
-      311.0,
-      285.3
-     ],
-     "Goals against": [
-      35.0,
-      30.9
-     ],
-     "Shutouts": [
-      0.0,
-      0.7
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-11-17",
-      "opp": "BUF",
-      "pts": 7.6,
-      "proj": 8.8
-     },
-     {
-      "date": "2026-11-14",
-      "opp": "@CBJ",
-      "pts": 12.1,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-11-09",
-      "opp": "@VAN",
-      "pts": 10.3,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-11-05",
-      "opp": "@NYR",
-      "pts": 7.1,
-      "proj": 8.1
-     },
-     {
-      "date": "2026-10-28",
-      "opp": "@WSH",
-      "pts": 5.8,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-10-24",
-      "opp": "ANA",
-      "pts": 3.3,
-      "proj": 9.0
-     },
-     {
-      "date": "2026-10-19",
-      "opp": "COL",
-      "pts": 11.4,
-      "proj": 9.0
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "@DET",
-      "pts": 7.4,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-10-11",
-      "opp": "CAR",
-      "pts": 6.1,
-      "proj": 9.0
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "@OTT",
-      "pts": 7.4,
-      "proj": 8.5
-     }
-    ],
-    "starts": 12,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.62,
-    "Saves": 7.88,
-    "Goals against": -2.47,
-    "Shutout": 0.32
-   },
-   "stats": {
-    "Wins": 0.41,
-    "Saves": 22.52,
-    "Goals against": 2.47,
-    "Shutouts": 0.06
-   },
-   "xfp": 8.36,
-   "share": 0.497,
-   "starts": [
-    {
-     "date": "2026-11-19",
-     "opp": "@OTT",
-     "prob": 0.504,
-     "xfp": 8.36,
-     "why": null
-    },
-    {
-     "date": "2026-11-21",
-     "opp": "@MTL",
-     "prob": 0.53,
-     "xfp": 8.48,
-     "why": null
-    }
-   ],
-   "next": {
-    "date": "2026-11-19",
-    "opp": "@OTT"
-   },
-   "gp": 12
-  },
   "8476434": {
    "id": 8476434,
    "name": "John Gibson",
@@ -12412,7 +12412,7 @@
      ],
      "Saves": [
       256.0,
-      288.3
+      288.2
      ],
      "Goals against": [
       41.0,
@@ -14901,7 +14901,7 @@
     "slot_starts": null,
     "gain": [
      0.0,
-     8.220113419362804
+     8.22011341936286
     ],
     "plan": false,
     "when": null,
@@ -14937,8 +14937,8 @@
     "slot_games": 6,
     "slot_starts": 3.63,
     "gain": [
-     2.300020498938352,
-     2.4213718274139637
+     2.3000524396248068,
+     2.4214446986352414
     ],
     "plan": false,
     "when": null,
@@ -15049,7 +15049,7 @@
     "slot_starts": null,
     "gain": [
      0.0,
-     5.998119777825934
+     5.998119777825991
     ],
     "plan": false,
     "when": null,
@@ -16328,6 +16328,21 @@
   "playoffs_from": 24
  },
  "watch": [
+  {
+   "date": "2026-11-19",
+   "id": 8477426,
+   "name": "Nick Paul",
+   "team": "TOR",
+   "positions": "LW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the second line.",
+   "verdict": "-5 win-pts against the 10.8 an add costs: not yet worth one.",
+   "value": -0.0506,
+   "price": 0.108,
+   "sent": false
+  },
   {
    "date": "2026-11-19",
    "id": 8478462,

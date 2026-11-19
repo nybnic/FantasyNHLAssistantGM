@@ -286,27 +286,47 @@
   "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-18",
   "goalie_news": {
-    "date": "2026-11-18",
+    "date": "2026-11-19",
     "starters": {
-      "COL": {
-        "confirmed": false,
-        "goalie_name": "Mackenzie Blackwood"
-      },
-      "DET": {
+      "CGY": {
         "confirmed": true,
-        "goalie_name": "Daniil Tarasov"
+        "goalie_name": "Dustin Wolf"
+      },
+      "EDM": {
+        "confirmed": false,
+        "goalie_name": "Devon Levi"
       },
       "MTL": {
         "confirmed": true,
-        "goalie_name": "Jacob Fowler"
+        "goalie_name": "Jakub Dobes"
       },
-      "NJD": {
-        "confirmed": true,
-        "goalie_name": "Connor Hellebuyck"
-      },
-      "UTA": {
+      "NYI": {
         "confirmed": false,
-        "goalie_name": "Sebastian Cossa"
+        "goalie_name": "Semyon Varlamov"
+      },
+      "OTT": {
+        "confirmed": true,
+        "goalie_name": "Samuel Ersson"
+      },
+      "PHI": {
+        "confirmed": true,
+        "goalie_name": "Joseph Woll"
+      },
+      "PIT": {
+        "confirmed": true,
+        "goalie_name": "Arturs Silovs"
+      },
+      "TOR": {
+        "confirmed": true,
+        "goalie_name": "Anthony Stolarz"
+      },
+      "WPG": {
+        "confirmed": false,
+        "goalie_name": "Nico Daws"
+      },
+      "WSH": {
+        "confirmed": true,
+        "goalie_name": "Logan Thompson"
       }
     }
   },
@@ -657,7 +677,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-19T16:02+00:00",
+    "at": "2026-11-19T17:00+00:00",
     "moves": [],
     "week": 8
   },
@@ -900,7 +920,7 @@
       "8477035:goalie": "2026-10-24",
       "8477402:promoted": "2026-11-01",
       "8477416:promoted": "2026-11-08",
-      "8477426:promoted": "2026-10-29",
+      "8477426:promoted": "2026-11-19",
       "8477429:promoted": "2026-11-16",
       "8477444:promoted": "2026-10-29",
       "8477446:promoted": "2026-10-25",
@@ -1336,7 +1356,7 @@
       },
       "8475171": {
         "groups": [
-          "d2",
+          "d3",
           "pk2",
           "pp2"
         ],
@@ -1658,7 +1678,7 @@
       },
       "8476853": {
         "groups": [
-          "d3",
+          "d2",
           "pp2"
         ],
         "since": {}
@@ -1869,11 +1889,13 @@
       },
       "8477426": {
         "groups": [
-          "f3",
+          "f2",
           "pk2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-19"
+        }
       },
       "8477429": {
         "groups": [
@@ -2527,12 +2549,10 @@
       },
       "8479983": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": "2026-11-13"
-        }
+        "since": {}
       },
       "8479985": {
         "groups": [
@@ -2664,7 +2684,7 @@
       },
       "8480113": {
         "groups": [
-          "f3",
+          "f4",
           "pk2",
           "pp2"
         ],
@@ -2711,7 +2731,7 @@
       },
       "8480289": {
         "groups": [
-          "f4",
+          "f3",
           "pk2"
         ],
         "since": {}
@@ -3409,11 +3429,9 @@
       },
       "8482525": {
         "groups": [
-          "f2"
+          "f3"
         ],
-        "since": {
-          "f2": null
-        }
+        "since": {}
       },
       "8482641": {
         "groups": [
@@ -6896,6 +6914,21 @@
         "value": -0.0702,
         "verdict": "-7 win-pts against the 9.9 an add costs: not yet worth one.",
         "why": "Ice time 15:02 a game in his last 3, up from 11:42. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-19",
+        "id": 8477426,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Nick Paul",
+        "positions": "LW",
+        "price": 0.108,
+        "sent": false,
+        "team": "TOR",
+        "value": -0.0506,
+        "verdict": "-5 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
