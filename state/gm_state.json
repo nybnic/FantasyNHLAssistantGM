@@ -713,7 +713,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-20T19:01+00:00",
+    "at": "2026-11-20T20:31+00:00",
     "moves": [],
     "week": 8
   },
@@ -1182,7 +1182,7 @@
       "8483679:promoted": "2026-11-17",
       "8483731:promoted": "2026-10-22",
       "8483787:promoted": "2026-11-18",
-      "8483808:promoted": "2026-11-03",
+      "8483808:promoted": "2026-11-20",
       "8483890:ice time": "2026-10-16",
       "8483890:promoted": "2026-11-16",
       "8484142:promoted": "2026-11-10",
@@ -2090,7 +2090,7 @@
       },
       "8477845": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -2970,12 +2970,10 @@
       },
       "8481056": {
         "groups": [
-          "d1",
+          "d3",
           "pk2"
         ],
-        "since": {
-          "d1": "2026-11-12"
-        }
+        "since": {}
       },
       "8481068": {
         "groups": [
@@ -3042,10 +3040,12 @@
       },
       "8481527": {
         "groups": [
-          "d2",
+          "d1",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-20"
+        }
       },
       "8481532": {
         "groups": [
@@ -3763,11 +3763,9 @@
       },
       "8483487": {
         "groups": [
-          "f2"
+          "f3"
         ],
-        "since": {
-          "f2": "2026-11-20"
-        }
+        "since": {}
       },
       "8483489": {
         "groups": [
@@ -3919,10 +3917,12 @@
       },
       "8483808": {
         "groups": [
-          "f3",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-20"
+        }
       },
       "8483890": {
         "groups": [
@@ -7144,6 +7144,21 @@
         "team": "STL",
         "value": -0.1188,
         "verdict": "-12 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-20",
+        "id": 8483808,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Andrei Kuzmenko",
+        "positions": "LW",
+        "price": 0.108,
+        "sent": false,
+        "team": "PIT",
+        "value": -0.1357,
+        "verdict": "-14 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
       }
     ]
