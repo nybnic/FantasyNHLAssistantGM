@@ -713,7 +713,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-20T06:40+00:00",
+    "at": "2026-11-20T06:42+00:00",
     "moves": [],
     "week": 8
   },
@@ -877,12 +877,13 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784956,
+  "telegram_offset": 929784957,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
   "watch": {
     "alerted": {
+      "8470621:ice time": "2026-11-20",
       "8470621:promoted": "2026-10-30",
       "8471214:promoted": "2026-10-13",
       "8473512:promoted": "2026-11-05",
@@ -1002,7 +1003,7 @@
       "8478438:promoted": "2026-11-16",
       "8478443:promoted": "2026-10-27",
       "8478444:promoted": "2026-11-01",
-      "8478454:ice time": "2026-11-04",
+      "8478454:ice time": "2026-11-20",
       "8478462:ice time": "2026-11-19",
       "8478462:promoted": "2026-11-03",
       "8478474:promoted": "2026-11-09",
@@ -7014,6 +7015,36 @@
         "value": -0.069,
         "verdict": "-7 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 8 days."
+      },
+      {
+        "date": "2026-11-20",
+        "id": 8470621,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Corey Perry",
+        "positions": "RW",
+        "price": 0.108,
+        "sent": true,
+        "team": "LAK",
+        "value": -0.0836,
+        "verdict": "-8 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 16:00 a game in his last 3, up from 11:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-20",
+        "id": 8478454,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Noah Juulsen",
+        "positions": "D",
+        "price": 0.108,
+        "sent": true,
+        "team": "COL",
+        "value": -0.0925,
+        "verdict": "-9 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 15:19 a game in his last 3, up from 10:37. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
@@ -7050,7 +7081,7 @@
       "sent": "2026-11-09T06:30+00:00"
     },
     "8": {
-      "midweek": "2026-11-19T16:02+00:00",
+      "midweek": "2026-11-20T06:42+00:00",
       "sent": "2026-11-16T06:43+00:00"
     }
   },
