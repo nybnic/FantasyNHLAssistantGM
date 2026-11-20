@@ -713,7 +713,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-20T17:31+00:00",
+    "at": "2026-11-20T19:01+00:00",
     "moves": [],
     "week": 8
   },
@@ -1066,6 +1066,7 @@
       "8480878:promoted": "2026-11-06",
       "8480891:promoted": "2026-11-09",
       "8480995:promoted": "2026-11-13",
+      "8481013:promoted": "2026-11-20",
       "8481024:promoted": "2026-10-31",
       "8481032:promoted": "2026-11-08",
       "8481035:no1": "2026-10-13",
@@ -2075,6 +2076,12 @@
         ],
         "since": {}
       },
+      "8477573": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8477810": {
         "groups": [
           "d2"
@@ -2925,9 +2932,12 @@
       },
       "8481013": {
         "groups": [
-          "f3"
+          "f2",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-20"
+        }
       },
       "8481024": {
         "groups": [
@@ -3112,12 +3122,9 @@
       },
       "8481580": {
         "groups": [
-          "f2",
-          "pp2"
+          "ir"
         ],
-        "since": {
-          "f2": "2026-11-14"
-        }
+        "since": {}
       },
       "8481593": {
         "groups": [
@@ -3961,7 +3968,7 @@
       },
       "8484164": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
         ],
         "since": {}
@@ -7123,6 +7130,21 @@
         "value": -0.0788,
         "verdict": "-8 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-11-20",
+        "id": 8481013,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jonatan Berggren",
+        "positions": "RW",
+        "price": 0.108,
+        "sent": false,
+        "team": "STL",
+        "value": -0.1188,
+        "verdict": "-12 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
