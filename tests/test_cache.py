@@ -74,3 +74,57 @@ def test_a_refusal_is_not_tried_again(monkeypatch):
     with pytest.raises(cache.requests.HTTPError):
         cache.get("https://example.com")
     assert calls == [403]
+
+
+def _stats_window(tmp_path, monkeypatch, end: str, dates: list[str]):
+    """A cached goalie/summary window of 2026-27 from Nov 4 to `end`, one row per date."""
+    import json
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    folder = tmp_path / "nhl_stats"
+    folder.mkdir(exist_ok=True)
+    rows = [{"gameDate": d, "playerId": i} for i, d in enumerate(dates)]
+    (folder / f"goalie_summary_20262027_2026-11-04_{end}.json").write_text(json.dumps(rows), encoding="utf-8")
+    return rows
+
+
+def _answer(monkeypatch, dates: list[str]):
+    from clients import nhl_stats
+
+    class Resp:
+        def json(self):
+            return {"data": [{"gameDate": d, "playerId": i} for i, d in enumerate(dates)]}
+    monkeypatch.setattr(nhl_stats, "get", lambda *a, **k: Resp())
+
+
+def test_a_stats_window_that_comes_back_short_keeps_the_fuller_copy(tmp_path, monkeypatch):
+    """2026-11-20 06:42 UTC: the API sent this week's goalie games missing, the bot
+    counted 0 of the 3 needed and told Nico to pick up a goalie."""
+    import datetime as dt
+    from clients import health, nhl_stats
+    health.clear()
+    full = _stats_window(tmp_path, monkeypatch, "2026-11-19", ["2026-11-05", "2026-11-16", "2026-11-17", "2026-11-18"])
+    _answer(monkeypatch, ["2026-11-05", "2026-11-19"])  # Nov 16-18 gone
+    today = dt.date(2026, 11, 20)
+    rows = nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today)
+    assert rows == full
+    assert "NHL stats" in health.problems()
+    health.clear()
+
+
+def test_a_stats_window_that_grows_is_taken(tmp_path, monkeypatch):
+    import datetime as dt
+    from clients import nhl_stats
+    _stats_window(tmp_path, monkeypatch, "2026-11-19", ["2026-11-05", "2026-11-16"])
+    _answer(monkeypatch, ["2026-11-05", "2026-11-16", "2026-11-19"])
+    today = dt.date(2026, 11, 20)
+    rows = nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today)
+    assert [r["gameDate"] for r in rows] == ["2026-11-05", "2026-11-16", "2026-11-19"]
+
+
+def test_a_first_fetch_of_a_stats_window_is_taken(tmp_path, monkeypatch):
+    import datetime as dt
+    from clients import nhl_stats
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    _answer(monkeypatch, ["2026-11-05"])
+    today = dt.date(2026, 11, 20)
+    assert len(nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today)) == 1

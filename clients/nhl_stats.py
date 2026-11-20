@@ -15,8 +15,11 @@ fetched in date windows (20 days ~ 5,400 skater rows).
 from __future__ import annotations
 
 import datetime as dt
+import json
+import logging
 from dataclasses import dataclass, field
 
+from clients import cache, health
 from clients.cache import HOUR, cached_json, get
 
 STATS_URL = "https://api.nhle.com/stats/rest/en"
@@ -28,6 +31,11 @@ SETTLE_DAYS = 2
 # yesterday (a plan run made after the last puck fetches a night whose games may
 # not all be in yet: bot.common.nhl_date), else 6 hours.
 FRESH_RECENT, FRESH_SETTLING = 1 * HOUR, 6 * HOUR
+logger = logging.getLogger(__name__)
+
+
+class PartialReport(RuntimeError):
+    """A window fetched with fewer games than an earlier fetch of it had."""
 
 SKATER_REPORTS = ("skater/summary", "skater/realtime", "skater/faceoffwins", "skater/timeonice")
 
@@ -90,12 +98,47 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
         rows = get(f"{STATS_URL}/{report}", params).json()["data"]
         if len(rows) >= ROW_CAP:
             raise RuntimeError(f"{report} {start}..{end} hit the {ROW_CAP}-row cap; shrink WINDOW_DAYS")
+        if earlier and (n := _games_through(rows, earlier[0])) < len(earlier[1]):
+            raise PartialReport(f"{report} {start}..{end}: {n} games through {earlier[0]}, {len(earlier[1])} before")
         return rows
 
     settled = end + dt.timedelta(days=SETTLE_DAYS) < today
     recent = end >= today - dt.timedelta(days=1)
-    name = f"nhl_stats/{report.replace('/', '_')}_{season_id}_{start.isoformat()}_{end.isoformat()}"
-    return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
+    prefix = f"{report.replace('/', '_')}_{season_id}_{start.isoformat()}"
+    name = f"nhl_stats/{prefix}_{end.isoformat()}"
+    earlier = _earlier_copy(prefix, end)
+    try:
+        return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
+    except PartialReport:
+        # The API answered with games missing (2026-11-20 06:42 UTC: no skater games after
+        # Nov 3 and some goalies' missing, so 0 goalie games this week and a false "goalie
+        # minimum at risk"): a window's games only ever grow, so keep the fuller copy.
+        logger.warning("NHL stats %s came back short; using the copy through %s", name, earlier[0], exc_info=True)
+        health.report(name, f"games missing from a fetch, using the copy through {earlier[0]:%d %b}")
+        return earlier[1]
+
+
+def _earlier_copy(prefix: str, end: dt.date) -> tuple[dt.date, list[dict]] | None:
+    """The cached fetch of the same window (same report and start) with the latest
+    end up to `end`, as (its end, its rows): the window's end moves with today."""
+    best = None
+    for path in (cache.CACHE_DIR / "nhl_stats").glob(f"{prefix}_*.json"):
+        try:
+            copy_end = dt.date.fromisoformat(path.stem[len(prefix) + 1:])
+        except ValueError:
+            continue
+        if copy_end <= end and (best is None or copy_end > best[0]):
+            best = (copy_end, path)
+    if best is None:
+        return None
+    try:
+        return best[0], json.loads(best[1].read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _games_through(rows: list[dict], end: dt.date) -> int:
+    return sum(1 for r in rows if r["gameDate"][:10] <= end.isoformat())
 
 
 def skater_birth_dates(season_id: int) -> dict[int, dt.date]:
