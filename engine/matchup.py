@@ -183,7 +183,7 @@ class TeamWeek:
     goalie_starts_left: float  # expected
     goalie_min_prob: float  # chance of reaching MIN_GOALIE_GAMES_PER_WEEK
     # Each remaining day: expected points, and who plays in the best lineup
-    # (player id -> (slot or BN, start probability: 1 for skaters)).
+    # (player id -> (slot or BN, start probability; a skater's: his odds to play)).
     by_day: dict[dt.date, float] = field(default_factory=dict)
     lineups: dict[dt.date, dict[int, tuple[str, float]]] = field(default_factory=dict)
     # Each player's part of the rest of the week (the dashboard's breakdown):
@@ -323,8 +323,10 @@ def goalie_form(p, ctx, team_lines: dict, date: dt.date, games: int) -> tuple | 
 
 def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
                 long_run: bool = False, next_game: bool = False) -> tuple[float, float, float]:
-    """(expected points, variance, start probability) for one game. Start
-    probability is 1 for skaters; goalies' counts toward the minimum.
+    """(expected points, variance, start probability) for one game. Goalies'
+    start probability counts toward the minimum; a skater's is his odds to play
+    (his status that day, before durability), which only the lineup shown reads
+    (LIKELY_OUT).
     `long_run` also discounts skaters by their projected games played, which
     today's injury report can't show for games weeks away. `next_game`: his
     team's first game from today (each goalie's own last start moves it most)."""
@@ -351,9 +353,10 @@ def _player_day(p, ctx, date, game, played_yesterday, lines, starters,
     if days_ahead and status.prob < availability.HEALTHY_PLAY:  # how long he's been out sets his return
         status = availability.skater(info, bool(team_lines), days_ahead, ctx.games_missed(p.id, p.team), ctx.today)
     prob = status.prob
+    plays = prob
     if long_run:
         prob *= durability(ctx, p, x)
-    return prob * x, prob * (SKATER_VARIANCE_PER_XFP * x + x * x) - (prob * x) ** 2, 1.0
+    return prob * x, prob * (SKATER_VARIANCE_PER_XFP * x + x * x) - (prob * x) ** 2, plays
 
 
 def _player_day_cached(p, ctx, date, game, played_yesterday, lines, starters, long_run, next_game):
@@ -506,7 +509,7 @@ def _project_week(name, roster, ctx, schedule, lines, starters, long_run, joins,
         candidates = [lineup.Candidate(p.id, tuple(p.positions), values[p.id][0])
                       for p in roster if p.id in values and not p.is_goalie]
         assignment = lineup.optimize(candidates, {s: n for s, n in STARTERS.items() if s != "G"})
-        lineups[date] = {pid: (slot, 1.0) for pid, slot in assignment.items()}
+        lineups[date] = {pid: (slot, values[pid][2]) for pid, slot in assignment.items()}
         day_skaters[date] = 0.0
         for pid, slot in assignment.items():
             part = by_player.setdefault(pid, [0.0, 0.0, 0.0])
@@ -663,6 +666,18 @@ def waiver_gap(p: RosterPlayer, levels: dict[str, float], ctx, lines: dict[str, 
 STREAM_BELOW = 0.25
 STAYS_WEEKS = 6
 STAYS_AT = (3, 6, 12)  # the weeks the Board shows a move's odds of the add still being mine
+# A skater under these odds to play that day shows as out on the dashboard, not as a
+# bench ring (Nico, 2026-11-19: Samuelsson, day-to-day, read as "no slot free" beside
+# an open D slot). Display only: his value is his points x the odds either way.
+LIKELY_OUT = 0.5
+
+
+def night_kind(slot: str, prob: float, goalie: bool) -> str:
+    """One night as the dashboard draws it: "start", "bench" (no slot free) or
+    "out" (a skater not expected to play)."""
+    if not goalie and prob < LIKELY_OUT:
+        return "out"
+    return "bench" if slot == BENCH else "start"
 
 
 def tenure_bin(add: RosterPlayer | None, drop: RosterPlayer | None, mine: list[RosterPlayer],

@@ -21,6 +21,7 @@ Telegram text, the Telegram cards and the dashboard. The decision log entry: `en
 | `+` badge / `➕`, `−` badge / `➖` | The add / the drop |
 | Filled dot | He dresses that night (in the best lineup) |
 | Ring | He plays but sits: no slot free |
+| Dim × | A skater not expected to play that night (injured, day-to-day: under 50% to play) |
 | Pie | A goalie's game, filled by his chance to start |
 | Dashed aqua ring | A free agent who'd dress |
 | Grey dot | A game whose lineup spot isn't worked out (an IR stash's sheet; every other move's sheet shows the lineup its valuation solved) |

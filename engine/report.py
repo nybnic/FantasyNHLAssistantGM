@@ -49,7 +49,7 @@ def _add_row(entry: dict, days: list[dict], plan: bool = False) -> dict:
         for d, day in (wk.lineups if wk else {}).items():
             if m.add.id in day:
                 slot, prob = day[m.add.id]
-                merged[d.isoformat()] = "start" if slot != BENCH else "bench"
+                merged[d.isoformat()] = matchup.night_kind(slot, prob, m.add.is_goalie)
                 starts += prob if slot != BENCH else 0.0
     cells = [merged.get(d["date"]) for d in days]
     return {"key": move_key(m), "name": _short(m.add.name), "positions": "/".join(m.add.positions),
@@ -81,13 +81,13 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
             open_slots.append(open_now)
             benched.append(lost)
             for pid, (slot, prob) in day.items():
-                cells.setdefault(pid, {})[d.isoformat()] = ("start" if slot != BENCH else "bench", prob)
+                cells.setdefault(pid, {})[d.isoformat()] = (slot, prob)
     with_plan, plan_cells = None, {}
     if plan and after:
         lineups = {d.isoformat(): day for wk in after if wk for d, day in wk.lineups.items()}
         for d, day in lineups.items():
             for pid, (slot, prob) in day.items():
-                plan_cells.setdefault(pid, {})[d] = ("start" if slot != BENCH else "bench", prob)
+                plan_cells.setdefault(pid, {})[d] = (slot, prob)
         with_plan = {"open": [], "my_games": [], "benched": []}
         for d, games, open_now, lost in zip(days, my_games, open_slots, benched):
             if d["date"] in lineups:
@@ -99,12 +99,13 @@ def schedule_view(roster: list[RosterPlayer], spans: list[tuple[int, str, matchu
     rows = []
     for p in players:
         mine = cells.get(p.id, {})
+        kind = lambda night: matchup.night_kind(*night, p.is_goalie) if night else None  # noqa: E731
         rows.append({"id": p.id, "name": _short(p.name), "positions": "/".join(p.positions),
-                     "cells": [mine.get(d["date"], (None, None))[0] for d in days],
+                     "cells": [kind(mine.get(d["date"])) for d in days],
                      "probs": [mine[d["date"]][1] if p.is_goalie and d["date"] in mine else None for d in days]})
         if plan_cells:  # with the plan made: his nights where the grid has them, none after his drop
             theirs_ = plan_cells.get(p.id, {})
-            rows[-1]["plan_cells"] = [theirs_.get(d["date"], (None, None))[0] if d["date"] in lineups
+            rows[-1]["plan_cells"] = [kind(theirs_.get(d["date"])) if d["date"] in lineups
                                       else rows[-1]["cells"][i] for i, d in enumerate(days)]
     chosen = {(m.add.id, m.drop.id if m.drop else None) for m in recommended}
     planned = {entry["move"].add.id for entry in plan}

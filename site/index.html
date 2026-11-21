@@ -184,6 +184,10 @@
   .pdots { display: flex; gap: 4px; min-width: 56px; justify-content: flex-end; }
   .sdot { display: block; width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box; flex: none; }
   .legend .sdot { display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+  /* A skater not expected to play that night (injured, day-to-day): a dim cross, not a bench ring. */
+  .sdot.out, .nc-dot.out { display: flex; align-items: center; justify-content: center; color: var(--muted);
+                           font-size: 17px; font-weight: 700; line-height: 1; }
+  .legend .sdot.out { display: inline-flex; font-size: 13px; }
   .fly { display: grid; grid-template-columns: 36px 1fr 92px 1fr 36px; gap: 6px; align-items: center; font-size: 13px; margin-top: 8px; }
   .fly > span { text-align: center; }
   .fly .l, .fly .r { display: flex; height: 12px; }
@@ -703,12 +707,13 @@ function weekPicker() {
   });
   return box;
 }
-// One night's dot: filled if he dresses, a ring if he sits, a goalie's by his chance to start;
-// dashed for a free agent who'd dress.
+// One night's dot: filled if he dresses, a ring if he sits, a goalie's by his chance to start,
+// a dim cross if he isn't expected to play; dashed for a free agent who'd dress.
 function dot(kind, color, prob, dashed) {
   const i = el("i", { class: "sdot" });
   if (!kind) return i;
-  if (dashed) i.style.border = `2px dashed ${color}`;
+  if (kind === "out") { i.classList.add("out"); i.textContent = "×"; }
+  else if (dashed) i.style.border = `2px dashed ${color}`;
   else if (kind === "bench") i.style.border = `2px solid ${color}`;
   else i.style.background = prob != null ? `conic-gradient(${color} 0 ${Math.round(100 * prob)}%, #2A3A55 0)` : color;
   return i;
@@ -797,9 +802,11 @@ function scheduleCard() {
   card.append(scroll);
   const legend = el("div", { class: "legend" });
   const ring = (text, style) => { const sp = el("span"), i = el("i", { class: "sdot" }); i.style.cssText = style; sp.append(i, document.createTextNode(text)); return sp; };
+  const outKey = text => { const sp = el("span"); sp.append(dot("out"), document.createTextNode(text)); return sp; };
   if (schedView === "slots") legend.append(key("--blue", "Filled"), ring("Open", `border:1.5px solid ${css("--muted")}`),
                                            key("--aqua", "Filled by the plan"), ring("Freed by the plan", `border:2px solid ${css("--aqua")}`));
   else legend.append(key("--blue", "Dresses"), ring("Sits: no slot free", `border:2px solid ${css("--blue")}`),
+                     outKey("Not expected to play"),
                      ring("Goalie: chance to start", `background:conic-gradient(${css("--blue")} 0 60%, #2A3A55 0)`),
                      key("--aqua", "Plan add"), ring("Free agent who'd dress", `border:2px dashed ${css("--aqua")}`));
   card.append(legend);
@@ -1670,7 +1677,8 @@ function gameDots(cells, probs, color, from) {
   s.days.forEach((d, i) => {
     if (d.date < from || !cells[i]) return;
     const dot = el("i", { class: "nc-dot" }), p = probs ? probs[i] : null;
-    if (cells[i] === "bench") dot.style.border = `2px solid ${color}`;
+    if (cells[i] === "out") { dot.classList.add("out"); dot.textContent = "×"; }
+    else if (cells[i] === "bench") dot.style.border = `2px solid ${color}`;
     else if (cells[i] === "game") dot.style.background = "#6B7A90";  // a game, his lineup spot not worked out
     else dot.style.background = p != null ? `conic-gradient(${color} 0 ${Math.round(100 * p)}%, #2A3A55 0)` : color;
     (by[d.week] = by[d.week] || []).push(dot);
@@ -1723,7 +1731,7 @@ function moveCard(key = CARD_KEY) {
   const own = !addRow && r.nights ? s.days.map(x => r.nights.cells[Math.round((Date.parse(x.date) - Date.parse(r.nights.from)) / 864e5)] || ".") : null;
   const G = data.games, theirGames = G && a.team ? G.teams[a.team] || [] : [];
   const addCells = addRow ? addRow.cells
-    : own ? own.map(c => c === "b" ? "bench" : c === "." ? null : "start")
+    : own ? own.map(c => c === "b" ? "bench" : c === "o" ? "out" : c === "." ? null : "start")
     : G ? s.days.map(x => { const i = G.days.findIndex(y => y.date === x.date);
                             return i >= 0 && theirGames[i] ? "game" : null; }) : null;
   const addProbs = own && a.goalie ? own.map(c => /\d/.test(c) ? Number(c) / 10 : c === "s" ? 1 : null) : null;
@@ -1732,7 +1740,7 @@ function moveCard(key = CARD_KEY) {
       .concat(dropRow ? [[d, gameDots(dropRow.cells, dropRow.probs, "#F07A45", from)]] : []);
     const weeksShown = [...new Set(s.days.filter(x => x.date >= from).map(x => x.week))];
     const box = el("div", { class: "nc-tile" });
-    const count = by => Object.values(by).flat().filter(i => !i.style.border).length;
+    const count = by => Object.values(by).flat().filter(i => !i.style.border && !i.classList.contains("out")).length;
     box.append(el("b", { style: "font-size:14px" }, "Lineup games, from " + (p ? p.day.replace(/ \(.*\)/, "") : fmtDay(from).replace(",", ""))));
     const grid = el("div", { class: "nc-dots" });
     grid.style.gridTemplateColumns = `76px repeat(${weeksShown.length}, minmax(0, 1fr)) 24px`;
@@ -1745,7 +1753,7 @@ function moveCard(key = CARD_KEY) {
     box.append(grid);
     const key = el("div", { class: "nc-dim wrap" });
     key.textContent = (addRow || own ? "" : "Grey: his games (his lineup spot not worked out) · ")
-                      + "Filled: in your best lineup that night · ring: no slot free";
+                      + "Filled: in your best lineup that night · ring: no slot free · ×: not expected to play";
     box.append(key);
     card.append(box);
   }
