@@ -10,11 +10,16 @@ One record per player per game, carrying every stat the league scores:
                         shotsAgainst
 
 Game-level queries (isGame=true) are capped at 10,000 rows, so a season is
-fetched in date windows (20 days ~ 5,400 skater rows).
+fetched in date windows (20 days ~ 5,400 skater rows). Since 2026-11-20 the API
+answers at most 100 rows a request whatever `limit` asks (`limit=-1` had
+returned them all), so every query is paged by `start` and checked against
+the `total` it reports.
 """
 from __future__ import annotations
 
 import datetime as dt
+import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from clients.cache import HOUR, cached_json, get
@@ -28,6 +33,15 @@ SETTLE_DAYS = 2
 # yesterday (a plan run made after the last puck fetches a night whose games may
 # not all be in yet: bot.common.nhl_date), else 6 hours.
 FRESH_RECENT, FRESH_SETTLING = 1 * HOUR, 6 * HOUR
+
+# The most rows the API returns a request (2026-11-20 on; `limit` above it is
+# ignored). A cached copy of exactly one page is what the silent truncation
+# left behind (2026-11-20/21), so it's fetched again.
+PAGE_ROWS = 100
+PAGE_WORKERS = 6
+# A stable order, so pages don't overlap or skip rows.
+GAME_SORT = json.dumps([{"property": "gameId", "direction": "ASC"}, {"property": "playerId", "direction": "ASC"}])
+PLAYER_SORT = json.dumps([{"property": "playerId", "direction": "ASC"}])
 
 SKATER_REPORTS = ("skater/summary", "skater/realtime", "skater/faceoffwins", "skater/timeonice")
 
@@ -76,18 +90,38 @@ def _windows(start: dt.date, end: dt.date) -> list[tuple[dt.date, dt.date]]:
     return windows
 
 
+def _all_rows(report: str, params: dict, sort: str) -> list[dict]:
+    """Every row of a query, page by page. Raises if the pages don't add up to
+    the total the API reports, so a short answer is never cached as complete
+    (cached_json then keeps a recent copy, and the health check says so)."""
+    def page(start: int) -> dict:
+        return get(f"{STATS_URL}/{report}", {**params, "sort": sort, "start": start, "limit": PAGE_ROWS}).json()
+
+    first = page(0)
+    rows, total = list(first["data"]), first.get("total")
+    if total is None:
+        total = len(rows)
+    if total > len(rows):
+        starts = range(len(rows), total, PAGE_ROWS)
+        with ThreadPoolExecutor(PAGE_WORKERS) as pool:
+            for body in pool.map(page, starts):
+                rows += body["data"]
+    if len(rows) != total:
+        raise RuntimeError(f"{report}: {len(rows)} rows read, the API reports {total}")
+    return rows
+
+
 def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, today: dt.date) -> list[dict]:
     def fetch() -> list[dict]:
         params = {
             "isAggregate": "false",
             "isGame": "true",
-            "limit": -1,
             "cayenneExp": (
                 f"seasonId={season_id} and gameTypeId=2 "
                 f'and gameDate>="{start.isoformat()}" and gameDate<="{end.isoformat()}"'
             ),
         }
-        rows = get(f"{STATS_URL}/{report}", params).json()["data"]
+        rows = _all_rows(report, params, GAME_SORT)
         if len(rows) >= ROW_CAP:
             raise RuntimeError(f"{report} {start}..{end} hit the {ROW_CAP}-row cap; shrink WINDOW_DAYS")
         return rows
@@ -95,19 +129,24 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
     settled = end + dt.timedelta(days=SETTLE_DAYS) < today
     recent = end >= today - dt.timedelta(days=1)
     name = f"nhl_stats/{report.replace('/', '_')}_{season_id}_{start.isoformat()}_{end.isoformat()}"
-    return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
+    return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch,
+                       valid=_not_one_page)
+
+
+def _not_one_page(rows: list) -> bool:
+    return len(rows) != PAGE_ROWS
 
 
 def skater_birth_dates(season_id: int) -> dict[int, dt.date]:
     """Birth date of every skater who played in a season (skater/bios)."""
 
     def fetch() -> list[dict]:
-        params = {"isAggregate": "false", "isGame": "false", "limit": -1, "cayenneExp": f"seasonId={season_id}"}
+        params = {"isAggregate": "false", "isGame": "false", "cayenneExp": f"seasonId={season_id}"}
         return [{"id": r["playerId"], "born": r["birthDate"]}
-                for r in get(f"{STATS_URL}/skater/bios", params).json()["data"] if r.get("birthDate")]
+                for r in _all_rows("skater/bios", params, PLAYER_SORT) if r.get("birthDate")]
 
     return {r["id"]: dt.date.fromisoformat(r["born"])
-            for r in cached_json(f"nhl_stats/skater_bios_{season_id}", None, fetch)}
+            for r in cached_json(f"nhl_stats/skater_bios_{season_id}", None, fetch, valid=_not_one_page)}
 
 
 def _span(season_id: int, start: dt.date | None, end: dt.date | None, today: dt.date):

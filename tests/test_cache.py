@@ -42,7 +42,7 @@ def test_the_latest_stats_window_is_refetched_hourly(monkeypatch):
     import datetime as dt
     from clients import nhl_stats
     ages = []
-    monkeypatch.setattr(nhl_stats, "cached_json", lambda name, max_age, fetch: ages.append(max_age) or [])
+    monkeypatch.setattr(nhl_stats, "cached_json", lambda name, max_age, fetch, **k: ages.append(max_age) or [])
     today = dt.date(2026, 10, 15)
     for end in (today, today - dt.timedelta(days=1), today - dt.timedelta(days=2), today - dt.timedelta(days=5)):
         nhl_stats._report_rows("skater/summary", 20262027, end - dt.timedelta(days=19), end, today)
@@ -74,3 +74,57 @@ def test_a_refusal_is_not_tried_again(monkeypatch):
     with pytest.raises(cache.requests.HTTPError):
         cache.get("https://example.com")
     assert calls == [403]
+
+
+def _paged_api(monkeypatch, total: int, short_by: int = 0):
+    """The stats API since 2026-11-20: at most 100 rows a request, whatever `limit` asks."""
+    from clients import nhl_stats
+    rows = [{"playerId": i, "gameId": 1, "gameDate": "2026-11-16"} for i in range(total)]
+    asked = []
+
+    class Resp:
+        def __init__(self, body):
+            self.body = body
+
+        def json(self):
+            return self.body
+
+    def fake_get(url, params):
+        asked.append(params["start"])
+        start = params["start"]
+        page = rows[start:start + 100]
+        if short_by and start + 100 >= total:
+            page = page[:-short_by]
+        return Resp({"data": page, "total": total})
+    monkeypatch.setattr(nhl_stats, "get", fake_get)
+    return asked
+
+
+def test_stats_are_read_page_by_page(monkeypatch):
+    """2026-11-21: `limit=-1` began returning 100 rows of 4,032, so the week's
+    box scores banked 3-0 against Yahoo's 149-120."""
+    from clients import nhl_stats
+    asked = _paged_api(monkeypatch, 250)
+    rows = nhl_stats._all_rows("skater/summary", {}, nhl_stats.GAME_SORT)
+    assert [r["playerId"] for r in rows] == list(range(250))
+    assert sorted(asked) == [0, 100, 200]
+
+
+def test_a_short_answer_is_never_taken_as_complete(monkeypatch):
+    from clients import nhl_stats
+    _paged_api(monkeypatch, 250, short_by=10)
+    with pytest.raises(RuntimeError):
+        nhl_stats._all_rows("skater/summary", {}, nhl_stats.GAME_SORT)
+
+
+def test_a_cached_single_page_is_fetched_again(tmp_path, monkeypatch):
+    """The truncated copies cached on 2026-11-20/21 (exactly one page) are replaced however fresh."""
+    import json
+    from clients import nhl_stats
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    (tmp_path / "w.json").write_text(json.dumps([{}] * nhl_stats.PAGE_ROWS), encoding="utf-8")
+    assert cache.cached_json("w", cache.HOUR, lambda: [1, 2], valid=nhl_stats._not_one_page) == [1, 2]
+    assert cache.cached_json("w", cache.HOUR, lambda: [3], valid=nhl_stats._not_one_page) == [1, 2]
+    (tmp_path / "w.json").write_text(json.dumps([{}] * nhl_stats.PAGE_ROWS), encoding="utf-8")
+    with pytest.raises(ConnectionError):  # nor kept as a fallback
+        cache.cached_json("w", cache.HOUR, _down, valid=nhl_stats._not_one_page)

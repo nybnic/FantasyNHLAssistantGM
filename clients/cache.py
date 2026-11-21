@@ -30,14 +30,19 @@ STALE_ALERT = HOUR
 logger = logging.getLogger(__name__)
 
 
-def cached_json(name: str, max_age: float | None, fetch: Callable[[], Any]) -> Any:
+def cached_json(name: str, max_age: float | None, fetch: Callable[[], Any],
+                valid: Callable[[Any], bool] | None = None) -> Any:
     """Cached JSON for `name`, refetched when older than `max_age` seconds.
     `max_age=None` never expires (completed seasons don't change). If the
-    refetch fails, a copy younger than STALE_LIMIT is used instead."""
+    refetch fails, a copy younger than STALE_LIMIT is used instead. A copy
+    `valid` rejects is fetched again however fresh (a known-bad answer)."""
     path = CACHE_DIR / f"{name}.json"
     age = time.time() - path.stat().st_mtime if path.exists() else None
     if age is not None and (max_age is None or age < max_age):
-        return json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if valid is None or valid(data):
+            return data
+        age = None  # not a copy to fall back on either
     try:
         data = fetch()
     except Exception:

@@ -503,6 +503,16 @@ def _week_5_from_yahoo(state: dict, players: list[RosterPlayer], league: dict) -
         entry.pop("value", None)
 
 
+def _stats_api_one_page(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # 2026-11-20 to 21: the NHL stats API answered 100 rows of each query
+    # (clients/nhl_stats.py now pages), so the box-score check logged beside
+    # Thursday's matchup screenshot read 0-0 against Yahoo's 149-120. Yahoo's
+    # own score in it was right; the box score is unknown.
+    for c in state["results"].get("8", {}).get("live", []):
+        if c.get("through") == "2026-11-20" and c.get("box") == [0.0, 0.0]:
+            c["box"] = None
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -525,4 +535,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-30 randy team page", _randy_team_page),
            ("2026-10-31 crosby to bellova", _crosby_to_bellova),
            ("2026-11-01 league rosters oct 31", _league_rosters_oct_31),
-           ("2026-11-02 week 5 from yahoo", _week_5_from_yahoo)]
+           ("2026-11-02 week 5 from yahoo", _week_5_from_yahoo),
+           ("2026-11-21 stats api one page", _stats_api_one_page)]

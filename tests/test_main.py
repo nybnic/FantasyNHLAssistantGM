@@ -1120,6 +1120,16 @@ def test_the_2026_10_13_repair_restores_the_lineup_the_screenshots_cleared(tmp_p
     assert {p.id: p.slot for p in players} == repairs.LINEUP_OCT_13
 
 
+def test_the_2026_11_21_repair_forgets_the_box_score_read_off_one_page(tmp_path):
+    from state import repairs
+    state = gm_state.load(tmp_path / "s.json")
+    state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-11-21 stats api one page"]
+    state["results"]["8"] = {"live": [{"through": "2026-11-19", "box": [74.0, 64.3], "yahoo": [74.8, 64.3]},
+                                      {"through": "2026-11-20", "box": [0.0, 0.0], "yahoo": [149.45, 119.55]}]}
+    repairs.apply(state, [], {"teams": {}, "taken": []})
+    assert [c["box"] for c in state["results"]["8"]["live"]] == [[74.0, 64.3], None]
+
+
 def test_the_2026_10_17_repair_dates_the_score_only_if_still_undated(tmp_path):
     from state import repairs
     state = gm_state.load(tmp_path / "s.json")
