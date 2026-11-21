@@ -19,9 +19,13 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
+import requests
+
+from clients import cache, health
 from clients.cache import HOUR, cached_json, get
 
 STATS_URL = "https://api.nhle.com/stats/rest/en"
@@ -33,6 +37,13 @@ SETTLE_DAYS = 2
 # yesterday (a plan run made after the last puck fetches a night whose games may
 # not all be in yet: bot.common.nhl_date), else 6 hours.
 FRESH_RECENT, FRESH_SETTLING = 1 * HOUR, 6 * HOUR
+logger = logging.getLogger(__name__)
+
+
+class PartialReport(RuntimeError):
+    """A window fetched with fewer games than an earlier fetch of it had, or
+    fewer rows than the total the API reports."""
+
 
 # The most rows the API returns a request (2026-11-20 on; `limit` above it is
 # ignored). A cached copy of exactly one page is what the silent truncation
@@ -101,13 +112,13 @@ def _all_rows(report: str, params: dict, sort: str) -> list[dict]:
     rows, total = list(first["data"]), first.get("total")
     if total is None:
         total = len(rows)
-    if total > len(rows):
-        starts = range(len(rows), total, PAGE_ROWS)
+    if total > len(rows) > 0:  # step by what one request got, should the cap change again
+        starts = range(len(rows), total, len(rows))
         with ThreadPoolExecutor(PAGE_WORKERS) as pool:
             for body in pool.map(page, starts):
                 rows += body["data"]
     if len(rows) != total:
-        raise RuntimeError(f"{report}: {len(rows)} rows read, the API reports {total}")
+        raise PartialReport(f"{report}: {len(rows)} rows read, the API reports {total}")
     return rows
 
 
@@ -124,17 +135,55 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
         rows = _all_rows(report, params, GAME_SORT)
         if len(rows) >= ROW_CAP:
             raise RuntimeError(f"{report} {start}..{end} hit the {ROW_CAP}-row cap; shrink WINDOW_DAYS")
+        for copy_end, copy in earlier:
+            if (n := _games_through(rows, copy_end)) < len(copy):
+                raise PartialReport(f"{report} {start}..{end}: {n} games through {copy_end}, {len(copy)} before")
         return rows
 
     settled = end + dt.timedelta(days=SETTLE_DAYS) < today
     recent = end >= today - dt.timedelta(days=1)
-    name = f"nhl_stats/{report.replace('/', '_')}_{season_id}_{start.isoformat()}_{end.isoformat()}"
-    return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch,
-                       valid=_not_one_page)
+    prefix = f"{report.replace('/', '_')}_{season_id}_{start.isoformat()}"
+    name = f"nhl_stats/{prefix}_{end.isoformat()}"
+    earlier = _earlier_copies(prefix, end)
+    try:
+        rows = cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch,
+                           valid=_not_one_page)
+    except (PartialReport, requests.RequestException):
+        if not earlier:
+            raise
+        rows = None
+    # The API answered with games missing (from the night of Nov 19-20: 100 rows of each
+    # query, so no skater games after Nov 3 and some goalies' missing, 0 goalie games this
+    # week and a false "goalie minimum at risk"): a window's games only ever grow, so the
+    # fullest copy wins. Checked after the cache too: a short answer saved before this
+    # check (or kept by cached_json's fallback) mustn't stand or become the bar.
+    if rows is None or any(_games_through(rows, copy_end) < len(copy) for copy_end, copy in earlier):
+        copy_end, rows = max(earlier, key=lambda c: len(c[1]))
+        logger.warning("NHL stats %s came back short; using the copy through %s", name, copy_end)
+        health.report(name, f"games missing from a fetch, using the copy through {copy_end:%d %b}")
+    return rows
 
 
 def _not_one_page(rows: list) -> bool:
     return len(rows) != PAGE_ROWS
+
+
+def _earlier_copies(prefix: str, end: dt.date) -> list[tuple[dt.date, list[dict]]]:
+    """Every cached fetch of the same window (same report and start) with an end up to
+    `end`, as (its end, its rows): the window's end moves with today."""
+    out = []
+    for path in (cache.CACHE_DIR / "nhl_stats").glob(f"{prefix}_*.json"):
+        try:
+            copy_end = dt.date.fromisoformat(path.stem[len(prefix) + 1:])
+            if copy_end <= end:
+                out.append((copy_end, json.loads(path.read_text(encoding="utf-8"))))
+        except (OSError, ValueError):
+            continue
+    return out
+
+
+def _games_through(rows: list[dict], end: dt.date) -> int:
+    return sum(1 for r in rows if r["gameDate"][:10] <= end.isoformat())
 
 
 def skater_birth_dates(season_id: int) -> dict[int, dt.date]:

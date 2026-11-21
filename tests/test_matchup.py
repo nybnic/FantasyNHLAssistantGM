@@ -951,3 +951,13 @@ def test_a_move_keeps_the_adds_nights_as_its_lineups_were_solved():
     nights = moves[0].nights
     assert nights[MON][0] == matchup.BENCH  # both C slots go to the better centers
     assert nights[TUE][0] == "C" and set(nights) == {MON, TUE}
+
+
+def test_a_skaters_lineup_night_carries_his_odds_to_play(monkeypatch):
+    """What the dashboard reads to mark him out (matchup.LIKELY_OUT); his value is his points x the odds."""
+    roster = [RosterPlayer(1, "C1", "BOS", ["C"], "C")]
+    schedule = {MON: [_game(MON, "BOS", "NYR")]}
+    monkeypatch.setattr(matchup.availability, "skater", lambda *a, **k: matchup.availability.Availability(0.0, "dtd"))
+    week = matchup.project("me", roster, FakeContext(), schedule, {}, {})
+    assert week.lineups[MON][1][1] == 0.0 and week.expected == 0.0
+    assert matchup.night_kind(*week.lineups[MON][1], False) == "out"
