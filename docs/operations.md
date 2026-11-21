@@ -41,7 +41,10 @@ and an `ir` input (players of mine to treat as on IR+, `--ir`, this run only) fo
 move made in Yahoo that the bot hasn't been told about yet.
 `schedule` prints every NHL game day by day for this week and next
 (`scripts/schedule.py`). `scoreboard` prints the season's scoreboard (each week:
-your points vs the drafted roster's, `scripts/scorecard.py`).
+your points vs the drafted roster's, `scripts/scorecard.py`). `probe-box` lists the
+cached NHL stats rows by game date, what one request to the stats API answers now,
+and my players' games this week (`scripts/probe_box.py`): the first check when the
+banked score disagrees with Yahoo's.
 
 ## Secrets
 | Where | Name | Used for |
@@ -143,6 +146,7 @@ roster names one of them.
 | 2026-10-26 | Monday's result said week 4 was lost 221 - 223; Yahoo's final, already saved from Nico's screenshot, was 221.60 - 209.65, a win. The report scored the opponent from box scores with a guessed lineup, 13 pts high | Yahoo's final decides the result when known (the report, the scoreboard's margin, a late screenshot corrects it); repair `2026-10-26 yahoo finals` |
 | 2026-10-31 | Sidney Crosby listed as a free agent: Viktorios's team page showed Matthew Tkachuk (Bellova's) and not Crosby, a trade unseen in the transactions; a team page dropped its missing players to the free agents | Repair `2026-10-31 crosby to bellova`; a team page with players of exactly one other team sends its missing players there (`bot/ingest.traded_back`) |
 | 2026-11-04 | 19:00 UTC: the relay's `/updates` answered one 500 (Cloudflare's bare error, no reason), so "run failed in updates"; the next run read it fine and nothing was lost (the relay keeps updates until acked). 20:00 UTC: DFO's starting goalies answered 403 (its bot check) once; the data check said "down, using a copy 1 h old" of a copy 31 min old, as fresh as usual. Also seen: stale DFO line charts were never reported (cache renamed `dfo_lines_v2/`, health matched `dfo_lines/`) | The relay is tried 3 times (2 s, 4 s); still down, it's the once-a-day "Instant replies are down" alert, not a failed run; the worker returns its error text (needs `npx wrangler deploy` in `relay/`). A fallback copy is reported only an hour past its max_age, its age in minutes under 1.5 h; 4xx other than 429 aren't retried; health matches `dfo_lines` |
+| 2026-11-20 | From the night of Nov 19-20 the NHL stats API answered at most 100 rows a query, whatever `limit` asked (`limit=-1` had returned all; 100 of 4,032 skater rows for Nov 4-21). Silent: the plan ran on a random 100 box-score rows, so Saturday's /week banked 3-0 for Mon-Fri against Yahoo's 149-120, called the goalie minimum at risk (2.3 of 3) and projected without the game logs since Nov 4; the evening's ice-time alerts (McCabe, Dach, DeAngelo, ...) read the same rows | `clients/nhl_stats.py` pages every query by `start` (100 rows, 6 at a time, sorted) and checks the total the API reports: a short answer raises, so the last good copy is kept and the health check alerts. A cached copy of exactly one page is fetched again. Repair `2026-11-21 stats api one page` clears the box score logged with Thursday's screenshot. Check `probe-box` |
 
 ## Calendar assumptions to verify
 - Week 19 = Feb 1-14 2027 (the double week): confirmed in Yahoo 2026-10-01. Still to check
