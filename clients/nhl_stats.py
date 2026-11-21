@@ -31,6 +31,8 @@ SETTLE_DAYS = 2
 # yesterday (a plan run made after the last puck fetches a night whose games may
 # not all be in yet: bot.common.nhl_date), else 6 hours.
 FRESH_RECENT, FRESH_SETTLING = 1 * HOUR, 6 * HOUR
+# Rows a page when the API caps an answer below its total (_pages).
+PAGE_ROWS = 100
 logger = logging.getLogger(__name__)
 
 
@@ -95,46 +97,72 @@ def _report_rows(report: str, season_id: int, start: dt.date, end: dt.date, toda
                 f'and gameDate>="{start.isoformat()}" and gameDate<="{end.isoformat()}"'
             ),
         }
-        rows = get(f"{STATS_URL}/{report}", params).json()["data"]
+        url = f"{STATS_URL}/{report}"
+        body = get(url, params).json()
+        rows, total = body["data"], body.get("total")
+        if isinstance(total, int) and len(rows) < total:
+            # A capped answer (from 2026-11-20 the API sent part of a window's rows): page it.
+            logger.warning("NHL stats %s %s..%s sent %d of %d rows; paging", report, start, end, len(rows), total)
+            rows = _pages(url, params, total, len(rows) or PAGE_ROWS)
+            if len(rows) < total:
+                raise PartialReport(f"{report} {start}..{end}: {len(rows)} of {total} rows")
         if len(rows) >= ROW_CAP:
             raise RuntimeError(f"{report} {start}..{end} hit the {ROW_CAP}-row cap; shrink WINDOW_DAYS")
-        if earlier and (n := _games_through(rows, earlier[0])) < len(earlier[1]):
-            raise PartialReport(f"{report} {start}..{end}: {n} games through {earlier[0]}, {len(earlier[1])} before")
+        for copy_end, copy in earlier:
+            if (n := _games_through(rows, copy_end)) < len(copy):
+                raise PartialReport(f"{report} {start}..{end}: {n} games through {copy_end}, {len(copy)} before")
         return rows
 
     settled = end + dt.timedelta(days=SETTLE_DAYS) < today
     recent = end >= today - dt.timedelta(days=1)
     prefix = f"{report.replace('/', '_')}_{season_id}_{start.isoformat()}"
     name = f"nhl_stats/{prefix}_{end.isoformat()}"
-    earlier = _earlier_copy(prefix, end)
+    earlier = _earlier_copies(prefix, end)
     try:
-        return cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
+        rows = cached_json(name, None if settled else FRESH_RECENT if recent else FRESH_SETTLING, fetch)
     except PartialReport:
-        # The API answered with games missing (2026-11-20 06:42 UTC: no skater games after
-        # Nov 3 and some goalies' missing, so 0 goalie games this week and a false "goalie
-        # minimum at risk"): a window's games only ever grow, so keep the fuller copy.
-        logger.warning("NHL stats %s came back short; using the copy through %s", name, earlier[0], exc_info=True)
-        health.report(name, f"games missing from a fetch, using the copy through {earlier[0]:%d %b}")
-        return earlier[1]
+        if not earlier:
+            raise
+        rows = None
+    # The API answered with games missing (2026-11-20 06:42 UTC, and still the next day:
+    # no skater games after Nov 3 and some goalies' missing, so 0 goalie games this week
+    # and a false "goalie minimum at risk"): a window's games only ever grow, so the
+    # fullest copy wins. Checked after the cache too: a short answer saved before this
+    # check (or kept by cached_json's fallback) mustn't stand or become the bar.
+    if rows is None or any(_games_through(rows, copy_end) < len(copy) for copy_end, copy in earlier):
+        copy_end, rows = max(earlier, key=lambda c: len(c[1]))
+        logger.warning("NHL stats %s came back short; using the copy through %s", name, copy_end)
+        health.report(name, f"games missing from a fetch, using the copy through {copy_end:%d %b}")
+    return rows
 
 
-def _earlier_copy(prefix: str, end: dt.date) -> tuple[dt.date, list[dict]] | None:
-    """The cached fetch of the same window (same report and start) with the latest
-    end up to `end`, as (its end, its rows): the window's end moves with today."""
-    best = None
+def _pages(url: str, params: dict, total: int, size: int) -> list[dict]:
+    """All `total` rows, `size` at a time in a fixed order, each (player, game) once."""
+    order = json.dumps([{"property": "gameId", "direction": "ASC"}, {"property": "playerId", "direction": "ASC"}])
+    rows: dict[tuple, dict] = {}
+    start = 0
+    while start < total:
+        page = get(url, {**params, "sort": order, "start": start, "limit": size}).json()["data"]
+        if not page:
+            break
+        for r in page:
+            rows[(r.get("playerId"), r.get("gameId"))] = r
+        start += len(page)
+    return list(rows.values())
+
+
+def _earlier_copies(prefix: str, end: dt.date) -> list[tuple[dt.date, list[dict]]]:
+    """Every cached fetch of the same window (same report and start) with an end up to
+    `end`, as (its end, its rows): the window's end moves with today."""
+    out = []
     for path in (cache.CACHE_DIR / "nhl_stats").glob(f"{prefix}_*.json"):
         try:
             copy_end = dt.date.fromisoformat(path.stem[len(prefix) + 1:])
-        except ValueError:
+            if copy_end <= end:
+                out.append((copy_end, json.loads(path.read_text(encoding="utf-8"))))
+        except (OSError, ValueError):
             continue
-        if copy_end <= end and (best is None or copy_end > best[0]):
-            best = (copy_end, path)
-    if best is None:
-        return None
-    try:
-        return best[0], json.loads(best[1].read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
+    return out
 
 
 def _games_through(rows: list[dict], end: dt.date) -> int:

@@ -128,3 +128,39 @@ def test_a_first_fetch_of_a_stats_window_is_taken(tmp_path, monkeypatch):
     _answer(monkeypatch, ["2026-11-05"])
     today = dt.date(2026, 11, 20)
     assert len(nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today)) == 1
+
+
+def test_a_short_copy_saved_today_loses_to_a_fuller_one(tmp_path, monkeypatch):
+    """2026-11-21: the 20 Nov copy, saved short before the check existed, was the
+    latest; the 19 Nov one, full, must still win."""
+    import datetime as dt
+    from clients import health, nhl_stats
+    health.clear()
+    full = _stats_window(tmp_path, monkeypatch, "2026-11-19", ["2026-11-05", "2026-11-16", "2026-11-17"])
+    _stats_window(tmp_path, monkeypatch, "2026-11-20", ["2026-11-05"])
+    _stats_window(tmp_path, monkeypatch, "2026-11-21", ["2026-11-05"])  # fresh, so not refetched
+    today = dt.date(2026, 11, 21)
+    assert nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today) == full
+    health.clear()
+
+
+def test_a_capped_answer_is_paged(tmp_path, monkeypatch):
+    import datetime as dt
+    from clients import nhl_stats
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    every = [{"gameDate": "2026-11-05", "playerId": i, "gameId": 1} for i in range(5)]
+    asked = []
+
+    class Resp:
+        def __init__(self, params):
+            self.params = params
+
+        def json(self):
+            start, size = self.params.get("start", 0), 2  # the API serves at most 2 rows
+            return {"data": every[start:start + size], "total": len(every)}
+
+    monkeypatch.setattr(nhl_stats, "get", lambda url, params: asked.append(params) or Resp(params))
+    today = dt.date(2026, 11, 20)
+    rows = nhl_stats._report_rows("goalie/summary", 20262027, dt.date(2026, 11, 4), today, today)
+    assert sorted(r["playerId"] for r in rows) == [0, 1, 2, 3, 4]
+    assert all("sort" in p for p in asked[1:])
