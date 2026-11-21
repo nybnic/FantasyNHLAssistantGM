@@ -75,7 +75,7 @@ class WeekInputs:
     tau: float  # spread of the league's matchup margins
     weeks_after: int
     available_from: dict  # player id -> first day he can play for me: waivers, or Monday with no adds left
-    so_far: tuple | None = None  # my banked points: a matchup screenshot's, else box scores by day's roster
+    so_far: tuple | None = None  # my banked points: the latest matchup screenshot's (+ box scores since), else box scores
     live: bool = False  # so_far comes from a matchup screenshot taken today
     # Then Yahoo's score and the box scores' best-lineup score for the same days
     # (how far each manager's real lineups fall short: opponent profiles).
@@ -106,18 +106,26 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     their_days = rosters_by_day(state, opponent, them_roster, days, date)
     projected = None
     live = state["live_score"]
-    is_live = bool(live and live["week"] == week and live["opponent"] == opponent
-                   and live["through"] == date.isoformat())
+    # Yahoo's score is the banked total whenever a matchup screenshot of this week has
+    # one (Nico, 2026-11-21: "use yahoo screenshots as the main source of data for actual
+    # point standings"); box scores only add the nights since it. Before, a screenshot
+    # counted only on its own day, so on 21 Nov the box scores alone (cut short by the
+    # stats API) banked 3-0 against Yahoo's 149-120.
+    anchored = bool(live and live.get("week") == week and live.get("opponent") == opponent
+                    and live.get("through") and live["through"] <= date.isoformat())
+    is_live = anchored and live["through"] == date.isoformat()
     box = None
-    if is_live:
-        mine = _banked(live["score"][0], live["goalies"][0], players, ctx, days, my_days)
-        theirs = _banked(live["score"][1], live["goalies"][1], them_roster, ctx, days, their_days)
-        box = [sum(matchup._so_far(roster_mod.active(players), ctx, days, my_days)[:2]),
-               sum(matchup._so_far(them_roster, ctx, days, their_days)[:2])]
-        projected = live["projected"] or None
+    if anchored:
+        through = dt.date.fromisoformat(live["through"])
+        mine = _banked_since(live["score"][0], live["goalies"][0], players, ctx, days, through, my_days)
+        theirs = _banked_since(live["score"][1], live["goalies"][1], them_roster, ctx, days, through, their_days)
+        projected = (live["projected"] or None) if is_live else None
     else:
         mine = matchup._so_far(roster_mod.active(players), ctx, days, my_days)
         theirs = matchup._so_far(them_roster, ctx, days, their_days)
+    if is_live:
+        box = [sum(matchup._so_far(roster_mod.active(players), ctx, days, my_days)[:2]),
+               sum(matchup._so_far(them_roster, ctx, days, their_days)[:2])]
     me = matchup.project(MY_TEAM, players, ctx, schedule, lines, starters, so_far=mine)
     them = matchup.project(opponent, them_roster, ctx, schedule, lines, starters, so_far=theirs)
     remaining = sum(d >= date for d in days)
@@ -277,6 +285,16 @@ def _banked(total: float, goalie: float | None, roster: list, ctx, days: list[dt
     skater_bs, goalie_bs, goalie_games = matchup._so_far(roster_mod.active(roster), ctx, days, history)
     goalie = goalie_bs if goalie is None else goalie
     return total - goalie, goalie, goalie_games
+
+
+def _banked_since(total: float, goalie: float | None, roster: list, ctx, days: list[dt.date],
+                  through: dt.date, history: dict | None = None) -> tuple[float, float, int]:
+    """Points so far: Yahoo's score of the days before `through` (a matchup
+    screenshot's), plus box scores of the finished days from `through` on."""
+    before = [d for d in days if d < through]
+    skater, goalie, goalie_games = _banked(total, goalie, roster, ctx, before, history)
+    later = matchup._so_far(roster_mod.active(roster), ctx, [d for d in days if d >= through], history)
+    return skater + later[0], goalie + later[1], goalie_games + later[2]
 
 
 def snapshot_rosters(state: dict, players: list, league: dict, now: dt.datetime) -> None:

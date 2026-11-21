@@ -148,6 +148,10 @@ CI installs it, cached). Live runs need network; first runs fill `data/cache/`.
   context ("win 16% -> 22%", "+11 win-pts against the 10 an add costs"). One plan,
   stable: never resend what was sent; a change says why. Words live in
   `bot/messages.py` only, so the message, the card and the dashboard can't disagree.
+- **Yahoo's screenshots are the main source of the actual score** (Nico, 2026-11-21). The
+  week's latest matchup screenshot sets the banked points of the days it covers, whatever day
+  it was taken; box scores (NHL stats API) only fill the nights since, and say nothing when
+  Yahoo has spoken. When they disagree, Yahoo is right.
 - **Data from chat becomes data files.** When Nico pastes league data
   (screenshots, Yahoo pages), save it under `data/league/` or `state/`, not
   just in the conversation.

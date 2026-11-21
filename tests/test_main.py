@@ -1039,6 +1039,35 @@ def test_a_plan_on_a_matchup_screenshot_logs_yahoos_score_next_to_the_box_scores
                                          "yahoo_projected": [160.0, 165.0]}
 
 
+def test_a_days_old_matchup_screenshot_still_sets_the_banked_score(monkeypatch, tmp_path):
+    """Nico, 2026-11-21: Yahoo's screenshots are the main source of the score. A
+    screenshot through Thursday, read on Saturday: Yahoo's points for Mon-Wed plus
+    the box scores of Thu and Fri only (the box scores alone had banked 3-0)."""
+    from engine import matchup
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    state["live_score"] = {"week": 1, "opponent": "Bahelin Boys", "through": "2026-10-01", "score": [149.45, 119.55],
+                           "projected": [238.0, 203.0], "goalies": [18.45, 11.7], "at": "2026-10-01T06:39+00:00"}
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    monkeypatch.setattr(nhl_client, "current_teams", lambda: [])
+    monkeypatch.setattr(nhl_client, "current_rosters", lambda: [])
+    monkeypatch.setattr(goalie_client, "get_starters", lambda d: {})
+    asked = []
+
+    def box(roster, ctx, days, history=None):
+        asked.append([d for d in days if d < ctx.today])
+        return 1.0 * len([d for d in days if d < ctx.today]), 0.5, 1
+
+    monkeypatch.setattr(matchup, "_so_far", box)
+
+    class Ctx:
+        today = dt.date(2026, 10, 3)
+    league = {"teams": {}, "taken": []}
+    wk = weekly.week_inputs(dt.date(2026, 10, 3), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
+    oct_1, oct_2 = dt.date(2026, 10, 1), dt.date(2026, 10, 2)
+    assert wk.so_far == (149.45 - 18.45 + 2.0, 18.45 + 0.5, 2)  # Thu and Fri from box scores
+    assert [oct_1, oct_2] in asked and not wk.live and wk.live_check is None and wk.yahoo_projected is None
+
+
 def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_path):
     from engine import matchup
     _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])

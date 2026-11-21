@@ -15,7 +15,7 @@ stored field changes.
 | Monday (optional) | The same, with the week picker on last week | Yahoo's final for every team: the results both forecasts are checked against |
 | Monday | League > **Standings** (the app, or the website's Standings table) | Playoff and title odds |
 | Monday, and when the plan asks | League > **Transactions**, back to the date the plan names | The other 15 rosters, free agents, how much each team streams |
-| Monday before games, then any time | My **Matchup** tab, scrolled through both rosters | Both rosters and slots, the live score (sharper P(win)), Yahoo's first forecast of my matchup, Yahoo's per-player projections |
+| Monday before games, then any time | My **Matchup** tab, scrolled through both rosters | Both rosters and slots, the live score (the banked points the plan uses, until the next screenshot; box scores add only the nights since), Yahoo's first forecast of my matchup, Yahoo's per-player projections |
 | Playoffs (weeks 24-26) | `/opp Team Name` | Who I'm playing |
 
 ### Sending as many screenshots as you like
