@@ -672,7 +672,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-21T06:47+00:00",
+    "at": "2026-11-21T08:23+00:00",
     "moves": [],
     "week": 8
   },
@@ -702,7 +702,8 @@
     "2026-10-30 randy team page",
     "2026-10-31 crosby to bellova",
     "2026-11-01 league rosters oct 31",
-    "2026-11-02 week 5 from yahoo"
+    "2026-11-02 week 5 from yahoo",
+    "2026-11-21 stats api one page"
   ],
   "scoreboard_shots": [],
   "screenshots": {
@@ -836,7 +837,7 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784959,
+  "telegram_offset": 929784960,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1109,6 +1110,7 @@
       "8482713:promoted": "2026-11-12",
       "8482720:promoted": "2026-11-13",
       "8482731:ice time": "2026-10-21",
+      "8482751:ice time": "2026-11-21",
       "8482758:promoted": "2026-11-03",
       "8482765:promoted": "2026-10-27",
       "8482775:promoted": "2026-10-22",
@@ -1179,8 +1181,10 @@
       "8484829:promoted": "2026-10-14",
       "8484860:ice time": "2026-10-29",
       "8484860:promoted": "2026-11-13",
+      "8484911:ice time": "2026-11-21",
       "8484911:promoted": "2026-11-07",
       "8484938:promoted": "2026-11-16",
+      "8484999:ice time": "2026-11-21",
       "8484999:promoted": "2026-10-13",
       "8485388:promoted": "2026-11-20",
       "8485391:promoted": "2026-11-12",
@@ -7133,6 +7137,51 @@
         "value": -0.0414,
         "verdict": "-4 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 11 days."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8482751,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Ryan Winterton",
+        "positions": "RW",
+        "price": 0.108,
+        "sent": true,
+        "team": "SEA",
+        "value": -0.0755,
+        "verdict": "-8 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 15:39 a game in his last 3, up from 12:30. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8484999,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Ilya Protas",
+        "positions": "LW",
+        "price": 0.108,
+        "sent": true,
+        "team": "WSH",
+        "value": -0.1086,
+        "verdict": "-11 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 14:30 a game in his last 3, up from 10:37. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8484911,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Collin Graf",
+        "positions": "LW/RW",
+        "price": 0.108,
+        "sent": true,
+        "team": "SJS",
+        "value": -0.1507,
+        "verdict": "-15 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 18:21 a game in his last 3, up from 15:20. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
@@ -7169,7 +7218,7 @@
       "sent": "2026-11-09T06:30+00:00"
     },
     "8": {
-      "midweek": "2026-11-21T06:47+00:00",
+      "midweek": "2026-11-21T08:23+00:00",
       "sent": "2026-11-16T06:43+00:00"
     }
   },
