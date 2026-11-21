@@ -375,5 +375,7 @@ def test_a_moves_nights_are_one_character_a_day_for_the_dashboard():
     goalie = matchup.Move(RosterPlayer(9, "Laurent Brossoit", "CHI", ["G"]), SAMUELSSON, 1, 0, 0, 1, 0.5, 0.5,
                           nights={thu: ("G", 0.62), thu + dt.timedelta(days=1): ("G", 1.0)})
     assert board.nights(goalie)["cells"] == "6s"  # a goalie's start odds in tenths
+    letang.nights[thu + dt.timedelta(days=3)] = (matchup.BENCH, 0.0)  # day-to-day: not expected to play
+    assert board.nights(letang)["cells"] == "s.bo"
     assert board.nights(_move(3, "Stash", 0, 0, 0.16)) is None  # not worked out: his team's games, in grey
-    assert board.move_row(letang, "fails", "")["nights"]["cells"] == "s.bs"
+    assert board.move_row(letang, "fails", "")["nights"]["cells"] == "s.bo"

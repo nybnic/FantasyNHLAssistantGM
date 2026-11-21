@@ -272,6 +272,16 @@ def test_the_result_carries_the_scoreboard_before_the_suggestions_line():
     assert view["value"] == {"added": 12.0}
 
 
+def test_a_skater_not_expected_to_play_is_out_not_benched_for_want_of_a_slot():
+    # 2026-11-19: Samuelsson, day-to-day on DailyFaceoff (0% tonight), showed a bench ring beside an open D slot.
+    roster = [RosterPlayer(2, "Mattias Samuelsson", "BUF", ["D"], "D"), RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G")]
+    mine = _team(0, {THU: 5, FRI: 3}, {THU: {2: ("BN", 0.0), 3: ("BN", 0.1)}, FRI: {2: ("D", 0.85)}})
+    view = report.schedule_view(roster, [(1, "Bahelin Boys", mine, mine)])
+    rows = {r["name"]: r["cells"] for r in view["rows"]}
+    assert rows["M. Samuelsson"] == ["out", "start"]
+    assert rows["S. Knight"] == ["bench", None]  # a goalie's low odds are his chance to start: a pie, never out
+
+
 def test_with_the_plan_a_players_nights_follow_the_plans_lineups_and_end_at_his_drop():
     knight, larsson = RosterPlayer(3, "Spencer Knight", "CHI", ["G"], "G"), RosterPlayer(5, "Adam Larsson", "SEA", ["D"], "D")
     mine = _team(0, {THU: 5.0, FRI: 5.0}, {THU: {3: ("G", 0.6), 5: ("D", 1.0)}, FRI: {5: ("D", 1.0)}})

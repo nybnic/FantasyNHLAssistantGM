@@ -58,7 +58,8 @@ def status(move: matchup.Move, planned: set[str], price) -> str:
 def nights(move: matchup.Move) -> dict | None:
     """The add's nights as the move plays them, compact: from the first date,
     one character a day: "s" in the lineup, a digit a goalie's start odds in
-    tenths ("7": 70%), "b" on the bench (no slot free), "." no game. None
+    tenths ("7": 70%), "b" on the bench (no slot free), "o" a skater not
+    expected to play (matchup.LIKELY_OUT), "." no game. None
     when they weren't worked out (an IR stash)."""
     if not move.nights:
         return None
@@ -66,10 +67,11 @@ def nights(move: matchup.Move) -> dict | None:
     cells = []
     for i in range((last - first).days + 1):
         slot, prob = move.nights.get(first + dt.timedelta(days=i), (None, None))
-        if slot is None:
+        kind = matchup.night_kind(slot, prob, move.add.is_goalie) if slot is not None else None
+        if kind is None:
             cells.append(".")
-        elif slot == matchup.BENCH:
-            cells.append("b")
+        elif kind != "start":
+            cells.append(kind[0])  # "b" bench, "o" out
         else:
             cells.append("s" if prob >= 0.95 or not move.add.is_goalie else str(min(9, round(10 * prob))))
     return {"from": first.isoformat(), "cells": "".join(cells)}
