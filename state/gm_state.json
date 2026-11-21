@@ -2,26 +2,6 @@
   "awaiting": null,
   "awaiting_drop": null,
   "briefings": {
-    "2026-11-06": {
-      "recommended": {
-        "8474564": "RW",
-        "8476460": "C",
-        "8476483": "LW",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482087": "D",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "sent": true,
-      "updates": 0
-    },
     "2026-11-07": {
       "recommended": {
         "8474564": "RW",
@@ -395,27 +375,6 @@
       "message_id": 1171,
       "type": "add"
     },
-    "lineup-2026-11-06-1731": {
-      "assignment": {
-        "8474564": "RW",
-        "8476460": "C",
-        "8476483": "LW",
-        "8476887": "LW",
-        "8477949": "RW",
-        "8478872": "G",
-        "8480145": "D",
-        "8480807": "D",
-        "8480855": "BN",
-        "8480865": "D",
-        "8481519": "G",
-        "8482087": "D",
-        "8482447": "BN",
-        "8484801": "C"
-      },
-      "date": "2026-11-06",
-      "message_id": 945,
-      "type": "lineup"
-    },
     "lineup-2026-11-07-1631": {
       "assignment": {
         "8474564": "RW",
@@ -713,7 +672,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-20T20:31+00:00",
+    "at": "2026-11-21T06:47+00:00",
     "moves": [],
     "week": 8
   },
@@ -877,7 +836,7 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784958,
+  "telegram_offset": 929784959,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -1006,8 +965,9 @@
       "8478454:ice time": "2026-11-20",
       "8478462:ice time": "2026-11-19",
       "8478462:promoted": "2026-11-03",
+      "8478472:promoted": "2026-11-21",
       "8478474:promoted": "2026-11-09",
-      "8478498:promoted": "2026-11-07",
+      "8478498:promoted": "2026-11-21",
       "8478499:goalie": "2026-10-27",
       "8478508:promoted": "2026-11-18",
       "8478519:promoted": "2026-11-12",
@@ -1061,7 +1021,7 @@
       "8480797:promoted": "2026-10-22",
       "8480802:promoted": "2026-11-18",
       "8480829:ice time": "2026-10-25",
-      "8480842:promoted": "2026-10-16",
+      "8480842:promoted": "2026-11-21",
       "8480849:promoted": "2026-11-18",
       "8480878:promoted": "2026-11-06",
       "8480891:promoted": "2026-11-09",
@@ -1079,7 +1039,7 @@
       "8481523:ice time": "2026-11-20",
       "8481523:promoted": "2026-10-28",
       "8481527:ice time": "2026-10-18",
-      "8481527:promoted": "2026-11-07",
+      "8481527:promoted": "2026-11-21",
       "8481534:promoted": "2026-10-23",
       "8481535:ice time": "2026-11-18",
       "8481535:promoted": "2026-11-18",
@@ -1119,7 +1079,7 @@
       "8482124:promoted": "2026-11-12",
       "8482142:ice time": "2026-10-14",
       "8482142:promoted": "2026-10-28",
-      "8482145:promoted": "2026-11-07",
+      "8482145:promoted": "2026-11-21",
       "8482146:promoted": "2026-11-12",
       "8482148:promoted": "2026-10-22",
       "8482159:promoted": "2026-11-16",
@@ -1486,6 +1446,13 @@
           "f2": "2026-11-12"
         }
       },
+      "8475718": {
+        "groups": [
+          "d2",
+          "pk2"
+        ],
+        "since": {}
+      },
       "8475722": {
         "groups": [
           "f3",
@@ -1495,11 +1462,11 @@
       },
       "8475726": {
         "groups": [
-          "f4",
-          "pp1"
+          "f2",
+          "pp2"
         ],
         "since": {
-          "pp1": "2026-11-17"
+          "f2": "2026-11-21"
         }
       },
       "8475745": {
@@ -1690,12 +1657,6 @@
         ],
         "since": {}
       },
-      "8476474": {
-        "groups": [
-          "f3"
-        ],
-        "since": {}
-      },
       "8476479": {
         "groups": [
           "f3",
@@ -1714,12 +1675,10 @@
       },
       "8476624": {
         "groups": [
-          "f2",
+          "f4",
           "pk1"
         ],
-        "since": {
-          "f2": "2026-11-18"
-        }
+        "since": {}
       },
       "8476822": {
         "groups": [
@@ -2126,12 +2085,12 @@
       },
       "8477953": {
         "groups": [
-          "f2",
+          "f1",
           "pk2",
           "pp2"
         ],
         "since": {
-          "f2": "2026-11-13"
+          "f1": "2026-11-21"
         }
       },
       "8477969": {
@@ -2308,10 +2267,12 @@
       },
       "8478472": {
         "groups": [
-          "f4",
+          "f2",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-21"
+        }
       },
       "8478474": {
         "groups": [
@@ -2405,12 +2366,10 @@
       },
       "8478874": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-18"
-        }
+        "since": {}
       },
       "8478882": {
         "groups": [
@@ -2489,7 +2448,7 @@
       },
       "8479365": {
         "groups": [
-          "f3",
+          "f4",
           "pp2"
         ],
         "since": {}
@@ -2686,13 +2645,6 @@
         ],
         "since": {}
       },
-      "8480043": {
-        "groups": [
-          "d2",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8480049": {
         "groups": [
           "d2",
@@ -2869,10 +2821,12 @@
       },
       "8480842": {
         "groups": [
-          "f3",
+          "f1",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-21"
+        }
       },
       "8480848": {
         "groups": [
@@ -2901,12 +2855,6 @@
         "groups": [
           "d2",
           "pk2"
-        ],
-        "since": {}
-      },
-      "8480879": {
-        "groups": [
-          "d3"
         ],
         "since": {}
       },
@@ -3013,7 +2961,7 @@
       },
       "8481517": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3147,6 +3095,12 @@
           "d2",
           "pk2",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8481607": {
+        "groups": [
+          "d3"
         ],
         "since": {}
       },
@@ -3558,12 +3512,10 @@
       },
       "8482703": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-17"
-        }
+        "since": {}
       },
       "8482705": {
         "groups": [
@@ -3907,6 +3859,12 @@
         ],
         "since": {}
       },
+      "8483695": {
+        "groups": [
+          "f3"
+        ],
+        "since": {}
+      },
       "8483787": {
         "groups": [
           "f2"
@@ -4065,7 +4023,8 @@
       },
       "8484421": {
         "groups": [
-          "d1"
+          "d1",
+          "pp2"
         ],
         "since": {
           "d1": "2026-11-18"
@@ -4138,12 +4097,9 @@
       "8484806": {
         "groups": [
           "d2",
-          "pk2",
-          "pp1"
+          "pk2"
         ],
-        "since": {
-          "pp1": "2026-11-15"
-        }
+        "since": {}
       },
       "8484829": {
         "groups": [
@@ -4212,10 +4168,12 @@
       },
       "8485402": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-21"
+        }
       },
       "8485406": {
         "groups": [
@@ -4304,66 +4262,6 @@
       }
     },
     "log": [
-      {
-        "date": "2026-11-07",
-        "id": 8482145,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Mavrik Bourque",
-        "positions": "C/RW",
-        "price": 0.125,
-        "sent": false,
-        "team": "NSH",
-        "value": -0.073,
-        "verdict": "-7 win-pts against the 12.5 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line and the first power play, and it has held for 3 days."
-      },
-      {
-        "date": "2026-11-07",
-        "id": 8484911,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Collin Graf",
-        "positions": "LW/RW",
-        "price": 0.125,
-        "sent": false,
-        "team": "SJS",
-        "value": -0.0628,
-        "verdict": "-6 win-pts against the 12.5 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 2 days."
-      },
-      {
-        "date": "2026-11-07",
-        "id": 8478498,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Jake DeBrusk",
-        "positions": "LW/RW",
-        "price": 0.125,
-        "sent": false,
-        "team": "VAN",
-        "value": -0.0262,
-        "verdict": "-3 win-pts against the 12.5 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 12 days."
-      },
-      {
-        "date": "2026-11-07",
-        "id": 8481527,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Kaedan Korczak",
-        "positions": "D",
-        "price": 0.125,
-        "sent": false,
-        "team": "PIT",
-        "value": -0.1372,
-        "verdict": "-14 win-pts against the 12.5 an add costs: not yet worth one.",
-        "why": "DFO moved up to the top D pair."
-      },
       {
         "date": "2026-11-08",
         "id": 8483506,
@@ -7160,6 +7058,81 @@
         "value": -0.1357,
         "verdict": "-14 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8480842,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Filip Hallander",
+        "positions": "C",
+        "price": 0.108,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.1364,
+        "verdict": "-14 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8478472,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mathieu Joseph",
+        "positions": "RW",
+        "price": 0.108,
+        "sent": false,
+        "team": "EDM",
+        "value": -0.059,
+        "verdict": "-6 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8482145,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Mavrik Bourque",
+        "positions": "C/RW",
+        "price": 0.108,
+        "sent": false,
+        "team": "NSH",
+        "value": -0.0997,
+        "verdict": "-10 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 22 days."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8481527,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Kaedan Korczak",
+        "positions": "D",
+        "price": 0.108,
+        "sent": false,
+        "team": "PIT",
+        "value": -0.0453,
+        "verdict": "-5 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-21",
+        "id": 8478498,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jake DeBrusk",
+        "positions": "LW/RW",
+        "price": 0.108,
+        "sent": false,
+        "team": "VAN",
+        "value": -0.0414,
+        "verdict": "-4 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 11 days."
       }
     ]
   },
@@ -7196,7 +7169,7 @@
       "sent": "2026-11-09T06:30+00:00"
     },
     "8": {
-      "midweek": "2026-11-20T06:42+00:00",
+      "midweek": "2026-11-21T06:47+00:00",
       "sent": "2026-11-16T06:43+00:00"
     }
   },
