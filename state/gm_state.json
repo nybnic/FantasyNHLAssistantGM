@@ -643,7 +643,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-22T09:01+00:00",
+    "at": "2026-11-22T16:00+00:00",
     "moves": [],
     "week": 8
   },
@@ -847,6 +847,7 @@
       "8475745:ice time": "2026-10-21",
       "8475745:promoted": "2026-11-18",
       "8475768:promoted": "2026-11-15",
+      "8475791:promoted": "2026-11-22",
       "8475794:promoted": "2026-11-15",
       "8475799:promoted": "2026-11-16",
       "8475831:no1": "2026-10-13",
@@ -1511,10 +1512,12 @@
       },
       "8475791": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-22"
+        }
       },
       "8475794": {
         "groups": [
@@ -2789,6 +2792,12 @@
         "groups": [
           "d2",
           "pk2"
+        ],
+        "since": {}
+      },
+      "8480829": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -7240,6 +7249,21 @@
         "value": -0.0993,
         "verdict": "-10 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "Ice time 15:44 a game in his last 3, up from 12:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-22",
+        "id": 8475791,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Taylor Hall",
+        "positions": "LW",
+        "price": 0.108,
+        "sent": false,
+        "team": "CAR",
+        "value": -0.1052,
+        "verdict": "-11 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },

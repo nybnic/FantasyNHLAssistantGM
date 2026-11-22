@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-22T09:01+00:00",
+ "generated": "2026-11-22T16:00+00:00",
  "date": "2026-11-22",
  "week": 8,
  "opponent": "Bottom three",
@@ -56,7 +56,7 @@
    "pace": 1.375
   },
   "later_weight": 0.00784,
-  "tau": 22.02,
+  "tau": 22.06,
   "ahead": [
    {
     "week": 9,
@@ -82,11 +82,11 @@
    ]
   },
   "season": {
-   "playoffs": 0.9109,
-   "title": 0.187,
-   "leverage": 0.1142,
-   "typical": 0.0929,
-   "seed": 4.297,
+   "playoffs": 0.9173,
+   "title": 0.1856,
+   "leverage": 0.1119,
+   "typical": 0.0875,
+   "seed": 4.3057,
    "note": " (Standings through week 6: send a new screenshot.)"
   }
  },
@@ -1482,7 +1482,7 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0524,
+   "later_wins": -0.0523,
    "value": -0.0114,
    "status": "fails",
    "why": "dropping Jake Neighbours costs about 7 pts later, more than this week's +0 win-pts make up for",
@@ -1703,7 +1703,7 @@
     0.208,
     0.074
    ],
-   "later_wins": -0.0555,
+   "later_wins": -0.0554,
    "value": -0.0164,
    "status": "fails",
    "why": "dropping Jake Neighbours costs about 7 pts later, more than this week's +0 win-pts make up for",
@@ -2018,7 +2018,7 @@
    ],
    "now_wins": 0.0,
    "ahead_wins": [
-    0.0333,
+    0.0334,
     -0.0132
    ],
    "ahead_pts": 2.1,
@@ -2315,6 +2315,62 @@
    "nights": null
   },
   {
+   "key": "8476432:8482089",
+   "add": {
+    "id": 8476432,
+    "name": "Boone Jenner",
+    "team": "WSH",
+    "positions": [
+     "C",
+     "LW"
+    ]
+   },
+   "drop": {
+    "id": 8482089,
+    "name": "Jake Neighbours"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": true,
+   "when": null,
+   "games": 0,
+   "week_pts": 0.0,
+   "next_two_pts": -0.17,
+   "later_pts": -2.75,
+   "win": [
+    1.0,
+    1.0
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.0,
+    -0.0006
+   ],
+   "ahead_pts": -0.09,
+   "ahead_week_pts": [
+    0.0,
+    -0.09
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0215,
+   "value": -0.0222,
+   "status": "fails",
+   "why": "dropping Jake Neighbours costs about 3 pts later, more than this week's +0 win-pts make up for",
+   "nights": {
+    "from": "2026-11-25",
+    "cells": "b.bb..s.s.s"
+   }
+  },
+  {
    "key": "8477498:8476483",
    "add": {
     "id": 8477498,
@@ -2361,7 +2417,7 @@
     0.074
    ],
    "later_wins": -0.0713,
-   "value": -0.0225,
+   "value": -0.0224,
    "status": "fails",
    "why": "dropping Rickard Rakell costs about 9 pts later, more than this week's +0 win-pts make up for",
    "nights": {
@@ -2417,62 +2473,6 @@
    "status": "fails",
    "why": "worth -2.3 win-pts, under the 10.8 an add costs",
    "nights": null
-  },
-  {
-   "key": "8476432:8482089",
-   "add": {
-    "id": 8476432,
-    "name": "Boone Jenner",
-    "team": "WSH",
-    "positions": [
-     "C",
-     "LW"
-    ]
-   },
-   "drop": {
-    "id": 8482089,
-    "name": "Jake Neighbours"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": true,
-   "when": null,
-   "games": 0,
-   "week_pts": 0.0,
-   "next_two_pts": -0.21,
-   "later_pts": -2.8,
-   "win": [
-    1.0,
-    1.0
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    0.0,
-    -0.0008
-   ],
-   "ahead_pts": -0.11,
-   "ahead_week_pts": [
-    0.0,
-    -0.11
-   ],
-   "held": true,
-   "keep": 0.208,
-   "bin": "skater, lowest",
-   "stays": [
-    0.423,
-    0.208,
-    0.074
-   ],
-   "later_wins": -0.022,
-   "value": -0.0227,
-   "status": "fails",
-   "why": "dropping Jake Neighbours costs about 3 pts later, more than this week's +0 win-pts make up for",
-   "nights": {
-    "from": "2026-11-25",
-    "cells": "b.bb..s.s.s"
-   }
   },
   {
    "key": "8480289:8476483",
@@ -3016,6 +3016,61 @@
    }
   },
   {
+   "key": "8482713:8476483",
+   "add": {
+    "id": 8482713,
+    "name": "Mackie Samoskevich",
+    "team": "SEA",
+    "positions": [
+     "RW"
+    ]
+   },
+   "drop": {
+    "id": 8476483,
+    "name": "Rickard Rakell"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": true,
+   "when": null,
+   "games": 0,
+   "week_pts": 0.0,
+   "next_two_pts": -0.18,
+   "later_pts": -4.86,
+   "win": [
+    1.0,
+    1.0
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    0.0251,
+    -0.0154
+   ],
+   "ahead_pts": 0.78,
+   "ahead_week_pts": [
+    3.01,
+    -2.23
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0381,
+   "value": -0.0284,
+   "status": "fails",
+   "why": "dropping Rickard Rakell costs about 5 pts later, more than this week's +0 win-pts make up for",
+   "nights": {
+    "from": "2026-11-23",
+    "cells": "s.b.bb..s.ss.s"
+   }
+  },
+  {
    "key": "8480855:8478872",
    "add": {
     "id": 8480855,
@@ -3063,67 +3118,12 @@
     0.074
    ],
    "later_wins": -0.023,
-   "value": -0.0285,
+   "value": -0.0284,
    "status": "fails",
    "why": "dropping Karel Vejmelka costs about 3 pts later, more than this week's +0 win-pts make up for",
    "nights": {
     "from": "2026-11-23",
     "cells": "s.b.bb.s.ss.s"
-   }
-  },
-  {
-   "key": "8482713:8476483",
-   "add": {
-    "id": 8482713,
-    "name": "Mackie Samoskevich",
-    "team": "SEA",
-    "positions": [
-     "RW"
-    ]
-   },
-   "drop": {
-    "id": 8476483,
-    "name": "Rickard Rakell"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": true,
-   "when": null,
-   "games": 0,
-   "week_pts": 0.0,
-   "next_two_pts": -0.18,
-   "later_pts": -4.86,
-   "win": [
-    1.0,
-    1.0
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    0.0251,
-    -0.0154
-   ],
-   "ahead_pts": 0.78,
-   "ahead_week_pts": [
-    3.01,
-    -2.23
-   ],
-   "held": true,
-   "keep": 0.208,
-   "bin": "skater, lowest",
-   "stays": [
-    0.423,
-    0.208,
-    0.074
-   ],
-   "later_wins": -0.0381,
-   "value": -0.0285,
-   "status": "fails",
-   "why": "dropping Rickard Rakell costs about 5 pts later, more than this week's +0 win-pts make up for",
-   "nights": {
-    "from": "2026-11-23",
-    "cells": "s.b.bb..s.ss.s"
    }
   },
   {
@@ -3179,6 +3179,62 @@
    "nights": {
     "from": "2026-11-25",
     "cells": "b.b5..5.5.5"
+   }
+  },
+  {
+   "key": "8476432:8476483",
+   "add": {
+    "id": 8476432,
+    "name": "Boone Jenner",
+    "team": "WSH",
+    "positions": [
+     "C",
+     "LW"
+    ]
+   },
+   "drop": {
+    "id": 8476483,
+    "name": "Rickard Rakell"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": true,
+   "when": null,
+   "games": 0,
+   "week_pts": 0.0,
+   "next_two_pts": -5.59,
+   "later_pts": -1.08,
+   "win": [
+    1.0,
+    1.0
+   ],
+   "now_wins": 0.0,
+   "ahead_wins": [
+    -0.0009,
+    -0.0203
+   ],
+   "ahead_pts": -3.03,
+   "ahead_week_pts": [
+    -0.1,
+    -2.93
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0084,
+   "value": -0.0296,
+   "status": "fails",
+   "why": "dropping Rickard Rakell costs about 1 pts later, more than this week's +0 win-pts make up for",
+   "nights": {
+    "from": "2026-11-25",
+    "cells": "b.bb..s.s.s"
    }
   },
   {
@@ -3346,62 +3402,6 @@
    "nights": {
     "from": "2026-11-23",
     "cells": "s.b.bb..s.ss.s"
-   }
-  },
-  {
-   "key": "8476432:8476483",
-   "add": {
-    "id": 8476432,
-    "name": "Boone Jenner",
-    "team": "WSH",
-    "positions": [
-     "C",
-     "LW"
-    ]
-   },
-   "drop": {
-    "id": 8476483,
-    "name": "Rickard Rakell"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": true,
-   "when": null,
-   "games": 0,
-   "week_pts": 0.0,
-   "next_two_pts": -5.63,
-   "later_pts": -1.13,
-   "win": [
-    1.0,
-    1.0
-   ],
-   "now_wins": 0.0,
-   "ahead_wins": [
-    -0.0009,
-    -0.0204
-   ],
-   "ahead_pts": -3.05,
-   "ahead_week_pts": [
-    -0.1,
-    -2.95
-   ],
-   "held": true,
-   "keep": 0.208,
-   "bin": "skater, lowest",
-   "stays": [
-    0.423,
-    0.208,
-    0.074
-   ],
-   "later_wins": -0.0089,
-   "value": -0.0302,
-   "status": "fails",
-   "why": "dropping Rickard Rakell costs about 1 pts later, more than this week's +0 win-pts make up for",
-   "nights": {
-    "from": "2026-11-25",
-    "cells": "b.bb..s.s.s"
    }
   }
  ],
@@ -3831,7 +3831,7 @@
    "note": "",
    "durability": 1.0,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8484801": {
    "id": 8484801,
@@ -3991,7 +3991,7 @@
    "note": "",
    "durability": 0.961,
    "kept": 0.985,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476483": {
    "id": 8476483,
@@ -4151,7 +4151,7 @@
    "note": "",
    "durability": 0.953,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476887": {
    "id": 8476887,
@@ -4311,7 +4311,7 @@
    "note": "",
    "durability": 0.991,
    "kept": 0.998,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8474564": {
    "id": 8474564,
@@ -4471,7 +4471,7 @@
    "note": "",
    "durability": 1.0,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8477949": {
    "id": 8477949,
@@ -4631,7 +4631,7 @@
    "note": "",
    "durability": 0.974,
    "kept": 0.997,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8480807": {
    "id": 8480807,
@@ -5681,7 +5681,7 @@
    "note": "",
    "durability": 0.953,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8478872": {
    "id": 8478872,
@@ -5702,7 +5702,7 @@
      ],
      "Saves": [
       310.0,
-      316.8
+      316.7
      ],
      "Goals against": [
       45.0,
@@ -5958,7 +5958,7 @@
    "note": "",
    "durability": 0.914,
    "kept": 0.976,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8481596": {
    "id": 8481596,
@@ -6118,7 +6118,7 @@
    "note": "",
    "durability": 0.939,
    "kept": 0.995,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8478864": {
    "id": 8478864,
@@ -6278,7 +6278,7 @@
    "note": "",
    "durability": 0.947,
    "kept": 0.986,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8477479": {
    "id": 8477479,
@@ -6438,7 +6438,7 @@
    "note": "",
    "durability": 1.0,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8478444": {
    "id": 8478444,
@@ -6598,7 +6598,7 @@
    "note": "",
    "durability": 0.945,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8483516": {
    "id": 8483516,
@@ -6758,7 +6758,7 @@
    "note": "",
    "durability": 0.964,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8474600": {
    "id": 8474600,
@@ -7498,7 +7498,7 @@
    "per_game": {
     "Start": 1.0,
     "Win": 2.14,
-    "Saves": 7.09,
+    "Saves": 7.08,
     "Goals against": -2.43,
     "Shutout": 0.34
    },
@@ -7909,7 +7909,7 @@
    "note": "out",
    "durability": 0.867,
    "kept": 0.978,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476454": {
    "id": 8476454,
@@ -8069,7 +8069,7 @@
    "note": "day-to-day",
    "durability": 0.981,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8482720": {
    "id": 8482720,
@@ -8229,7 +8229,7 @@
    "note": "",
    "durability": 0.993,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8477498": {
    "id": 8477498,
@@ -8549,7 +8549,7 @@
    "note": "",
    "durability": 0.827,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8482259": {
    "id": 8482259,
@@ -8709,7 +8709,7 @@
    "note": "",
    "durability": 0.955,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8480855": {
    "id": 8480855,
@@ -8869,7 +8869,7 @@
    "note": "",
    "durability": 0.962,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8480796": {
    "id": 8480796,
@@ -9669,7 +9669,7 @@
    "note": "IR",
    "durability": 0.923,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8482858": {
    "id": 8482858,
@@ -9989,7 +9989,7 @@
    "note": "",
    "durability": 0.893,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8475168": {
    "id": 8475168,
@@ -10031,7 +10031,7 @@
    "note": "IR",
    "durability": 0.978,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8479983": {
    "id": 8479983,
@@ -10351,7 +10351,7 @@
    "note": "",
    "durability": 1.0,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8482095": {
    "id": 8482095,
@@ -10671,7 +10671,7 @@
    "note": "",
    "durability": 0.905,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8482713": {
    "id": 8482713,
@@ -10831,7 +10831,7 @@
    "note": "",
    "durability": 0.937,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8480049": {
    "id": 8480049,
@@ -11151,7 +11151,7 @@
    "note": "",
    "durability": 0.909,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8481789": {
    "id": 8481789,
@@ -11311,7 +11311,7 @@
    "note": "",
    "durability": 0.867,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476931": {
    "id": 8476931,
@@ -12022,7 +12022,167 @@
    "note": "IR",
    "durability": 0.754,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
+  },
+  "8476432": {
+   "id": 8476432,
+   "name": "Boone Jenner",
+   "team": "WSH",
+   "positions": "C/LW",
+   "owner": "fa",
+   "goalie": false,
+   "season": {
+    "gp": 21,
+    "pts": 110.2,
+    "proj": 111.6,
+    "pts_projected": 110.2,
+    "stats": {
+     "Goals": [
+      7.0,
+      5.0
+     ],
+     "Assists": [
+      3.0,
+      5.9
+     ],
+     "PP points": [
+      0.0,
+      0.5
+     ],
+     "SH points": [
+      0.0,
+      0.3
+     ],
+     "GWG": [
+      1.0,
+      0.7
+     ],
+     "Shots": [
+      45.0,
+      42.5
+     ],
+     "Hits": [
+      33.0,
+      33.2
+     ],
+     "Blocks": [
+      17.0,
+      20.4
+     ],
+     "Faceoff wins": [
+      159.0,
+      124.9
+     ],
+     "+/-": [
+      -2.0,
+      0.4
+     ],
+     "PIM": [
+      4.0,
+      10.1
+     ]
+    },
+    "last": [
+     {
+      "date": "2026-11-21",
+      "opp": "BOS",
+      "pts": 6.2,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-11-19",
+      "opp": "BUF",
+      "pts": 10.3,
+      "proj": 5.1
+     },
+     {
+      "date": "2026-11-17",
+      "opp": "TBL",
+      "pts": 0.1,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-11-14",
+      "opp": "NJD",
+      "pts": 6.5,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-11-12",
+      "opp": "NJD",
+      "pts": 3.2,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-11-10",
+      "opp": "OTT",
+      "pts": 3.5,
+      "proj": 5.2
+     },
+     {
+      "date": "2026-11-07",
+      "opp": "FLA",
+      "pts": 2.7,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-11-03",
+      "opp": "DAL",
+      "pts": 8.8,
+      "proj": 5.3
+     },
+     {
+      "date": "2026-11-01",
+      "opp": "MIN",
+      "pts": 2.1,
+      "proj": 5.4
+     },
+     {
+      "date": "2026-10-29",
+      "opp": "NSH",
+      "pts": 6.5,
+      "proj": 5.4
+     }
+    ]
+   },
+   "per_game": {
+    "Goals": 0.97,
+    "Assists": 0.712,
+    "PP, SH, GWG": 0.1,
+    "Shots": 0.995,
+    "Hits": 0.976,
+    "Blocks": 0.671,
+    "Faceoffs": 0.656,
+    "+/- and PIM": 0.124
+   },
+   "xfp": 5.204,
+   "stats": {
+    "Goals": 0.242,
+    "Assists": 0.259,
+    "PP points": 0.016,
+    "SH points": 0.014,
+    "GWG": 0.034,
+    "Shots": 1.99,
+    "Hits": 1.626,
+    "Blocks": 0.839,
+    "Faceoff wins": 6.56,
+    "+/-": 0.0,
+    "PIM": 0.413
+   },
+   "toi": 15.64,
+   "pp_toi": 0.03,
+   "pp_share": {
+    "season": 0.006,
+    "recent": 0.006,
+    "recent_games": 5,
+    "trend": 0
+   },
+   "gp": 21,
+   "play": 0.97,
+   "note": "",
+   "durability": 0.792,
+   "kept": 1.0,
+   "replacement": 5.315
   },
   "8478421": {
    "id": 8478421,
@@ -12182,167 +12342,7 @@
    "note": "IR",
    "durability": 0.88,
    "kept": 1.0,
-   "replacement": 5.311
-  },
-  "8476432": {
-   "id": 8476432,
-   "name": "Boone Jenner",
-   "team": "WSH",
-   "positions": "C/LW",
-   "owner": "fa",
-   "goalie": false,
-   "season": {
-    "gp": 21,
-    "pts": 109.8,
-    "proj": 111.6,
-    "pts_projected": 109.8,
-    "stats": {
-     "Goals": [
-      7.0,
-      5.0
-     ],
-     "Assists": [
-      3.0,
-      5.9
-     ],
-     "PP points": [
-      0.0,
-      0.5
-     ],
-     "SH points": [
-      0.0,
-      0.3
-     ],
-     "GWG": [
-      1.0,
-      0.7
-     ],
-     "Shots": [
-      44.0,
-      42.5
-     ],
-     "Hits": [
-      33.0,
-      33.2
-     ],
-     "Blocks": [
-      17.0,
-      20.4
-     ],
-     "Faceoff wins": [
-      159.0,
-      124.9
-     ],
-     "+/-": [
-      -2.0,
-      0.4
-     ],
-     "PIM": [
-      4.0,
-      10.1
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-11-21",
-      "opp": "BOS",
-      "pts": 5.7,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-11-19",
-      "opp": "BUF",
-      "pts": 10.3,
-      "proj": 5.1
-     },
-     {
-      "date": "2026-11-17",
-      "opp": "TBL",
-      "pts": 0.1,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-11-14",
-      "opp": "NJD",
-      "pts": 6.5,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-11-12",
-      "opp": "NJD",
-      "pts": 3.2,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-11-10",
-      "opp": "OTT",
-      "pts": 3.5,
-      "proj": 5.2
-     },
-     {
-      "date": "2026-11-07",
-      "opp": "FLA",
-      "pts": 2.7,
-      "proj": 5.3
-     },
-     {
-      "date": "2026-11-03",
-      "opp": "DAL",
-      "pts": 8.8,
-      "proj": 5.3
-     },
-     {
-      "date": "2026-11-01",
-      "opp": "MIN",
-      "pts": 2.1,
-      "proj": 5.4
-     },
-     {
-      "date": "2026-10-29",
-      "opp": "NSH",
-      "pts": 6.5,
-      "proj": 5.4
-     }
-    ]
-   },
-   "per_game": {
-    "Goals": 0.97,
-    "Assists": 0.712,
-    "PP, SH, GWG": 0.1,
-    "Shots": 0.983,
-    "Hits": 0.976,
-    "Blocks": 0.671,
-    "Faceoffs": 0.656,
-    "+/- and PIM": 0.124
-   },
-   "xfp": 5.192,
-   "stats": {
-    "Goals": 0.242,
-    "Assists": 0.259,
-    "PP points": 0.016,
-    "SH points": 0.014,
-    "GWG": 0.034,
-    "Shots": 1.966,
-    "Hits": 1.626,
-    "Blocks": 0.839,
-    "Faceoff wins": 6.56,
-    "+/-": 0.0,
-    "PIM": 0.413
-   },
-   "toi": 15.64,
-   "pp_toi": 0.03,
-   "pp_share": {
-    "season": 0.006,
-    "recent": 0.006,
-    "recent_games": 5,
-    "trend": 0
-   },
-   "gp": 21,
-   "play": 0.97,
-   "note": "",
-   "durability": 0.792,
-   "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8478975": {
    "id": 8478975,
@@ -12502,7 +12502,7 @@
    "note": "",
    "durability": 0.878,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8478508": {
    "id": 8478508,
@@ -12662,7 +12662,7 @@
    "note": "",
    "durability": 0.983,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8475810": {
    "id": 8475810,
@@ -12804,7 +12804,7 @@
    "note": "IR",
    "durability": 0.899,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476981": {
    "id": 8476981,
@@ -12964,7 +12964,7 @@
    "note": "IR",
    "durability": 0.928,
    "kept": 1.0,
-   "replacement": 5.311
+   "replacement": 5.315
   },
   "8476434": {
    "id": 8476434,
@@ -12985,7 +12985,7 @@
      ],
      "Saves": [
       274.0,
-      309.9
+      309.8
      ],
      "Goals against": [
       44.0,
@@ -15708,18 +15708,33 @@
  "watch": [
   {
    "date": "2026-11-22",
+   "id": 8475791,
+   "name": "Taylor Hall",
+   "team": "CAR",
+   "positions": "LW",
+   "kinds": [
+    "promoted"
+   ],
+   "why": "DFO moved up to the second line.",
+   "verdict": "-11 win-pts against the 10.8 an add costs: not yet worth one.",
+   "value": -0.1052,
+   "price": 0.108,
+   "sent": false
+  },
+  {
+   "date": "2026-11-22",
    "id": 8482641,
-   "name": "Matt Kiersted",
-   "team": "MIN",
-   "positions": "D",
    "kinds": [
     "ice time"
    ],
-   "why": "Ice time 15:44 a game in his last 3, up from 12:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week.",
-   "verdict": "-10 win-pts against the 10.8 an add costs: not yet worth one.",
-   "value": -0.0993,
+   "name": "Matt Kiersted",
+   "positions": "D",
    "price": 0.108,
-   "sent": true
+   "sent": true,
+   "team": "MIN",
+   "value": -0.0993,
+   "verdict": "-10 win-pts against the 10.8 an add costs: not yet worth one.",
+   "why": "Ice time 15:44 a game in his last 3, up from 12:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
   },
   {
    "date": "2026-11-22",
