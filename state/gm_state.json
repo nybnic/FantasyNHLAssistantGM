@@ -643,7 +643,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-22T06:21+00:00",
+    "at": "2026-11-22T09:01+00:00",
     "moves": [],
     "week": 8
   },
@@ -1074,6 +1074,7 @@
       "8482476:promoted": "2026-11-16",
       "8482482:promoted": "2026-11-11",
       "8482516:ice time": "2026-11-22",
+      "8482641:ice time": "2026-11-22",
       "8482655:ice time": "2026-11-13",
       "8482659:promoted": "2026-11-10",
       "8482660:promoted": "2026-11-20",
@@ -7224,6 +7225,21 @@
         "value": -0.0784,
         "verdict": "-8 win-pts against the 10.8 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-22",
+        "id": 8482641,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Matt Kiersted",
+        "positions": "D",
+        "price": 0.108,
+        "sent": true,
+        "team": "MIN",
+        "value": -0.0993,
+        "verdict": "-10 win-pts against the 10.8 an add costs: not yet worth one.",
+        "why": "Ice time 15:44 a game in his last 3, up from 12:38. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
