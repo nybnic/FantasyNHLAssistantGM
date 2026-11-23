@@ -664,7 +664,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-23T20:05+00:00",
+    "at": "2026-11-23T20:50+00:00",
     "moves": [],
     "week": 9
   },
@@ -1198,6 +1198,7 @@
       "8485402:promoted": "2026-11-16",
       "8485406:promoted": "2026-11-21",
       "8485414:promoted": "2026-11-20",
+      "8485512:promoted": "2026-11-23",
       "8485702:promoted": "2026-11-22",
       "8486025:promoted": "2026-11-15",
       "8486067:promoted": "2026-10-28",
@@ -2382,9 +2383,11 @@
       "8478873": {
         "groups": [
           "f3",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-23"
+        }
       },
       "8478874": {
         "groups": [
@@ -2486,7 +2489,7 @@
       },
       "8479371": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -3181,7 +3184,8 @@
       "8481754": {
         "groups": [
           "f4",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -3280,6 +3284,12 @@
       "8482111": {
         "groups": [
           "d2"
+        ],
+        "since": {}
+      },
+      "8482118": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -3725,7 +3735,7 @@
       },
       "8483485": {
         "groups": [
-          "d2",
+          "d3",
           "pk2",
           "pp2"
         ],
@@ -4180,7 +4190,7 @@
       },
       "8485400": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
         ],
         "since": {}
@@ -4228,10 +4238,12 @@
       },
       "8485512": {
         "groups": [
-          "f3",
+          "f2",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-23"
+        }
       },
       "8485702": {
         "groups": [
@@ -7222,6 +7234,21 @@
         "value": -0.0656,
         "verdict": "-7 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the top D pair."
+      },
+      {
+        "date": "2026-11-23",
+        "id": 8485512,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Tim Washe",
+        "positions": "C",
+        "price": 0.0949,
+        "sent": false,
+        "team": "ANA",
+        "value": -0.0732,
+        "verdict": "-7 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
