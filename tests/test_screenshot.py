@@ -320,6 +320,25 @@ def test_standings_rows_pair_each_team_with_its_record_and_points_for(monkeypatc
     ]
 
 
+# Nico's League tab after week 8 (2026-11-23) as Telegram's JPEG reads: some
+# rows' record and points for come as one line, his highlighted row most often.
+MERGED_STANDINGS_LINES = [
+    (124.0, 480.0, 23.0, "Lollot Hontsaajat"), (412.0, 481.0, 20.0, "4-4-0"), (479.0, 481.0, 19.0, "1950.60"),
+    (124.0, 539.0, 26.0, "Nico'sGroovyTeam"), (412.0, 541.0, 20.0, "4-4-01863.00"),
+    (124.0, 598.0, 26.0, "Viktorios"), (412.0, 602.0, 20.0, "4-4-0:1789.60"),
+    (124.0, 658.0, 30.0, "Gwp"), (410.0, 660.0, 22.0, "4-4-0"), (485.0, 661.0, 21.0, "1524.70"),
+]
+
+
+def test_a_record_and_points_for_read_as_one_line_split(monkeypatch):
+    shot = _shot(monkeypatch, MERGED_STANDINGS_LINES, width=590)
+    assert [(r["team"], r["w"], r["l"], r["t"], r["pf"]) for r in shot["rows"]] == [
+        ("Lollot Hontsaajat", 4, 4, 0, 1950.6), ("Nico'sGroovyTeam", 4, 4, 0, 1863.0),
+        ("Viktorios", 4, 4, 0, 1789.6), ("Gwp", 4, 4, 0, 1524.7)]
+    assert screenshot._record_and_points("0-0-00.00") == ((0, 0, 0), "0.00")
+    assert screenshot._record_and_points("4-4-0") is None
+
+
 # OCR lines from the website's Standings table (Nico's screenshot after week 1,
 # 949 px wide): Rank, Team, W-L-T, Pct, Pts, Waiver, Moves.
 WEB_STANDINGS_LINES = [

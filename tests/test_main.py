@@ -891,6 +891,20 @@ def test_the_weeks_first_plan_keeps_each_nights_forecast_for_the_race(tmp_path):
     assert sum(first["by_day"][0].values()) == pytest.approx(215.64) and first["final"] == [213.69, 198.21]
 
 
+def test_the_week_8_standings_repair_adds_my_row_once_and_keeps_newer_ones():
+    from config.league import MY_TEAM
+    state = {"standings": {"week": 8, "at": "2026-11-23", "teams": {"Gwp": {"w": 4, "l": 4, "t": 0, "pf": 1524.7}}},
+             "league_weeks": {"8": {"pairs": [], "scores": {}, "points_for": {"Gwp": 1524.7}}}}
+    repairs._week_8_standings(state, [], {})
+    assert len(state["standings"]["teams"]) == 16
+    assert state["standings"]["teams"][MY_TEAM] == {"w": 4, "l": 4, "t": 0, "pf": 1863.0}
+    assert state["league_weeks"]["8"]["points_for"][MY_TEAM] == 1863.0
+    newer = {"week": 9, "at": "2026-11-30", "teams": {}}
+    state["standings"] = newer
+    repairs._week_8_standings(state, [], {})
+    assert state["standings"] is newer
+
+
 def test_last_weeks_result_goes_out_monday_noon_once(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [])
     view = {"week": 1, "opponent": "Bahelin Boys", "finished": True, "final": [170.0, 160.0],

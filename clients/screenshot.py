@@ -333,17 +333,37 @@ def _standings(lines: list, width: int) -> list[dict]:
     decimals, so never points), Pts, Waiver and Moves."""
     rows = []
     for rx, ry, rh, rt in lines:
-        if not 0.35 * width < rx < 0.85 * width or not _RECORD.fullmatch(rt.replace("O", "0").replace(" ", "")):
+        squashed = rt.replace("O", "0").replace(" ", "")
+        merged = _record_and_points(squashed)
+        if not 0.35 * width < rx < 0.85 * width or not (_RECORD.fullmatch(squashed) or merged):
             continue
         level = [(x, t) for x, y, h, t in lines if abs(y - ry) < rh]
         # The text nearest the record on its left: a logo's text ("ACouScou") sits further left.
         names = [(x, t) for x, t in level if 0.1 * width < x < rx and not _record(t) and re.search(r"[A-Za-z]", t)]
         name = max(names)[1] if names else None
-        pf = min(((x, t) for x, t in level if x > rx and _POINTS.match(t)), default=(0, None))[1]
-        if name and pf:
+        if merged:
+            (w, l, t), pf = merged
+        else:
             w, l, t = _record(rt)
+            pf = min(((x, t) for x, t in level if x > rx and _POINTS.match(t)), default=(0, None))[1]
+        if name and pf is not None:
             rows.append({"team": name, "w": w, "l": l, "t": t, "pf": float(pf)})
     return rows if len(rows) >= 3 else []
+
+
+# The record and points for read as one line: "4-4-01863.00", "4-4-0:1863.00".
+_RECORD_POINTS = re.compile(r"(\d{1,2})-(\d{1,2})-(\d{1,2}?)[:;.,]?(\d+\.\d\d)")
+
+
+def _record_and_points(text: str) -> tuple[tuple[int, int, int], str] | None:
+    """((W, L, T), points for) from a record and points OCR read as one box,
+    which Telegram's JPEG makes common (2026-11-23: 1-3 rows a screenshot, most
+    often my own highlighted row). Ties take one digit (none so far), and points
+    for has no leading zero, so "4-4-01863.00" is 4-4-0, 1863.00."""
+    m = _RECORD_POINTS.fullmatch(text)
+    if not m or (m.group(4).startswith("0") and not m.group(4).startswith("0.")):
+        return None
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3))), m.group(4)
 
 
 def _scoreboard(lines: list, width: int) -> dict:

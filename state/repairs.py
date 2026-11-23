@@ -513,6 +513,29 @@ def _stats_api_one_page(state: dict, players: list[RosterPlayer], league: dict) 
             c["box"] = None
 
 
+# Nico's League > Standings screenshots of 2026-11-23 13:34 Helsinki, after week 8.
+# The bot saved 15 of 16: OCR read his own (highlighted) row's record and points
+# for as one line ("4-4-01863.00", clients/screenshot._record_and_points now
+# splits it), so he was missing from the season odds.
+WEEK_8_STANDINGS = [
+    ("Lazy Lew", 7, 1, 0, 1960.40), ("Bellova", 6, 2, 0, 1886.30), ("Vanilla Thunder", 6, 2, 0, 1756.25),
+    ("Retrot Chicken Wings", 6, 2, 0, 1748.35), ("HC Bulju", 5, 3, 0, 1853.05),
+    ("Löllöt Höntsääjät", 4, 4, 0, 1950.60), ("Nico's Groovy Team", 4, 4, 0, 1863.00),
+    ("Viktorios", 4, 4, 0, 1789.60), ("Gwp", 4, 4, 0, 1524.70), ("Randy", 3, 5, 0, 1827.00),
+    ("Pastasauce", 3, 5, 0, 1735.00), ("HAN-NES", 3, 5, 0, 1686.50), ("Vantaa", 3, 5, 0, 1669.45),
+    ("Bottom three", 2, 6, 0, 1775.00), ("Bahelin Boys", 2, 6, 0, 1572.30), ("Jättiläisentie Giants", 2, 6, 0, 1557.60),
+]
+
+
+def _week_8_standings(state: dict, players: list[RosterPlayer], league: dict) -> None:
+    # Left alone if a newer screenshot has reached the bot since.
+    if (state.get("standings") or {}).get("week", 0) <= 8:
+        state["standings"] = {"week": 8, "at": "2026-11-23",
+                              "teams": {t: {"w": w, "l": l, "t": tie, "pf": pf} for t, w, l, tie, pf in WEEK_8_STANDINGS}}
+    state.setdefault("league_weeks", {}).setdefault("8", {"pairs": [], "scores": {}})["points_for"] = {
+        t: pf for t, *_, pf in WEEK_8_STANDINGS}
+
+
 REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropped", _murashov_dropped),
            ("2026-10-03 league adds from the log", _league_adds_from_log),
            ("2026-10-03 week 1 board and standings", _week_1_board),
@@ -536,4 +559,5 @@ REPAIRS = [("2026-10-01 totals view", _totals_view), ("2026-10-01 murashov dropp
            ("2026-10-31 crosby to bellova", _crosby_to_bellova),
            ("2026-11-01 league rosters oct 31", _league_rosters_oct_31),
            ("2026-11-02 week 5 from yahoo", _week_5_from_yahoo),
-           ("2026-11-21 stats api one page", _stats_api_one_page)]
+           ("2026-11-21 stats api one page", _stats_api_one_page),
+           ("2026-11-23 week 8 standings", _week_8_standings)]
