@@ -261,6 +261,26 @@
       },
       "sent": true,
       "updates": 0
+    },
+    "2026-11-23": {
+      "recommended": {
+        "8474564": "LW",
+        "8476460": "C",
+        "8476483": "BN",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480865": "D",
+        "8481519": "G",
+        "8482087": "D",
+        "8482089": "RW",
+        "8482447": "BN",
+        "8484801": "C"
+      },
+      "sent": true,
+      "updates": 0
     }
   },
   "daily_plan": "2026-11-06",
@@ -268,6 +288,10 @@
   "goalie_news": {
     "date": "2026-11-23",
     "starters": {
+      "CBJ": {
+        "confirmed": true,
+        "goalie_name": "Cam Talbot"
+      },
       "CGY": {
         "confirmed": true,
         "goalie_name": "Devin Cooley"
@@ -288,6 +312,10 @@
         "confirmed": true,
         "goalie_name": "Linus Ullmark"
       },
+      "TOR": {
+        "confirmed": true,
+        "goalie_name": "Anthony Stolarz"
+      },
       "WPG": {
         "confirmed": false,
         "goalie_name": "Stuart Skinner"
@@ -303,7 +331,7 @@
   "ir_noted": [],
   "last_error": "2026-11-04",
   "matchup_shots": null,
-  "news_checked": "2026-11-22",
+  "news_checked": "2026-11-23",
   "pending": {
     "add-2026-11-19-0627-8479671": {
       "add": {
@@ -595,11 +623,32 @@
       "date": "2026-11-22",
       "message_id": 1223,
       "type": "lineup"
+    },
+    "lineup-2026-11-23-1731": {
+      "assignment": {
+        "8474564": "LW",
+        "8476460": "C",
+        "8476483": "BN",
+        "8476887": "LW",
+        "8477949": "RW",
+        "8478872": "G",
+        "8480145": "D",
+        "8480807": "D",
+        "8480865": "D",
+        "8481519": "G",
+        "8482087": "D",
+        "8482089": "RW",
+        "8482447": "BN",
+        "8484801": "C"
+      },
+      "date": "2026-11-23",
+      "message_id": 1259,
+      "type": "lineup"
     }
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-23T17:00+00:00",
+    "at": "2026-11-23T17:31+00:00",
     "moves": [],
     "week": 9
   },
