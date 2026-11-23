@@ -166,7 +166,7 @@ def build(p, week: int, opponent: str, now: dt.datetime, date: dt.date, odds=Non
             "season": ({**{k: _r(v, 4) for k, v in asdict(odds).items() if k != "by_week"}, "note": odds_note,
                         # What the odds were simulated from: each team's (mean, sd) of a typical week.
                         "strengths": {t: [_r(m), _r(sd)] for t, (m, sd) in sorted(
-                            (wk.strengths or {}).items(), key=lambda kv: -kv[1][0])}}
+                            (getattr(wk, "season_strengths", None) or wk.strengths or {}).items(), key=lambda kv: -kv[1][0])}}
                        if odds else None),
         },
         "plan": {

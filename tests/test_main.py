@@ -1253,6 +1253,36 @@ def test_done_on_a_stash_puts_him_in_his_ir_slot():
     assert players[-1].slot == "BN"
 
 
+def test_the_season_odds_read_every_full_week_left_not_next_week_alone(monkeypatch):
+    # 23 Nov 2026: next week's 53 player-games put me at 287 a week (league ~220),
+    # and that one week stood in for the whole season: playoffs 100%, title 59%.
+    from config.league import MY_TEAM
+    heavy, light, partial = weeks.days(10), weeks.days(11), weeks.days(12)[:3]
+    future = {d: [] for d in heavy + light + partial}
+    spans = []
+
+    def project(name, roster, ctx, span, lines, starters, long_run=False, **kw):
+        spans.append(sorted(span))
+        points = sum(40.0 if d in heavy else 30.0 for d in span)
+        return matchup.TeamWeek(name, 0, points, 2 * points, 0, 0, 0, 1.0)
+
+    monkeypatch.setattr(matchup, "project", project)
+    players = [RosterPlayer(i, f"P{i}", "NYR", ["C"], "C") for i in range(14)]
+    out = weekly.season_strengths(players, {"teams": {}}, None, future, {}, {})
+    assert spans == [heavy + light]  # the partial week is left out
+    assert out[MY_TEAM][0] == pytest.approx(7 * 35.0)  # the two weeks' average, not week 10's 280
+    assert out[MY_TEAM][1] == pytest.approx((2 * 7 * 35.0) ** 0.5)
+
+    from types import SimpleNamespace
+    from config.league import SCHEDULE
+    team = matchup.TeamWeek("t", 0, 200.0, 900.0, 40, 0, 4, 1.0)
+    even = {t: (200.0, 30.0) for t in [*set(SCHEDULE), MY_TEAM]}
+    skewed = {**even, MY_TEAM: (300.0, 30.0)}
+    wk = SimpleNamespace(strengths=skewed, season_strengths=even, me=team, them=team)
+    odds, _ = weekly.season_odds({"standings": None}, wk, 3)
+    assert odds.playoffs < 0.9  # read from the season's strengths, not next week's
+
+
 def test_the_plan_gives_the_season_odds_and_how_old_the_standings_are():
     from types import SimpleNamespace
     from config.league import MY_TEAM, SCHEDULE
