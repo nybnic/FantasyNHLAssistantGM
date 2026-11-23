@@ -83,6 +83,7 @@ class WeekInputs:
     yahoo_projected: list | None = None  # Yahoo's projected finals, from the same screenshot
     price: addprice.AddPrice | None = None  # set by add_price once the week's moves are known
     strengths: dict | None = None  # team -> (mean, sd) of a typical week's points (team_strengths)
+    season_strengths: dict | None = None  # the same over every full week left (season_strengths): the season odds'
     ahead: list = field(default_factory=list)  # matchup.WeekAhead: the next weeks vs their opponents (plan_moves)
     banked: dict | None = None  # the dashboard's race: each finished day's points, mine and theirs (race_days)
 
@@ -136,11 +137,12 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     if not max_moves:
         available_from = after_this_week(available_from, pool, days)
     strengths = team_strengths(players, league, ctx, future, lines, starters)
+    by_season = _safe(season_strengths, players, league, ctx, future, lines, starters, default=None)
     tau = league_tau(strengths)
     sigma_week = typical_sigma(strengths, math.sqrt((me.variance + them.variance) * 7 / max(remaining, 1)))
     return WeekInputs(
         ctx=ctx, days=days, schedule=schedule, future=future, lines=lines, starters=starters,
-        me=me, them=them, tau=tau, strengths=strengths, later_weight=addprice.later_weight(sigma_week, tau),
+        me=me, them=them, tau=tau, strengths=strengths, season_strengths=by_season, later_weight=addprice.later_weight(sigma_week, tau),
         pace=addprice.pace(MAX_ADDS_PER_SEASON - season_used, week),
         so_far=mine, live=is_live, yahoo_projected=projected,
         live_check={"through": date.isoformat(), "yahoo": list(live["score"]), "box": box,
@@ -231,6 +233,33 @@ def team_strengths(players: list, league: dict, ctx, future: dict, lines: dict, 
     return out
 
 
+def season_strengths(players: list, league: dict, ctx, future: dict, lines: dict, starters: dict
+                     ) -> dict[str, tuple[float, float]]:
+    """Team -> (mean, sd) of its points in a typical week, over every full
+    fantasy week left through the playoffs (`future`): the season odds' input.
+    `team_strengths` reads next week alone, which on 23 Nov 2026 put me at 287
+    a week (league ~220; I had never been projected over 241): my roster has
+    53 player-games in week 10 against 40 in week 9, and that one week stood
+    in for all 15 left and the playoffs, so the odds read playoffs 100%, title
+    59% (from this week's forecasts: 91% and 21%). A bug fix: the odds' input
+    is meant to be a typical week. Per 7 days, so the double week counts twice."""
+    by_week: dict[int, list[dt.date]] = {}
+    for d in future:
+        by_week.setdefault(weeks.week_of(d), []).append(d)
+    days = sorted(d for w, ds in by_week.items() if w and len(ds) == len(weeks.days(w)) for d in ds)
+    if not days:
+        return {}
+    span = {d: future[d] for d in days}
+    per = len(days) / 7
+    rosters = {MY_TEAM: players} | {t: teams.players(league, t) for t in league["teams"]}
+    out = {}
+    for team, roster in rosters.items():
+        if len(roster_mod.active(roster)) >= MIN_KNOWN_ROSTER:
+            projected = matchup.project(team, roster, ctx, span, lines, starters, True)
+            out[team] = (projected.expected / per, math.sqrt(projected.variance / per))
+    return out
+
+
 def league_tau(strengths: dict[str, tuple[float, float]]) -> float:
     """The spread of matchup margins: how far apart two of the league's teams
     usually project in a week (the margin's spread is sqrt(2) times the teams'),
@@ -261,10 +290,14 @@ def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOd
     from the latest standings (state["standings"], League > Standings
     screenshots), else from an even start, with this week's pairings when an
     All Matchups screenshot gave them; and a note on the standings' age."""
-    odds = season.simulate(wk.strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
+    strengths = getattr(wk, "season_strengths", None) or wk.strengths
+    odds = season.simulate(strengths, MY_TEAM, week, matchup.win_prob(wk.me, wk.them),
                            (state.get("standings") or {}).get("teams"),
                            pairs=state.get("league_weeks", {}).get(str(week), {}).get("pairs"))
     through = (state.get("standings") or {}).get("week")
+    if odds:  # the inputs, in the run's log: the odds are only as good as these
+        print("Season odds from:", ", ".join(f"{t} {m:.0f}+-{sd:.0f}" for t, (m, sd) in
+                                             sorted(strengths.items(), key=lambda kv: -kv[1][0])))
     note = (" (No standings yet: everyone starts even.)" if through is None
             else f" (Standings through week {through}: send a new screenshot.)" if through < week - 1 else "")
     return odds, note
