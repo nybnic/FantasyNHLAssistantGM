@@ -266,31 +266,31 @@
   "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-22",
   "goalie_news": {
-    "date": "2026-11-22",
+    "date": "2026-11-23",
     "starters": {
-      "CAR": {
+      "CGY": {
         "confirmed": true,
-        "goalie_name": "Brandon Bussi"
+        "goalie_name": "Devin Cooley"
       },
-      "CHI": {
+      "MTL": {
+        "confirmed": true,
+        "goalie_name": "Jakub Dobes"
+      },
+      "NJD": {
+        "confirmed": true,
+        "goalie_name": "Connor Hellebuyck"
+      },
+      "NYI": {
         "confirmed": false,
-        "goalie_name": "Drew Commesso"
+        "goalie_name": "Ilya Sorokin"
       },
-      "DAL": {
+      "OTT": {
         "confirmed": true,
-        "goalie_name": "Jake Oettinger"
+        "goalie_name": "Linus Ullmark"
       },
-      "NYR": {
-        "confirmed": true,
-        "goalie_name": "Dylan Garand"
-      },
-      "STL": {
-        "confirmed": true,
-        "goalie_name": "Joel Hofer"
-      },
-      "VAN": {
+      "WPG": {
         "confirmed": false,
-        "goalie_name": "Nikita Tolopilo"
+        "goalie_name": "Stuart Skinner"
       }
     }
   },
@@ -599,7 +599,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-23T09:55+00:00",
+    "at": "2026-11-23T17:00+00:00",
     "moves": [],
     "week": 9
   },
@@ -1072,7 +1072,7 @@
       "8483500:promoted": "2026-11-10",
       "8483505:promoted": "2026-10-18",
       "8483506:ice time": "2026-11-08",
-      "8483510:promoted": "2026-10-29",
+      "8483510:promoted": "2026-11-23",
       "8483521:promoted": "2026-10-24",
       "8483524:ice time": "2026-10-31",
       "8483525:promoted": "2026-11-18",
@@ -1402,13 +1402,6 @@
           "pp1": "2026-11-23"
         }
       },
-      "8475718": {
-        "groups": [
-          "d2",
-          "pk2"
-        ],
-        "since": {}
-      },
       "8475722": {
         "groups": [
           "f3",
@@ -1613,6 +1606,12 @@
         ],
         "since": {}
       },
+      "8476474": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8476479": {
         "groups": [
           "f3",
@@ -1771,6 +1770,12 @@
           "d1": null
         }
       },
+      "8476952": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8476958": {
         "groups": [
           "d1",
@@ -1800,11 +1805,12 @@
       },
       "8477015": {
         "groups": [
-          "f3",
+          "f1",
           "pk1",
           "pp1"
         ],
         "since": {
+          "f1": "2026-11-23",
           "pp1": "2026-11-03"
         }
       },
@@ -2161,12 +2167,6 @@
         ],
         "since": {}
       },
-      "8478424": {
-        "groups": [
-          "f4"
-        ],
-        "since": {}
-      },
       "8478434": {
         "groups": [
           "f4",
@@ -2218,6 +2218,14 @@
         ],
         "since": {
           "f2": "2026-11-20"
+        }
+      },
+      "8478463": {
+        "groups": [
+          "f2"
+        ],
+        "since": {
+          "f2": null
         }
       },
       "8478472": {
@@ -2426,12 +2434,9 @@
       },
       "8479385": {
         "groups": [
-          "f3",
-          "pp1"
+          "ir"
         ],
-        "since": {
-          "pp1": null
-        }
+        "since": {}
       },
       "8479398": {
         "groups": [
@@ -2917,6 +2922,12 @@
           "f2": "2026-11-18"
         }
       },
+      "8481523": {
+        "groups": [
+          "f3"
+        ],
+        "since": {}
+      },
       "8481527": {
         "groups": [
           "d2",
@@ -3097,11 +3108,11 @@
       },
       "8481721": {
         "groups": [
-          "f1",
+          "f2",
           "pp1"
         ],
         "since": {
-          "f1": "2026-11-12",
+          "f2": "2026-11-23",
           "pp1": "2026-11-17"
         }
       },
@@ -3174,7 +3185,7 @@
       },
       "8482088": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -3241,12 +3252,10 @@
       },
       "8482146": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-11-12"
-        }
+        "since": {}
       },
       "8482148": {
         "groups": [
@@ -3345,7 +3354,7 @@
       },
       "8482459": {
         "groups": [
-          "d4"
+          "f4"
         ],
         "since": {}
       },
@@ -3686,7 +3695,8 @@
       },
       "8483491": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -3726,10 +3736,12 @@
       },
       "8483510": {
         "groups": [
-          "d2",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-23"
+        }
       },
       "8483513": {
         "groups": [
@@ -3871,12 +3883,6 @@
         "groups": [
           "f3",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8484177": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -7131,6 +7137,21 @@
         "value": -0.0296,
         "verdict": "-3 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "Ice time 19:59 a game in his last 3, up from 16:54. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-23",
+        "id": 8483510,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Elias Salomonsson",
+        "positions": "D",
+        "price": 0.0949,
+        "sent": false,
+        "team": "WPG",
+        "value": -0.0868,
+        "verdict": "-9 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
