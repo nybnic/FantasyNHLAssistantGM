@@ -265,6 +265,9 @@ def season_odds(state: dict, wk: WeekInputs, week: int) -> tuple[season.SeasonOd
                            (state.get("standings") or {}).get("teams"),
                            pairs=state.get("league_weeks", {}).get(str(week), {}).get("pairs"))
     through = (state.get("standings") or {}).get("week")
+    if odds:  # the inputs, in the run's log: the odds are only as good as these
+        print("Season odds from:", ", ".join(f"{t} {m:.0f}+-{sd:.0f}" for t, (m, sd) in
+                                             sorted(wk.strengths.items(), key=lambda kv: -kv[1][0])))
     note = (" (No standings yet: everyone starts even.)" if through is None
             else f" (Standings through week {through}: send a new screenshot.)" if through < week - 1 else "")
     return odds, note
