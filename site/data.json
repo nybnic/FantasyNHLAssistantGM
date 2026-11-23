@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-23T18:31+00:00",
+ "generated": "2026-11-23T19:00+00:00",
  "date": "2026-11-23",
  "week": 9,
  "opponent": "Bellova",
@@ -1840,61 +1840,6 @@
    }
   },
   {
-   "key": "8477968:8478872",
-   "add": {
-    "id": 8477968,
-    "name": "Alex Nedeljkovic",
-    "team": "SJS",
-    "positions": [
-     "G"
-    ]
-   },
-   "drop": {
-    "id": 8478872,
-    "name": "Karel Vejmelka"
-   },
-   "ir_slot": null,
-   "later_drop": null,
-   "until_back": null,
-   "plays_from": null,
-   "monday": false,
-   "when": null,
-   "games": 4,
-   "week_pts": 4.34,
-   "next_two_pts": 6.49,
-   "later_pts": -9.43,
-   "win": [
-    0.6577,
-    0.6909
-   ],
-   "now_wins": 0.0332,
-   "ahead_wins": [
-    -0.0187,
-    0.0409
-   ],
-   "ahead_pts": 2.09,
-   "ahead_week_pts": [
-    -2.85,
-    4.93
-   ],
-   "held": true,
-   "keep": 0.185,
-   "bin": "goalie, the weakest of 3+",
-   "stays": [
-    0.362,
-    0.185,
-    0.111
-   ],
-   "later_wins": -0.0642,
-   "value": -0.0088,
-   "status": "fails",
-   "why": "dropping Karel Vejmelka costs about 9 pts later, more than this week's +3 win-pts make up for",
-   "nights": {
-    "from": "2026-11-23",
-    "cells": "3.b.b6..4.46.4.36.3"
-   }
-  },
-  {
    "key": "8482705:8476483",
    "add": {
     "id": 8482705,
@@ -3495,6 +3440,61 @@
    "nights": {
     "from": "2026-11-23",
     "cells": "s.b.bb.s.ss.s....b.b"
+   }
+  },
+  {
+   "key": "8478975:8482089",
+   "add": {
+    "id": 8478975,
+    "name": "Mason Marchment",
+    "team": "SJS",
+    "positions": [
+     "LW"
+    ]
+   },
+   "drop": {
+    "id": 8482089,
+    "name": "Jake Neighbours"
+   },
+   "ir_slot": null,
+   "later_drop": null,
+   "until_back": null,
+   "plays_from": null,
+   "monday": false,
+   "when": null,
+   "games": 4,
+   "week_pts": 4.32,
+   "next_two_pts": -5.1,
+   "later_pts": -5.63,
+   "win": [
+    0.6577,
+    0.6913
+   ],
+   "now_wins": 0.0336,
+   "ahead_wins": [
+    0.0105,
+    -0.0323
+   ],
+   "ahead_pts": -2.26,
+   "ahead_week_pts": [
+    1.64,
+    -3.9
+   ],
+   "held": true,
+   "keep": 0.208,
+   "bin": "skater, lowest",
+   "stays": [
+    0.423,
+    0.208,
+    0.074
+   ],
+   "later_wins": -0.0383,
+   "value": -0.0265,
+   "status": "fails",
+   "why": "dropping Jake Neighbours costs about 6 pts later, more than this week's +3 win-pts make up for",
+   "nights": {
+    "from": "2026-11-23",
+    "cells": "s.b.bb..s.ss.s.ss.s"
    }
   }
  ],
@@ -11322,146 +11322,6 @@
    "kept": 1.0,
    "replacement": 4.362
   },
-  "8477968": {
-   "id": 8477968,
-   "name": "Alex Nedeljkovic",
-   "team": "SJS",
-   "positions": "G",
-   "owner": "fa",
-   "goalie": true,
-   "season": {
-    "gp": 9,
-    "pts": 90.9,
-    "proj": 77.3,
-    "pts_projected": 90.9,
-    "stats": {
-     "Wins": [
-      5.0,
-      3.6
-     ],
-     "Saves": [
-      257.0,
-      221.3
-     ],
-     "Goals against": [
-      28.0,
-      25.7
-     ],
-     "Shutouts": [
-      0.0,
-      0.4
-     ]
-    },
-    "last": [
-     {
-      "date": "2026-11-21",
-      "opp": "SEA",
-      "pts": 11.4,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-11-15",
-      "opp": "NSH",
-      "pts": 14.5,
-      "proj": 8.7
-     },
-     {
-      "date": "2026-11-07",
-      "opp": "@DAL",
-      "pts": 6.4,
-      "proj": 8.2
-     },
-     {
-      "date": "2026-10-31",
-      "opp": "OTT",
-      "pts": 7.5,
-      "proj": 8.6
-     },
-     {
-      "date": "2026-10-24",
-      "opp": "@BOS",
-      "pts": 6.1,
-      "proj": 8.6
-     },
-     {
-      "date": "2026-10-20",
-      "opp": "@MTL",
-      "pts": 12.8,
-      "proj": 8.6
-     },
-     {
-      "date": "2026-10-17",
-      "opp": "@DET",
-      "pts": 6.4,
-      "proj": 8.8
-     },
-     {
-      "date": "2026-10-15",
-      "opp": "@NSH",
-      "pts": 14.2,
-      "proj": 8.6
-     },
-     {
-      "date": "2026-10-08",
-      "opp": "@STL",
-      "pts": 11.4,
-      "proj": 8.6
-     }
-    ],
-    "starts": 9,
-    "relief": 0
-   },
-   "per_game": {
-    "Start": 1.0,
-    "Win": 1.29,
-    "Saves": 9.17,
-    "Goals against": -3.03,
-    "Shutout": 0.18
-   },
-   "stats": {
-    "Wins": 0.32,
-    "Saves": 26.21,
-    "Goals against": 3.03,
-    "Shutouts": 0.04
-   },
-   "xfp": 8.61,
-   "share": 0.333,
-   "starts": [
-    {
-     "date": "2026-11-23",
-     "opp": "MIN",
-     "prob": 0.305,
-     "xfp": 8.61,
-     "why": null
-    },
-    {
-     "date": "2026-11-25",
-     "opp": "@ANA",
-     "prob": 0.346,
-     "xfp": 9.01,
-     "why": null
-    },
-    {
-     "date": "2026-11-27",
-     "opp": "VGK",
-     "prob": 0.346,
-     "xfp": 8.9,
-     "why": null
-    },
-    {
-     "date": "2026-11-28",
-     "opp": "@COL",
-     "prob": 0.617,
-     "xfp": 8.98,
-     "why": null
-    }
-   ],
-   "next": {
-    "date": "2026-11-23",
-    "opp": "MIN"
-   },
-   "gp": 9
-  },
   "8482705": {
    "id": 8482705,
    "name": "Cole Sillinger",
@@ -16416,17 +16276,17 @@
   {
    "date": "2026-11-23",
    "id": 8476441,
-   "name": "Joel Edmundson",
-   "team": "LAK",
-   "positions": "D",
    "kinds": [
     "promoted"
    ],
-   "why": "DFO moved up to the top D pair.",
-   "verdict": "-7 win-pts against the 9.5 an add costs: not yet worth one.",
-   "value": -0.0656,
+   "name": "Joel Edmundson",
+   "positions": "D",
    "price": 0.0949,
-   "sent": false
+   "sent": false,
+   "team": "LAK",
+   "value": -0.0656,
+   "verdict": "-7 win-pts against the 9.5 an add costs: not yet worth one.",
+   "why": "DFO moved up to the top D pair."
   },
   {
    "date": "2026-11-23",
