@@ -599,7 +599,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-23T06:27+00:00",
+    "at": "2026-11-23T09:55+00:00",
     "moves": [],
     "week": 9
   },
@@ -764,7 +764,7 @@
     "team": "HAN-NES"
   },
   "standings_rows": [],
-  "telegram_offset": 929784974,
+  "telegram_offset": 929784975,
   "trade_request": null,
   "transaction_rows": [],
   "transaction_rows_at": null,
@@ -773,6 +773,7 @@
       "8470621:ice time": "2026-11-20",
       "8470621:promoted": "2026-10-30",
       "8471214:promoted": "2026-11-22",
+      "8471215:ice time": "2026-11-23",
       "8473512:promoted": "2026-11-05",
       "8473986:promoted": "2026-11-11",
       "8473994:promoted": "2026-11-16",
@@ -1160,6 +1161,12 @@
           "f2": "2026-11-22",
           "pp1": null
         }
+      },
+      "8471215": {
+        "groups": [
+          "ir"
+        ],
+        "since": {}
       },
       "8471724": {
         "groups": [
@@ -3184,6 +3191,16 @@
         ],
         "since": {}
       },
+      "8482093": {
+        "groups": [
+          "f3",
+          "pk2",
+          "pp1"
+        ],
+        "since": {
+          "pp1": null
+        }
+      },
       "8482095": {
         "groups": [
           "d3"
@@ -3463,16 +3480,6 @@
         ],
         "since": {
           "f2": "2026-11-13"
-        }
-      },
-      "8482720": {
-        "groups": [
-          "f2",
-          "pp1"
-        ],
-        "since": {
-          "f2": "2026-11-21",
-          "pp1": "2026-10-30"
         }
       },
       "8482726": {
@@ -7114,6 +7121,21 @@
         "value": -0.0802,
         "verdict": "-8 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line, and it has held for 28 days."
+      },
+      {
+        "date": "2026-11-23",
+        "id": 8471215,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Evgeni Malkin",
+        "positions": "C/LW/RW",
+        "price": 0.0949,
+        "sent": true,
+        "team": "PIT",
+        "value": -0.0296,
+        "verdict": "-3 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "Ice time 19:59 a game in his last 3, up from 16:54. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
