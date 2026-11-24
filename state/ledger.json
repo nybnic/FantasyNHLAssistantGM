@@ -4518,17 +4518,6 @@
           "team": "SJS"
         },
         {
-          "id": 8476483,
-          "name": "Rickard Rakell",
-          "positions": [
-            "C",
-            "LW",
-            "RW"
-          ],
-          "slot": "LW",
-          "team": "PIT"
-        },
-        {
           "id": 8476887,
           "name": "Filip Forsberg",
           "positions": [
@@ -4536,6 +4525,16 @@
           ],
           "slot": "LW",
           "team": "NSH"
+        },
+        {
+          "id": 8482089,
+          "name": "Jake Neighbours",
+          "positions": [
+            "LW",
+            "RW"
+          ],
+          "slot": "LW",
+          "team": "STL"
         },
         {
           "id": 8474564,
@@ -4595,15 +4594,6 @@
           "team": "MTL"
         },
         {
-          "id": 8481519,
-          "name": "Spencer Knight",
-          "positions": [
-            "G"
-          ],
-          "slot": "G",
-          "team": "CHI"
-        },
-        {
           "id": 8482447,
           "name": "Leevi Meril\u00e4inen",
           "positions": [
@@ -4613,45 +4603,95 @@
           "team": "VAN"
         },
         {
-          "id": 8482089,
-          "name": "Jake Neighbours",
-          "positions": [
-            "LW",
-            "RW"
-          ],
-          "slot": "BN",
-          "team": "STL"
-        },
-        {
           "id": 8478872,
           "name": "Karel Vejmelka",
           "positions": [
             "G"
           ],
-          "slot": "BN",
+          "slot": "G",
           "team": "UTA"
+        },
+        {
+          "id": 8476483,
+          "name": "Rickard Rakell",
+          "positions": [
+            "C",
+            "LW",
+            "RW"
+          ],
+          "slot": "BN",
+          "team": "PIT"
+        },
+        {
+          "id": 8481519,
+          "name": "Spencer Knight",
+          "positions": [
+            "G"
+          ],
+          "slot": "BN",
+          "team": "CHI"
         }
       ],
       "them": {
         "players": [
           {
-            "id": 8480801,
-            "name": "Brady Tkachuk",
+            "id": 8471675,
+            "name": "Sidney Crosby",
+            "positions": [
+              "C"
+            ],
+            "slot": null,
+            "team": "PIT"
+          },
+          {
+            "id": 8480023,
+            "name": "Robert Thomas",
+            "positions": [
+              "C"
+            ],
+            "slot": null,
+            "team": "STL"
+          },
+          {
+            "id": 8475170,
+            "name": "Brayden Schenn",
             "positions": [
               "C",
               "LW"
             ],
             "slot": null,
-            "team": "FLA"
+            "team": "NYI"
           },
           {
-            "id": 8478009,
-            "name": "Ilya Sorokin",
+            "id": 8475798,
+            "name": "Mikael Granlund",
             "positions": [
-              "G"
+              "C",
+              "LW"
             ],
             "slot": null,
-            "team": "NYI"
+            "team": "ANA"
+          },
+          {
+            "id": 8480208,
+            "name": "Drake Batherson",
+            "positions": [
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "OTT"
+          },
+          {
+            "id": 8479987,
+            "name": "Morgan Geekie",
+            "positions": [
+              "C",
+              "LW",
+              "RW"
+            ],
+            "slot": null,
+            "team": "BOS"
           },
           {
             "id": 8478178,
@@ -4672,92 +4712,6 @@
             "team": "LAK"
           },
           {
-            "id": 8480208,
-            "name": "Drake Batherson",
-            "positions": [
-              "LW",
-              "RW"
-            ],
-            "slot": null,
-            "team": "OTT"
-          },
-          {
-            "id": 8480023,
-            "name": "Robert Thomas",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "STL"
-          },
-          {
-            "id": 8478458,
-            "name": "Jack Roslovic",
-            "positions": [
-              "C",
-              "RW"
-            ],
-            "slot": null,
-            "team": "TOR"
-          },
-          {
-            "id": 8475798,
-            "name": "Mikael Granlund",
-            "positions": [
-              "C",
-              "LW"
-            ],
-            "slot": null,
-            "team": "ANA"
-          },
-          {
-            "id": 8475170,
-            "name": "Brayden Schenn",
-            "positions": [
-              "C",
-              "LW"
-            ],
-            "slot": null,
-            "team": "NYI"
-          },
-          {
-            "id": 8484170,
-            "name": "Jacob Fowler",
-            "positions": [
-              "G"
-            ],
-            "slot": null,
-            "team": "MTL"
-          },
-          {
-            "id": 8475311,
-            "name": "Darcy Kuemper",
-            "positions": [
-              "G"
-            ],
-            "slot": null,
-            "team": "LAK"
-          },
-          {
-            "id": 8481028,
-            "name": "Martin Pospisil",
-            "positions": [
-              "C",
-              "RW"
-            ],
-            "slot": null,
-            "team": "CGY"
-          },
-          {
-            "id": 8471675,
-            "name": "Sidney Crosby",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "PIT"
-          },
-          {
             "id": 8483506,
             "name": "Sam Rinzel",
             "positions": [
@@ -4771,6 +4725,63 @@
             "name": "Zayne Parekh",
             "positions": [
               "D"
+            ],
+            "slot": null,
+            "team": "CGY"
+          },
+          {
+            "id": 8478009,
+            "name": "Ilya Sorokin",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "NYI"
+          },
+          {
+            "id": 8475311,
+            "name": "Darcy Kuemper",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "LAK"
+          },
+          {
+            "id": 8480801,
+            "name": "Brady Tkachuk",
+            "positions": [
+              "C",
+              "LW"
+            ],
+            "slot": null,
+            "team": "FLA"
+          },
+          {
+            "id": 8484170,
+            "name": "Jacob Fowler",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "MTL"
+          },
+          {
+            "id": 8478458,
+            "name": "Jack Roslovic",
+            "positions": [
+              "C",
+              "RW"
+            ],
+            "slot": null,
+            "team": "TOR"
+          },
+          {
+            "id": 8481028,
+            "name": "Martin Pospisil",
+            "positions": [
+              "C",
+              "RW"
             ],
             "slot": null,
             "team": "CGY"
@@ -6665,22 +6676,22 @@
     }
   },
   "live_score": {
-    "at": "2026-11-22T06:19:35+00:00",
+    "at": "2026-11-24T05:40:24+00:00",
     "goalies": [
-      23.25,
-      17.7
+      0.0,
+      21.95
     ],
-    "opponent": "Bottom three",
+    "opponent": "Bellova",
     "projected": [
-      242.94,
-      205.68
+      228.55,
+      248.58
     ],
     "score": [
-      227.1,
-      188.6
+      23.85,
+      48.6
     ],
-    "through": "2026-11-22",
-    "week": 8
+    "through": "2026-11-24",
+    "week": 9
   },
   "move_forecasts": {
     "8476455:8485406": {
@@ -7896,18 +7907,18 @@
     "2026-11-24": [
       8476460,
       8484801,
-      8476483,
       8476887,
+      8482089,
       8474564,
       8477949,
       8480807,
       8480865,
       8480145,
       8482087,
-      8481519,
       8482447,
-      8482089,
-      8478872
+      8478872,
+      8476483,
+      8481519
     ]
   },
   "my_players": {
@@ -9532,7 +9543,36 @@
         ],
         "win": 0.5699
       },
-      "opponent": "Bellova"
+      "live": [
+        {
+          "box": [
+            17.25,
+            46.0
+          ],
+          "through": "2026-11-24",
+          "yahoo": [
+            23.85,
+            48.6
+          ],
+          "yahoo_projected": [
+            228.55,
+            248.58
+          ]
+        }
+      ],
+      "opponent": "Bellova",
+      "yahoo_first": {
+        "at": "2026-11-24T05:40:24+00:00",
+        "projected": [
+          228.55,
+          248.58
+        ],
+        "score": [
+          23.85,
+          48.6
+        ],
+        "through": "2026-11-24"
+      }
     }
   },
   "seen_mine": {
