@@ -623,7 +623,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-24T06:01+00:00",
+    "at": "2026-11-24T16:31+00:00",
     "moves": [],
     "week": 9
   },
@@ -1133,6 +1133,7 @@
       "8484803:promoted": "2026-11-14",
       "8484806:ice time": "2026-11-15",
       "8484806:promoted": "2026-10-28",
+      "8484821:promoted": "2026-11-24",
       "8484829:promoted": "2026-10-14",
       "8484860:ice time": "2026-10-29",
       "8484860:promoted": "2026-11-13",
@@ -1753,7 +1754,8 @@
       },
       "8476923": {
         "groups": [
-          "d1"
+          "d1",
+          "pp2"
         ],
         "since": {
           "d1": null
@@ -2412,7 +2414,7 @@
       },
       "8479371": {
         "groups": [
-          "d2"
+          "d3"
         ],
         "since": {}
       },
@@ -2918,7 +2920,7 @@
       },
       "8481523": {
         "groups": [
-          "f4"
+          "f3"
         ],
         "since": {}
       },
@@ -3440,11 +3442,10 @@
       },
       "8482679": {
         "groups": [
-          "f1",
+          "f3",
           "pp1"
         ],
         "since": {
-          "f1": null,
           "pp1": null
         }
       },
@@ -3526,7 +3527,7 @@
       },
       "8482802": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3661,9 +3662,8 @@
       },
       "8483485": {
         "groups": [
-          "d3",
-          "pk2",
-          "pp2"
+          "d2",
+          "pk2"
         ],
         "since": {}
       },
@@ -4031,9 +4031,11 @@
       },
       "8484821": {
         "groups": [
-          "f3"
+          "f1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-24"
+        }
       },
       "8484829": {
         "groups": [
@@ -7179,6 +7181,21 @@
         "value": -0.1,
         "verdict": "-10 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line and the first power play, and it has held for 3 days."
+      },
+      {
+        "date": "2026-11-24",
+        "id": 8484821,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Sam Morton",
+        "positions": "C",
+        "price": 0.0949,
+        "sent": false,
+        "team": "CGY",
+        "value": -0.1378,
+        "verdict": "-14 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
