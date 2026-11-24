@@ -624,7 +624,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-24T18:31+00:00",
+    "at": "2026-11-24T19:01+00:00",
     "moves": [],
     "week": 9
   },
@@ -928,7 +928,7 @@
       "8478911:promoted": "2026-11-16",
       "8478975:promoted": "2026-11-15",
       "8479292:goalie": "2026-10-26",
-      "8479351:promoted": "2026-10-29",
+      "8479351:promoted": "2026-11-24",
       "8479353:promoted": "2026-11-17",
       "8479359:ice time": "2026-10-30",
       "8479365:promoted": "2026-10-15",
@@ -1234,12 +1234,10 @@
       },
       "8473994": {
         "groups": [
-          "f1",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f1": "2026-11-21"
-        }
+        "since": {}
       },
       "8474013": {
         "groups": [
@@ -2369,10 +2367,12 @@
       },
       "8479351": {
         "groups": [
-          "f3",
+          "f1",
           "pk1"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-24"
+        }
       },
       "8479353": {
         "groups": [
@@ -3089,11 +3089,10 @@
       "8481721": {
         "groups": [
           "f2",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f2": "2026-11-23",
-          "pp1": "2026-11-17"
+          "f2": "2026-11-23"
         }
       },
       "8481732": {
@@ -7207,6 +7206,21 @@
         "value": -0.0902,
         "verdict": "-9 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-11-24",
+        "id": 8479351,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Sam Steel",
+        "positions": "C/LW",
+        "price": 0.0949,
+        "sent": false,
+        "team": "DAL",
+        "value": -0.1135,
+        "verdict": "-11 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line."
       }
     ]
   },
