@@ -189,6 +189,22 @@ def test_shown_names_match_a_two_word_last_name_run_together():
     assert found.players == [] and len(found.problems) == 2
 
 
+def test_a_last_name_cut_off_matches_on_its_start():
+    # 2026-11-25: Yahoo showed "M. SAMUELSS..." (a DTD tag beside it), read "M. SAMUELSS":
+    # no player by that name, so the matchup screenshots kept him unseen.
+    registry = [{"id": 1, "name": "Mattias Samuelsson", "team": "BUF", "position": "D"},
+                {"id": 2, "name": "Joel Eriksson Ek", "team": "MIN", "position": "C"},
+                {"id": 3, "name": "Gustav Samuelsson", "team": "TOR", "position": "D"},
+                {"id": 4, "name": "Gabriel Samuelsson", "team": "NYR", "position": "D"}]
+    found = parse.match_shown_names([_row("M. SAMUELSS", "BUF", ["D"], "D"), _row("J. ERIKSS", "MIN")], registry)
+    assert [(p.id, p.slot) for p in found.players] == [(1, "D"), (2, "BN")] and not found.problems
+    # Too little shown, another team's player, or two who fit: not guessed.
+    found = parse.match_shown_names([_row("M. SAM", "BUF"), _row("M. SAMUELSS", "TOR"), _row("G. SAMUELSS")], registry)
+    assert found.players == [] and len(found.problems) == 3
+    # The team read wrong, but he's on the team the screenshot is of.
+    assert [p.id for p in parse.match_shown_names([_row("M. SAMUELSS", "TOR")], registry, prefer={1}).players] == [1]
+
+
 def test_a_shown_player_without_his_slot_takes_the_one_left_he_fits():
     # 2026-10-13: the screenshots missed Forsberg's LW badge; his saved BN was full,
     # which cleared the whole lineup. LW is the one slot with room that he fits.
