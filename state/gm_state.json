@@ -266,15 +266,79 @@
   "daily_plan": "2026-11-06",
   "dfo_archived": "2026-11-24",
   "goalie_news": {
-    "date": "2026-11-24",
+    "date": "2026-11-25",
     "starters": {
-      "EDM": {
+      "BOS": {
         "confirmed": true,
-        "goalie_name": "Devon Levi"
+        "goalie_name": "Jeremy Swayman"
       },
-      "VGK": {
+      "BUF": {
         "confirmed": false,
-        "goalie_name": "Carter Hart"
+        "goalie_name": "Ukko-Pekka Luukkonen"
+      },
+      "CAR": {
+        "confirmed": false,
+        "goalie_name": "Brandon Bussi"
+      },
+      "CBJ": {
+        "confirmed": true,
+        "goalie_name": "Cam Talbot"
+      },
+      "CGY": {
+        "confirmed": true,
+        "goalie_name": "Dustin Wolf"
+      },
+      "DAL": {
+        "confirmed": false,
+        "goalie_name": "Jake Oettinger"
+      },
+      "DET": {
+        "confirmed": true,
+        "goalie_name": "Daniil Tarasov"
+      },
+      "FLA": {
+        "confirmed": true,
+        "goalie_name": "Jacob Markstrom"
+      },
+      "MIN": {
+        "confirmed": true,
+        "goalie_name": "Jesper Wallstedt"
+      },
+      "NJD": {
+        "confirmed": false,
+        "goalie_name": "Connor Hellebuyck"
+      },
+      "NYI": {
+        "confirmed": true,
+        "goalie_name": "Ilya Sorokin"
+      },
+      "NYR": {
+        "confirmed": true,
+        "goalie_name": "Joonas Korpisalo"
+      },
+      "OTT": {
+        "confirmed": true,
+        "goalie_name": "Linus Ullmark"
+      },
+      "PHI": {
+        "confirmed": true,
+        "goalie_name": "Joseph Woll"
+      },
+      "PIT": {
+        "confirmed": true,
+        "goalie_name": "Arturs Silovs"
+      },
+      "VAN": {
+        "confirmed": false,
+        "goalie_name": "Leevi Merilainen"
+      },
+      "WPG": {
+        "confirmed": false,
+        "goalie_name": "Nico Daws"
+      },
+      "WSH": {
+        "confirmed": true,
+        "goalie_name": "Logan Thompson"
       }
     }
   },
@@ -583,7 +647,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-25T16:27+00:00",
+    "at": "2026-11-25T17:01+00:00",
     "moves": [],
     "week": 9
   },
@@ -1065,6 +1129,7 @@
       "8484145:promoted": "2026-10-27",
       "8484152:promoted": "2026-10-17",
       "8484154:ice time": "2026-10-27",
+      "8484154:promoted": "2026-11-25",
       "8484158:promoted": "2026-10-17",
       "8484160:ice time": "2026-10-23",
       "8484164:promoted": "2026-11-22",
@@ -1072,7 +1137,7 @@
       "8484201:promoted": "2026-11-24",
       "8484210:ice time": "2026-10-14",
       "8484227:ice time": "2026-11-10",
-      "8484234:promoted": "2026-11-10",
+      "8484234:promoted": "2026-11-25",
       "8484241:promoted": "2026-11-04",
       "8484242:promoted": "2026-11-16",
       "8484386:ice time": "2026-11-08",
@@ -1224,10 +1289,13 @@
       },
       "8474150": {
         "groups": [
-          "f3",
-          "pk1"
+          "f1",
+          "pk1",
+          "pp2"
         ],
-        "since": {}
+        "since": {
+          "f1": "2026-11-25"
+        }
       },
       "8474151": {
         "groups": [
@@ -1258,7 +1326,9 @@
       },
       "8474574": {
         "groups": [
-          "ir"
+          "d3",
+          "ir",
+          "pk2"
         ],
         "since": {}
       },
@@ -1281,6 +1351,7 @@
       "8475167": {
         "groups": [
           "d2",
+          "ir",
           "pk1",
           "pp2"
         ],
@@ -1533,11 +1604,11 @@
       },
       "8476458": {
         "groups": [
-          "f2",
-          "pp2"
+          "f3",
+          "pp1"
         ],
         "since": {
-          "f2": "2026-11-13"
+          "pp1": "2026-11-25"
         }
       },
       "8476461": {
@@ -1883,7 +1954,8 @@
       },
       "8477497": {
         "groups": [
-          "ir"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -2082,6 +2154,7 @@
       "8478416": {
         "groups": [
           "d3",
+          "ir",
           "pk2"
         ],
         "since": {}
@@ -2263,6 +2336,12 @@
           "d1": null
         }
       },
+      "8478891": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8478911": {
         "groups": [
           "d1",
@@ -2353,12 +2432,6 @@
         ],
         "since": {}
       },
-      "8479385": {
-        "groups": [
-          "ir"
-        ],
-        "since": {}
-      },
       "8479398": {
         "groups": [
           "d2"
@@ -2385,6 +2458,12 @@
         ],
         "since": {}
       },
+      "8479576": {
+        "groups": [
+          "ir"
+        ],
+        "since": {}
+      },
       "8479638": {
         "groups": [
           "f2",
@@ -2408,9 +2487,7 @@
       },
       "8479671": {
         "groups": [
-          "f3",
-          "ir",
-          "pk2"
+          "ir"
         ],
         "since": {}
       },
@@ -2507,18 +2584,20 @@
       },
       "8480028": {
         "groups": [
-          "f1",
-          "ir",
-          "pp1"
+          "ir"
         ],
-        "since": {
-          "f1": "2026-11-24",
-          "pp1": null
-        }
+        "since": {}
       },
       "8480029": {
         "groups": [
           "f3",
+          "pk2"
+        ],
+        "since": {}
+      },
+      "8480043": {
+        "groups": [
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -2565,7 +2644,7 @@
       },
       "8480113": {
         "groups": [
-          "f4",
+          "f3",
           "pk2",
           "pp2"
         ],
@@ -2609,7 +2688,7 @@
       },
       "8480289": {
         "groups": [
-          "f3",
+          "f4",
           "pk2"
         ],
         "since": {}
@@ -2728,8 +2807,7 @@
       },
       "8480878": {
         "groups": [
-          "d2",
-          "pk2"
+          "d2"
         ],
         "since": {}
       },
@@ -2791,6 +2869,12 @@
           "f4",
           "pk2",
           "pp2"
+        ],
+        "since": {}
+      },
+      "8481043": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -3256,7 +3340,8 @@
       },
       "8482451": {
         "groups": [
-          "f4"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -3375,8 +3460,7 @@
       "8482705": {
         "groups": [
           "f3",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -3397,6 +3481,12 @@
         "since": {
           "pp1": "2026-11-22"
         }
+      },
+      "8482747": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
       },
       "8482751": {
         "groups": [
@@ -3423,12 +3513,6 @@
         "groups": [
           "f4",
           "pp2"
-        ],
-        "since": {}
-      },
-      "8482802": {
-        "groups": [
-          "f4"
         ],
         "since": {}
       },
@@ -3767,10 +3851,12 @@
       },
       "8484154": {
         "groups": [
-          "f4",
+          "f2",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-25"
+        }
       },
       "8484158": {
         "groups": [
@@ -3809,10 +3895,12 @@
       },
       "8484234": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-25"
+        }
       },
       "8484240": {
         "groups": [
@@ -4053,12 +4141,6 @@
         "since": {
           "f2": null
         }
-      },
-      "8485468": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
       },
       "8485469": {
         "groups": [
@@ -7152,6 +7234,36 @@
         "value": -0.0661,
         "verdict": "-7 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-25",
+        "id": 8484154,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Jonathan Castagna",
+        "positions": "C",
+        "price": 0.0949,
+        "sent": false,
+        "team": "CGY",
+        "value": -0.1049,
+        "verdict": "-10 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-25",
+        "id": 8484234,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Aydar Suniev",
+        "positions": "LW",
+        "price": 0.0949,
+        "sent": false,
+        "team": "CGY",
+        "value": -0.11,
+        "verdict": "-11 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line."
       }
     ]
   },
