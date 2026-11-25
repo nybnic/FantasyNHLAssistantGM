@@ -118,10 +118,23 @@ def _ends_run_together(words: list[str], squashed: str) -> bool:
     return any("".join(words[i:]) == squashed for i in range(len(words)))
 
 
+# Yahoo's app cuts a long name off with "..." when a tag (DTD, O) sits beside it:
+# "M. SAMUELSS..." (2026-11-25), read without the dots. A name shown this far
+# is the start of the player's last name, if his initial and team agree.
+CUT_NAME_SHOWN = 4
+
+
+def _starts_cut_off(words: list[str], shown: str) -> bool:
+    """Whether `shown` is the start of the name's last name (its last words, run
+    together): "samuelss" of ["mattias", "samuelsson"], "erikss" of ["joel", "eriksson", "ek"]."""
+    return any("".join(words[i:]).startswith(shown) for i in range(1 if len(words) > 1 else 0, len(words)))
+
+
 def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = frozenset()) -> Found:
     """Players from screenshot rows (clients/screenshot.py): {"slot", "name" as
     shown, e.g. "M. SCHEIFELE" or "Jack McBain", "team" or "", "positions" or []}.
-    A name matches on first initial and last name (or the full name), then team and position narrow it
+    A name matches on first initial and last name (or the full name; a last name cut off at "..."
+    on its start, with the team agreeing if read), then team and position narrow it
     down; still ambiguous, the player already on the team (`prefer`) wins."""
     unique = list({p["id"]: p for p in reversed(players)}.values())[::-1]  # first entry per id wins
     found = Found()
@@ -139,6 +152,10 @@ def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = 
                           and (initial is None or normalize_name(p["name"]).startswith(initial))]
         positions = list(row.get("positions") or [])
         team = YAHOO_TO_NHL_TEAM.get(row.get("team") or "", row.get("team") or "")
+        if not candidates and initial and len(squashed) >= CUT_NAME_SHOWN:  # cut off at "..."
+            candidates = [p for p in unique if _starts_cut_off(normalize_name(p["name"]).split(), squashed)
+                          and normalize_name(p["name"]).startswith(initial)
+                          and (not team or p["team"] == team or p["id"] in prefer)]
         if len(candidates) > 1 and positions:
             candidates = [c for c in candidates if NHL_TO_YAHOO_POS[c["position"]] in positions
                           or (c["position"] in "CLR" and set(positions) & {"C", "LW", "RW"})] or candidates
