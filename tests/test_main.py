@@ -1710,6 +1710,21 @@ def test_other_teams_players_follow_nhl_trades(monkeypatch):
     assert mine[0].team == "NJD" and [q["team"] for q in league["teams"]["Vantaa"]["players"]] == ["NJD", "BOS"]
 
 
+def test_saved_rosters_take_the_yahoo_positions_shown_since():
+    # 2026-11-25: Bellova's Granlund saved as C only; positions.json knew C,LW, but the
+    # plan read the saved roster and benched him behind two Cs (their week 17 points low).
+    from bot import daily
+    league = {"teams": {"Bellova": {"players": [
+        {"id": 8475798, "name": "Mikael Granlund", "team": "ANA", "positions": ["C"], "slot": None},
+        {"id": 5, "name": "Never Shown", "team": "BOS", "positions": ["D"], "slot": None}]}}}
+    mine = [RosterPlayer(7, "Mine", "WPG", ["RW"], "RW")]
+    known = {8475798: ["C", "LW"], 7: ["LW", "RW"]}
+    assert daily.sync_positions(mine, league, known) == ["Mine RW -> LW/RW", "Mikael Granlund C -> C/LW"]
+    assert mine[0].positions == ["LW", "RW"]
+    assert [q["positions"] for q in league["teams"]["Bellova"]["players"]] == [["C", "LW"], ["D"]]
+    assert daily.sync_positions(mine, league, known) == []
+
+
 def test_the_2026_11_01_repair_puts_back_the_players_read_as_free_agents(tmp_path):
     state = gm_state.load(tmp_path / "s.json")
     state["repairs_done"] = [name for name, _ in repairs.REPAIRS if name != "2026-11-01 league rosters oct 31"]

@@ -10,7 +10,7 @@ import logging
 from clients import dfo_lines, goalie_client, health, nhl_client
 from config.league import (MY_TEAM, TRADE_DEADLINE)
 from engine import addprice, briefing, ir, trade
-from league import draft, teams, weeks
+from league import draft, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
 from bot import board
@@ -27,6 +27,29 @@ def sync_teams(players: list, league: dict | None = None) -> None:
     for entry in (league or {}).get("teams", {}).values():
         for p in entry["players"]:
             p["team"] = team_of.get(p["id"], p["team"])
+
+
+def sync_positions(players: list, league: dict, known: dict[int, list[str]] | None = None) -> list[str]:
+    """Yahoo's position eligibility, as last shown (state/positions.json), on every
+    saved roster: a roster keeps the positions it was saved with, so one saved
+    before a screenshot showed more never learned them (2026-11-25: Bellova's
+    Granlund saved as C only, Yahoo C,LW, benched behind two Cs in every
+    projection; 17 points of theirs and 13 points of my win% missing until a matchup
+    screenshot re-saved them). Returns "Name C -> C/LW" for each change."""
+    known = positions.load() if known is None else known
+    changed = []
+    for p in players:
+        if (pos := known.get(p.id)) and pos != p.positions:
+            changed.append(f"{p.name} {'/'.join(p.positions)} -> {'/'.join(pos)}")
+            p.positions = list(pos)
+    for entry in league.get("teams", {}).values():
+        for p in entry["players"]:
+            if (pos := known.get(p["id"])) and pos != p.get("positions"):
+                changed.append(f"{p['name']} {'/'.join(p.get('positions') or [])} -> {'/'.join(pos)}")
+                p["positions"] = list(pos)
+    if changed:
+        logger.info("Yahoo positions onto saved rosters: %s", "; ".join(changed))
+    return changed
 
 
 def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, outbox: Outbox,

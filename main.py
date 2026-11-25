@@ -34,7 +34,7 @@ import logging
 from typing import Callable
 
 from bot.common import Outbox, _safe, nhl_today, remember_mine
-from bot.daily import alert_health, briefing_step, sync_teams, trade_step
+from bot.daily import alert_health, briefing_step, sync_positions, sync_teams, trade_step
 from bot.ingest import process_updates, report_relay, sync_webhook
 from bot.weekly import plan_check_step, report_step, snapshot_rosters, weekly_step
 from bot import dfo_archive, goalie_news, watch, xfp_log
@@ -108,6 +108,7 @@ def main() -> None:
 
     steps = [("updates", read_updates)] if not settings.dry_run else []
     steps += [
+        ("Yahoo positions", lambda: sync_positions(players, league)),
         ("NHL teams", lambda: sync_teams(players, league)),
         ("who's mine", lambda: remember_mine(state, players, nhl_today())),
         ("day rosters", lambda: snapshot_rosters(state, players, league, now)),
