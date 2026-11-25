@@ -4566,15 +4566,6 @@
           "team": "WSH"
         },
         {
-          "id": 8480807,
-          "name": "Mattias Samuelsson",
-          "positions": [
-            "D"
-          ],
-          "slot": "D",
-          "team": "BUF"
-        },
-        {
           "id": 8480865,
           "name": "Noah Dobson",
           "positions": [
@@ -4611,13 +4602,13 @@
           "team": "VAN"
         },
         {
-          "id": 8478872,
-          "name": "Karel Vejmelka",
+          "id": 8481519,
+          "name": "Spencer Knight",
           "positions": [
             "G"
           ],
           "slot": "G",
-          "team": "UTA"
+          "team": "CHI"
         },
         {
           "id": 8476483,
@@ -4631,13 +4622,22 @@
           "team": "PIT"
         },
         {
-          "id": 8481519,
-          "name": "Spencer Knight",
+          "id": 8478872,
+          "name": "Karel Vejmelka",
           "positions": [
             "G"
           ],
           "slot": "BN",
-          "team": "CHI"
+          "team": "UTA"
+        },
+        {
+          "id": 8480807,
+          "name": "Mattias Samuelsson",
+          "positions": [
+            "D"
+          ],
+          "slot": "D",
+          "team": "BUF"
         }
       ],
       "them": {
@@ -4661,27 +4661,30 @@
             "team": "STL"
           },
           {
-            "id": 8475170,
-            "name": "Brayden Schenn",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "NYI"
-          },
-          {
             "id": 8475798,
             "name": "Mikael Granlund",
             "positions": [
-              "C"
+              "C",
+              "LW"
             ],
             "slot": null,
             "team": "ANA"
           },
           {
+            "id": 8480801,
+            "name": "Brady Tkachuk",
+            "positions": [
+              "C",
+              "LW"
+            ],
+            "slot": null,
+            "team": "FLA"
+          },
+          {
             "id": 8480208,
             "name": "Drake Batherson",
             "positions": [
+              "LW",
               "RW"
             ],
             "slot": null,
@@ -4735,29 +4738,29 @@
             "team": "CGY"
           },
           {
-            "id": 8480801,
-            "name": "Brady Tkachuk",
-            "positions": [
-              "C",
-              "LW"
-            ],
-            "slot": null,
-            "team": "FLA"
-          },
-          {
-            "id": 8481028,
-            "name": "Martin Pospisil",
-            "positions": [
-              "C"
-            ],
-            "slot": null,
-            "team": "CGY"
-          },
-          {
             "id": 8478009,
             "name": "Ilya Sorokin",
             "positions": [
               "G"
+            ],
+            "slot": null,
+            "team": "NYI"
+          },
+          {
+            "id": 8484170,
+            "name": "Jacob Fowler",
+            "positions": [
+              "G"
+            ],
+            "slot": null,
+            "team": "MTL"
+          },
+          {
+            "id": 8475170,
+            "name": "Brayden Schenn",
+            "positions": [
+              "C",
+              "LW"
             ],
             "slot": null,
             "team": "NYI"
@@ -4772,13 +4775,13 @@
             "team": "LAK"
           },
           {
-            "id": 8484170,
-            "name": "Jacob Fowler",
+            "id": 8481028,
+            "name": "Martin Pospisil",
             "positions": [
-              "G"
+              "C"
             ],
             "slot": null,
-            "team": "MTL"
+            "team": "CGY"
           }
         ],
         "team": "Bellova"
@@ -6675,21 +6678,21 @@
     }
   },
   "live_score": {
-    "at": "2026-11-24T05:40:24+00:00",
+    "at": "2026-11-25T18:40:41+00:00",
     "goalies": [
       0.0,
-      21.95
+      7.8
     ],
     "opponent": "Bellova",
     "projected": [
-      228.55,
-      248.58
+      226.95,
+      244.41
     ],
     "score": [
-      23.85,
+      23.75,
       48.6
     ],
-    "through": "2026-11-24",
+    "through": "2026-11-25",
     "week": 9
   },
   "move_forecasts": {
@@ -7926,14 +7929,14 @@
       8482089,
       8474564,
       8477949,
-      8480807,
       8480865,
       8480145,
       8482087,
       8482447,
-      8478872,
+      8481519,
       8476483,
-      8481519
+      8478872,
+      8480807
     ]
   },
   "my_players": {
@@ -9572,6 +9575,21 @@
           "yahoo_projected": [
             228.55,
             248.58
+          ]
+        },
+        {
+          "box": [
+            23.75,
+            48.599999999999994
+          ],
+          "through": "2026-11-25",
+          "yahoo": [
+            23.75,
+            48.6
+          ],
+          "yahoo_projected": [
+            226.95,
+            244.41
           ]
         }
       ],
