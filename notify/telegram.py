@@ -34,15 +34,43 @@ class TelegramError(requests.HTTPError):
     the URL, which contains the bot token."""
 
 
-def _call(token: str, method: str, **payload) -> dict:
-    resp = requests.post(API_URL.format(token=token, method=method), json=payload, timeout=30)
-    if not resp.ok:
+# 2026-11-25 12:30 UTC: one "Connection reset by peer" on getWebhookInfo failed a whole
+# run (and turned it red). A blip like that is tried again after 2 s and 4 s, but only
+# where a repeat is harmless: reading, acknowledging, relabeling, (re)setting the webhook.
+# A send that may have reached Telegram (a reset, a read timeout, a 5xx) isn't repeated,
+# or the plan could arrive twice; one Telegram refused (429) or never connected is.
+TRIES = 3
+REPEATABLE = {"getWebhookInfo", "getUpdates", "getFile", "setWebhook", "deleteWebhook",
+              "editMessageReplyMarkup", "answerCallbackQuery"}
+
+
+def _may_repeat(method: str, exc: requests.RequestException) -> bool:
+    if method in REPEATABLE:
+        return retryable(exc)
+    return isinstance(exc, requests.ConnectTimeout) or (exc.response is not None and exc.response.status_code == 429)
+
+
+def _post(token: str, method: str, timeout: int, **kwargs) -> dict:
+    """POST a Bot API method, tried again as `_may_repeat` allows. Returns its result."""
+    for attempt in range(TRIES):
         try:
-            reason = resp.json().get("description", "")
-        except ValueError:
-            reason = resp.text[:200]
-        raise TelegramError(f"Telegram {method} failed ({resp.status_code}): {reason}", response=resp)
-    return resp.json()["result"]
+            resp = requests.post(API_URL.format(token=token, method=method), timeout=timeout, **kwargs)
+            if not resp.ok:
+                try:
+                    reason = resp.json().get("description", "")
+                except ValueError:
+                    reason = resp.text[:200]
+                raise TelegramError(f"Telegram {method} failed ({resp.status_code}): {reason}", response=resp)
+            return resp.json()["result"]
+        except requests.RequestException as exc:
+            if attempt == TRIES - 1 or not _may_repeat(method, exc):
+                raise
+            time.sleep(2 * (attempt + 1))
+    raise AssertionError("unreachable")
+
+
+def _call(token: str, method: str, **payload) -> dict:
+    return _post(token, method, 30, json=payload)
 
 
 def _keyboard(buttons: list[tuple[str, str]] | None, links: list[tuple[str, str]] | None = None) -> dict:
@@ -75,15 +103,8 @@ def send_photo(token: str, chat_id: str, png: bytes, caption: str | None = None,
         data["caption"] = caption if html else caption[:1024]
         if html:
             data["parse_mode"] = "HTML"
-    resp = requests.post(API_URL.format(token=token, method="sendPhoto"), data=data,
-                         files={"photo": ("chart.png", png, "image/png")}, timeout=60)
-    if not resp.ok:
-        try:
-            reason = resp.json().get("description", "")
-        except ValueError:
-            reason = resp.text[:200]
-        raise TelegramError(f"Telegram sendPhoto failed ({resp.status_code}): {reason}", response=resp)
-    return resp.json()["result"]["message_id"]
+    return _post(token, "sendPhoto", 60, data=data,
+                 files={"photo": ("chart.png", png, "image/png")})["message_id"]
 
 
 def get_updates(token: str, offset: int) -> list[dict]:

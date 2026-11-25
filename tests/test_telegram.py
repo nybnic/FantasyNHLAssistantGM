@@ -90,3 +90,62 @@ def test_html_messages_and_link_buttons(monkeypatch):
     telegram.send_photo("123:SECRET", "42", b"png", long, html=True)
     assert calls[2]["data"]["caption"] == long and calls[2]["data"]["parse_mode"] == "HTML"
     assert json.loads(calls[2]["data"]["reply_markup"])["inline_keyboard"] == [DASHBOARD_ROW]
+
+
+def _answers(monkeypatch, *answers):
+    """requests.post answering each call with the next of `answers` (an exception is raised)."""
+    calls, queue = [], list(answers)
+
+    def post(url, **k):
+        calls.append(url)
+        answer = queue.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    monkeypatch.setattr(telegram.requests, "post", post)
+    monkeypatch.setattr(telegram.time, "sleep", lambda s: None)
+    return calls
+
+
+RESET = requests.ConnectionError("('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))")
+
+
+def test_a_dropped_connection_on_a_read_is_tried_again(monkeypatch):
+    """2026-11-25: one reset on getWebhookInfo failed a whole run."""
+    calls = _answers(monkeypatch, RESET, _Response(502, {"ok": False}), _Response(200, {"ok": True, "result": {"url": ""}}))
+    assert telegram.webhook_info("123:SECRET") == {"url": ""}
+    assert len(calls) == 3
+
+
+def test_a_read_that_stays_down_still_fails(monkeypatch):
+    calls = _answers(monkeypatch, RESET, RESET, RESET)
+    with pytest.raises(requests.ConnectionError):
+        telegram.webhook_info("123:SECRET")
+    assert len(calls) == 3
+
+
+def test_a_refused_call_is_not_tried_again(monkeypatch):
+    calls = _answers(monkeypatch, _Response(400, {"ok": False, "description": "Bad Request: chat not found"}))
+    with pytest.raises(requests.HTTPError):
+        telegram.get_updates("123:SECRET", 0)
+    assert len(calls) == 1
+
+
+def test_a_send_that_may_have_arrived_is_not_repeated(monkeypatch):
+    """A reset or a 5xx after the message went out would post it twice."""
+    for failure in (RESET, requests.ReadTimeout("read timed out"), _Response(502, {"ok": False})):
+        calls = _answers(monkeypatch, failure, _Response(200, {"ok": True, "result": {"message_id": 9}}))
+        with pytest.raises(requests.RequestException):
+            telegram.send_message("123:SECRET", "42", "Add X")
+        assert len(calls) == 1
+
+
+def test_a_send_telegram_never_took_is_tried_again(monkeypatch):
+    ok = {"ok": True, "result": {"message_id": 9}}
+    calls = _answers(monkeypatch, requests.ConnectTimeout("connect timed out"),
+                     _Response(429, {"ok": False, "description": "Too Many Requests: retry after 1"}), _Response(200, ok))
+    assert telegram.send_message("123:SECRET", "42", "Add X") == 9
+    calls = _answers(monkeypatch, _Response(429, {"ok": False}), _Response(200, ok))
+    assert telegram.send_photo("123:SECRET", "42", b"png", "card") == 9
+    assert len(calls) == 2

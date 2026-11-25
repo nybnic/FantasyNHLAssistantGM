@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_again.outputs.page_url || steps.deploy_last.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,5 +35,23 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
+      # deploy-pages looks the artifact up the moment upload-pages-artifact has
+      # finalized it, and GitHub's API can take a few seconds to list it: "Found 0
+      # artifact(s)", "No artifacts named github-pages", 17 of the 18 red runs Nov 10-25.
+      # Nothing had gone wrong but the timing, so a miss waits and tries again.
       - id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait for the artifact to be listed
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 15
+      - id: deploy_again
+        if: steps.deploy.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait longer
+        if: steps.deploy_again.outcome == 'failure'
+        run: sleep 60
+      - id: deploy_last
+        if: steps.deploy_again.outcome == 'failure'
         uses: actions/deploy-pages@v4
