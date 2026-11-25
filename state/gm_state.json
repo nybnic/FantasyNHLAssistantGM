@@ -288,6 +288,10 @@
   "goalie_news": {
     "date": "2026-11-25",
     "starters": {
+      "ANA": {
+        "confirmed": false,
+        "goalie_name": "Laurent Brossoit"
+      },
       "BOS": {
         "confirmed": true,
         "goalie_name": "Jeremy Swayman"
@@ -361,7 +365,7 @@
         "goalie_name": "Leevi Merilainen"
       },
       "WPG": {
-        "confirmed": false,
+        "confirmed": true,
         "goalie_name": "Nico Daws"
       },
       "WSH": {
@@ -696,7 +700,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-25T18:01+00:00",
+    "at": "2026-11-25T18:31+00:00",
     "moves": [],
     "week": 9
   },
@@ -930,7 +934,7 @@
       "8476927:ice time": "2026-10-25",
       "8476931:ice time": "2026-11-20",
       "8476967:ice time": "2026-10-26",
-      "8476967:promoted": "2026-11-09",
+      "8476967:promoted": "2026-11-25",
       "8476979:ice time": "2026-10-29",
       "8476979:promoted": "2026-11-17",
       "8477015:ice time": "2026-11-17",
@@ -1602,6 +1606,12 @@
         ],
         "since": {}
       },
+      "8476422": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8476429": {
         "groups": [
           "d3",
@@ -1636,10 +1646,11 @@
       "8476455": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": "2026-11-20"
+          "f2": "2026-11-20",
+          "pp1": "2026-11-25"
         }
       },
       "8476457": {
@@ -1877,10 +1888,12 @@
       },
       "8476967": {
         "groups": [
-          "d2",
+          "d1",
           "pk2"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-25"
+        }
       },
       "8477015": {
         "groups": [
@@ -2245,12 +2258,6 @@
         ],
         "since": {}
       },
-      "8478454": {
-        "groups": [
-          "d3"
-        ],
-        "since": {}
-      },
       "8478458": {
         "groups": [
           "ir"
@@ -2260,10 +2267,12 @@
       "8478462": {
         "groups": [
           "f2",
-          "pk2"
+          "pk2",
+          "pp1"
         ],
         "since": {
-          "f2": "2026-11-20"
+          "f2": "2026-11-20",
+          "pp1": "2026-11-25"
         }
       },
       "8478472": {
@@ -2471,7 +2480,7 @@
       },
       "8479371": {
         "groups": [
-          "d3"
+          "d2"
         ],
         "since": {}
       },
@@ -2808,6 +2817,7 @@
       "8480817": {
         "groups": [
           "d2",
+          "ir",
           "pk2"
         ],
         "since": {}
@@ -3022,6 +3032,12 @@
         "groups": [
           "d2",
           "pk1"
+        ],
+        "since": {}
+      },
+      "8481550": {
+        "groups": [
+          "f4"
         ],
         "since": {}
       },
@@ -3687,7 +3703,7 @@
       },
       "8483485": {
         "groups": [
-          "d2",
+          "d3",
           "pk2"
         ],
         "since": {}
@@ -3893,7 +3909,6 @@
       },
       "8484149": {
         "groups": [
-          "f4",
           "ir"
         ],
         "since": {}
@@ -4239,11 +4254,9 @@
       "8486171": {
         "groups": [
           "f3",
-          "pp1"
+          "pp2"
         ],
-        "since": {
-          "pp1": null
-        }
+        "since": {}
       }
     },
     "log": [
@@ -7313,6 +7326,21 @@
         "value": -0.11,
         "verdict": "-11 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line."
+      },
+      {
+        "date": "2026-11-25",
+        "id": 8476967,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Brett Kulak",
+        "positions": "D",
+        "price": 0.0949,
+        "sent": false,
+        "team": "COL",
+        "value": -0.0631,
+        "verdict": "-6 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
