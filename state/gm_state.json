@@ -663,7 +663,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-26T06:19+00:00",
+    "at": "2026-11-26T09:01+00:00",
     "moves": [],
     "week": 9
   },
@@ -1010,6 +1010,7 @@
       "8480802:promoted": "2026-11-18",
       "8480829:ice time": "2026-10-25",
       "8480842:promoted": "2026-11-21",
+      "8480848:ice time": "2026-11-26",
       "8480849:promoted": "2026-11-18",
       "8480855:promoted": "2026-11-24",
       "8480878:promoted": "2026-11-06",
@@ -7263,6 +7264,21 @@
         "value": -0.1672,
         "verdict": "-17 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "Ice time 14:46 a game in his last 3, up from 11:29. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-26",
+        "id": 8480848,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Ty Dellandrea",
+        "positions": "C",
+        "price": 0.0949,
+        "sent": true,
+        "team": "SJS",
+        "value": -0.1268,
+        "verdict": "-13 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "Ice time 15:26 a game in his last 3, up from 12:05. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
