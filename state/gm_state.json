@@ -663,7 +663,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-26T06:17+00:00",
+    "at": "2026-11-26T06:19+00:00",
     "moves": [],
     "week": 9
   },
@@ -1112,6 +1112,7 @@
       "8482775:promoted": "2026-10-22",
       "8482802:ice time": "2026-11-15",
       "8482803:promoted": "2026-10-14",
+      "8482807:ice time": "2026-11-26",
       "8482993:promoted": "2026-11-23",
       "8483395:promoted": "2026-11-09",
       "8483406:promoted": "2026-10-27",
@@ -1140,6 +1141,7 @@
       "8483676:promoted": "2026-11-15",
       "8483678:ice time": "2026-11-17",
       "8483679:promoted": "2026-11-17",
+      "8483686:ice time": "2026-11-26",
       "8483731:promoted": "2026-10-22",
       "8483787:promoted": "2026-11-18",
       "8483808:promoted": "2026-11-20",
@@ -7231,6 +7233,36 @@
         "value": -0.0506,
         "verdict": "-5 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the second line, and it has held for 13 days."
+      },
+      {
+        "date": "2026-11-26",
+        "id": 8482807,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Ethan Del Mastro",
+        "positions": "D",
+        "price": 0.0949,
+        "sent": true,
+        "team": "CHI",
+        "value": -0.1265,
+        "verdict": "-13 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "Ice time 16:09 a game in his last 3, up from 12:41. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-26",
+        "id": 8483686,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Adam Engstrom",
+        "positions": "D",
+        "price": 0.0949,
+        "sent": true,
+        "team": "MTL",
+        "value": -0.1672,
+        "verdict": "-17 win-pts against the 9.5 an add costs: not yet worth one.",
+        "why": "Ice time 14:46 a game in his last 3, up from 11:29. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
