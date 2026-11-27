@@ -45,6 +45,8 @@ HELP = (
     "(/opp Team Name for another team or a playoff opponent)\n"
     "/taken Name - a free agent I suggested is on someone's roster\n"
     "/notmine Name - a player I have on your roster who was never yours: removed, and any add I counted undone\n"
+    "/dtd Name, /out Name - Yahoo shows a player of yours day-to-day or out and the dashboard doesn't yet: "
+    "counted so until his team plays (/healthy Name to undo)\n"
     "/trade - trades worth proposing. /trade Knight for Bouchard - what one trade does to you and to them "
     "(several players: Knight, Tuch for Makar)\n"
     "Tap Done on a recommendation once you've made it in Yahoo (on an add: Other drop if you dropped "
@@ -196,6 +198,8 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 taken_command(rest + "\n" + body, league, outbox)
             elif command == "/notmine":
                 notmine_command(rest + "\n" + body, state, players, outbox)
+            elif command in ("/dtd", "/out", "/healthy"):
+                tag_command(command[1:], rest + " " + body, state, players, outbox)
             elif command == "/why":
                 why_command(rest + " " + body, outbox)
             elif command == "/save":
@@ -1130,10 +1134,8 @@ def notmine_command(text: str, state: dict, players: list, outbox: Outbox) -> No
     if not text.strip():
         outbox.send("Who? Send /notmine followed by the player's name.")
         return
-    words = " " + " ".join(normalize_name(text.replace(",", " ")).split()) + " "
     mine = {p.id: p.name for p in players}
-    full = [pid for pid, name in mine.items() if f" {normalize_name(name)} " in words]
-    ids = full or [pid for pid, name in mine.items() if f" {normalize_name(name).split()[-1]} " in words]
+    ids = _named_mine(text, players)
     if not ids:
         outbox.send(f"{text.strip()}: not on the roster I have. Send /roster to see it.")
         return
@@ -1146,6 +1148,42 @@ def notmine_command(text: str, state: dict, players: list, outbox: Outbox) -> No
     if undone:
         line += f" Add{'s' if len(undone) > 1 else ''} undone: {MAX_ADDS_PER_SEASON - len(state['adds'])} left."
     outbox.send(line)
+
+
+def _named_mine(text: str, players: list) -> list[int]:
+    """My players named in `text`: by full name, else by last name."""
+    words = " " + " ".join(normalize_name(text.replace(",", " ")).split()) + " "
+    mine = {p.id: p.name for p in players}
+    full = [pid for pid, name in mine.items() if f" {normalize_name(name)} " in words]
+    return full or [pid for pid, name in mine.items() if f" {normalize_name(name).split()[-1]} " in words]
+
+
+def tag_command(status: str, text: str, state: dict, players: list, outbox: Outbox) -> None:
+    """/dtd Name, /out Name: Yahoo's injury tag on a player of mine that DFO's
+    chart doesn't show yet, read as DFO's status would be (engine/availability.py)
+    until his team has played or DFO lists him (common.team_lines). /healthy Name
+    clears it. Then the plan is checked again."""
+    if not text.strip():
+        outbox.send(f"Who? Send /{status} followed by the player's name.")
+        return
+    named = {p.id: p for p in players if p.id in _named_mine(text, players)}
+    if not named:
+        outbox.send(f"{text.strip()}: not on the roster I have. Send /roster to see it.")
+        return
+    tags = state.setdefault("injury_tags", {})
+    date = nhl_date(dt.datetime.now(dt.timezone.utc))
+    lines = []
+    for p in named.values():
+        if status == "healthy":
+            had = tags.pop(str(p.id), None)
+            lines.append(f"{p.name}: your tag cleared, DailyFaceoff's status stands." if had
+                         else f"{p.name} had no tag from you: DailyFaceoff's status stands.")
+            continue
+        tags[str(p.id)] = {"name": p.name, "team": p.team, "status": status, "date": date.isoformat()}
+        lines.append(f"{p.name}: {common.TAG_STATUS[status]}, from you, until {p.team} play next or "
+                     f"DailyFaceoff lists him (its news wins). /healthy {p.name.split()[-1]} to undo.")
+    outbox.send("\n".join(lines) + "\nChecking the plan with it.")
+    state["plan_check"] = True
 
 
 def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:

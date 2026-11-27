@@ -642,6 +642,51 @@ def test_notmine_takes_a_misread_player_off_my_roster_and_undoes_his_add(monkeyp
                     "Tavares: not on the roster I have. Send /roster to see it."]
 
 
+def test_dtd_tags_a_player_of_mine_until_his_team_plays_and_dfo_news_wins(monkeypatch, tmp_path):
+    """2026-11-27: Yahoo had Guhle day-to-day, DFO's chart nothing, so the plan had him
+    at 0.97. /dtd Guhle counts him day-to-day (DFO's curve) until MTL have played."""
+    from clients import dfo_lines
+    from clients.dfo_lines import LineInfo
+    from types import SimpleNamespace
+
+    from engine import availability
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/dtd Guhle", 9),
+                                                                       _message("/out Pionk", 10)])
+    players += [RosterPlayer(87, "Kaiden Guhle", "MTL", ["D"], "D"), RosterPlayer(45, "Neal Pionk", "WPG", ["D"], "D")]
+    fri, sat, sun = dt.date(2026, 11, 27), dt.date(2026, 11, 28), dt.date(2026, 11, 29)
+    games = {sat: [SimpleNamespace(home="MTL", away="BOS", start=dt.datetime(2026, 11, 29, 0, tzinfo=dt.timezone.utc))]}
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: games.get(d, []))
+    monkeypatch.setattr(common, "nhl_date", lambda now: fri)
+    monkeypatch.setattr(ingest, "nhl_date", lambda now: fri)
+    ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
+    assert state["injury_tags"]["87"] == {"name": "Kaiden Guhle", "team": "MTL", "status": "dtd", "date": "2026-11-27"}
+    assert state["injury_tags"]["45"]["status"] == "out" and state["plan_check"]
+    assert sent[0].startswith("Kaiden Guhle: day-to-day, from you, until MTL play next")
+    charts = {"MTL": {"kaiden guhle": LineInfo(groups={"d2"}), "other": LineInfo(groups={"f1"})},
+              "WPG": {"neal pionk": LineInfo(groups={"d1"}, injury="dtd")}}
+    monkeypatch.setattr(dfo_lines, "team_lines", lambda t: {k: LineInfo(v.groups, injury=v.injury)
+                                                           for k, v in charts.get(t, {}).items()})
+    lines = common.team_lines(["MTL", "WPG", "BOS"], state, fri)
+    assert availability.skater(lines["MTL"]["kaiden guhle"], True).prob == availability.DOUBTFUL_PLAY
+    assert lines["MTL"]["kaiden guhle"].groups == {"d2"} and lines["MTL"]["other"].injury is None
+    assert lines["WPG"]["neal pionk"].injury == "dtd"  # DFO's own news wins over the tag
+    assert lines["BOS"] == {}
+    assert common.team_lines(["MTL"], state, sat)["MTL"]["kaiden guhle"].injury == "dtd"  # MTL play tonight
+    assert common.team_lines(["MTL"], state, sun)["MTL"]["kaiden guhle"].injury is None  # they've played: lapsed
+    assert "87" not in state["injury_tags"]
+
+
+def test_healthy_clears_a_tag(monkeypatch, tmp_path):
+    settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/healthy Guhle", 9),
+                                                                       _message("/healthy Guhle", 10)])
+    players.append(RosterPlayer(87, "Kaiden Guhle", "MTL", ["D"], "D"))
+    state["injury_tags"] = {"87": {"name": "Kaiden Guhle", "team": "MTL", "status": "dtd", "date": "2026-11-27"}}
+    monkeypatch.setattr(ingest, "nhl_date", lambda now: dt.date(2026, 11, 27))
+    ingest.process_updates(settings, state, players, {"teams": {}, "taken": []}, common.Outbox(settings))
+    assert state["injury_tags"] == {}
+    assert sent[0].startswith("Kaiden Guhle: your tag cleared") and sent[1].startswith("Kaiden Guhle had no tag")
+
+
 def test_team_names_misread_in_small_text_still_find_their_team():
     league = {"teams": {t: {"players": []} for t in ("Pastasauce", "Bahelin Boys", "Bellova", "Vantaa")}}
     # As read from Nico's zoomed-out website screenshot of 2026-10-05.

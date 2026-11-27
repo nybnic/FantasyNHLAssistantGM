@@ -103,6 +103,54 @@ def _safe(fetch, *args, default=None):
         return default
 
 
+# A tag Nico sets (/dtd, /out) lapses once his team has played, or after this
+# long whatever (a judgment call: Yahoo's tags are day-to-day news).
+TAG_DAYS = 7
+TAG_STATUS = {"dtd": "day-to-day", "out": "out"}
+
+
+def tag_lapsed(tag: dict, date: dt.date) -> bool:
+    """Whether an injury tag set on tag["date"] no longer holds on `date`: his
+    team has played a game since (then he played or sat, and DFO's chart says
+    which), or it's older than TAG_DAYS."""
+    since = dt.date.fromisoformat(tag["date"])
+    if (date - since).days > TAG_DAYS:
+        return True
+    days = [since + dt.timedelta(days=i) for i in range((date - since).days)]
+    return any(tag["team"] in (g.home, g.away) for d in days for g in _safe(nhl_client.games_on, d, default=[]))
+
+
+def team_lines(team_codes, state: dict | None = None, date: dt.date | None = None) -> dict:
+    """DFO's line charts by team (clients/dfo_lines.team_lines), with Nico's
+    injury tags (state["injury_tags"], /dtd and /out: Yahoo had Guhle day-to-day
+    on 2026-11-27 while DFO listed nothing) laid over the players DFO has no
+    injury news for. DFO's own news wins, and a team whose chart didn't load
+    keeps none (an entry there would make its unlisted players look scratched).
+    Lapsed tags are dropped from the state."""
+    from dataclasses import replace
+
+    from clients import dfo_lines
+    from clients.names import normalize_name
+
+    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in team_codes}
+    if state is None or date is None:
+        return lines
+    tags = state.setdefault("injury_tags", {})
+    for pid, tag in list(tags.items()):
+        if tag_lapsed(tag, date):
+            del tags[pid]
+            continue
+        chart = lines.get(tag["team"])
+        if not chart:
+            continue
+        key = normalize_name(tag["name"])
+        info = chart.get(key)
+        if info is not None and (info.injury or "ir" in info.groups):
+            continue
+        chart[key] = replace(info, injury=tag["status"]) if info else dfo_lines.LineInfo(injury=tag["status"])
+    return lines
+
+
 def free_agents(players: list, league: dict) -> list:
     """Everyone on an NHL roster nobody in the league has, with Yahoo's
     position eligibility where a screenshot has shown it (league/positions.py)."""

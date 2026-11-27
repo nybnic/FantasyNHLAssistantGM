@@ -23,7 +23,7 @@ from league import teams, weeks
 from league import roster as roster_mod
 from model import context
 from notify import charts, snapshot, telegram
-from bot import board, messages
+from bot import board, common, messages
 from bot.common import CHART_DIR, Outbox, _safe, current_opponent, free_agents, nhl_date
 
 logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     last = weeks.days(PLAYOFF_WEEKS[-1])[-1]
     future_days = [days[-1] + dt.timedelta(days=i) for i in range(1, (last - days[-1]).days + 1)]
     future = {d: nhl_client.games_on(d) for d in future_days if weeks.week_of(d)}
-    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
+    lines = common.team_lines(nhl_client.current_teams(), state, date)  # with Nico's /dtd, /out tags
     starters = _safe(goalie_client.get_starters, date, default={})
     season_used, week_used = matchup.adds_used(state["adds"], days)
     them_roster = teams.players(league, opponent)

@@ -13,7 +13,7 @@ from engine import addprice, briefing, ir, trade
 from league import draft, positions, teams, weeks
 from league import roster as roster_mod
 from model import context
-from bot import board
+from bot import board, common
 from bot.common import NHL_TIME, Outbox, _safe, free_agents
 
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ def briefing_step(state: dict, players: list, now: dt.datetime, force: bool, out
             return
 
     ctx = build_context(date)
-    team_lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in {p.team for p in players}}
+    team_lines = common.team_lines({p.team for p in players}, state, date)  # with /dtd, /out tags
     starters = _safe(goalie_client.get_starters, date, default={})
     result = briefing.plan(players, ctx, date, games, team_lines, starters, now)
     ir_note = _new_ir_note(state, players, ctx, team_lines)
@@ -139,7 +139,7 @@ def trade_step(state: dict, players: list, league: dict, now: dt.datetime, outbo
     if not schedule:
         outbox.send("No regular-season games left to judge a trade on.")
         return
-    lines = {t: _safe(dfo_lines.team_lines, t, default={}) for t in nhl_client.current_teams()}
+    lines = common.team_lines(nhl_client.current_teams(), state, date)
     pool, ctx, rounds, price = free_agents(players, league), build_context(date), draft.rounds(), add_price()
     if parsed is None:
         outbox.send(trade.suggestions_text(trade.suggest(players, others, pool, ctx, schedule, lines, {}, rounds,

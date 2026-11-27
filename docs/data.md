@@ -17,6 +17,7 @@ stored field changes.
 | Monday, and when the plan asks | League > **Transactions**, back to the date the plan names | The other 15 rosters, free agents, how much each team streams |
 | Monday before games, then any time | My **Matchup** tab, scrolled through both rosters | Both rosters and slots, the live score (the banked points the plan uses, until the next screenshot; box scores add only the nights since), Yahoo's first forecast of my matchup, Yahoo's per-player projections |
 | Playoffs (weeks 24-26) | `/opp Team Name` | Who I'm playing |
+| When Yahoo tags a player of mine DTD or O and the dashboard doesn't show it | `/dtd Name`, `/out Name` (`/healthy Name` undoes) | His play odds as DFO's status would set them (`state.injury_tags`, laid over DFO's chart by `bot/common.team_lines`) until his team has played or DFO lists him; DFO's news wins |
 
 ### Sending as many screenshots as you like
 Duplicates and extras are safe; each kind is checked before it changes anything:

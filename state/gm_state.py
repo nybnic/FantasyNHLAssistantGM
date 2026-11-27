@@ -46,6 +46,9 @@ plan's numbers are in board.json (bot/board.py). The keys:
   week_pts, ahead_week_pts, later_wins, price}); moves_checked: each move I made
   ("key@first day") checked over its first three weeks against the team just
   before it, and against that forecast (bot/weekly.check_moves)
+- injury_tags: Yahoo's injury tags Nico sent (/dtd, /out), by player id ({name, team,
+  status: "dtd" or "out", date: the NHL date sent}), laid over DFO's chart until his
+  team has played (bot/common.team_lines)
 - ir_noted: the IR moves and returns the briefing has mentioned ("id:slot",
   "id:back"), so each is said once while it holds
 - results: per fantasy week, the plans sent ("first", "last": {at, expected,
@@ -191,6 +194,7 @@ def load(path: Path = STATE_FILE) -> dict:
     state.setdefault("move_forecasts", {})
     state.setdefault("moves_checked", {})
     state.setdefault("ir_noted", [])
+    state.setdefault("injury_tags", {})
     state.setdefault("health_alerts", {})
     state.setdefault("seen_mine", {})
     state.setdefault("league_adds", {})
