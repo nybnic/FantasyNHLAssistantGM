@@ -112,14 +112,14 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
     # point standings"); box scores only add the nights since it. Before, a screenshot
     # counted only on its own day, so on 21 Nov the box scores alone (cut short by the
     # stats API) banked 3-0 against Yahoo's 149-120.
-    anchored = bool(live and live.get("week") == week and live.get("opponent") == opponent
-                    and live.get("through") and live["through"] <= date.isoformat())
-    is_live = anchored and live["through"] == date.isoformat()
+    anchor = yahoo_anchor(state, week, opponent, date)
+    anchored = anchor is not None
+    is_live = anchored and anchor is live and live["through"] == date.isoformat()
     box = None
     if anchored:
-        through = dt.date.fromisoformat(live["through"])
-        mine = _banked_since(live["score"][0], live["goalies"][0], players, ctx, days, through, my_days)
-        theirs = _banked_since(live["score"][1], live["goalies"][1], them_roster, ctx, days, through, their_days)
+        through = dt.date.fromisoformat(anchor["through"])
+        mine = _banked_since(anchor["score"][0], anchor["goalies"][0], players, ctx, days, through, my_days)
+        theirs = _banked_since(anchor["score"][1], anchor["goalies"][1], them_roster, ctx, days, through, their_days)
         projected = (live["projected"] or None) if is_live else None
     else:
         mine = matchup._so_far(roster_mod.active(players), ctx, days, my_days)
@@ -156,6 +156,30 @@ def week_inputs(date: dt.date, week: int, players: list, league: dict, state: di
                                        (them_roster, their_days, sum(theirs[:2])),
                                        checkpoints=state["results"].get(str(week), {}).get("live", []))),
     )
+
+
+def yahoo_anchor(state: dict, week: int, opponent: str | None, date: dt.date) -> dict | None:
+    """The Yahoo score the banked points start from ({"through", "score", "goalies"}):
+    the latest matchup screenshot's, when it says which days its score covers; else
+    the latest one of this week that did (results[week]["live"]). A screenshot taken
+    while games are on covers part of a day (through None), so it can't anchor, but
+    it mustn't throw Yahoo's score away either (2026-11-27: one at 20:33 Helsinki,
+    mid-games, dropped the anchor of 89.85-108.0 and the box scores alone banked
+    103.9-108.0)."""
+    live = state["live_score"]
+    if not (live and live.get("week") == week and live.get("opponent") == opponent):
+        live = None
+    if live and live.get("through") and live["through"] <= date.isoformat():
+        return live
+    entry = state["results"].get(str(week)) or {}
+    if entry.get("opponent") != opponent:
+        return None  # the checkpoints are another matchup's
+    marks = [c for c in entry.get("live", []) if c.get("through") and c.get("yahoo")
+             and c["through"] <= date.isoformat()]
+    if not marks:
+        return None
+    last = max(marks, key=lambda c: c["through"])
+    return {"through": last["through"], "score": list(last["yahoo"]), "goalies": [None, None]}
 
 
 def race_days(ctx, days: list[dt.date], date: dt.date, *sides, checkpoints: list[dict] = ()) -> dict:

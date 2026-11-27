@@ -1082,6 +1082,35 @@ def test_a_days_old_matchup_screenshot_still_sets_the_banked_score(monkeypatch, 
     assert [oct_1, oct_2] in asked and not wk.live and wk.live_check is None and wk.yahoo_projected is None
 
 
+def test_a_mid_games_screenshot_keeps_the_last_yahoo_score_as_the_anchor(monkeypatch, tmp_path):
+    """2026-11-27: a matchup screenshot taken while games were on (through None) made
+    the box scores alone bank 103.9 against Yahoo's 89.85. The week's last dated Yahoo
+    score (results[week]["live"]) stays the anchor; box scores add the days since."""
+    from engine import matchup
+    _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
+    state["live_score"] = {"week": 1, "opponent": "Bahelin Boys", "through": None, "score": [96.15, 109.4],
+                           "projected": [220.0, 235.0], "goalies": [1.4, 0.0], "at": "2026-10-02T18:33+00:00"}
+    state["results"]["1"] = {"opponent": "Bahelin Boys", "live": [
+        {"through": "2026-09-30", "yahoo": [23.75, 48.6], "box": [23.75, 48.6]},
+        {"through": "2026-10-01", "yahoo": [89.85, 108.0], "box": [103.9, 108.0]}]}
+    monkeypatch.setattr(nhl_client, "games_on", lambda d: [])
+    monkeypatch.setattr(nhl_client, "current_teams", lambda: [])
+    monkeypatch.setattr(nhl_client, "current_rosters", lambda: [])
+    monkeypatch.setattr(goalie_client, "get_starters", lambda d: {})
+    monkeypatch.setattr(matchup, "_so_far", lambda roster, ctx, days, history=None:
+                        (1.0 * len([d for d in days if d < ctx.today]), 0.5, 1))
+
+    class Ctx:
+        today = dt.date(2026, 10, 2)
+    league = {"teams": {}, "taken": []}
+    wk = weekly.week_inputs(dt.date(2026, 10, 2), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
+    assert wk.so_far == (89.85 - 0.5 + 1.0, 0.5 + 0.5, 2)  # Yahoo's through Wed, goalies split by box; Thu by box
+    assert not wk.live and wk.live_check is None
+    state["results"]["1"]["opponent"] = "Viktorios"  # another matchup's checkpoints don't count
+    wk = weekly.week_inputs(dt.date(2026, 10, 2), 1, players, league, state, lambda d: Ctx(), "Bahelin Boys")
+    assert wk.so_far == (1.0 * 3, 0.5, 1)
+
+
 def test_with_this_weeks_adds_spent_free_agents_join_on_monday(monkeypatch, tmp_path):
     from engine import matchup
     _, state, players, _, _ = _setup(monkeypatch, tmp_path, [])
