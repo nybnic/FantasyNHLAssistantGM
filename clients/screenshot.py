@@ -46,6 +46,17 @@ _HUE_SLOTS = [((190, 250), "C"), ((140, 190), "TEAL"), ((60, 100), "G"), ((25, 6
 _MIN_VIVID_SHARE = 0.005
 _MIN_VIVID = 8
 _POINTS = re.compile(r"^-?\d+\.\d\d$")
+# Yahoo's injury tags, shown beside a player's name (roadmap item 10, 2026-11-27).
+INJURY_TAGS = ("DTD", "O", "IR", "IR-LT", "IR-NR", "SUSP", "NA")
+# A tag OCR ran into the name: "K. GUHLE DTD", "M. SAMUELSS...DTD", or before it, "O B. SCHENN"
+# (a mock-up of the opponent's side, the badge left of the name; "O.EKMAN-LARSSON" is a name).
+_GLUED_TAG = re.compile(r"(?:\.{2,}|…|\s)\s*(DTD|IR-LT|IR-NR|IR|SUSP|NA|O)$")
+_LEADING_TAG = re.compile(r"^(DTD|IR-LT|IR-NR|IR|SUSP|NA|O)\s*(?=[A-Z]\s?\.\s?[A-Z])")
+# A red badge on the name line that OCR didn't read: about square is a one-letter "O"
+# ("DTD" is twice as wide). A judgment call from a mock-up (2026-11-27: RapidOCR read
+# "DTD" in its own box every time and a lone "O" never), not yet checked on Yahoo's own.
+_RED_TAG_MIN = 0.12  # of the name line's height squared, in red pixels
+_O_MAX_ASPECT = 1.3
 _SCORE_PAIR = re.compile(r"^(-?\d+\.\d\d)\s*/\s*(-?\d+\.\d\d)$")  # the scrolled-down header
 _CENTRE_SLOT = re.compile(r"^(LW|RW|BN|IR\+?|C|D|G)$")
 _TX_TYPE = re.compile(r"^(Add/Drop|Add|Drop|Trade)$", re.I)
@@ -114,14 +125,14 @@ def read(image: bytes, now: dt.datetime | None = None) -> dict:
         return {"kind": "standings", "rows": _standings(lines, img.width)}
     if any("transactions" in t.replace(" ", "").lower() for _, _, _, t in lines[:8]):
         return {"kind": "transactions", "rows": _transactions(img, lines)}
-    if _is_matchup(lines, img.width):
-        return {"kind": "matchup", **_matchup(img, lines)}
-    return {"kind": "team", "rows": _roster_rows(img, lines)}
+    if _is_matchup(_split_tags(lines), img.width):
+        return {"kind": "matchup", **_matchup(img, _split_tags(lines))}
+    return {"kind": "team", "rows": _roster_rows(img, _split_tags(lines))}
 
 
 def read_roster(image: bytes) -> list[dict]:
     img = _open(image)
-    return _roster_rows(img, _read_lines(img))
+    return _roster_rows(img, _split_tags(_read_lines(img)))
 
 
 def _open(image: bytes) -> Image.Image:
@@ -143,8 +154,52 @@ def _roster_rows(img: Image.Image, lines: list) -> list[dict]:
         if slot == "TEAL":  # a wing badge whose letters didn't read: a one-wing player's wing
             wings = [p for p in positions if p in ("LW", "RW")]
             slot = wings[0] if len(wings) == 1 else None
-        rows.append({"slot": slot, "name": f"{m.group(1)}. {m.group(2)}", "team": team, "positions": positions})
+        tag = next((_tag_text(t) for tx, ty, _, t in lines if tx >= x and -0.4 * h < ty - y < 0.9 * h
+                    and _tag_text(t)), None)
+        rows.append({"slot": slot, "name": f"{m.group(1)}. {m.group(2)}", "team": team, "positions": positions,
+                     "tag": tag})
     return rows
+
+
+def _tag_text(text: str) -> str | None:
+    """A text line that is one of Yahoo's injury tags ("0" read for "O")."""
+    t = text.replace(" ", "").upper()
+    t = "O" if t == "0" else t
+    return t if t in INJURY_TAGS else None
+
+
+def split_tag(name: str) -> tuple[str, str | None]:
+    """("K. GUHLE", "DTD") from a name line with a tag run into it, else (name, None)."""
+    if (m := _LEADING_TAG.match(name)) and _NAME.match(name[m.end():]):
+        return name[m.end():], m.group(1)
+    m = _GLUED_TAG.search(name)
+    if m and _NAME.match(name[:m.start()]):
+        return name[:m.start()].rstrip(". …"), m.group(1)
+    return name, None
+
+
+def _split_tags(lines: list) -> list:
+    """The lines with each tag run into a name made a line of its own, at the name's place."""
+    out = []
+    for x, y, h, t in lines:
+        name, tag = split_tag(t)
+        out += [(x, y, h, name), (x, y, h, tag)] if tag else [(x, y, h, t)]
+    return out
+
+
+def _red_badge(img: Image.Image, x0: float, x1: float, y: float, h: float) -> str | None:
+    """"O" when a red, about square badge sits on the name line between x0 and x1
+    (a tag OCR didn't read), "?" for a wider one, None without one."""
+    top, bottom = int(max(0, y - 0.15 * h)), int(y + 1.05 * h)
+    band = np.asarray(img.crop((int(max(0, x0)), top, int(min(img.width, x1)), bottom))).astype(int)
+    if band.size == 0:
+        return None
+    r, g, b = band[..., 0], band[..., 1], band[..., 2]
+    ys, xs = np.nonzero((r > 150) & (r - g > 80) & (r - b > 80))
+    if len(xs) < _RED_TAG_MIN * h * h:
+        return None
+    width, height = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+    return "O" if width <= _O_MAX_ASPECT * height else "?"
 
 
 def _pos_team(text: str) -> tuple[list[str], str]:
@@ -167,7 +222,8 @@ def _matchup(img: Image.Image, lines: list) -> dict:
     week or None (scrolled out of view), "totals": the Matchup Totals view
     (each player's numbers are the week's, not a day's),
     "rows": [{"slot", "mine": player or None, "theirs": player or None}]},
-    a player being {"name", "team", "positions", "points", "projected", "status"}.
+    a player being {"name", "team", "positions", "points", "projected", "status",
+    "tag": Yahoo's injury tag (INJURY_TAGS) or None}.
     Mine is the left column: the app puts your team first."""
     w = img.width
     names = [(x, y, h, m) for x, y, h, t in lines if (m := _NAME.match(t)) and (x < 0.15 * w or x > 0.5 * w)]
@@ -196,9 +252,19 @@ def _matchup(img: Image.Image, lines: list) -> dict:
         # past 2 and three "No Game"s went unread, so the night's score looked unfinished (2026-10-17).
         status = next((t for x, ly, _, t in lines if on_side(x) and 1.75 * nh < ly - ny < 3.5 * nh
                        and not _POINTS.match(t) and not _pos_team(t)[0]), None)
+        # Its tag: a box of its own level with the name (the centre column's slot badges aside),
+        # else a red badge there that OCR didn't read, clear of the points (red when negative).
+        in_side = (lambda x: x < 0.4 * w) if side == "left" else (lambda x: x > 0.58 * w)
+        tag = next((_tag_text(t) for x, ly, _, t in lines if in_side(x) and -0.4 * nh < ly - ny < 0.9 * nh
+                    and _tag_text(t)), None)
+        if tag is None:
+            nums = [(x, lh, t) for x, ly, lh, t in lines if in_column(x) and -h < ly - y < 2 * h and _POINTS.match(t)]
+            span = ((0, min((x for x, _, _ in nums), default=0.34 * w) - 2) if side == "left" else
+                    (max([0.64 * w] + [x + 0.65 * lh * len(t) for x, lh, t in nums]), w))
+            tag = {"O": "O"}.get(_red_badge(img, *span, ny, nh))
         return {"name": f"{name.group(1)}. {name.group(2)}", "team": team, "positions": positions,
                 "points": numbers[0] if numbers else None,
-                "projected": numbers[1] if len(numbers) > 1 else None, "status": status}
+                "projected": numbers[1] if len(numbers) > 1 else None, "status": status, "tag": tag}
 
     rows = []
     for y, h in anchors:

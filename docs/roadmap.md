@@ -86,17 +86,11 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
      (a report change, not the engine's).
    - Phase 4: guardrails: done (see the log).
    Done when: Nico OKs each on his phone.
-10. **Yahoo's injury tags as a second source** (Nico, 2026-11-27: Guhle DTD in Yahoo, the bot still had
-   him at 0.97). Injury status comes only from DFO's line chart (`clients/dfo_lines.py` `injuryStatus`), and a
-   screenshot's DTD / O / IR tag is read only to match the cut-off name (`league/parse.py`). An input fix
-   (engine freeze exempt): read the tag from team and matchup screenshots, store it with its time, and
-   let it stand in for DFO's `injury` until DFO updates or the player's next game is played ("O" ->
-   out, "DTD" -> day-to-day, the same curves as DFO's; no new constants). Rostered players of either team.
-   Done when: a screenshot showing "DTD" beside a player drops his play odds to `DOUBTFUL_PLAY` on the
-   next run's Board (tested), and the screenshot reply says it ("Guhle: day-to-day, from Yahoo").
-   Meanwhile (2026-11-27): `/dtd Name`, `/out Name` set the same by hand (`bot/common.team_lines`); the
-   screenshot read would fill `state.injury_tags` the same way. Needs a screenshot with a tag to see how the
-   OCR reads the badge (the archive in the data repo has Samuelsson's, 2026-11-25).
+10. **Yahoo's injury tags as a second source**: built 2026-11-27 (see the log). Left: confirm the read on
+   Nico's real screenshots. The first matchup screenshot with a tag should say "X: day-to-day, from Yahoo";
+   if it doesn't, the OCR lines of that screenshot (the data repo's archive) show how the badge came out.
+   The one-letter "O" is read off a red, about square badge (`screenshot._red_badge`), a judgment call
+   from a mock-up only: check its hue and size on a real one.
 
 ### Questions for the replay (engine freeze, Nico 2026-10-21)
 A rule changes only with replay, backtest or calibration evidence (CLAUDE.md, Rules). Questions about
@@ -431,3 +425,4 @@ before the first game, the new week at 0.00: Yahoo's forecast for all 16 teams).
 | 2026-11-25 | Saved rosters take Yahoo's positions (Nico: "Why did my odds drop so drastically this evening", 53% -> 33%): 53 -> 48 at 17:01 UTC was Samuelsson day-to-day (0% tonight, 2 games -> 1), 48 -> 35 at 18:41 Bellova's matchup screenshot, 35 -> 33 Fowler confirmed for tonight. The screenshot changed no player, only positions: Bellova's saved roster had Granlund C only (Yahoo C,LW, in `state/positions.json` since at least Nov 23), Schenn C, Batherson RW, so Granlund sat behind Crosby and Thomas in every projection, 16.9 of their points missing (expect 216 -> 233). Every run now copies the eligibility shown onto every saved roster (`bot.daily.sync_positions`; still off: Draisaitl on Viktorios, Pospisil on Bellova). Input fix | |
 | 2026-11-27 | A mid-games screenshot keeps Yahoo's score (Nico: "Why has the bot 103.9?? My latest screenshot is the latest"): one taken at 20:33 Helsinki, games on, can't date its score (through None), so the run dropped Yahoo's 89.85-108.0 and banked the box scores alone, 103.9-108.0 (the box scores' best-lineup hindsight is 14 over Yahoo's Wednesday). Now the week's last dated Yahoo score stays the anchor (`weekly.yahoo_anchor`, results[week]["live"]); the third time after Oct 15 and 17, which were repaired by hand | (this commit) |
 | 2026-11-27 | `/dtd Name`, `/out Name`, `/healthy Name` (Nico: "shouldn't Guhle be marked as DTD in the bot"): Yahoo had him day-to-day, DFO's chart nothing, so the plan had him at 0.97. A tag counts as DFO's status would (no new constants) until his team has played or DFO lists him (DFO's news wins), `bot/common.team_lines` for the plan, the briefing and /trade | (this commit) |
+| 2026-11-27 | Yahoo's injury tags read from screenshots and pasted pages (roadmap item 10, Nico: "Build roadmap item 10"): a tag in its own box level with the name or run into either end of it ("DTD", "IR-LT", "O B. SCHENN"), and on matchups a red, about square badge OCR didn't read as "O" (RapidOCR on a mock-up matchup read "DTD" every time, a lone "O" never; red negative points kept out of the search, all 8 players right). Both teams' tags go into `state.injury_tags` (from Yahoo; shown untagged later clears one, Nico's /dtd stays) and the reply names them. Not yet checked on a real Yahoo screenshot | (this commit) |

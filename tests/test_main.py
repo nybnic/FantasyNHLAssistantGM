@@ -676,6 +676,33 @@ def test_dtd_tags_a_player_of_mine_until_his_team_plays_and_dfo_news_wins(monkey
     assert "87" not in state["injury_tags"]
 
 
+def test_a_matchup_screenshots_injury_tags_count_for_both_teams(monkeypatch, tmp_path):
+    """Roadmap item 10: Yahoo's tags beside the names (2026-11-27: Guhle DTD in Yahoo, nothing
+    on DFO's chart) go into the injury tags, mine and the opponent's, and the reply says so."""
+    rows = [_row(i) for i in range(12)]
+    rows[0]["mine"]["tag"], rows[1]["theirs"]["tag"], rows[2]["mine"]["tag"] = "DTD", "O", "NA"
+    state, players, league, sent = _matchup(monkeypatch, tmp_path, {"all": _matchup_shot(rows)})
+    tags = state["injury_tags"]
+    assert {k: (t["name"], t["status"], t["source"]) for k, t in tags.items()} == {
+        "200": ("Paul Ason", "dtd", "yahoo"), "301": ("Rick " + OPP_NAMES[1], "out", "yahoo")}
+    assert "Paul Ason: day-to-day, from Yahoo." in sent[-1] and f"Rick {OPP_NAMES[1]}: out, from Yahoo." in sent[-1]
+
+
+def test_a_player_shown_untagged_loses_yahoos_tag_but_keeps_nicos():
+    from league.parse import Found
+    state = {"injury_tags": {
+        "1": {"name": "A", "team": "BOS", "status": "dtd", "date": "2026-11-26", "source": "yahoo"},
+        "2": {"name": "B", "team": "BOS", "status": "dtd", "date": "2026-11-26"},  # /dtd B
+        "3": {"name": "C", "team": "BOS", "status": "dtd", "date": "2026-11-26", "source": "yahoo"}}}
+    found = Found(players=[RosterPlayer(1, "A", "BOS", ["C"]), RosterPlayer(2, "B", "BOS", ["C"]),
+                           RosterPlayer(3, "C", "BOS", ["C"])], injury={3: "O"})
+    lines = ingest.note_yahoo_tags(state, found, dt.date(2026, 11, 27))
+    assert lines == ["A: no longer tagged in Yahoo.", "C: out, from Yahoo."]
+    assert set(state["injury_tags"]) == {"2", "3"} and state["injury_tags"]["3"]["date"] == "2026-11-27"
+    assert ingest.note_yahoo_tags(state, found, dt.date(2026, 11, 28)) == []  # the same again: nothing new to say
+    assert state["injury_tags"]["3"]["date"] == "2026-11-28"  # but still tagged today
+
+
 def test_healthy_clears_a_tag(monkeypatch, tmp_path):
     settings, state, players, sent, _ = _setup(monkeypatch, tmp_path, [_message("/healthy Guhle", 9),
                                                                        _message("/healthy Guhle", 10)])

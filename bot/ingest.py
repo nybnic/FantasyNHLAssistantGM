@@ -217,7 +217,7 @@ def process_updates(settings: Settings, state: dict, players: list, league: dict
                 if team == MY_TEAM:
                     update_my_roster(text, state, players, league, outbox)
                 else:
-                    update_team(team, text, league, outbox)
+                    update_team(team, text, league, outbox, state)
     if "team" in new_screenshots:
         finish_screenshots(state, players, league, outbox)
     if "matchup" in new_screenshots:
@@ -850,11 +850,14 @@ def finish_matchup(state: dict, players: list, league: dict, outbox: Outbox, sav
     if kept:
         lines.append(kept_line(kept))
     lines += count_new_players(state, league, before, players, date)
+    tag_lines = note_yahoo_tags(state, found, date)
     if opponent and theirs:
         found_them = parse.match_shown_names(theirs, registry, {p.id for p in teams.players(league, opponent)})
         learn_positions(found_them.players, found_them.tagged)
         lines += save_opponent(league, opponent, found_them.players, date)
+        tag_lines += note_yahoo_tags(state, found_them, date)
         found.problems += found_them.problems
+    lines += tag_lines
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     state["plan_check"] = True  # the score, or the plan if it changed, right after
@@ -932,7 +935,7 @@ def finish_screenshots(state: dict, players: list, league: dict, outbox: Outbox,
     if team == MY_TEAM:
         apply_my_roster(found, state, players, league, outbox, keep_unseen=True)
     else:
-        save_team(team, found, league, outbox)
+        save_team(team, found, league, outbox, state)
 
 
 def apply_add(players: list, rec: dict) -> None:
@@ -968,7 +971,7 @@ def opp_command(team_arg: str, paste: str, state: dict, league: dict, outbox: Ou
             outbox.send("Which team? Send /opp Team Name, with their Yahoo team page pasted below it.")
             return
     if paste.strip():
-        update_team(team, paste, league, outbox)
+        update_team(team, paste, league, outbox, state)
     else:
         state["awaiting"] = team
         outbox.send(f"OK - now send screenshots of {team}'s Yahoo team page, or paste its text.")
@@ -1007,6 +1010,7 @@ def apply_my_roster(found: parse.Found, state: dict, players: list, league: dict
     if kept:
         lines.append(kept_line(kept))
     lines += count_new_players(state, league, before, players, common.nhl_today())
+    lines += note_yahoo_tags(state, found, nhl_date(dt.datetime.now(dt.timezone.utc)))
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     outbox.send("\n".join(lines) + "\n\n" + roster_mod.describe(players))
@@ -1066,15 +1070,15 @@ def count_new_players(state: dict, league: dict, before: set[int], players: list
     return lines
 
 
-def update_team(team: str, paste: str, league: dict, outbox: Outbox) -> None:
+def update_team(team: str, paste: str, league: dict, outbox: Outbox, state: dict | None = None) -> None:
     found = parse.find_players(paste, parse.registry())
     if not found.players:
         outbox.send(f"I couldn't find any players in that. {team}'s roster is unchanged.")
         return
-    save_team(team, found, league, outbox)
+    save_team(team, found, league, outbox, state)
 
 
-def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox) -> None:
+def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox, state: dict | None = None) -> None:
     learn_positions(found.players, found.tagged)
     for p in found.players:
         p.slot = None  # other teams are assumed to set their best lineup
@@ -1084,6 +1088,8 @@ def save_team(team: str, found: parse.Found, league: dict, outbox: Outbox) -> No
     lines = [f"{team}: {len(found.players)} players saved."]
     lines += [f"  {p.name} ({p.team}, {'/'.join(p.positions)})" for p in found.players]
     lines += traded_back(team, before, found.players, owner, league)
+    if state is not None:
+        lines += note_yahoo_tags(state, found, nhl_date(dt.datetime.now(dt.timezone.utc)))
     if found.problems:
         lines.append("Couldn't place: " + "; ".join(found.problems))
     lines.append("Send /week for the updated forecast.")
@@ -1184,6 +1190,33 @@ def tag_command(status: str, text: str, state: dict, players: list, outbox: Outb
                      f"DailyFaceoff lists him (its news wins). /healthy {p.name.split()[-1]} to undo.")
     outbox.send("\n".join(lines) + "\nChecking the plan with it.")
     state["plan_check"] = True
+
+
+# Yahoo's tags, as the injury status they stand for (engine/availability.py). "NA" (not
+# active: the minors) is none of DFO's statuses, so it's left to DFO's chart.
+YAHOO_TAG_STATUS = {"DTD": "dtd", "O": "out", "IR": "out", "IR-LT": "out", "IR-NR": "out", "SUSP": "out"}
+
+
+def note_yahoo_tags(state: dict, found: parse.Found, date: dt.date) -> list[str]:
+    """Yahoo's injury tags on the players a screenshot or pasted page showed (roadmap
+    item 10): each goes into state["injury_tags"] as /dtd and /out would put it, from
+    Yahoo. A player shown without one loses a tag Yahoo gave him earlier; tags Nico set
+    himself stay until /healthy or they lapse. Returns what changed, to tell Nico."""
+    tags = state.setdefault("injury_tags", {})
+    lines = []
+    for p in found.players:
+        status = YAHOO_TAG_STATUS.get(found.injury.get(p.id) or "")
+        had = tags.get(str(p.id))
+        if status:
+            if not had or had.get("source") == "yahoo" or had["status"] != status:
+                if not had or had["status"] != status:
+                    lines.append(f"{p.name}: {common.TAG_STATUS[status]}, from Yahoo.")
+                tags[str(p.id)] = {"name": p.name, "team": p.team, "status": status, "date": date.isoformat(),
+                                   "source": "yahoo"}
+        elif had and had.get("source") == "yahoo":
+            del tags[str(p.id)]
+            lines.append(f"{p.name}: no longer tagged in Yahoo.")
+    return lines
 
 
 def _warn_other_chat(sender: str, chat_id: str, token: str) -> None:

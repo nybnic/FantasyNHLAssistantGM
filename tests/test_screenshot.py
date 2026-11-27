@@ -33,9 +33,9 @@ def test_rows_pair_each_name_with_the_line_below(monkeypatch):
     image.save(buf, "PNG")
     rows = screenshot.read_roster(buf.getvalue())
     assert rows == [
-        {"slot": "C", "name": "M. SCHEIFELE", "team": "WPG", "positions": ["C"]},
-        {"slot": "C", "name": "B. SCHENN", "team": "", "positions": []},
-        {"slot": "C", "name": "A. TUCH", "team": "WSH", "positions": ["LW", "RW"]},
+        {"slot": "C", "name": "M. SCHEIFELE", "team": "WPG", "positions": ["C"], "tag": None},
+        {"slot": "C", "name": "B. SCHENN", "team": "", "positions": [], "tag": None},
+        {"slot": "C", "name": "A. TUCH", "team": "WSH", "positions": ["LW", "RW"], "tag": None},
     ]
 
 
@@ -80,9 +80,9 @@ def test_a_matchup_reads_both_sides_the_slot_between_them_and_the_score(monkeypa
     assert [r["slot"] for r in shot["rows"]] == ["D", "BN"]  # badge colour, then the badge's own text
     first = shot["rows"][0]
     assert first["mine"] == {"name": "E. LINDELL", "team": "DAL", "positions": ["D"], "points": 0.0, "projected": 6.87,
-                             "status": None}
+                             "status": None, "tag": None}
     assert first["theirs"] == {"name": "O. EKMAN-LARSSON", "team": "TOR", "positions": ["D"], "points": 2.9,
-                               "projected": 10.64, "status": "Final (W)2-1 vs NYI"}
+                               "projected": 10.64, "status": "Final (W)2-1 vs NYI", "tag": None}
     assert shot["rows"][1]["theirs"]["name"] == "L. THOMPSON"  # "G.WSH" below it isn't a player
 
 
@@ -115,7 +115,8 @@ def test_a_team_page_is_not_a_matchup(monkeypatch):
     buf = io.BytesIO()
     Image.new("RGB", (1179, 2556)).save(buf, "PNG")
     assert screenshot.read(buf.getvalue()) == {
-        "kind": "team", "rows": [{"slot": "C", "name": "M. SCHEIFELE", "team": "WPG", "positions": ["C"]}]}
+        "kind": "team", "rows": [{"slot": "C", "name": "M. SCHEIFELE", "team": "WPG", "positions": ["C"],
+                                   "tag": None}]}
 
 
 def test_a_small_coloured_letter_still_counts_at_telegram_size():
@@ -432,3 +433,70 @@ def test_the_websites_matchup_header_reads_yahoos_original_projection(monkeypatc
     shot = _shot(monkeypatch, WEB_MATCHUP_LINES)
     assert shot == {"kind": "web_matchup", "teams": ("Nico'sGroovy Team", "BahelinBoys"), "score": (87.4, 114.25),
                     "orig": (188.2, 165.01), "live": (175.62, 166.68), "week": None}
+
+
+def test_injury_tags_beside_a_name_are_read_on_the_team_page(monkeypatch):
+    # Roadmap item 10 (2026-11-27, Guhle DTD in Yahoo): RapidOCR reads "DTD" in a box of its
+    # own level with the name (a mock-up of the badge); sometimes run into the name.
+    lines = [(358, 587, 40, "K. GUHLE"), (520, 592, 30, "DTD"), (360, 636, 40, "D\ufffdMTL"),
+             (358, 787, 40, "N. PIONK DTD"), (360, 836, 40, "D\ufffdWPG"),
+             (358, 987, 40, "M. SAMUELSS...O"), (360, 1036, 40, "D\ufffdBUF"),
+             (358, 1187, 40, "A. TUCH"), (360, 1236, 40, "LW,RW\ufffdWSH")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_slot", lambda img, y, h: "D")
+    buf = io.BytesIO()
+    Image.new("RGB", (1179, 2556)).save(buf, "PNG")
+    assert [(r["name"], r["tag"]) for r in screenshot.read_roster(buf.getvalue())] == [
+        ("K. GUHLE", "DTD"), ("N. PIONK", "DTD"), ("M. SAMUELSS", "O"), ("A. TUCH", None)]
+
+
+def test_injury_tags_on_a_matchup_from_text_or_an_unread_red_badge(monkeypatch):
+    # Left: a "DTD" box; right: a tag run into the name; second row: a red, about square
+    # badge OCR didn't read ("O"), and the centre column's "IR" slot is no player's tag.
+    from PIL import ImageDraw
+    lines = [(325, 740, 33, "0.00"), (532, 740, 34, "2.90"), (37, 743, 27, "K. GUHLE"), (190, 745, 20, "DTD"),
+             (644, 742, 26, "O.EKMAN-LARSSON DTD"), (36, 777, 31, "D\ufffdMTL"), (330, 780, 34, "6.87"),
+             (533, 780, 32, "10.64"), (784, 781, 24, "D\ufffdTOR"),
+             (324, 1341, 33, "0.00"), (533, 1341, 33, "0.00"), (37, 1343, 27, "Q.HUGHES"),
+             (717, 1344, 27, "L.THOMPSON"), (443, 1376, 29, "IR"), (37, 1380, 28, "D\ufffdVAN"),
+             (775, 1380, 27, "G.WSH"), (319, 1381, 33, "16.45"), (534, 1381, 32, "10.94")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_badge_colour", lambda badge: "D")
+    image = Image.new("RGB", (922, 2000), (18, 18, 20))
+    ImageDraw.Draw(image).rectangle((180, 1346, 203, 1369), fill=(215, 40, 40))  # Hughes's "O"
+    buf = io.BytesIO()
+    image.save(buf, "PNG")
+    rows = screenshot.read(buf.getvalue())["rows"]
+    assert [(r["mine"]["name"], r["mine"]["tag"], r["theirs"]["name"], r["theirs"]["tag"]) for r in rows] == [
+        ("K. GUHLE", "DTD", "O. EKMAN-LARSSON", "DTD"), ("Q. HUGHES", "O", "L. THOMPSON", None)]
+
+
+def test_a_wide_red_badge_alone_is_no_tag():
+    from PIL import ImageDraw
+    image = Image.new("RGB", (922, 200), (18, 18, 20))
+    ImageDraw.Draw(image).rectangle((180, 46, 226, 69), fill=(215, 40, 40))  # "DTD"-wide, unread
+    assert screenshot._red_badge(image, 0, 320, 43, 27) == "?"
+    assert screenshot._red_badge(image, 0, 170, 43, 27) is None
+
+
+def test_a_tag_run_into_either_end_of_a_name_is_split_off():
+    assert screenshot.split_tag("O B. SCHENN") == ("B. SCHENN", "O")  # the badge left of the name (a mock-up)
+    assert screenshot.split_tag("M. SAMUELSS...DTD") == ("M. SAMUELSS", "DTD")
+    assert screenshot.split_tag("K. GUHLE IR-LT") == ("K. GUHLE", "IR-LT")
+    assert screenshot.split_tag("O.EKMAN-LARSSON") == ("O.EKMAN-LARSSON", None)  # an initial, no tag
+    assert screenshot.split_tag("J. NEIGHBOURS") == ("J. NEIGHBOURS", None)
+
+
+def test_negative_points_in_red_are_no_tag(monkeypatch):
+    # A mock-up's opponent at -1.00, in red, ran into the span searched for a badge and read as "O".
+    from PIL import ImageDraw
+    lines = [(325, 740, 33, "0.00"), (528, 742, 28, "-1.00"), (37, 743, 27, "K. GUHLE"),
+             (741, 745, 23, "B. CLARKE"), (36, 777, 31, "D�MTL"), (740, 777, 21, "D�NYR")]
+    monkeypatch.setattr(screenshot, "_read_lines", lambda img: lines)
+    monkeypatch.setattr(screenshot, "_badge_colour", lambda badge: "D")
+    image = Image.new("RGB", (922, 1000), (18, 18, 20))
+    ImageDraw.Draw(image).rectangle((560, 746, 598, 768), fill=(230, 60, 60))  # the "00" of -1.00
+    buf = io.BytesIO()
+    image.save(buf, "PNG")
+    row = screenshot.read(buf.getvalue())["rows"][0]
+    assert (row["mine"]["tag"], row["theirs"]["name"], row["theirs"]["tag"]) == (None, "B. CLARKE", None)

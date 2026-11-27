@@ -29,6 +29,9 @@ _TEAM_POS = re.compile(r"(?<![A-Z])([A-Z]{2,3})\s-\s((?:C|LW|RW|D|G)(?:,(?:C|LW|
 _SLOT = r"(BN|IR\+|IR|LW|RW|C|D|G)"
 _SLOT_LINE = re.compile(rf"^\s*{_SLOT}\s*$")
 _SLOT_LEAD = re.compile(rf"^\s*{_SLOT}\s")
+# Yahoo's injury tag on a pasted team page: its own line under the player's ("DTD", "IR-LT").
+# Not a bare "IR": that's also the next row's slot line.
+_TAG_LINE = re.compile(r"^\s*(DTD|O|IR-LT|IR-NR|SUSP|NA)\s*$")
 
 
 def registry() -> list[dict]:
@@ -49,6 +52,7 @@ class Found:
     players: list[RosterPlayer] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)  # lines that looked like a player but didn't resolve
     tagged: set[int] = field(default_factory=set)  # ids whose positions came from Yahoo's "TEAM - POS"
+    injury: dict[int, str] = field(default_factory=dict)  # id -> Yahoo's injury tag shown ("DTD", "O", ...)
 
 
 def _index(players: list[dict]) -> dict[str, dict[int, dict]]:
@@ -64,7 +68,12 @@ def find_players(text: str, players: list[dict]) -> Found:
     found = Found()
     seen: set[int] = set()
     slot_above = None
+    last_found = None  # the player of the line before: a tag line under it is his
     for line in text.splitlines():
+        if (injury := _TAG_LINE.match(line)) and last_found is not None:
+            found.injury.setdefault(last_found, injury.group(1))
+            last_found = None
+            continue
         if _SLOT_LINE.match(line):
             slot_above = _SLOT_LINE.match(line).group(1)
             continue
@@ -80,7 +89,10 @@ def find_players(text: str, players: list[dict]) -> Found:
         if not hits and tag:
             found.problems.append(f"{line.strip()[:60]}: no player by that name")
         if not hits:
+            if line.strip():
+                last_found = None
             continue
+        last_found = None
         lead = _SLOT_LEAD.match(line)
         slot, slot_above = (lead.group(1) if lead else slot_above), None
         for _, _, name in sorted(hits):
@@ -108,6 +120,7 @@ def find_players(text: str, players: list[dict]) -> Found:
                 id=c["id"], name=c["name"], team=c["team"],
                 positions=positions or [NHL_TO_YAHOO_POS[c["position"]]], slot=slot,
             ))
+            last_found = c["id"] if len(hits) == 1 else None
             slot = None  # a slot belongs to the first player on its line
     return found
 
@@ -168,6 +181,8 @@ def match_shown_names(rows: list[dict], players: list[dict], prefer: set[int] = 
             found.problems.append(f"{row['name']} ({team or '?'}): {why}")
             continue
         c = candidates[0]
+        if row.get("tag"):
+            found.injury.setdefault(c["id"], row["tag"])
         if seen := next((p for p in found.players if p.id == c["id"]), None):
             # The same row in two overlapping screenshots: one cut off at the edge may lack its slot or tag.
             seen.slot = seen.slot or row.get("slot") or None

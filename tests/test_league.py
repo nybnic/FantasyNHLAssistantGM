@@ -89,6 +89,7 @@ def test_team_page_slots_come_from_the_row_start_or_the_line_above():
     found = parse.find_players(text, REGISTRY)
     assert [(p.id, p.slot) for p in found.players] == [(1, "C"), (4, "BN"), (5, "IR+"), (6, None)]
     assert found.tagged == {1, 4, 5}
+    assert found.injury == {1: "DTD", 5: "IR-LT"}  # each tag line is the player's above it
 
 
 def test_pasted_roster_replaces_mine_and_says_what_changed():
@@ -198,6 +199,14 @@ def test_a_last_name_cut_off_matches_on_its_start():
                 {"id": 4, "name": "Gabriel Samuelsson", "team": "NYR", "position": "D"}]
     found = parse.match_shown_names([_row("M. SAMUELSS", "BUF", ["D"], "D"), _row("J. ERIKSS", "MIN")], registry)
     assert [(p.id, p.slot) for p in found.players] == [(1, "D"), (2, "BN")] and not found.problems
+
+
+def test_a_shown_injury_tag_goes_with_the_player_matched():
+    registry = [{"id": 1, "name": "Mattias Samuelsson", "team": "BUF", "position": "D"},
+                {"id": 2, "name": "Kaiden Guhle", "team": "MTL", "position": "D"}]
+    rows = [{**_row("M. SAMUELSS", "BUF", ["D"], "D"), "tag": "DTD"}, _row("K. GUHLE", "MTL", ["D"], "D"),
+            {**_row("K. GUHLE", "MTL", ["D"], "D"), "tag": "O"}]  # an overlapping screenshot shows his tag
+    assert parse.match_shown_names(rows, registry).injury == {1: "DTD", 2: "O"}
     # Too little shown, another team's player, or two who fit: not guessed.
     found = parse.match_shown_names([_row("M. SAM", "BUF"), _row("M. SAMUELSS", "TOR"), _row("G. SAMUELSS")], registry)
     assert found.players == [] and len(found.problems) == 3
