@@ -86,6 +86,14 @@ once), the dashboard (HTML, its screenshot as the Telegram image) for evaluating
      (a report change, not the engine's).
    - Phase 4: guardrails: done (see the log).
    Done when: Nico OKs each on his phone.
+10. **Yahoo's injury tags as a second source** (Nico, 2026-11-27: Guhle DTD in Yahoo, the bot still had
+   him at 0.97). Injury status comes only from DFO's line chart (`clients/dfo_lines.py` `injuryStatus`), and a
+   screenshot's DTD / O / IR tag is read only to match the cut-off name (`league/parse.py`). An input fix
+   (engine freeze exempt): read the tag from team and matchup screenshots, store it with its time, and
+   let it stand in for DFO's `injury` until DFO updates or the player's next game is played ("O" ->
+   out, "DTD" -> day-to-day, the same curves as DFO's; no new constants). Rostered players of either team.
+   Done when: a screenshot showing "DTD" beside a player drops his play odds to `DOUBTFUL_PLAY` on the
+   next run's Board (tested), and the screenshot reply says it ("Guhle: day-to-day, from Yahoo").
 
 ### Questions for the replay (engine freeze, Nico 2026-10-21)
 A rule changes only with replay, backtest or calibration evidence (CLAUDE.md, Rules). Questions about
