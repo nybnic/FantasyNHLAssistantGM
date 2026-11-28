@@ -592,7 +592,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-28T05:07+00:00",
+    "at": "2026-11-28T09:01+00:00",
     "moves": [],
     "week": 9
   },
@@ -799,7 +799,7 @@
       "8476441:promoted": "2026-11-23",
       "8476448:promoted": "2026-11-23",
       "8476455:promoted": "2026-11-20",
-      "8476458:promoted": "2026-11-14",
+      "8476458:promoted": "2026-11-28",
       "8476461:promoted": "2026-10-22",
       "8476463:ice time": "2026-11-11",
       "8476463:promoted": "2026-11-25",
@@ -815,7 +815,8 @@
       "8476873:ice time": "2026-11-02",
       "8476878:ice time": "2026-11-13",
       "8476878:promoted": "2026-11-13",
-      "8476882:promoted": "2026-11-12",
+      "8476882:promoted": "2026-11-28",
+      "8476892:ice time": "2026-11-28",
       "8476892:promoted": "2026-11-05",
       "8476902:ice time": "2026-11-06",
       "8476902:promoted": "2026-11-20",
@@ -978,7 +979,7 @@
       "8481593:promoted": "2026-10-16",
       "8481596:promoted": "2026-11-09",
       "8481601:ice time": "2026-10-31",
-      "8481601:promoted": "2026-11-14",
+      "8481601:promoted": "2026-11-28",
       "8481618:promoted": "2026-11-19",
       "8481624:promoted": "2026-11-13",
       "8481641:promoted": "2026-10-24",
@@ -1034,6 +1035,7 @@
       "8482660:promoted": "2026-11-20",
       "8482665:promoted": "2026-11-22",
       "8482679:promoted": "2026-11-25",
+      "8482700:ice time": "2026-11-28",
       "8482703:promoted": "2026-11-27",
       "8482705:promoted": "2026-11-13",
       "8482713:promoted": "2026-11-26",
@@ -1096,7 +1098,7 @@
       "8484234:promoted": "2026-11-25",
       "8484241:promoted": "2026-11-04",
       "8484242:promoted": "2026-11-16",
-      "8484386:ice time": "2026-11-08",
+      "8484386:ice time": "2026-11-28",
       "8484387:promoted": "2026-10-17",
       "8484388:promoted": "2026-11-13",
       "8484390:promoted": "2026-11-22",
@@ -4171,51 +4173,6 @@
     },
     "log": [
       {
-        "date": "2026-11-14",
-        "id": 8476458,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Ryan Strome",
-        "positions": "C",
-        "price": 0.1115,
-        "sent": false,
-        "team": "CGY",
-        "value": -0.1705,
-        "verdict": "-17 win-pts against the 11.2 an add costs: not yet worth one.",
-        "why": "DFO moved up to the second line, and it has held for 1 days."
-      },
-      {
-        "date": "2026-11-14",
-        "id": 8481601,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Simon Holmstrom",
-        "positions": "LW/RW",
-        "price": 0.1115,
-        "sent": false,
-        "team": "NYI",
-        "value": -0.0754,
-        "verdict": "-8 win-pts against the 11.2 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 6 days."
-      },
-      {
-        "date": "2026-11-14",
-        "id": 8484803,
-        "kinds": [
-          "promoted"
-        ],
-        "name": "Trevor Connelly",
-        "positions": "LW",
-        "price": 0.1115,
-        "sent": false,
-        "team": "VGK",
-        "value": -0.0812,
-        "verdict": "-8 win-pts against the 11.2 an add costs: not yet worth one.",
-        "why": "DFO moved up to the first line, and it has held for 6 days."
-      },
-      {
         "date": "2026-11-15",
         "id": 8484806,
         "kinds": [
@@ -7159,6 +7116,96 @@
         "value": -0.0369,
         "verdict": "-4 win-pts against the 9.5 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8476892,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Colton Parayko",
+        "positions": "D",
+        "price": 0.1042,
+        "sent": true,
+        "team": "STL",
+        "value": 0.0274,
+        "verdict": "+3 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "Ice time 23:52 a game in his last 3, up from 19:34. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8484386,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Dmitri Simashev",
+        "positions": "D",
+        "price": 0.1042,
+        "sent": true,
+        "team": "UTA",
+        "value": -0.0506,
+        "verdict": "-5 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "Ice time 22:33 a game in his last 3, up from 18:23. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8482700,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Nolan Allan",
+        "positions": "D",
+        "price": 0.1042,
+        "sent": true,
+        "team": "SJS",
+        "value": -0.0572,
+        "verdict": "-6 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "Ice time 18:16 a game in his last 3, up from 14:40. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8476458,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Ryan Strome",
+        "positions": "C",
+        "price": 0.1042,
+        "sent": false,
+        "team": "CGY",
+        "value": -0.1814,
+        "verdict": "-18 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line, and it has held for 3 days."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8476882,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Teuvo Teravainen",
+        "positions": "LW/RW",
+        "price": 0.1042,
+        "sent": false,
+        "team": "CHI",
+        "value": -0.1373,
+        "verdict": "-14 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the second line and the first power play, and it has held for 1 days."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8481601,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Simon Holmstrom",
+        "positions": "LW/RW",
+        "price": 0.1042,
+        "sent": false,
+        "team": "NYI",
+        "value": -0.1074,
+        "verdict": "-11 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 20 days."
       }
     ]
   },
