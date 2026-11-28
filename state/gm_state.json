@@ -246,43 +246,51 @@
   "daily_plan": "2026-11-26",
   "dfo_archived": "2026-11-27",
   "goalie_news": {
-    "date": "2026-11-27",
+    "date": "2026-11-28",
     "starters": {
       "ANA": {
         "confirmed": true,
-        "goalie_name": "Laurent Brossoit"
+        "goalie_name": "Lukas Dostal"
       },
-      "BOS": {
+      "CAR": {
         "confirmed": true,
-        "goalie_name": "Jeremy Swayman"
+        "goalie_name": "Pyotr Kochetkov"
       },
-      "BUF": {
+      "DAL": {
+        "confirmed": true,
+        "goalie_name": "Jake Oettinger"
+      },
+      "FLA": {
         "confirmed": false,
-        "goalie_name": "Ukko-Pekka Luukkonen"
+        "goalie_name": "Akira Schmid"
       },
-      "CBJ": {
+      "MTL": {
         "confirmed": true,
-        "goalie_name": "Jet Greaves"
-      },
-      "EDM": {
-        "confirmed": true,
-        "goalie_name": "Tristan Jarry"
+        "goalie_name": "Jakub Dobes"
       },
       "NJD": {
         "confirmed": true,
-        "goalie_name": "Jake Allen"
+        "goalie_name": "Connor Hellebuyck"
       },
       "NYI": {
         "confirmed": true,
-        "goalie_name": "Semyon Varlamov"
+        "goalie_name": "Ilya Sorokin"
+      },
+      "PHI": {
+        "confirmed": true,
+        "goalie_name": "Joseph Woll"
       },
       "TOR": {
         "confirmed": true,
-        "goalie_name": "Anthony Stolarz"
+        "goalie_name": "Sergei Bobrovsky"
+      },
+      "UTA": {
+        "confirmed": false,
+        "goalie_name": "Sebastian Cossa"
       },
       "WPG": {
-        "confirmed": false,
-        "goalie_name": "Stuart Skinner"
+        "confirmed": true,
+        "goalie_name": "Nico Daws"
       }
     }
   },
@@ -592,7 +600,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-28T10:00+00:00",
+    "at": "2026-11-28T17:00+00:00",
     "moves": [],
     "week": 9
   },
@@ -972,6 +980,7 @@
       "8481538:ice time": "2026-10-20",
       "8481538:promoted": "2026-11-17",
       "8481546:ice time": "2026-11-26",
+      "8481550:promoted": "2026-11-28",
       "8481553:promoted": "2026-11-27",
       "8481554:promoted": "2026-11-26",
       "8481563:ice time": "2026-11-06",
@@ -1134,6 +1143,7 @@
       "8484958:promoted": "2026-11-26",
       "8484999:ice time": "2026-11-21",
       "8484999:promoted": "2026-10-13",
+      "8485010:promoted": "2026-11-28",
       "8485388:promoted": "2026-11-20",
       "8485391:promoted": "2026-11-26",
       "8485395:promoted": "2026-10-18",
@@ -1288,14 +1298,15 @@
       "8475167": {
         "groups": [
           "d3",
-          "pk2",
-          "pp2"
+          "ir",
+          "pk2"
         ],
         "since": {}
       },
       "8475171": {
         "groups": [
-          "d2",
+          "d3",
+          "pk1",
           "pp2"
         ],
         "since": {}
@@ -1370,13 +1381,6 @@
         ],
         "since": {}
       },
-      "8475690": {
-        "groups": [
-          "d2",
-          "pk1"
-        ],
-        "since": {}
-      },
       "8475692": {
         "groups": [
           "f2",
@@ -1388,20 +1392,19 @@
       },
       "8475722": {
         "groups": [
-          "f2",
+          "f3",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-11-27"
-        }
+        "since": {}
       },
       "8475726": {
         "groups": [
           "f2",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f2": "2026-11-21"
+          "f2": "2026-11-21",
+          "pp1": "2026-11-28"
         }
       },
       "8475745": {
@@ -1474,7 +1477,8 @@
       },
       "8476374": {
         "groups": [
-          "f4"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -1629,13 +1633,14 @@
       },
       "8476826": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
       "8476853": {
         "groups": [
-          "d3",
+          "d2",
           "pk2",
           "pp2"
         ],
@@ -1643,11 +1648,9 @@
       },
       "8476854": {
         "groups": [
-          "d1"
+          "d3"
         ],
-        "since": {
-          "d1": null
-        }
+        "since": {}
       },
       "8476869": {
         "groups": [
@@ -1682,11 +1685,10 @@
         "groups": [
           "f2",
           "pk2",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f2": "2026-11-27",
-          "pp1": "2026-11-27"
+          "f2": "2026-11-27"
         }
       },
       "8476889": {
@@ -1751,7 +1753,7 @@
       "8476925": {
         "groups": [
           "f2",
-          "pk2"
+          "pk1"
         ],
         "since": {
           "f2": null
@@ -1767,7 +1769,7 @@
       "8476931": {
         "groups": [
           "d1",
-          "pk1"
+          "pk2"
         ],
         "since": {
           "d1": null
@@ -1823,7 +1825,6 @@
       },
       "8477365": {
         "groups": [
-          "d3",
           "pk1"
         ],
         "since": {}
@@ -1910,7 +1911,8 @@
       },
       "8477497": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
@@ -1944,6 +1946,12 @@
           "pp1": "2026-11-17"
         }
       },
+      "8477541": {
+        "groups": [
+          "d3"
+        ],
+        "since": {}
+      },
       "8477810": {
         "groups": [
           "d2"
@@ -1959,7 +1967,7 @@
       },
       "8477903": {
         "groups": [
-          "f4"
+          "ir"
         ],
         "since": {}
       },
@@ -2031,7 +2039,8 @@
       },
       "8478013": {
         "groups": [
-          "d3"
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
@@ -2054,9 +2063,12 @@
       },
       "8478047": {
         "groups": [
-          "f3"
+          "f3",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-28"
+        }
       },
       "8478057": {
         "groups": [
@@ -2080,15 +2092,23 @@
         ],
         "since": {}
       },
+      "8478147": {
+        "groups": [
+          "f4"
+        ],
+        "since": {}
+      },
       "8478233": {
         "groups": [
-          "f3"
+          "f3",
+          "pp2"
         ],
         "since": {}
       },
       "8478366": {
         "groups": [
-          "f4"
+          "f4",
+          "pp2"
         ],
         "since": {}
       },
@@ -2114,11 +2134,11 @@
       },
       "8478438": {
         "groups": [
-          "f2",
+          "f1",
           "pp1"
         ],
         "since": {
-          "f2": "2026-11-24",
+          "f1": "2026-11-28",
           "pp1": "2026-10-19"
         }
       },
@@ -2261,6 +2281,7 @@
       "8478874": {
         "groups": [
           "f1",
+          "pk2",
           "pp2"
         ],
         "since": {
@@ -2350,12 +2371,10 @@
       },
       "8479369": {
         "groups": [
-          "d1",
+          "d2",
           "pk2"
         ],
-        "since": {
-          "d1": "2026-11-27"
-        }
+        "since": {}
       },
       "8479371": {
         "groups": [
@@ -2372,7 +2391,8 @@
       },
       "8479390": {
         "groups": [
-          "f1"
+          "f1",
+          "pp2"
         ],
         "since": {
           "f1": "2026-11-27"
@@ -2386,15 +2406,15 @@
       },
       "8479442": {
         "groups": [
-          "d3",
-          "pk2"
+          "d2",
+          "pk1"
         ],
         "since": {}
       },
       "8479520": {
         "groups": [
           "f4",
-          "pk1"
+          "pk2"
         ],
         "since": {}
       },
@@ -2419,7 +2439,8 @@
       },
       "8479661": {
         "groups": [
-          "f4"
+          "f4",
+          "pk2"
         ],
         "since": {}
       },
@@ -2590,7 +2611,8 @@
       "8480185": {
         "groups": [
           "f3",
-          "pk1"
+          "pk1",
+          "pp2"
         ],
         "since": {}
       },
@@ -2632,8 +2654,7 @@
       },
       "8480355": {
         "groups": [
-          "f4",
-          "pk1"
+          "f4"
         ],
         "since": {}
       },
@@ -2729,7 +2750,7 @@
       "8480848": {
         "groups": [
           "f3",
-          "pk2"
+          "pk1"
         ],
         "since": {}
       },
@@ -2756,7 +2777,7 @@
       "8480891": {
         "groups": [
           "d1",
-          "pk1"
+          "pk2"
         ],
         "since": {
           "d1": "2026-11-26"
@@ -2838,6 +2859,14 @@
         ],
         "since": {}
       },
+      "8481219": {
+        "groups": [
+          "d1"
+        ],
+        "since": {
+          "d1": null
+        }
+      },
       "8481481": {
         "groups": [
           "f4",
@@ -2847,9 +2876,11 @@
       },
       "8481522": {
         "groups": [
-          "f3"
+          "f2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-28"
+        }
       },
       "8481523": {
         "groups": [
@@ -2893,16 +2924,18 @@
       "8481546": {
         "groups": [
           "d2",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
       "8481550": {
         "groups": [
-          "f4"
+          "f3",
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-28"
+        }
       },
       "8481553": {
         "groups": [
@@ -2980,7 +3013,8 @@
       "8481606": {
         "groups": [
           "d2",
-          "pk2"
+          "pk2",
+          "pp2"
         ],
         "since": {}
       },
@@ -3018,13 +3052,14 @@
       },
       "8481708": {
         "groups": [
-          "d3"
+          "d3",
+          "pp2"
         ],
         "since": {}
       },
       "8481711": {
         "groups": [
-          "f4",
+          "f3",
           "pp2"
         ],
         "since": {}
@@ -3102,7 +3137,6 @@
       "8482088": {
         "groups": [
           "f4",
-          "pk2",
           "pp1"
         ],
         "since": {
@@ -3112,8 +3146,7 @@
       "8482092": {
         "groups": [
           "f3",
-          "pk1",
-          "pp2"
+          "pk1"
         ],
         "since": {}
       },
@@ -3178,11 +3211,10 @@
         "groups": [
           "f1",
           "pk2",
-          "pp1"
+          "pp2"
         ],
         "since": {
-          "f1": "2026-11-14",
-          "pp1": "2026-11-27"
+          "f1": "2026-11-14"
         }
       },
       "8482165": {
@@ -3207,20 +3239,19 @@
       "8482175": {
         "groups": [
           "f1",
-          "pp2"
+          "pp1"
         ],
         "since": {
-          "f1": "2026-11-27"
+          "f1": "2026-11-27",
+          "pp1": "2026-11-28"
         }
       },
       "8482177": {
         "groups": [
-          "f2",
-          "pk2"
+          "f3",
+          "pk1"
         ],
-        "since": {
-          "f2": "2026-11-27"
-        }
+        "since": {}
       },
       "8482178": {
         "groups": [
@@ -3233,12 +3264,10 @@
       },
       "8482201": {
         "groups": [
-          "f2",
+          "f4",
           "pp2"
         ],
-        "since": {
-          "f2": "2026-11-27"
-        }
+        "since": {}
       },
       "8482245": {
         "groups": [
@@ -3373,7 +3402,7 @@
       "8482700": {
         "groups": [
           "d2",
-          "pk2"
+          "pk1"
         ],
         "since": {}
       },
@@ -3389,8 +3418,7 @@
       "8482705": {
         "groups": [
           "f3",
-          "pk2",
-          "pp2"
+          "pk2"
         ],
         "since": {}
       },
@@ -3455,7 +3483,7 @@
       },
       "8482807": {
         "groups": [
-          "d3",
+          "d2",
           "pk2"
         ],
         "since": {}
@@ -3468,8 +3496,7 @@
       },
       "8482859": {
         "groups": [
-          "f4",
-          "pk1"
+          "f4"
         ],
         "since": {}
       },
@@ -3494,7 +3521,7 @@
       },
       "8482953": {
         "groups": [
-          "f3"
+          "f4"
         ],
         "since": {}
       },
@@ -3540,13 +3567,16 @@
         "groups": [
           "f3",
           "pk2",
-          "pp2"
+          "pp1"
         ],
-        "since": {}
+        "since": {
+          "pp1": "2026-11-28"
+        }
       },
       "8483460": {
         "groups": [
-          "d4"
+          "d4",
+          "pp2"
         ],
         "since": {}
       },
@@ -3568,8 +3598,7 @@
       },
       "8483466": {
         "groups": [
-          "d3",
-          "pp2"
+          "d3"
         ],
         "since": {}
       },
@@ -3602,7 +3631,6 @@
       "8483489": {
         "groups": [
           "f3",
-          "pk2",
           "pp2"
         ],
         "since": {}
@@ -3749,10 +3777,12 @@
       },
       "8483787": {
         "groups": [
-          "f4",
+          "f2",
           "pp2"
         ],
-        "since": {}
+        "since": {
+          "f2": "2026-11-28"
+        }
       },
       "8483833": {
         "groups": [
@@ -3769,8 +3799,7 @@
       },
       "8484136": {
         "groups": [
-          "f3",
-          "pp2"
+          "f3"
         ],
         "since": {}
       },
@@ -3827,13 +3856,6 @@
           "f2": "2026-11-27"
         }
       },
-      "8484201": {
-        "groups": [
-          "f4",
-          "pp2"
-        ],
-        "since": {}
-      },
       "8484220": {
         "groups": [
           "d3"
@@ -3842,7 +3864,7 @@
       },
       "8484221": {
         "groups": [
-          "f3",
+          "f4",
           "pp2"
         ],
         "since": {}
@@ -3938,16 +3960,17 @@
       },
       "8484770": {
         "groups": [
-          "f4",
+          "f2",
           "pp1"
         ],
         "since": {
+          "f2": "2026-11-28",
           "pp1": "2026-11-11"
         }
       },
       "8484783": {
         "groups": [
-          "d2",
+          "d3",
           "pk2",
           "pp2"
         ],
@@ -4046,9 +4069,11 @@
       },
       "8485010": {
         "groups": [
-          "d3"
+          "d1"
         ],
-        "since": {}
+        "since": {
+          "d1": "2026-11-28"
+        }
       },
       "8485388": {
         "groups": [
@@ -7278,6 +7303,36 @@
         "value": -0.1894,
         "verdict": "-19 win-pts against the 10.4 an add costs: not yet worth one.",
         "why": "DFO moved up to the first line, and it has held for 1 days. Ice time 11:09 a game in his last 3, up from 7:33. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8481550,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Adam Beckman",
+        "positions": "LW",
+        "price": 0.1042,
+        "sent": false,
+        "team": "COL",
+        "value": -0.1592,
+        "verdict": "-16 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first power play."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8485010,
+        "kinds": [
+          "promoted"
+        ],
+        "name": "Gregor Biber",
+        "positions": "D",
+        "price": 0.1042,
+        "sent": false,
+        "team": "UTA",
+        "value": -0.0918,
+        "verdict": "-9 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the top D pair."
       }
     ]
   },
