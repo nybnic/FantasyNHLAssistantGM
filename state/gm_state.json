@@ -592,7 +592,7 @@
   },
   "plan": {
     "activations": [],
-    "at": "2026-11-28T09:30+00:00",
+    "at": "2026-11-28T10:00+00:00",
     "moves": [],
     "week": 9
   },
@@ -908,6 +908,8 @@
       "8479369:promoted": "2026-11-20",
       "8479378:promoted": "2026-11-24",
       "8479385:promoted": "2026-11-12",
+      "8479390:ice time": "2026-11-28",
+      "8479390:promoted": "2026-11-28",
       "8479398:promoted": "2026-11-04",
       "8479442:ice time": "2026-10-21",
       "8479525:promoted": "2026-10-19",
@@ -981,6 +983,7 @@
       "8481596:promoted": "2026-11-09",
       "8481601:ice time": "2026-10-31",
       "8481601:promoted": "2026-11-28",
+      "8481607:ice time": "2026-11-28",
       "8481618:promoted": "2026-11-19",
       "8481624:promoted": "2026-11-13",
       "8481641:promoted": "2026-10-24",
@@ -7254,6 +7257,37 @@
         "value": -0.0961,
         "verdict": "-10 win-pts against the 10.4 an add costs: not yet worth one.",
         "why": "Ice time 16:24 a game in his last 3, up from 13:19. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8481607,
+        "kinds": [
+          "ice time"
+        ],
+        "name": "Albert Johansson",
+        "positions": "D",
+        "price": 0.1042,
+        "sent": true,
+        "team": "DET",
+        "value": -0.0976,
+        "verdict": "-10 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "Ice time 19:37 a game in his last 3, up from 15:29. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
+      },
+      {
+        "date": "2026-11-28",
+        "id": 8479390,
+        "kinds": [
+          "promoted",
+          "ice time"
+        ],
+        "name": "Taylor Raddysh",
+        "positions": "RW",
+        "price": 0.1042,
+        "sent": true,
+        "team": "NYR",
+        "value": -0.1894,
+        "verdict": "-19 win-pts against the 10.4 an add costs: not yet worth one.",
+        "why": "DFO moved up to the first line, and it has held for 1 days. Ice time 11:09 a game in his last 3, up from 7:33. The model follows ice time slowly: jumps like this run ~0.3 pts a game above it the next week."
       }
     ]
   },
